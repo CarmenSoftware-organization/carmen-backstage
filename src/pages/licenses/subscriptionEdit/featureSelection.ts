@@ -29,6 +29,23 @@ export function moduleOf(key: string): string {
 }
 
 /**
+ * คีย์ของ interface — ขายผ่านใบ INF (กลุ่ม `kind='interface'`) ทางเดียว ตรงกับ
+ * `isInterfaceFeatureKey` ของ backend (license-feature-group.service.ts) ที่ปฏิเสธคีย์ข้ามชนิด
+ */
+export function isInterfaceFeatureKey(key: string): boolean {
+  return key === 'interface' || key.startsWith('interface.');
+}
+
+/**
+ * คีย์นี้ใส่ในกลุ่มชนิดนี้ได้ไหม — กลุ่ม standard ไม่รับคีย์ interface, กลุ่ม interface รับแค่คีย์ interface
+ * gateway อ่านสิทธิ์จากสัญญาหลักด้วยการกรอง*ชนิดกลุ่ม* ไม่ใช่คีย์ คีย์ interface ที่หลุดเข้ากลุ่ม
+ * standard จึงกลายเป็นสิทธิ์ interface ผ่านสัญญาหลักทันที ข้ามใบ INF
+ */
+export function keyFitsGroupKind(key: string, kind: 'standard' | 'interface'): boolean {
+  return isInterfaceFeatureKey(key) === (kind === 'interface');
+}
+
+/**
  * ลำดับเดียวกับ backend เป๊ะ: `sort_order asc` แล้วต่อด้วย `key asc`
  * (`subscription.service.ts:588-591`) — ไม่มี tiebreaker แปลว่าสอง feature ที่ `sort_order` เท่ากัน
  * สลับที่กันเองได้ทุก render และไม่ตรงกับที่ server ส่งมา (review M11) · เทียบ `key` ด้วย `<`/`>`

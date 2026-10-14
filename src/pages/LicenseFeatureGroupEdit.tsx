@@ -6,6 +6,7 @@ import licenseFeatureGroupService from '../services/licenseFeatureGroupService';
 import { FeatureSelectionCard } from './licenses/subscriptionEdit/FeatureSelectionCard';
 import { GroupCompositionPanel } from './licenses/GroupCompositionPanel';
 import {
+  keyFitsGroupKind,
   selectedChildCount,
   selectedModuleCount,
 } from './licenses/subscriptionEdit/featureSelection';
@@ -226,6 +227,11 @@ const LicenseFeatureGroupEdit: React.FC = () => {
     value: string | boolean | LicenseFeatureGroupKind,
   ) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // สลับชนิด (ทำได้แค่ตอนสร้าง) → ทิ้งคีย์ที่ไม่ตรงชนิดใหม่ ไม่งั้นมันค้างอยู่โดยมองไม่เห็นแล้วไป 400 ตอนบันทึก
+    if (name === 'kind') {
+      const kind = value as LicenseFeatureGroupKind;
+      setFeatureKeys((prev) => prev.filter((k) => keyFitsGroupKind(k, kind)));
+    }
     setFieldErrors((prev) => {
       if (!prev[name]) return prev;
       const next = { ...prev };
@@ -341,17 +347,24 @@ const LicenseFeatureGroupEdit: React.FC = () => {
    * สองยอดที่แผงสัดส่วนกระทบกัน — คิดจากแค็ตตาล็อกก้อนเดียวกับที่ตัวเลือกใช้ ตัวเลขบนหัวหน้า
    * จึงเป็นตัวเลขเดียวกับที่ป้าย `n/total` ในแต่ละแถวรวมกันได้ ไม่ใช่คนละแหล่ง
    */
+  // แค็ตตาล็อกเฉพาะคีย์ที่ชนิดของกลุ่มนี้รับได้ — กลุ่ม standard ไม่เห็นหมวด Interface เลย ส่วนกลุ่ม
+  // interface เห็นแค่หมวด Interface (backend ปฏิเสธคีย์ข้ามชนิดด้วย ตัวเลือกนี้แค่ไม่ชวนให้ติ๊ก)
+  const kindCatalog = useMemo(
+    () => catalog.catalog.filter((f) => keyFitsGroupKind(f.key, formData.kind)),
+    [catalog.catalog, formData.kind],
+  );
+
   const childCount = useMemo(
-    () => selectedChildCount(featureKeys, catalog.catalog),
-    [featureKeys, catalog.catalog],
+    () => selectedChildCount(featureKeys, kindCatalog),
+    [featureKeys, kindCatalog],
   );
   const moduleCount = useMemo(
-    () => selectedModuleCount(featureKeys, catalog.catalog),
-    [featureKeys, catalog.catalog],
+    () => selectedModuleCount(featureKeys, kindCatalog),
+    [featureKeys, kindCatalog],
   );
 
   // ตัวหารมีก็ต่อเมื่อโหลดสำเร็จ — `failed` กับ "ยังโหลดอยู่" ต้องไม่กลายเป็นตัวหาร 0
-  const catalogTotal = catalog.failed || catalog.loading ? null : catalog.catalog.length;
+  const catalogTotal = catalog.failed || catalog.loading ? null : kindCatalog.length;
 
   const orderDuplicate = siblingOrders.has(Number(formData.sort_order) || 0);
 
@@ -614,7 +627,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
           <CardContent>
             <FeatureSelectionCard
               featureKeys={featureKeys}
-              catalog={catalog.catalog}
+              catalog={kindCatalog}
               catalogLoading={catalog.loading}
               catalogFailed={catalog.failed}
               onReloadCatalog={catalog.reload}
