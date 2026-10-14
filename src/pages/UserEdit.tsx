@@ -536,6 +536,7 @@ const UserEdit: React.FC = () => {
   }
 
   const heroName = [formData.firstname, formData.middlename, formData.lastname].filter(Boolean).join(" ") || formData.username || formData.email;
+  const savedHeroName = [savedFormData.firstname, savedFormData.middlename, savedFormData.lastname].filter(Boolean).join(" ") || savedFormData.username || savedFormData.email;
   const heroInitials = ((formData.firstname?.[0] || "") + (formData.lastname?.[0] || "")).toUpperCase()
     || (formData.username || formData.email || "?").slice(0, 2).toUpperCase();
 
@@ -838,7 +839,7 @@ const UserEdit: React.FC = () => {
           />
         )}
 
-        {!isNew && id && <UserMcpTokensCard userId={id} userName={heroName} />}
+        {!isNew && id && <UserMcpTokensCard userId={id} userName={savedHeroName} />}
 
         {!isNew && (
           <>

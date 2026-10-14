@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Ban, KeyRound, Loader2 } from 'lucide-react';
+import { Ban, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { useI18n } from '../../hooks/useI18n';
 import { useAuth } from '../../context/AuthContext';
@@ -7,9 +7,9 @@ import userService from '../../services/userService';
 import { getErrorDetail } from '../../utils/errorParser';
 import { formatStatusTime } from '../../utils/applicationStatus';
 import type { McpTokenRow } from '../../types';
-import { PLATFORM_SCOPED_RECORD } from '../../utils/permissions';
 import Can from '../../components/Can';
 import { EmptyState } from '../../components/EmptyState';
+import { TableSkeleton } from '../../components/TableSkeleton';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -50,7 +50,7 @@ interface UserMcpTokensCardProps {
 export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
-  const canRead = hasPermission('user.read', { clusterId: PLATFORM_SCOPED_RECORD });
+  const canRead = hasPermission('user.read');
   const [rows, setRows] = useState<McpTokenRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -100,10 +100,11 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
     void load(userId);
   }, [userId, load, canRead]);
 
+  const unrevokedCount = rows.filter((r) => !r.revoked_at).length;
   const activeCount = rows.filter((r) => statusOf(r) === 'active').length;
 
   const handleRevokeAll = async () => {
-    if (!hasPermission('user.update', { clusterId: PLATFORM_SCOPED_RECORD })) return;
+    if (!hasPermission('user.update')) return;
     const requestedId = userId;
     try {
       const body = await userService.revokeAllMcpTokens(requestedId);
@@ -125,7 +126,7 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
   const when = (iso?: string | null) => (iso ? formatStatusTime(iso) : t('pages.users.mcpTokens.never'));
 
   return (
-    <Can permission="user.read" clusterId={PLATFORM_SCOPED_RECORD}>
+    <Can permission="user.read">
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
@@ -133,7 +134,7 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
               <CardTitle>{t('pages.users.mcpTokens.title')}</CardTitle>
               <CardDescription>{t('pages.users.mcpTokens.description')}</CardDescription>
             </div>
-            <Can permission="user.update" clusterId={PLATFORM_SCOPED_RECORD}>
+            <Can permission="user.update">
               <Button
                 variant="destructive"
                 size="sm"
@@ -149,10 +150,7 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {t('pages.users.mcpTokens.loading')}
-            </div>
+            <TableSkeleton columns={6} rows={3} />
           ) : rows.length === 0 ? (
             <EmptyState icon={KeyRound} title={t('pages.users.mcpTokens.empty')} />
           ) : (
@@ -195,7 +193,7 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title={t('pages.users.mcpTokens.revokeAllTitle')}
-        description={t('pages.users.mcpTokens.revokeAllConfirm', { count: activeCount, name: userName })}
+        description={t('pages.users.mcpTokens.revokeAllConfirm', { count: unrevokedCount, name: userName })}
         confirmText={t('pages.users.mcpTokens.revokeAll')}
         confirmVariant="destructive"
         onConfirm={handleRevokeAll}

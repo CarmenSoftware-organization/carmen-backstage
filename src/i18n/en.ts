@@ -1288,7 +1288,7 @@ export const en = {
         description: 'Tokens this user created for AI assistants (MCP). Revoke all of them when offboarding.',
         revokeAll: 'Revoke all MCP tokens',
         revokeAllTitle: 'Revoke all MCP tokens?',
-        revokeAllConfirm: 'All {{count}} active token(s) of "{{name}}" will stop working immediately. This cannot be undone.',
+        revokeAllConfirm: 'All {{count}} unrevoked token(s) of "{{name}}" will stop working immediately. This cannot be undone.',
         revokedAll: 'Revoked {{count}} token(s)',
         revokeAllFailed: 'Could not revoke MCP tokens',
         loadFailed: 'Could not load MCP tokens',

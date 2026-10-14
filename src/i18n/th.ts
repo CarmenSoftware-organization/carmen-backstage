@@ -1042,7 +1042,7 @@ export const th: Translations = {
         description: 'โทเค็นที่ผู้ใช้สร้างไว้สำหรับผู้ช่วย AI (MCP) เพิกถอนทั้งหมดเมื่อผู้ใช้พ้นสภาพ',
         revokeAll: 'เพิกถอนโทเค็น MCP ทั้งหมด',
         revokeAllTitle: 'เพิกถอนโทเค็น MCP ทั้งหมด?',
-        revokeAllConfirm: 'โทเค็นที่ยังใช้งานได้ทั้ง {{count}} ใบของ "{{name}}" จะใช้ไม่ได้ทันที และย้อนกลับไม่ได้',
+        revokeAllConfirm: 'โทเค็นที่ยังไม่ถูกเพิกถอนทั้ง {{count}} ใบของ "{{name}}" จะใช้ไม่ได้ทันที และย้อนกลับไม่ได้',
         revokedAll: 'เพิกถอนแล้ว {{count}} ใบ',
         revokeAllFailed: 'เพิกถอนโทเค็น MCP ไม่สำเร็จ',
         loadFailed: 'โหลดโทเค็น MCP ไม่สำเร็จ',
