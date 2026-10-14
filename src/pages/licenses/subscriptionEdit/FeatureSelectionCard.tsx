@@ -174,7 +174,12 @@ export function FeatureSelectionCard({
         ) : (
           <div className="space-y-3">
             {groups
-              .map((g) => ({ ...g, children: g.children.filter((c) => selected.has(c.key)) }))
+              // โมดูลที่ไม่มีลูก (ขายเป็นก้อนเดียว) แสดงตัวเองเป็น badge เดียว — ไม่งั้นมันหายจากสรุปทั้งที่ถูกเลือกอยู่
+              .map((g) =>
+                g.children.length === 0
+                  ? { ...g, children: selected.has(g.module.key) ? [{ ...g.module, depth: 0 }] : [] }
+                  : { ...g, children: g.children.filter((c) => selected.has(c.key)) },
+              )
               .filter((g) => g.children.length > 0)
               .map((g) => (
                 <div key={g.module.key} className="space-y-1.5">
@@ -257,8 +262,16 @@ export function FeatureSelectionCard({
       ) : (
         <div className="border-input divide-y rounded-md border">
           {visibleGroups.map((g) => {
-            const expanded = isExpanded(g.module.key);
-            const count = g.children.filter((c) => selected.has(c.key)).length;
+            /**
+             * โมดูลที่ไม่มีลูก (ขายเป็นก้อนเดียว เช่น `mcp` ก่อนย้ายไป `ai.mcp`) — หน่วยที่เลือกคือตัวโมดูลเอง
+             * ถ้านับจากลูกอย่างเดียวจะได้ 0/0 ดูเหมือนไม่ได้เลือก และปุ่ม None ไม่มีวันขึ้น จึงถอดออกจากกลุ่มไม่ได้
+             */
+            const isLeafModule = g.children.length === 0;
+            const expanded = !isLeafModule && isExpanded(g.module.key);
+            const total = isLeafModule ? 1 : g.children.length;
+            const count = isLeafModule
+              ? Number(selected.has(g.module.key))
+              : g.children.filter((c) => selected.has(c.key)).length;
             const childKeys = g.children.map((c) => c.key);
             /**
              * module ที่ `inactive` และยังไม่ถูกเลือก จะบล็อกลูกทุกตัวของมัน — เพราะกฎ
@@ -270,26 +283,37 @@ export function FeatureSelectionCard({
              * ติ๊กเพิ่มได้เฉพาะตัวที่ `active` (และ module แม่ไม่ถูกบล็อก) ส่วนตัวที่เลือกไว้แล้ว
              * นับรวมเสมอ เพื่อให้ปุ่ม All/None ยังกดเคลียร์ของเดิมออกได้
              */
-            const selectableChildKeys = g.children
-              .filter((c) => selected.has(c.key) || (c.state === 'active' && !moduleBlocked))
-              .map((c) => c.key);
+            const selectableChildKeys = isLeafModule
+              ? selected.has(g.module.key) || g.module.state === 'active'
+                ? [g.module.key]
+                : []
+              : g.children
+                  .filter((c) => selected.has(c.key) || (c.state === 'active' && !moduleBlocked))
+                  .map((c) => c.key);
             const allSelected =
               selectableChildKeys.length > 0 && count === selectableChildKeys.length;
             const fillLabel = t('pages.licenseFeatureGroups.moduleFill', {
               module: g.module.label,
               count,
-              total: g.children.length,
+              total,
             });
             return (
               <div key={g.module.key}>
                 <div className="flex items-center gap-3 px-2">
                   <button
                     type="button"
-                    onClick={() => { if (!query) toggleModule(g.module.key); }}
+                    onClick={() => { if (!query && !isLeafModule) toggleModule(g.module.key); }}
                     className="flex min-h-11 min-w-0 flex-1 items-center gap-1.5 text-left text-sm"
-                    aria-expanded={expanded}
+                    aria-expanded={isLeafModule ? undefined : expanded}
                   >
-                    {expanded ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
+                    {/* โมดูลไม่มีลูกไม่มีอะไรให้กาง — เว้นที่ลูกศรไว้ให้ชื่อตรงแนวกับแถวอื่น */}
+                    {isLeafModule ? (
+                      <span className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    ) : expanded ? (
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 shrink-0" />
+                    )}
                     {/* โมดูลที่ยังไม่มีอะไรถูกเลือกจางลงหนึ่งขั้นและไม่หนา — มันยังอยู่ในที่เดิม
                         (รายการที่สลับลำดับเองตอนคลิกคือรายการที่ติ๊กไม่ได้) แต่เลิกแย่งสายตา
                         กับโมดูลที่เป็นแก่นของชุดนี้จริง ๆ */}
@@ -303,7 +327,7 @@ export function FeatureSelectionCard({
                       count > 0 ? 'text-foreground' : 'text-muted-foreground',
                     )}
                   >
-                    {count}/{g.children.length}
+                    {count}/{total}
                   </span>
                   {/* หนึ่งขีดต่อหนึ่งสิทธิ์ ไม่ใช่แถบสัดส่วน — ขีดนับได้ ความยาวแถบเทียบข้ามแถว
                       ไม่ได้ (ตัวหารต่างกันทุกแถว) · ต่ำกว่า sm ซ่อนไป เพราะที่ 390px ชื่อโมดูล
@@ -311,7 +335,7 @@ export function FeatureSelectionCard({
                   <AllocationTicks
                     className="hidden w-28 shrink-0 sm:flex"
                     used={count}
-                    cap={g.children.length}
+                    cap={total}
                     level="none"
                     fillClassName="bg-primary"
                     label={fillLabel}
@@ -321,6 +345,8 @@ export function FeatureSelectionCard({
                     variant="ghost"
                     size="sm"
                     className={cn('h-6 shrink-0 text-xs', HIT_SLOP_44)}
+                    // โมดูลไม่มีลูกที่เลิกขายและยังไม่ถูกเลือก — กด All จะเพิ่มของที่ backend ตอบ 422
+                    disabled={isLeafModule && selectableChildKeys.length === 0}
                     aria-label={
                       allSelected
                         ? t('pages.subscriptions.clearAllIn', { module: g.module.label })
@@ -328,12 +354,14 @@ export function FeatureSelectionCard({
                     }
                     onClick={() =>
                       onChange(
-                        setModuleSelection(
-                          featureKeys,
-                          g.module.key,
-                          allSelected ? childKeys : selectableChildKeys,
-                          !allSelected,
-                        ),
+                        isLeafModule
+                          ? setModuleSelection(featureKeys, g.module.key, [], !allSelected)
+                          : setModuleSelection(
+                              featureKeys,
+                              g.module.key,
+                              allSelected ? childKeys : selectableChildKeys,
+                              !allSelected,
+                            ),
                       )
                     }
                   >
