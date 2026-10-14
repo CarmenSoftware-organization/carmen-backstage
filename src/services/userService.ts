@@ -52,6 +52,16 @@ const userService = {
     return response.data;
   },
 
+  listMcpTokens: async (id: string) => {
+    const response = await api.get(`/api-system/user/${id}/mcp-tokens`);
+    return response.data;
+  },
+
+  revokeAllMcpTokens: async (id: string) => {
+    const response = await api.delete(`/api-system/user/${id}/mcp-tokens`);
+    return response.data;
+  },
+
   fetchKeycloakUsers: async () => {
     const response = await api.post("/api-system/fetch-user");
     return response.data;
