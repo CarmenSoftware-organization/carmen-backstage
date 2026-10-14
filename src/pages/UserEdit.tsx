@@ -22,6 +22,7 @@ import { BackLink } from '../components/BackLink';
 import { EmptyState } from "../components/EmptyState";
 import { UserIdentityHero } from "./userEdit/UserIdentityHero";
 import { UserAccessTree } from "./userEdit/UserAccessTree";
+import { UserMcpTokensCard } from "./userEdit/UserMcpTokensCard";
 import { toast } from 'sonner';
 import { ConfirmDialog } from '../components/ui/confirm-dialog';
 import { validateField } from '../utils/validation';
@@ -836,6 +837,8 @@ const UserEdit: React.FC = () => {
             onDeleteBU={handleDeleteBU}
           />
         )}
+
+        {!isNew && id && <UserMcpTokensCard userId={id} userName={heroName} />}
 
         {!isNew && (
           <>

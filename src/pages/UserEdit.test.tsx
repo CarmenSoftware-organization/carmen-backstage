@@ -26,6 +26,8 @@ vi.mock('../services/userService', () => ({
     create: vi.fn(),
     update: vi.fn(),
     resetPassword: vi.fn(),
+    listMcpTokens: vi.fn().mockResolvedValue({ data: [] }),
+    revokeAllMcpTokens: vi.fn().mockResolvedValue({ data: { revoked_count: 0 } }),
   },
 }));
 vi.mock('../services/businessUnitService', () => ({
