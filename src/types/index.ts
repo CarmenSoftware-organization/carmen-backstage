@@ -830,6 +830,18 @@ export interface UsersResponse extends ApiListResponse<User> {
   summary?: UserSummaryData;
 }
 
+/** One MCP token row as returned by GET /api-system/user/:user_id/mcp-tokens (never carries the raw token). */
+export interface McpTokenRow {
+  id: string;
+  name: string;
+  token_prefix: string;
+  expires_at: string;
+  last_used_at?: string | null;
+  revoked_at?: string | null;
+  created_at?: string | null;
+  doc_version: number;
+}
+
 /** One spotlighted role in the access band's breadth ranking. */
 export interface TopRole {
   id: string;
