@@ -7,6 +7,7 @@ import userService from '../../services/userService';
 import { getErrorDetail } from '../../utils/errorParser';
 import { formatStatusTime } from '../../utils/applicationStatus';
 import type { McpTokenRow } from '../../types';
+import { PLATFORM_SCOPED_RECORD } from '../../utils/permissions';
 import Can from '../../components/Can';
 import { EmptyState } from '../../components/EmptyState';
 import { Badge } from '../../components/ui/badge';
@@ -49,6 +50,7 @@ interface UserMcpTokensCardProps {
 export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
+  const canRead = hasPermission('user.read', { clusterId: PLATFORM_SCOPED_RECORD });
   const [rows, setRows] = useState<McpTokenRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -91,13 +93,17 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
     currentIdRef.current = userId;
     setRows([]);
     setConfirmOpen(false);
+    if (!canRead) {
+      setLoading(false);
+      return;
+    }
     void load(userId);
-  }, [userId, load]);
+  }, [userId, load, canRead]);
 
   const activeCount = rows.filter((r) => statusOf(r) === 'active').length;
 
   const handleRevokeAll = async () => {
-    if (!hasPermission('user.update')) return;
+    if (!hasPermission('user.update', { clusterId: PLATFORM_SCOPED_RECORD })) return;
     const requestedId = userId;
     try {
       const body = await userService.revokeAllMcpTokens(requestedId);
@@ -119,7 +125,7 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
   const when = (iso?: string | null) => (iso ? formatStatusTime(iso) : t('pages.users.mcpTokens.never'));
 
   return (
-    <Can permission="user.read">
+    <Can permission="user.read" clusterId={PLATFORM_SCOPED_RECORD}>
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
@@ -127,7 +133,7 @@ export function UserMcpTokensCard({ userId, userName }: UserMcpTokensCardProps) 
               <CardTitle>{t('pages.users.mcpTokens.title')}</CardTitle>
               <CardDescription>{t('pages.users.mcpTokens.description')}</CardDescription>
             </div>
-            <Can permission="user.update">
+            <Can permission="user.update" clusterId={PLATFORM_SCOPED_RECORD}>
               <Button
                 variant="destructive"
                 size="sm"
