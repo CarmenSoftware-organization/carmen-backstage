@@ -2984,6 +2984,21 @@ export const en = {
       addUserFailed: 'Failed to add user',
 
       // --- Task 4: ConfigurationSection.tsx ---
+      attachmentPolicyTitle: 'Comment attachments',
+      attachmentPolicyDescription: 'File types and max size users of this business unit can attach to comments.',
+      attachmentTypesLabel: 'Allowed file types',
+      attachmentMaxSizeLabel: 'Max size per file (MB)',
+      attachmentDefaultHint: 'Not set — using the default: images and PDF, up to 10 MB',
+      attachmentReset: 'Reset to default',
+      attachmentTypesRequired: 'Select at least one file type',
+      attachmentMaxSizeRange: 'Must be a whole number from 1 to 25',
+      attachmentMacroWarning: 'Excel and Word files may contain macros and are not virus-scanned.',
+      attachmentTypeImage: 'Images (JPG, PNG, WEBP, GIF)',
+      attachmentTypePdf: 'PDF',
+      attachmentTypeExcel: 'Excel (XLSX, XLS)',
+      attachmentTypeWord: 'Word (DOCX, DOC)',
+      attachmentTypeCsv: 'CSV',
+      attachmentTypeText: 'Text (TXT)',
       configDescription: 'Key-value configuration entries',
       // Bare "Key"/"Label"/"Value" field labels, reused as-is for the read-only table's
       // column headers too (same word, same job, one key each). Composed with

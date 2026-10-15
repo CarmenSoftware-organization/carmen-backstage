@@ -16,6 +16,7 @@ import { useI18n } from '../../../hooks/useI18n';
 import type { BusinessUnitConfig } from '../../../types';
 import type { SectionFieldProps } from '../types';
 import { SortableTableHead } from '../../../components/SortableTableHead';
+import { isAttachmentKey } from '../../../constants/attachmentTypes';
 import { cycleSort, sortRows, type SortState } from '../../../utils/tableSort';
 
 interface ConfigurationSectionProps extends SectionFieldProps {
@@ -36,13 +37,13 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({ formData, e
   const [sort, setSort] = useState<SortState | null>(null);
   const onSort = (k: string) => setSort((s) => cycleSort(s, k));
   // เฉพาะมุมมองอ่านอย่างเดียว — ตอนแก้ไขแถวผูกกับ index ของ formData.config จึงห้ามเรียง
-  const viewRows = useMemo(() => sortRows(formData.config, sort, sortAccessor), [formData.config, sort]);
+  const viewRows = useMemo(() => sortRows(formData.config.filter((c) => !isAttachmentKey(c.key)), sort, sortAccessor), [formData.config, sort]);
   return (
   <CollapsibleSection title={t('common.section.configuration')} description={t('pages.businessUnits.configDescription')} forceOpen>
     <div className="space-y-4">
       {editing ? (
         <>
-          {formData.config.map((item, index) => (
+          {formData.config.map((item, index) => isAttachmentKey(item.key) ? null : (
             <div key={index} className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] items-end border-b pb-4 sm:border-0 sm:pb-0">
               <div className="space-y-2">
                 <Label>{t('common.field.required', { label: t('pages.businessUnits.configKeyLabel') })}</Label>
@@ -99,7 +100,7 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({ formData, e
         </>
       ) : (
         <>
-          {formData.config.length === 0 ? (
+          {viewRows.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('pages.businessUnits.noConfigEntries')}</p>
           ) : (
             <div className="overflow-x-auto">

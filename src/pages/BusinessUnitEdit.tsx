@@ -29,6 +29,8 @@ import TenantMigrationCard from '../components/TenantMigrationCard';
 import TenantSeedCard from '../components/TenantSeedCard';
 import { initialFormData, aliasBound } from './businessUnitEdit/types';
 import type { DefaultCurrency, BusinessUnitFormData } from './businessUnitEdit/types';
+import { readAttachmentPolicy, type AttachmentPolicyValue } from './businessUnitEdit/sections/AttachmentPolicySection';
+import { ATTACHMENT_KEYS, ATTACHMENT_MAX_MB, isAttachmentKey } from '../constants/attachmentTypes';
 import { useBusinessUnitUsers } from './businessUnitEdit/useBusinessUnitUsers';
 import businessUnitLicenseService from '../services/businessUnitLicenseService';
 import businessUnitInterfaceLicenseService from '../services/businessUnitInterfaceLicenseService';
@@ -382,6 +384,22 @@ const BusinessUnitEdit: React.FC = () => {
     });
   };
 
+  // นโยบายไฟล์แนบ — เขียนเป็น entry ใน config · null = ลบสอง entry ทิ้ง (ตามค่าเริ่มต้นของระบบ)
+  const setAttachmentPolicy = (next: AttachmentPolicyValue | null) => {
+    setFormData((prev) => {
+      const rest = prev.config.filter((c) => !isAttachmentKey(c.key));
+      if (!next) return { ...prev, config: rest };
+      return {
+        ...prev,
+        config: [
+          ...rest,
+          { key: ATTACHMENT_KEYS.allowedTypes, label: 'Attachment types', datatype: 'json', value: next.allowed_types },
+          { key: ATTACHMENT_KEYS.maxSizeMb, label: 'Attachment max size (MB)', datatype: 'number', value: next.max_size_mb },
+        ],
+      };
+    });
+  };
+
   const addConfigRow = () => {
     setFormData(prev => ({
       ...prev,
@@ -446,11 +464,10 @@ const BusinessUnitEdit: React.FC = () => {
       payload.db_schema = data.db_schema || null;
     }
 
-    // Include config array (filter out empty rows)
-    const validConfig = data.config.filter(c => c.key && c.label);
-    if (validConfig.length > 0) {
-      payload.config = validConfig;
-    }
+    // Always send config (filter out empty rows), even when it ends up []: the backend replaces
+    // config only when the field is present, so omitting it would make "Reset to default"
+    // on the attachment policy (or deleting the last entry) silently not persist.
+    payload.config = data.config.filter(c => c.key && c.label);
 
     return payload;
   };
@@ -577,6 +594,20 @@ const BusinessUnitEdit: React.FC = () => {
     // permission check lives here rather than only on the affordances.
     if (!canEdit) return;
     if (!validateRequired()) return;
+    const attachmentPolicy = readAttachmentPolicy(formData.config);
+    if (attachmentPolicy) {
+      const size = attachmentPolicy.max_size_mb;
+      if (attachmentPolicy.allowed_types.length === 0) {
+        toast.error(t('pages.businessUnits.attachmentTypesRequired'));
+        handleTabChange('technical');
+        return;
+      }
+      if (!Number.isInteger(size) || size < 1 || size > ATTACHMENT_MAX_MB) {
+        toast.error(t('pages.businessUnits.attachmentMaxSizeRange'));
+        handleTabChange('technical');
+        return;
+      }
+    }
     // The dialog is open: only its own confirm/cancel resolves this. Without this bail,
     // a second Ctrl/Cmd+S while the dialog is up falls through the gate below and saves the
     // repoint unconfirmed — Radix blocks clicks on the button beneath, not global keydown
@@ -735,6 +766,7 @@ const BusinessUnitEdit: React.FC = () => {
           onBlur={handleBlur}
           onFocus={handleFocus}
           onConfigChange={handleConfigChange}
+          onAttachmentPolicyChange={setAttachmentPolicy}
           onAddConfigRow={addConfigRow}
           onRemoveConfigRow={removeConfigRow}
           onPoolChange={handlePoolChange}
