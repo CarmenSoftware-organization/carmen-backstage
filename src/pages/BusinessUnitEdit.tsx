@@ -464,11 +464,10 @@ const BusinessUnitEdit: React.FC = () => {
       payload.db_schema = data.db_schema || null;
     }
 
-    // Include config array (filter out empty rows)
-    const validConfig = data.config.filter(c => c.key && c.label);
-    if (validConfig.length > 0) {
-      payload.config = validConfig;
-    }
+    // Always send config (filter out empty rows), even when it ends up []: the backend replaces
+    // config only when the field is present, so omitting it would make "Reset to default"
+    // on the attachment policy (or deleting the last entry) silently not persist.
+    payload.config = data.config.filter(c => c.key && c.label);
 
     return payload;
   };
