@@ -11,6 +11,7 @@ import { ReadOnlyText, Group } from './shared';
 import CalculationSettingsSection from './sections/CalculationSettingsSection';
 import NumberFormatsSection from './sections/NumberFormatsSection';
 import ConfigurationSection from './sections/ConfigurationSection';
+import AttachmentPolicySection, { type AttachmentPolicyValue } from './sections/AttachmentPolicySection';
 import DatabaseConnectionSection from './sections/DatabaseConnectionSection';
 import BusinessUnitTabs, { type BuTab, type BuTabId } from './BusinessUnitTabs';
 
@@ -52,6 +53,8 @@ interface BusinessUnitDocumentProps {
   onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
   onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
   onConfigChange: (index: number, field: keyof BusinessUnitConfig, value: string) => void;
+  /** นโยบายไฟล์แนบ — ไม่ส่ง = ไม่แสดง section (หน้าอื่นที่ใช้ร่วมกัน) */
+  onAttachmentPolicyChange?: (next: AttachmentPolicyValue | null) => void;
   onAddConfigRow: () => void;
   onRemoveConfigRow: (index: number) => void;
   onPoolChange: (field: 'database_pool_id' | 'db_schema', value: string) => void;
@@ -94,6 +97,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
     onBlur,
     onFocus,
     onConfigChange,
+    onAttachmentPolicyChange,
     onAddConfigRow,
     onRemoveConfigRow,
     onPoolChange,
@@ -360,6 +364,9 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
 
       {activeTab === 'technical' && (
         <>
+          {onAttachmentPolicyChange && (
+            <AttachmentPolicySection {...sectionField} onAttachmentPolicyChange={onAttachmentPolicyChange} />
+          )}
           <ConfigurationSection
             {...sectionField}
             onConfigChange={onConfigChange}
