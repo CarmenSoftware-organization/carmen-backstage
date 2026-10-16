@@ -11,7 +11,7 @@ import { InvitationConfigCard } from './platformConfig/InvitationConfigCard';
 import { InvitationLimitsCard } from './platformConfig/InvitationLimitsCard';
 import { SignupConfigCard } from './platformConfig/SignupConfigCard';
 import { LinkConfigCard } from './platformConfig/LinkConfigCard';
-import { UrlConfigCard } from './platformConfig/UrlConfigCard';
+import { ExternalApiConfigCard } from './platformConfig/ExternalApiConfigCard';
 import { NotificationEmailConfigCard } from './platformConfig/NotificationEmailConfigCard';
 import { LicenseEnforcementCard } from './platformConfig/LicenseEnforcementCard';
 import { ExpiryThresholdsCard } from './platformConfig/ExpiryThresholdsCard';
@@ -361,7 +361,7 @@ const PlatformConfigManagement: React.FC = () => {
 
               <div className="space-y-3">
                 <SectionHeading>{t('pages.platformConfig.sectionExternalApi')}</SectionHeading>
-                <UrlConfigCard
+                <ExternalApiConfigCard
                   key={`external_api-${externalApiAudit.updated?.at ?? externalApiAudit.created?.at ?? 'default'}`}
                   configKey="external_api"
                   title={t('pages.platformConfig.externalApiTitle')}

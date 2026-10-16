@@ -7,7 +7,7 @@ import { parseApiError } from '../../utils/errorParser';
 import type { ExternalApiConfig, PlatformConfig } from '../../types';
 import { useI18n } from '../../hooks/useI18n';
 
-interface UrlConfigCardProps {
+interface ExternalApiConfigCardProps {
   /** คีย์ใน tb_platform_config เช่น `external_api` */
   configKey: string;
   title: string;
@@ -29,7 +29,7 @@ interface UrlConfigCardProps {
  * ใช้กับ `external_api` — root URL สาธารณะของ API gateway ไม่รวม `/api/ext/v1`
  * backend ปฏิเสธค่าที่มี `/api/ext` ฝั่ง FE จึงเตือนก่อนเพื่อ UX เท่านั้น
  */
-export const UrlConfigCard: React.FC<UrlConfigCardProps> = ({
+export const ExternalApiConfigCard: React.FC<ExternalApiConfigCardProps> = ({
   configKey,
   title,
   description,
@@ -56,7 +56,7 @@ export const UrlConfigCard: React.FC<UrlConfigCardProps> = ({
   const validate = (raw: string): string => {
     const v = raw.trim();
     if (!v) return '';
-    if (v.includes('/api/ext')) return t('pages.platformConfig.urlNoApiExt');
+    if (v.toLowerCase().includes('/api/ext')) return t('pages.platformConfig.urlNoApiExt');
     try {
       const u = new URL(v);
       if (u.protocol !== 'http:' && u.protocol !== 'https:') {
