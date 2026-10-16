@@ -2692,6 +2692,12 @@ export const th: Translations = {
       googleSignInSavedToast: 'บันทึกการตั้งค่า Google sign-in แล้ว',
       emailVerificationTitle: 'ยืนยันอีเมล',
       emailVerificationDescription: 'ลิงก์ยืนยันอีเมลของเส้นทางเดิม (บัญชีที่สร้างก่อนกลับลำดับ และผู้ดูแลสร้างให้)',
+      sectionExternalApi: 'External API',
+      externalApiTitle: 'External API',
+      externalApiDescription:
+        'Base URL สาธารณะของ Carmen API ที่ระบบภายนอก (เช่น ระบบบัญชี) เรียกด้วย BU API key — endpoint ที่แสดงให้ลูกค้าคือ URL นี้ + /api/ext/v1 ปล่อยว่างเพื่อใช้ค่าเริ่มต้นของเซิร์ฟเวอร์',
+      externalApiUrlHint: 'root URL สาธารณะ ไม่ต้องมี /api/ext/v1 เช่น',
+      urlNoApiExt: 'ห้ามใส่ /api/ext — ใส่เฉพาะ root URL',
       passwordResetTitle: 'ตั้งรหัสผ่านใหม่',
       passwordResetDescription: 'ลิงก์ตั้งรหัสผ่านใหม่และอายุของลิงก์',
       baseUrlRequired: 'ต้องระบุ Base URL',

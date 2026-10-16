@@ -11,6 +11,7 @@ import { InvitationConfigCard } from './platformConfig/InvitationConfigCard';
 import { InvitationLimitsCard } from './platformConfig/InvitationLimitsCard';
 import { SignupConfigCard } from './platformConfig/SignupConfigCard';
 import { LinkConfigCard } from './platformConfig/LinkConfigCard';
+import { UrlConfigCard } from './platformConfig/UrlConfigCard';
 import { NotificationEmailConfigCard } from './platformConfig/NotificationEmailConfigCard';
 import { LicenseEnforcementCard } from './platformConfig/LicenseEnforcementCard';
 import { ExpiryThresholdsCard } from './platformConfig/ExpiryThresholdsCard';
@@ -40,7 +41,8 @@ type CardId =
   | 'license'
   | 'expiry_thresholds'
   | 'platform_migration'
-  | 'google_sign_in';
+  | 'google_sign_in'
+  | 'external_api';
 
 /**
  * หัวข้อกลุ่ม — ป้ายตัวพิมพ์ใหญ่เล็ก ๆ พร้อมเส้นลากยาว ชุดเดียวกับหัวกลุ่มใน sidebar
@@ -122,6 +124,7 @@ const PlatformConfigManagement: React.FC = () => {
   const expiryThresholds = configs.find((c) => c.key === 'expiry_thresholds') ?? null;
   const platformMigration = configs.find((c) => c.key === 'platform_migration') ?? null;
   const googleSignIn = configs.find((c) => c.key === 'google_sign_in') ?? null;
+  const externalApi = configs.find((c) => c.key === 'external_api') ?? null;
 
   // ที่มาเดียวของ audit ต่อ config — การ์ดแต่ละใบไม่รู้จัก normalizeAudit เอง (อยู่นอกขอบเขต
   // ของ task นี้) ตัว key เดิมของแต่ละการ์ดก็อ่านผ่านค่าเหล่านี้ด้วย แทนฟิลด์แบนตรง ๆ
@@ -134,6 +137,7 @@ const PlatformConfigManagement: React.FC = () => {
   const expiryThresholdsAudit = normalizeAudit(expiryThresholds);
   const platformMigrationAudit = normalizeAudit(platformMigration);
   const googleSignInAudit = normalizeAudit(googleSignIn);
+  const externalApiAudit = normalizeAudit(externalApi);
   // ค่ากริยา+actor ล่าสุดต่อการ์ด สำหรับแถบท้ายการ์ด — คำนวณแยกจาก *Audit ด้านบน
   // ที่ยังต้องใช้เดิมสำหรับ remount key
   const invitationLatest = latestActor(invitation);
@@ -145,6 +149,7 @@ const PlatformConfigManagement: React.FC = () => {
   const expiryThresholdsLatest = latestActor(expiryThresholds);
   const platformMigrationLatest = latestActor(platformMigration);
   const googleSignInLatest = latestActor(googleSignIn);
+  const externalApiLatest = latestActor(externalApi);
 
   /** แถบ audit ท้ายการ์ด — รูปแบบเดียวกันทุกใบ และอยู่ *ใน* การ์ดที่มันอธิบาย */
   const auditFooter = (latest: ReturnType<typeof latestActor>) => (
@@ -351,6 +356,24 @@ const PlatformConfigManagement: React.FC = () => {
                   onCancelEdit={() => setEditingCard(null)}
                   onSaved={handleSaved}
                   footer={auditFooter(googleSignInLatest)}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <SectionHeading>{t('pages.platformConfig.sectionExternalApi')}</SectionHeading>
+                <UrlConfigCard
+                  key={`external_api-${externalApiAudit.updated?.at ?? externalApiAudit.created?.at ?? 'default'}`}
+                  configKey="external_api"
+                  title={t('pages.platformConfig.externalApiTitle')}
+                  description={t('pages.platformConfig.externalApiDescription')}
+                  urlExample="https://api.example.com"
+                  config={externalApi}
+                  canManage={canManage}
+                  isEditing={editingCard === 'external_api'}
+                  onRequestEdit={() => setEditingCard('external_api')}
+                  onCancelEdit={() => setEditingCard(null)}
+                  onSaved={handleSaved}
+                  footer={auditFooter(externalApiLatest)}
                 />
               </div>
 

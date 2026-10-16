@@ -1315,6 +1315,13 @@ export interface LinkConfig {
 }
 
 /**
+ * root URL สาธารณะของ API gateway (ไม่รวม /api/ext/v1) — ว่าง = ยังไม่ตั้ง backend ใช้ค่าจาก env
+ */
+export interface ExternalApiConfig {
+  base_url: string;
+}
+
+/**
  * ผู้รับอีเมลแจ้งเตือนภายในและคำนำหน้าหัวเรื่อง — เป็น "นโยบาย" ไม่ใช่ความลับ
  * ค่า SMTP (host / user / password) ไม่ได้อยู่ที่นี่ มันอยู่ที่ tb_email_sender_profile
  * (หน้า Email Setting) ซึ่งเข้ารหัสรหัสผ่านและแยกโปรไฟล์ตามวัตถุประสงค์ได้

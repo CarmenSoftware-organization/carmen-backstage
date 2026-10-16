@@ -3825,6 +3825,12 @@ export const en = {
       googleSignInSavedToast: 'Google sign-in settings saved',
       emailVerificationTitle: 'Email Verification',
       emailVerificationDescription: 'The verification link for the legacy path (accounts created before the order was reversed, and those an admin creates)',
+      sectionExternalApi: 'External API',
+      externalApiTitle: 'External API',
+      externalApiDescription:
+        'Public base URL of the Carmen API that external systems (e.g. accounting) call with a BU API key. The endpoint shown to customers is this URL + /api/ext/v1. Leave empty to use the server default.',
+      externalApiUrlHint: 'Public root URL without /api/ext/v1, e.g.',
+      urlNoApiExt: 'Do not include /api/ext — enter only the root URL',
       passwordResetTitle: 'Password Reset',
       passwordResetDescription: 'The password-reset link and how long it stays valid',
       // การตรวจความถูกต้องของฟอร์ม config (ใช้ร่วมกันหลายการ์ด)
