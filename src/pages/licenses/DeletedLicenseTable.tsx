@@ -16,7 +16,7 @@ import { AuditMeta } from '../../components/AuditMeta';
 import Can from '../../components/Can';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../hooks/useI18n';
-import { devLog, getErrorDetail, parseApiError } from '../../utils/errorParser';
+import { devLog, licenseActionErrorMessage } from '../../utils/errorParser';
 import { isUnknownActor, normalizeAudit, type AuditActor } from '../../utils/audit';
 import { fmtCoverageRange } from './licenseDates';
 import businessUnitLicenseService from '../../services/businessUnitLicenseService';
@@ -84,16 +84,6 @@ const SORT_TIEBREAKER = 'id:asc';
  */
 const withTiebreaker = (sort: string): string => (sort ? `${sort},${SORT_TIEBREAKER}` : '');
 
-/**
- * 409 (LICENSE_HARD_DELETE_ACTIVE / LICENSE_RESTORE_CONFLICT) เป็น conflict ที่แน่นอน ลองใหม่ก็ไม่หาย —
- * ต้องโชว์ข้อความจาก catalog เสมอ ไม่ใช่ "ลองใหม่ภายหลัง" ที่ getErrorDetail ซ่อนไว้ใน production
- * (เหตุผลเดียวกับ BusinessUnitEdit.tsx) · error อื่นใช้ getErrorDetail ตามปกติ
- */
-export const licenseActionErrorMessage = (err: unknown, t: Parameters<typeof getErrorDetail>[1]): string =>
-  (err as { response?: { status?: number } })?.response?.status === 409
-    ? parseApiError(err, t).message
-    : getErrorDetail(err, t);
-
 export interface DeletedLicenseTableProps {
   kind: DeletedLicenseKind;
 }
@@ -146,12 +136,25 @@ export function DeletedLicenseTable({ kind }: DeletedLicenseTableProps) {
     fetchRows();
   }, [fetchRows]);
 
+  /**
+   * โหลดใหม่หลังกู้คืน/ลบสำเร็จ — ถ้าแถวที่หายไปเป็นแถวสุดท้ายของหน้า ≥2 ให้ถอยหนึ่งหน้า
+   * (setPaginate ทำให้ fetch เอง) ไม่งั้นหน้าเดิมว่างแล้วขึ้น "ไม่มีใบที่ลบ" ทั้งที่ยังมีหน้าก่อนหน้า
+   * Reload after a successful action; step back a page when the last row of page ≥2 went away.
+   */
+  const reloadAfterAction = async () => {
+    if (rows.length === 1 && paginate.page > 1) {
+      setPaginate((p) => ({ ...p, page: p.page - 1 }));
+    } else {
+      await fetchRows();
+    }
+  };
+
   const handleRestore = async () => {
     if (!restoreRow) return;
     try {
       await service.restore(restoreRow.id);
       toast.success(t('pages.licenses.deleted.restored'));
-      await fetchRows();
+      await reloadAfterAction();
     } catch (err: unknown) {
       toast.error(licenseActionErrorMessage(err, t));
     } finally {
@@ -166,7 +169,7 @@ export function DeletedLicenseTable({ kind }: DeletedLicenseTableProps) {
       await service.hardDelete(hardDeleteRow.id);
       toast.success(t('pages.licenses.deleted.hardDeleted'));
       setHardDeleteRow(null);
-      await fetchRows();
+      await reloadAfterAction();
     } catch (err: unknown) {
       toast.error(licenseActionErrorMessage(err, t));
     } finally {

@@ -18,7 +18,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useI18n } from '../../hooks/useI18n';
 import { generateCSV, downloadCSV } from '../../utils/csvExport';
-import { devLog } from '../../utils/errorParser';
+import { devLog, licenseActionErrorMessage } from '../../utils/errorParser';
 import { fmtDate, isPerpetual } from './licenseDates';
 import { auditColumns } from '../../components/auditColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
@@ -30,7 +30,6 @@ import type { TKey } from '../../i18n/types';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { readStoredPerpage } from '../../utils/pageRange';
 import clusterLicenseService from '../../services/clusterLicenseService';
-import { licenseActionErrorMessage } from './DeletedLicenseTable';
 
 type StatusFilterValue = 'active' | 'superseded' | 'scheduled' | 'expired' | 'cancelled';
 
@@ -368,7 +367,15 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
       await clusterLicenseService.hardDelete(hardDeleteRow.id);
       toast.success(t('pages.licenses.deleted.hardDeleted'));
       setHardDeleteRow(null);
-      await fetchRows();
+      // แถวสุดท้ายของหน้า ≥2 หายไป — ถอยหนึ่งหน้า (setPaginate ทำให้ fetch เอง) ไม่งั้นได้ empty
+      // state "ยังไม่มีใบ" หลอก ๆ ทั้งที่หน้าก่อนหน้ายังมีใบอยู่
+      if (rows.length === 1 && paginate.page > 1) {
+        const prev = paginate.page - 1;
+        localStorage.setItem(pageKey, String(prev));
+        setPaginate((p) => ({ ...p, page: prev }));
+      } else {
+        await fetchRows();
+      }
     } catch (err: unknown) {
       toast.error(licenseActionErrorMessage(err, t));
     } finally {
@@ -580,7 +587,7 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-destructive hover:text-destructive"
-                  aria-label={`${t('pages.licenses.deleted.hardDelete')} ${row.original.license_number}`}
+                  aria-label={t('pages.licenses.deleted.hardDeleteRowAria', { number: row.original.license_number })}
                   title={t('pages.licenses.deleted.hardDelete')}
                   onClick={() => setHardDeleteRow(row.original)}
                 >

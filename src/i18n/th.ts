@@ -1707,6 +1707,7 @@ export const th: Translations = {
         hardDeleteWarning: 'ย้อนกลับไม่ได้ ข้อมูลจะถูกลบทิ้งจริง และเลขที่ใบนี้จะไม่ถูกออกซ้ำอีก',
         hardDeleteType: 'พิมพ์เลขที่ใบ {{number}} เพื่อยืนยัน',
         hardDeleted: 'ลบใบถาวรแล้ว',
+        hardDeleteRowAria: 'ลบใบ {{number}} ถาวร',
         softDelete: 'ลบ',
         softDeleteConfirm: 'ลบใบนี้? ใบจะถูกซ่อนจากรายการและกู้คืนได้ภายหลัง',
       },

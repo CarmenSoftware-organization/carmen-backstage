@@ -2238,6 +2238,7 @@ export const en = {
         hardDeleteWarning: 'This cannot be undone. The record is removed for good and this licence number will never be issued again.',
         hardDeleteType: 'Type the licence number {{number}} to confirm',
         hardDeleted: 'Licence permanently deleted',
+        hardDeleteRowAria: 'Delete licence {{number}} permanently',
         softDelete: 'Delete',
         softDeleteConfirm: 'Delete this licence? It is hidden from the list and can be restored later.',
       },
