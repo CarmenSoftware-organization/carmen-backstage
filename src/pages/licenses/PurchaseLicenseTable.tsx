@@ -30,6 +30,8 @@ import type { TKey } from '../../i18n/types';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { readStoredPerpage } from '../../utils/pageRange';
 import clusterLicenseService from '../../services/clusterLicenseService';
+import { LicenseSummaryBand, deletedCountColor, type SummaryBandItem } from './LicenseSummaryBand';
+import { DeletedLicenseTable, type DeletedViewControl } from './DeletedLicenseTable';
 
 type StatusFilterValue = 'active' | 'superseded' | 'scheduled' | 'expired' | 'cancelled';
 
@@ -252,7 +254,25 @@ function buildAdvance(kind: LicenseKind, status: StatusFilterValue | null): stri
 
 export interface PurchaseLicenseTableProps {
   config: LicenseKindConfig;
+  /** มุมมองใบที่ลบแล้ว (superadmin) — การ์ด "ลบแล้ว" ในแถบสรุปเป็นทางเข้า ดู `DeletedViewControl` */
+  deletedView?: DeletedViewControl;
 }
+
+/** ตัวเลขของแถบสรุป — `deleted` เป็น undefined เมื่อไม่ได้ขอ (ไม่ใช่ superadmin) */
+interface PurchaseSummary {
+  total: number;
+  active: number;
+  scheduled: number;
+  expired: number;
+  deleted?: number;
+}
+
+/** สีตัวเลขของการ์ดสถานะ — ชุดเดียวกับแถบสรุปของแท็บสัญญา (active เขียว · expired จาง) */
+const SUMMARY_COLOR: Record<'active' | 'scheduled' | 'expired', string> = {
+  active: 'text-success',
+  scheduled: 'text-foreground',
+  expired: 'text-muted-foreground',
+};
 
 /**
  * ตารางรายใบทั้ง fleet ของใบชนิดใดชนิดหนึ่ง (ที่นั่ง หรือ โควตา BU) — server-side ทั้งหมด
@@ -261,7 +281,7 @@ export interface PurchaseLicenseTableProps {
  * `loadFailed` แยกจาก "ไม่มีใบ" โดยตั้งใจ: ในระบบนี้ 0 ใบแปลว่าไม่มีความจุจริง การกลืน error
  * เป็นตารางว่างคือการโกหกผู้ใช้ว่าเขาไม่ได้ซื้ออะไรไว้เลย
  */
-export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
+export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTableProps) {
   const { t } = useI18n();
   const { isSuperAdmin } = useAuth();
   // ใบโควตา BU ที่ยกเลิกแล้วคงอยู่ในตารางนี้ (ไม่ถูกลบแบบซ่อน) — ทางลบถาวรของมันจึงอยู่ที่นี่
@@ -360,6 +380,48 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
     fetchRows();
   }, [fetchRows]);
 
+  /**
+   * แถบสรุปของแท็บนี้ — backend ไม่มี endpoint summary ของใบสามชนิดนี้ จึงขอ `perpage: 1` ต่อการ์ด
+   * แล้วอ่าน `paginate.total` (ไม่ใช่ perpage:-1 ที่ดึงทุกแถวมานับ) ตัวกรองสถานะใช้ `buildAdvance`
+   * ตัวเดียวกับตาราง ตัวเลขบนการ์ดจึงเท่ากับจำนวนแถวที่ได้เมื่อกดการ์ดนั้นเสมอ
+   *
+   * ไม่ผูกกับช่องค้นหา/ตัวกรอง/หน้า โดยตั้งใจ — ตัวเลขต้องนิ่งกับตัวกรอง (เหตุผลเดียวกับ
+   * `SubscriptionTable.fetchSummary`) โหลดตอน mount และหลังลบ/กู้คืนเท่านั้น
+   */
+  const wantDeletedCount = !!deletedView;
+  const [summary, setSummary] = useState<PurchaseSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState('');
+  const fetchSummary = useCallback(async () => {
+    setSummaryLoading(true);
+    const count = (status: StatusFilterValue | null) =>
+      config.service
+        .listPlatform({ page: 1, perpage: 1, advance: buildAdvance(config.kind, status) })
+        .then((d) => d.paginate?.total ?? d.data.length);
+    try {
+      const [total, active, scheduled, expired, deleted] = await Promise.all([
+        count(null),
+        count('active'),
+        count('scheduled'),
+        count('expired'),
+        wantDeletedCount
+          ? config.service.listDeleted({ page: 1, perpage: 1 }).then((d) => d.paginate?.total ?? d.data.length)
+          : Promise.resolve(undefined),
+      ]);
+      setSummary({ total, active, scheduled, expired, deleted });
+      setSummaryError('');
+    } catch (err: unknown) {
+      setSummaryError(t('pages.licenses.loadFailedTitle'));
+      devLog(`Failed to load ${config.kind} license summary:`, err);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, [config, wantDeletedCount, t]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
   const handleHardDelete = async () => {
     if (!hardDeleteRow) return;
     setHardDeleting(true);
@@ -367,6 +429,7 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
       await clusterLicenseService.hardDelete(hardDeleteRow.id);
       toast.success(t('pages.licenses.deleted.hardDeleted'));
       setHardDeleteRow(null);
+      fetchSummary();
       // แถวสุดท้ายของหน้า ≥2 หายไป — ถอยหนึ่งหน้า (setPaginate ทำให้ fetch เอง) ไม่งั้นได้ empty
       // state "ยังไม่มีใบ" หลอก ๆ ทั้งที่หน้าก่อนหน้ายังมีใบอยู่
       if (rows.length === 1 && paginate.page > 1) {
@@ -425,6 +488,48 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   };
 
   const activeFilterCount = statusFilter ? 1 : 0;
+
+  // การ์ดกรองกดระหว่างดูใบที่ลบ = กลับไปตารางปกติที่กรองตามการ์ดนั้น (ถ้าตัวกรองนั้นเปิดอยู่แล้ว
+  // แค่กลับ ไม่ toggle ปิดทิ้ง) — ท่าเดียวกับ SubscriptionTable
+  const showingDeleted = !!deletedView?.open;
+  const summaryItems: SummaryBandItem[] = [
+    {
+      key: 'total',
+      label: t('common.option.all'),
+      value: summary?.total,
+      color: 'text-foreground',
+      active: !showingDeleted && statusFilter === null,
+      onClick: () => {
+        if (showingDeleted) deletedView.onToggle();
+        handleClearFilters();
+      },
+    },
+    ...STATUS_VALUES.map((value): SummaryBandItem => ({
+      key: value,
+      label: statusLabel(value),
+      value: summary?.[value as 'active' | 'scheduled' | 'expired'],
+      color: SUMMARY_COLOR[value as 'active' | 'scheduled' | 'expired'],
+      active: !showingDeleted && statusFilter === value,
+      onClick: () => {
+        if (showingDeleted) {
+          deletedView.onToggle();
+          if (statusFilter === value) return;
+        }
+        handleStatusFilter(value);
+      },
+    })),
+    ...(deletedView
+      ? [{
+          key: 'deleted',
+          label: t('common.status.deleted'),
+          value: summary?.deleted,
+          color: deletedCountColor(summary?.deleted),
+          active: showingDeleted,
+          onClick: deletedView.onToggle,
+          variant: 'view' as const,
+        }]
+      : []),
+  ];
 
   const handleExport = () => {
     // คอลัมน์ค่าหลักของ CSV สลับตามชนิดใบ ต้องประกาศชนิดให้ชัดก่อน spread — array literal ที่
@@ -600,24 +705,22 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   }, [config, t, ownerLabel, amountLabel, rowStatusLabel, canHardDeleteCancelled]);
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || loadFailed || rows.length === 0}>
-          <Download className="mr-2 h-4 w-4" />
-          {t('common.action.export')}
-        </Button>
-      </div>
+    <div className="space-y-6 sm:space-y-8">
+      <LicenseSummaryBand items={summaryItems} loading={summaryLoading} error={summaryError} onRetry={fetchSummary} />
 
+      {showingDeleted ? (
+        <DeletedLicenseTable kind={config.kind} onExit={deletedView.onToggle} onChanged={fetchSummary} />
+      ) : (
       <Card>
         <CardHeader className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-wrap items-center gap-2">
             <SearchInput
               ref={searchInputRef}
               value={search}
               onValueChange={handleSearchChange}
               onClear={handleSearchClear}
               placeholder={t('pages.licenses.searchLicensesPlaceholder')}
-              className="flex-1 sm:max-w-sm"
+              className="min-w-0 flex-1 sm:max-w-sm"
             />
             <Sheet open={showFilters} onOpenChange={setShowFilters}>
               <SheetTrigger asChild>
@@ -663,6 +766,16 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
                 </div>
               </SheetContent>
             </Sheet>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto shrink-0"
+              onClick={handleExport}
+              disabled={loading || loadFailed || rows.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {t('common.action.export')}
+            </Button>
           </div>
 
           {activeFilterCount > 0 && statusFilter && (
@@ -738,6 +851,7 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
           )}
         </CardContent>
       </Card>
+      )}
 
       {canHardDeleteCancelled && (
         <TypeToConfirmDialog

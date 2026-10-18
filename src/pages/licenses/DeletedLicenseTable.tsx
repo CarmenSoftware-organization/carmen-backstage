@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Archive, Loader2, MoreHorizontal, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
+import { AlertTriangle, Archive, ArrowLeft, Loader2, MoreHorizontal, RotateCcw, RotateCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/card';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import { DataTable } from '../../components/ui/data-table';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import {
@@ -27,6 +27,15 @@ import type { PaginateParams } from '../../types';
 import type { TKey } from '../../i18n/types';
 
 export type DeletedLicenseKind = 'subscription' | 'seat' | 'bu-quota' | 'interface';
+
+/**
+ * สวิตช์มุมมองใบที่ลบแล้วที่ LicenseCenter ส่งลงไปให้ตารางของแต่ละแท็บ (superadmin เท่านั้น — ไม่ส่ง
+ * = ตารางไม่มีทางเข้ามุมมองนี้ และการ์ด "ลบแล้ว" เป็นตัวเลขอ่านอย่างเดียว) สถานะอยู่ใน `?deleted=1`
+ */
+export interface DeletedViewControl {
+  open: boolean;
+  onToggle: () => void;
+}
 
 /** service ของแต่ละชนิด — ทั้งสี่ตัวมี listDeleted/restore/hardDelete รูปเดียวกัน (Task 6) */
 const SERVICES = {
@@ -86,6 +95,10 @@ const withTiebreaker = (sort: string): string => (sort ? `${sort},${SORT_TIEBREA
 
 export interface DeletedLicenseTableProps {
   kind: DeletedLicenseKind;
+  /** ปุ่ม "กลับรายการปกติ" ในแถบหัวตาราง — ทางออกจากมุมมองนี้ที่เห็นได้ชัด ไม่ใช่แค่การ์ดที่ติดไฟ */
+  onExit: () => void;
+  /** กู้คืน/ลบถาวรสำเร็จ — ผู้เรียกใช้โหลดตัวเลขในแถบสรุปใหม่ */
+  onChanged?: () => void;
 }
 
 /**
@@ -95,7 +108,7 @@ export interface DeletedLicenseTableProps {
  * Soft-deleted licences of one kind (superadmin only — LicenseCenter gates the toggle). Per row:
  * restore (`subscription.manage`) and type-to-confirm hard delete (`isSuperAdmin`).
  */
-export function DeletedLicenseTable({ kind }: DeletedLicenseTableProps) {
+export function DeletedLicenseTable({ kind, onExit, onChanged }: DeletedLicenseTableProps) {
   const { t } = useI18n();
   const { isSuperAdmin } = useAuth();
   const service = SERVICES[kind];
@@ -142,6 +155,7 @@ export function DeletedLicenseTable({ kind }: DeletedLicenseTableProps) {
    * Reload after a successful action; step back a page when the last row of page ≥2 went away.
    */
   const reloadAfterAction = async () => {
+    onChanged?.();
     if (rows.length === 1 && paginate.page > 1) {
       setPaginate((p) => ({ ...p, page: p.page - 1 }));
     } else {
@@ -273,7 +287,18 @@ export function DeletedLicenseTable({ kind }: DeletedLicenseTableProps) {
   return (
     <>
       <Card>
-        <CardContent className="pt-6">
+        {/* แถบบอกโหมด — แทนที่ช่องค้นหา/ปุ่ม Export ของตารางปกติ ผู้ใช้จึงรู้ทันทีว่าไม่ได้ดูรายการปกติ */}
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Archive className="h-4 w-4 shrink-0" aria-hidden />
+            <span>{t('pages.licenses.deleted.viewing')}</span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onExit}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t('pages.licenses.deleted.backToList')}
+          </Button>
+        </CardHeader>
+        <CardContent>
           {loadFailed ? (
             <EmptyState
               icon={AlertTriangle}

@@ -1695,7 +1695,8 @@ export const th: Translations = {
       removeLicenseFailedTitle: 'นำไลเซนส์ออกไม่สำเร็จ',
       // ── ใบที่ลบแล้ว / กู้คืน / ลบถาวร (TypeToConfirmDialog) ──
       deleted: {
-        toggle: 'แสดงใบที่ลบแล้ว',
+        viewing: 'กำลังดูใบที่ลบแล้ว — กู้คืนหรือลบถาวรได้จากแต่ละแถว',
+        backToList: 'กลับรายการปกติ',
         empty: 'ไม่มีใบที่ลบแล้ว',
         deletedAt: 'ลบเมื่อ',
         deletedBy: 'ลบโดย',

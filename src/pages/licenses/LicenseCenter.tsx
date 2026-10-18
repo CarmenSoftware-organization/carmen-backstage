@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Archive } from 'lucide-react';
 import Layout from '../../components/Layout';
 import { PageHeader } from '../../components/PageHeader';
-import { Button } from '../../components/ui/button';
 import { useAuth } from '../../context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { TabStrip, type TabStripItem } from '../../components/TabStrip';
@@ -14,7 +12,7 @@ import { FleetCapacity } from '../clusterManagement/FleetCapacity';
 import ClusterLicenseTable from './ClusterLicenseTable';
 import SubscriptionTable from './SubscriptionTable';
 import { PurchaseLicenseTable } from './PurchaseLicenseTable';
-import { DeletedLicenseTable, type DeletedLicenseKind } from './DeletedLicenseTable';
+import type { DeletedViewControl } from './DeletedLicenseTable';
 import { SEAT_CONFIG, BU_QUOTA_CONFIG, INTERFACE_CONFIG } from './licenseKindConfig';
 import type { FleetSummary } from '../../types';
 
@@ -99,15 +97,21 @@ const LicenseCenter: React.FC = () => {
 
   // สวิตช์เห็นเฉพาะ superadmin และเฉพาะแท็บที่มีใบให้ลบ (ไม่ใช่ "By cluster") — ผู้ใช้อื่นที่ได้ลิงก์
   // `?deleted=1` มาก็ยังเห็นตารางปกติ เพราะ endpoint รายการใบที่ลบตอบเฉพาะ superadmin อยู่แล้ว
-  const deletedKind: DeletedLicenseKind | null =
-    isSuperAdmin && view !== 'cluster' ? view : null;
-  const showDeleted = deletedKind !== null && searchParams.get(DELETED_PARAM) === '1';
-  const toggleShowDeleted = () => {
-    const next = new URLSearchParams(searchParams);
-    if (showDeleted) next.delete(DELETED_PARAM);
-    else next.set(DELETED_PARAM, '1');
-    setSearchParams(next, { replace: true });
-  };
+  // ทางเข้าคือการ์ด "ลบแล้ว" ในแถบสรุปของแต่ละตาราง (เดิมเป็นปุ่ม "Show deleted" ลอยอยู่แถวของมันเอง
+  // แยกจากการ์ดที่พูดเรื่องเดียวกัน) — ไม่ส่ง `deletedView` = ตารางไม่มีทางเข้า
+  const showDeleted = searchParams.get(DELETED_PARAM) === '1';
+  const deletedView: DeletedViewControl | undefined =
+    isSuperAdmin && view !== 'cluster'
+      ? {
+          open: showDeleted,
+          onToggle: () => {
+            const next = new URLSearchParams(searchParams);
+            if (showDeleted) next.delete(DELETED_PARAM);
+            else next.set(DELETED_PARAM, '1');
+            setSearchParams(next, { replace: true });
+          },
+        }
+      : undefined;
 
   const toggleExpiringSoonFilter = () => setExpiringSoonFilter((v) => !v);
 
@@ -186,35 +190,19 @@ const LicenseCenter: React.FC = () => {
           </Select>
         </div>
 
-        {deletedKind && (
-          <div className="flex justify-end">
-            <Button
-              variant={showDeleted ? 'default' : 'outline'}
-              size="sm"
-              aria-pressed={showDeleted}
-              onClick={toggleShowDeleted}
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              {t('pages.licenses.deleted.toggle')}
-            </Button>
-          </div>
-        )}
-
-        {showDeleted && deletedKind ? (
-          <DeletedLicenseTable key={deletedKind} kind={deletedKind} />
-        ) : view === 'cluster' ? (
+        {view === 'cluster' ? (
           <ClusterLicenseTable
             expiringSoonFilter={expiringSoonFilter}
             onExpiringSoonChange={setExpiringSoonFilter}
           />
         ) : view === 'subscription' ? (
-          <SubscriptionTable embedded />
+          <SubscriptionTable embedded deletedView={deletedView} />
         ) : view === 'seat' ? (
-          <PurchaseLicenseTable config={SEAT_CONFIG} />
+          <PurchaseLicenseTable key="seat" config={SEAT_CONFIG} deletedView={deletedView} />
         ) : view === 'bu-quota' ? (
-          <PurchaseLicenseTable config={BU_QUOTA_CONFIG} />
+          <PurchaseLicenseTable key="bu-quota" config={BU_QUOTA_CONFIG} deletedView={deletedView} />
         ) : (
-          <PurchaseLicenseTable config={INTERFACE_CONFIG} />
+          <PurchaseLicenseTable key="interface" config={INTERFACE_CONFIG} deletedView={deletedView} />
         )}
       </div>
     </Layout>
