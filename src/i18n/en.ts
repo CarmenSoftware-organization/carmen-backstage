@@ -2224,6 +2224,23 @@ export const en = {
       licenseCancelled: 'License cancelled',
       cancelLicenseFailedTitle: 'Could not cancel the license',
       removeLicenseFailedTitle: 'Could not remove the license',
+      // ── Deleted licences / restore / hard delete (TypeToConfirmDialog) ──
+      deleted: {
+        toggle: 'Show deleted',
+        empty: 'No deleted licences',
+        deletedAt: 'Deleted on',
+        deletedBy: 'Deleted by',
+        restore: 'Restore',
+        restoreConfirm: 'Restore this licence? It will become active again.',
+        restored: 'Licence restored',
+        hardDelete: 'Delete permanently',
+        hardDeleteTitle: 'Permanently delete this licence',
+        hardDeleteWarning: 'This cannot be undone. The record is removed for good and this licence number will never be issued again.',
+        hardDeleteType: 'Type the licence number {{number}} to confirm',
+        hardDeleted: 'Licence permanently deleted',
+        softDelete: 'Delete',
+        softDeleteConfirm: 'Delete this licence? It is hidden from the list and can be restored later.',
+      },
     },
 
     // Slice 4 (Cluster Admin — 25 files under src/pages/clusterAdmin/, including the
