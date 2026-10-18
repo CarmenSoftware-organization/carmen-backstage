@@ -450,12 +450,11 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
       updatedColumn,
     ];
   }, [t, stateLabel, thresholds.subscription_days]);
-  // No actions column: with Delete removed (review B2#1 — the backend can never surface a
-  // soft-deleted subscription, so a delete button nobody can verify or undo was worse than no
-  // button), the only remaining row action was "Edit", which just duplicated the already-
-  // clickable Subscription/Cluster links above. A single-item dropdown that only navigates
-  // (never mutates) is redundant chrome, not a genuine menu — so it's gone rather than kept
-  // as a one-item DropdownMenu.
+  // No actions column: the only row action would be "Edit", which just duplicates the
+  // already-clickable Subscription/Cluster links above — a one-item navigate-only dropdown is
+  // redundant chrome. Soft-delete lives on the edit page (the place you decide), and deleted
+  // subscriptions are visible/restorable in the superadmin "deleted" view of this tab (review
+  // B2#1's "can never surface a soft-deleted subscription" no longer holds).
 
   // Export + Add Subscription — same buttons regardless of embedded: spec §3.2 requires the
   // subscription view to keep every capability of the standalone `/subscriptions` page when

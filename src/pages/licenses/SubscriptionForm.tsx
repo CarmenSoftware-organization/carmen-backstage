@@ -6,13 +6,14 @@ import subscriptionService from '../../services/subscriptionService';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { DevDebugSheet } from '../../components/ui/dev-debug-sheet';
-import { Save, X, Loader2, SearchX } from 'lucide-react';
+import { Save, X, Loader2, SearchX, Trash2 } from 'lucide-react';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { toast } from 'sonner';
 import { EmptyState } from '../../components/EmptyState';
 import { Skeleton } from '../../components/ui/skeleton';
 import Can from '../../components/Can';
 import { validateField } from '../../utils/validation';
-import { getErrorDetail, devLog, isNotFoundError, parseApiError } from '../../utils/errorParser';
+import { getErrorDetail, devLog, isNotFoundError, parseApiError, licenseActionErrorMessage } from '../../utils/errorParser';
 import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../../utils/docVersion';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import { useAllClusters } from '../../hooks/useAllClusters';
@@ -106,6 +107,8 @@ const SubscriptionForm: React.FC = () => {
 
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [softDeleting, setSoftDeleting] = useState(false);
+  const [confirmSoftDelete, setConfirmSoftDelete] = useState(false);
   const [error, setError] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -303,6 +306,20 @@ const SubscriptionForm: React.FC = () => {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSoftDelete = async () => {
+    if (isNew || !id) return;
+    setSoftDeleting(true);
+    try {
+      await subscriptionService.delete(id);
+      toast.success(t('toast.deleted', { entity: t('entity.subscription.sentence') }));
+      navigate('/licenses?tab=subscription');
+    } catch (err: unknown) {
+      toast.error(licenseActionErrorMessage(err, t));
+    } finally {
+      setSoftDeleting(false);
     }
   };
 
@@ -548,10 +565,40 @@ const SubscriptionForm: React.FC = () => {
                   />
                 </CardContent>
               </Card>
+
+              {/* ลบแบบซ่อน — สัญญาถูกซ่อนจากรายการและกู้คืนได้ที่มุมมองสัญญาที่ลบแล้ว */}
+              {!isNew && (
+                <Can permission="subscription.manage">
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive hover:text-destructive"
+                      disabled={softDeleting || saving}
+                      onClick={() => setConfirmSoftDelete(true)}
+                    >
+                      {softDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                      {t('pages.licenses.deleted.softDelete')}
+                    </Button>
+                  </div>
+                </Can>
+              )}
             </div>
           </>
         )}
       </div>
+
+      {!isNew && (
+        <ConfirmDialog
+          open={confirmSoftDelete}
+          onOpenChange={setConfirmSoftDelete}
+          title={t('pages.licenses.deleted.softDelete')}
+          description={t('pages.licenses.deleted.softDeleteConfirm')}
+          confirmVariant="destructive"
+          onConfirm={handleSoftDelete}
+        />
+      )}
 
       {!isNew && hasChanges && (
         <div className="unsaved-bar fixed bottom-0 left-0 right-0 z-40 md:left-16 lg:left-60">
