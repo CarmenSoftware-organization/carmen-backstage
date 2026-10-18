@@ -21,8 +21,16 @@ const clusterLicenseService = {
   },
 
   // มุมมองรายใบทั้ง fleet (ไม่ผูก cluster เดียว) — paginated ตัวเดียวกับ subscriptions/clusters
-  listPlatform: async (paginate: PaginateParams = {}): Promise<BuQuotaLicensesResponse> => {
-    const response = await api.get(`${PLATFORM_BASE}?${buildQuery(paginate, defaultSearchFields)}`);
+  /**
+   * `status` แยกจาก `PaginateParams` — backend รับ `?status=` (active/superseded/scheduled/expired/
+   * cancelled) เพราะ `superseded` ต้องรู้ใบที่ชนะใน view ซึ่ง `advance` บนตารางเดียวแสดงไม่ได้
+   */
+  listPlatform: async (
+    { status, ...paginate }: PaginateParams & { status?: string } = {},
+  ): Promise<BuQuotaLicensesResponse> => {
+    const qs = buildQuery(paginate, defaultSearchFields);
+    const statusQs = status ? `&status=${encodeURIComponent(status)}` : '';
+    const response = await api.get(`${PLATFORM_BASE}?${qs}${statusQs}`);
     return response.data;
   },
 

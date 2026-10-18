@@ -74,7 +74,9 @@ export const LicenseSummaryBand: React.FC<LicenseSummaryBandProps> = ({ items, l
                 </div>
               </>
             );
-            const box = 'flex-1 basis-1/2 p-4 text-left sm:basis-1/3 sm:p-6 lg:basis-1/5';
+            // lg:basis-0 + flex-1 = แบ่งเท่ากันทุกการ์ดในแถวเดียว ไม่ว่าจะมี 4, 5 หรือ 7 ใบ (ใบโควตามี
+            // superseded/cancelled เพิ่ม) — basis คงที่แบบเดิม (1/5) ทำให้ 7 ใบล้นขึ้นแถวที่สอง
+            const box = 'flex-1 basis-1/2 p-4 text-left sm:basis-1/4 sm:p-6 lg:basis-0';
 
             if (!clickable) {
               return (

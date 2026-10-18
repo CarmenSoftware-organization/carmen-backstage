@@ -38,9 +38,12 @@ type StatusFilterValue = 'active' | 'superseded' | 'scheduled' | 'expired' | 'ca
 // The complete enumeration of `StatusFilterValue` — used both for the Sheet's filter
 // buttons and to type-check STATUS_VARIANT/STATUS_LABEL_KEYS below. Pure data, module scope
 // is fine; the label lookup itself happens inside the component (see `statusLabel`).
-// ตัวกรองใน Sheet ยังคง 3 ค่าเดิมโดยตั้งใจ: `superseded`/`cancelled` มีเฉพาะใบโควตา การใส่
-// ปุ่มกรองที่ไม่มีวันคืนผลเมื่อผู้ใช้ดูแท็บที่นั่งอยู่ คือปุ่มที่หลอกคน
+// ใบที่นั่ง/interface มี 3 สถานะ ส่วนใบโควตามี `superseded`/`cancelled` เพิ่ม (ลำดับเดียวกับ
+// `BU_QUOTA_STATUSES` ฝั่ง backend) — ไม่ใส่สองค่านี้ให้แท็บที่นั่ง เพราะปุ่มกรองที่ไม่มีวันคืนผลคือปุ่มที่หลอกคน
 const STATUS_VALUES: StatusFilterValue[] = ['active', 'scheduled', 'expired'];
+const BU_QUOTA_STATUS_VALUES: StatusFilterValue[] = ['active', 'superseded', 'scheduled', 'expired', 'cancelled'];
+const statusValuesFor = (kind: LicenseKind): StatusFilterValue[] =>
+  kind === 'bu-quota' ? BU_QUOTA_STATUS_VALUES : STATUS_VALUES;
 
 type StatusBadgeVariant = 'success' | 'secondary' | 'destructive' | 'warning';
 
@@ -52,10 +55,9 @@ const STATUS_VARIANT: Record<StatusFilterValue, StatusBadgeVariant> = {
   expired: 'destructive',
 };
 
-/** ลำดับเดียวกับ bucket ฝั่ง backend — ใช้แค่ให้ accessorFn มีค่า ไม่ได้ใช้เรียงจริง · superseded อยู่กับ active
- *  เพราะ backend ไม่แยก (ใบที่ถูกแทนที่ยังอยู่ในช่วงวันของตัวเอง) */
+/** ลำดับเดียวกับ bucket ฝั่ง backend (`BU_QUOTA_STATUSES`) — ใช้แค่ให้ accessorFn มีค่า ไม่ได้ใช้เรียงจริง */
 const STATUS_SORT_RANK: Record<StatusFilterValue, number> = {
-  active: 0, superseded: 0, scheduled: 1, expired: 2, cancelled: 3,
+  active: 0, superseded: 1, scheduled: 2, expired: 3, cancelled: 4,
 };
 
 // Catalog KEYS only — resolved with `t` inside the component (see `statusLabel`). Reuses
@@ -229,27 +231,21 @@ function toFleetRow(
 }
 
 /**
- * เงื่อนไข `advance.where` จากสถานะที่เลือก — backend **ไม่มีคอลัมน์ status** ให้กรอง (controller
- * ruling R21) ต้องแปลเป็นช่วงวันที่บน `start_date`/`end_date` เอง และห้ามส่ง `filter=status:active`
- * เด็ดขาด เพราะ `status` ไม่ใช่คอลัมน์จริง ค่านั้นจะไหลเข้า Prisma ตรง ๆ แล้วได้ 500 ไม่ใช่ 400
+ * เงื่อนไข `advance.where` จากสถานะที่เลือก สำหรับใบที่นั่ง/interface — backend **ไม่มีคอลัมน์
+ * status** ให้กรอง ต้องแปลเป็นช่วงวันที่บน `start_date`/`end_date` เอง และห้ามส่ง
+ * `filter=status:active` เด็ดขาด (`status` ไม่ใช่คอลัมน์จริง ค่านั้นไหลเข้า Prisma ตรง ๆ แล้วได้ 500)
+ * ขอบเขตตาม `buLicense.ts`: `end_date` คือวันสุดท้ายที่ยังคุ้มครอง (`t <= end` ยัง active)
  *
- * ขอบเขตสองชนิดไม่เท่ากัน: ที่นั่ง (`buLicense.ts`) นับ `end_date` เป็นวันสุดท้ายที่ยังคุ้มครองอยู่
- * (`t <= end` ยังถือว่า active) ส่วนโควตา BU (`clusterLicense.ts`) หมดอายุทันทีที่ถึง `end_date`
- * (`t < end` ถึงจะยัง active) — เงื่อนไข `lt`/`lte` ของ "expired"/"active" จึงต้องแยกตาม `kind`
- * ไม่งั้นแถวที่ badge ขึ้น "Active" จะไม่โผล่ในผลกรอง "Active" (หรือกลับกัน) พอดีวันที่ตรงขอบเขต
+ * ใบโควตา BU ไม่ผ่านที่นี่ — ส่ง `?status=` ให้ backend แทน (ดูคอมเมนต์ในฟังก์ชัน)
  */
 function buildAdvance(kind: LicenseKind, status: StatusFilterValue | null): string {
-  if (!status) return '';
+  // ใบโควตากรองผ่านพารามิเตอร์ `status` แทน — `superseded` ต้องรู้ว่าใบไหนชนะใน view ซึ่ง where
+  // บนตารางเดียวแสดงไม่ได้ (ดู `listPlatform` ของ clusterLicenseService)
+  if (!status || kind === 'bu-quota') return '';
   const now = new Date().toISOString();
   if (status === 'scheduled') return JSON.stringify({ where: { start_date: { gt: now } } });
-  if (status === 'expired') {
-    return JSON.stringify({ where: { end_date: kind !== 'bu-quota' ? { lt: now } : { lte: now } } });
-  }
-  return JSON.stringify({
-    where: kind !== 'bu-quota'
-      ? { start_date: { lte: now }, end_date: { gte: now } }
-      : { start_date: { lte: now }, end_date: { gt: now } },
-  });
+  if (status === 'expired') return JSON.stringify({ where: { end_date: { lt: now } } });
+  return JSON.stringify({ where: { start_date: { lte: now }, end_date: { gte: now } } });
 }
 
 export interface PurchaseLicenseTableProps {
@@ -259,10 +255,12 @@ export interface PurchaseLicenseTableProps {
 }
 
 /** สีตัวเลขของการ์ดสถานะ — ชุดเดียวกับแถบสรุปของแท็บสัญญา (active เขียว · expired จาง) */
-const SUMMARY_COLOR: Record<'active' | 'scheduled' | 'expired', string> = {
+const SUMMARY_COLOR: Record<StatusFilterValue, string> = {
   active: 'text-success',
+  superseded: 'text-foreground',
   scheduled: 'text-foreground',
   expired: 'text-muted-foreground',
+  cancelled: 'text-muted-foreground',
 };
 
 /**
@@ -315,7 +313,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   const [search, setSearch] = useState(() => localStorage.getItem(searchKey) || '');
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue | null>(() => {
     const raw = localStorage.getItem(statusKey);
-    return (STATUS_VALUES as string[]).includes(raw ?? '') ? (raw as StatusFilterValue) : null;
+    return (statusValuesFor(config.kind) as string[]).includes(raw ?? '') ? (raw as StatusFilterValue) : null;
   });
 
   const [paginate, setPaginate] = useState(() => ({
@@ -342,12 +340,13 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   const fetchRows = useCallback(async () => {
     setLoading(true);
     try {
-      const params: PaginateParams = {
+      const params: PaginateParams & { status?: StatusFilterValue } = {
         page: paginate.page,
         perpage: paginate.perpage,
         sort: paginate.sort,
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
         advance: buildAdvance(config.kind, statusFilter),
+        ...(config.kind === 'bu-quota' && statusFilter ? { status: statusFilter } : {}),
       };
       const data = await config.service.listPlatform(params);
       const now = new Date();
@@ -480,11 +479,11 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
         handleClearFilters();
       },
     },
-    ...STATUS_VALUES.map((value): SummaryBandItem => ({
+    ...statusValuesFor(config.kind).map((value): SummaryBandItem => ({
       key: value,
       label: statusLabel(value),
-      value: summary?.[value as 'active' | 'scheduled' | 'expired'],
-      color: SUMMARY_COLOR[value as 'active' | 'scheduled' | 'expired'],
+      value: summary?.[value],
+      color: SUMMARY_COLOR[value],
       active: !showingDeleted && statusFilter === value,
       onClick: () => {
         if (showingDeleted) {
@@ -719,7 +718,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
                   <div className="space-y-3">
                     <span className="text-sm font-medium">{t('common.status.label')}</span>
                     <div className="flex flex-wrap gap-1">
-                      {STATUS_VALUES.map((value) => (
+                      {statusValuesFor(config.kind).map((value) => (
                         <Button
                           key={value}
                           variant={statusFilter === value ? 'default' : 'outline'}

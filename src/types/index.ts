@@ -1663,8 +1663,12 @@ export interface SubscriptionSummary {
 export interface LicenseFleetSummary {
   total: number;
   active: number;
+  /** ใบโควตา BU เท่านั้น — อยู่ในช่วงวันแต่ถูกใบใหม่กว่าแทนที่ */
+  superseded?: number;
   scheduled: number;
   expired: number;
+  /** ใบโควตา BU เท่านั้น — ยกเลิกแล้ว (มาก่อนวันที่) */
+  cancelled?: number;
   deleted: number;
 }
 
