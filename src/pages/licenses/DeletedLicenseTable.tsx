@@ -150,7 +150,8 @@ export function DeletedLicenseTable({ kind }: DeletedLicenseTableProps) {
   };
 
   const handleRestore = async () => {
-    if (!restoreRow) return;
+    if (!restoreRow || busy) return;
+    setBusy(true);
     try {
       await service.restore(restoreRow.id);
       toast.success(t('pages.licenses.deleted.restored'));
@@ -159,6 +160,7 @@ export function DeletedLicenseTable({ kind }: DeletedLicenseTableProps) {
       toast.error(licenseActionErrorMessage(err, t));
     } finally {
       setRestoreRow(null);
+      setBusy(false);
     }
   };
 
