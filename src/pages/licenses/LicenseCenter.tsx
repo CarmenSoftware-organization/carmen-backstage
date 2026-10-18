@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Archive } from 'lucide-react';
 import Layout from '../../components/Layout';
 import { PageHeader } from '../../components/PageHeader';
+import { Button } from '../../components/ui/button';
+import { useAuth } from '../../context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { TabStrip, type TabStripItem } from '../../components/TabStrip';
 import clusterService from '../../services/clusterService';
@@ -11,6 +14,7 @@ import { FleetCapacity } from '../clusterManagement/FleetCapacity';
 import ClusterLicenseTable from './ClusterLicenseTable';
 import SubscriptionTable from './SubscriptionTable';
 import { PurchaseLicenseTable } from './PurchaseLicenseTable';
+import { DeletedLicenseTable, type DeletedLicenseKind } from './DeletedLicenseTable';
 import { SEAT_CONFIG, BU_QUOTA_CONFIG, INTERFACE_CONFIG } from './licenseKindConfig';
 import type { FleetSummary } from '../../types';
 
@@ -18,6 +22,8 @@ type LicenseView = 'cluster' | 'subscription' | 'seat' | 'bu-quota' | 'interface
 const VIEW_KEY = 'license_center_view';
 const VIEW_PARAM = 'tab';
 const VIEWS: LicenseView[] = ['cluster', 'subscription', 'seat', 'bu-quota', 'interface'];
+/** `?deleted=1` = แสดงใบที่ลบแล้วของแท็บปัจจุบัน — อยู่ใน URL ไม่ใช่ localStorage และล้างทิ้งเมื่อสลับแท็บ */
+const DELETED_PARAM = 'deleted';
 
 /**
  * ค่าที่มาจากภายนอก (localStorage และ `?tab=`) ต้องตรวจสมาชิกภาพก่อนใช้ — `as LicenseView`
@@ -39,6 +45,7 @@ const readStoredView = (): LicenseView => {
  */
 const LicenseCenter: React.FC = () => {
   const { t } = useI18n();
+  const { isSuperAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   // ลำดับความสำคัญ: `?tab=` > localStorage > 'cluster' — ลิงก์ที่ระบุมุมมองมาต้องชนะเสมอ
   // ไม่งั้นการส่งลิงก์ให้เพื่อนจะเปิดไม่ตรงกับที่เห็น เพราะปลายทางมี localStorage ของตัวเอง
@@ -58,6 +65,8 @@ const LicenseCenter: React.FC = () => {
     localStorage.setItem(VIEW_KEY, v);
     const next = new URLSearchParams(searchParams);
     next.set(VIEW_PARAM, v);
+    // สวิตช์ "แสดงใบที่ลบแล้ว" เป็นของแท็บที่เปิดอยู่ — แท็บใหม่เริ่มที่ตารางปกติเสมอ
+    next.delete(DELETED_PARAM);
     // เขียนพารามิเตอร์เสมอ ไม่ลบทิ้งตอนเป็นค่าเริ่มต้นแบบที่ BusinessUnitEdit ทำ — หน้านั้นไม่มี
     // localStorage มาแข่ง แต่หน้านี้มี ถ้าลบ `?tab=cluster` ทิ้งแล้วโหลดใหม่ ค่าเก่าใน storage
     // จะชนะและพาผู้ใช้ไปคนละมุมมองกับที่เพิ่งเลือก
@@ -87,6 +96,18 @@ const LicenseCenter: React.FC = () => {
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams, view]);
+
+  // สวิตช์เห็นเฉพาะ superadmin และเฉพาะแท็บที่มีใบให้ลบ (ไม่ใช่ "By cluster") — ผู้ใช้อื่นที่ได้ลิงก์
+  // `?deleted=1` มาก็ยังเห็นตารางปกติ เพราะ endpoint รายการใบที่ลบตอบเฉพาะ superadmin อยู่แล้ว
+  const deletedKind: DeletedLicenseKind | null =
+    isSuperAdmin && view !== 'cluster' ? view : null;
+  const showDeleted = deletedKind !== null && searchParams.get(DELETED_PARAM) === '1';
+  const toggleShowDeleted = () => {
+    const next = new URLSearchParams(searchParams);
+    if (showDeleted) next.delete(DELETED_PARAM);
+    else next.set(DELETED_PARAM, '1');
+    setSearchParams(next, { replace: true });
+  };
 
   const toggleExpiringSoonFilter = () => setExpiringSoonFilter((v) => !v);
 
@@ -165,7 +186,23 @@ const LicenseCenter: React.FC = () => {
           </Select>
         </div>
 
-        {view === 'cluster' ? (
+        {deletedKind && (
+          <div className="flex justify-end">
+            <Button
+              variant={showDeleted ? 'default' : 'outline'}
+              size="sm"
+              aria-pressed={showDeleted}
+              onClick={toggleShowDeleted}
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              {t('pages.licenses.deleted.toggle')}
+            </Button>
+          </div>
+        )}
+
+        {showDeleted && deletedKind ? (
+          <DeletedLicenseTable key={deletedKind} kind={deletedKind} />
+        ) : view === 'cluster' ? (
           <ClusterLicenseTable
             expiringSoonFilter={expiringSoonFilter}
             onExpiringSoonChange={setExpiringSoonFilter}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Download, FileText, Filter, Loader2, RotateCw, X } from 'lucide-react';
+import { AlertTriangle, Download, FileText, Filter, Loader2, RotateCw, Trash2, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
@@ -12,6 +13,8 @@ import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from '../../components/ui/sheet';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
+import { TypeToConfirmDialog } from '../../components/TypeToConfirmDialog';
+import { useAuth } from '../../context/AuthContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useI18n } from '../../hooks/useI18n';
 import { generateCSV, downloadCSV } from '../../utils/csvExport';
@@ -26,6 +29,8 @@ import type { SeatLicenseRow, BuQuotaLicenseRow, InterfaceLicenseRow, PaginatePa
 import type { TKey } from '../../i18n/types';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { readStoredPerpage } from '../../utils/pageRange';
+import clusterLicenseService from '../../services/clusterLicenseService';
+import { licenseActionErrorMessage } from './DeletedLicenseTable';
 
 type StatusFilterValue = 'active' | 'superseded' | 'scheduled' | 'expired' | 'cancelled';
 
@@ -259,6 +264,12 @@ export interface PurchaseLicenseTableProps {
  */
 export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   const { t } = useI18n();
+  const { isSuperAdmin } = useAuth();
+  // ใบโควตา BU ที่ยกเลิกแล้วคงอยู่ในตารางนี้ (ไม่ถูกลบแบบซ่อน) — ทางลบถาวรของมันจึงอยู่ที่นี่
+  // ไม่ใช่ในมุมมองใบที่ลบแล้ว · เห็นเฉพาะ superadmin เหมือนปุ่มลบถาวรทุกจุด
+  const canHardDeleteCancelled = config.kind === 'bu-quota' && isSuperAdmin;
+  const [hardDeleteRow, setHardDeleteRow] = useState<FleetLicenseRow | null>(null);
+  const [hardDeleting, setHardDeleting] = useState(false);
   // One lookup for every rendering of a status value in this file — both badges (the
   // license-status column and the active-filter chip) and the Sheet's filter buttons all
   // call this, so a given status can never read two ways on one page.
@@ -349,6 +360,21 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   useEffect(() => {
     fetchRows();
   }, [fetchRows]);
+
+  const handleHardDelete = async () => {
+    if (!hardDeleteRow) return;
+    setHardDeleting(true);
+    try {
+      await clusterLicenseService.hardDelete(hardDeleteRow.id);
+      toast.success(t('pages.licenses.deleted.hardDeleted'));
+      setHardDeleteRow(null);
+      await fetchRows();
+    } catch (err: unknown) {
+      toast.error(licenseActionErrorMessage(err, t));
+    } finally {
+      setHardDeleting(false);
+    }
+  };
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -541,8 +567,30 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
         cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.reference_no}</span>,
       },
       createdColumn,
+      ...(canHardDeleteCancelled
+        ? [{
+            id: 'actions',
+            header: '',
+            enableSorting: false,
+            meta: { headerClassName: 'w-10', cellClassName: 'text-center p-0', card: 'actions' },
+            // เฉพาะแถวที่ยกเลิกแล้ว — แถว active ลบถาวรไม่ได้ (backend ตอบ 409 LICENSE_HARD_DELETE_ACTIVE)
+            cell: ({ row }: { row: Row<FleetLicenseRow> }) =>
+              row.original.status === 'cancelled' ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  aria-label={`${t('pages.licenses.deleted.hardDelete')} ${row.original.license_number}`}
+                  title={t('pages.licenses.deleted.hardDelete')}
+                  onClick={() => setHardDeleteRow(row.original)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : null,
+          } as ColumnDef<FleetLicenseRow, unknown>]
+        : []),
     ];
-  }, [config, t, ownerLabel, amountLabel, rowStatusLabel]);
+  }, [config, t, ownerLabel, amountLabel, rowStatusLabel, canHardDeleteCancelled]);
 
   return (
     <div className="space-y-3">
@@ -683,6 +731,20 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
           )}
         </CardContent>
       </Card>
+
+      {canHardDeleteCancelled && (
+        <TypeToConfirmDialog
+          open={hardDeleteRow !== null}
+          onOpenChange={(open) => { if (!open) setHardDeleteRow(null); }}
+          title={t('pages.licenses.deleted.hardDeleteTitle')}
+          description={t('pages.licenses.deleted.hardDeleteWarning')}
+          confirmValue={hardDeleteRow?.license_number ?? ''}
+          confirmLabel={t('pages.licenses.deleted.hardDelete')}
+          inputLabel={t('pages.licenses.deleted.hardDeleteType', { number: hardDeleteRow?.license_number ?? '' })}
+          busy={hardDeleting}
+          onConfirm={handleHardDelete}
+        />
+      )}
     </div>
   );
 }
