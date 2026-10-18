@@ -1,6 +1,6 @@
 import api from './api';
 import { buildQuery } from '../utils/buildQuery';
-import type { InterfaceLicense, InterfaceLicensesResponse, PaginateParams } from '../types';
+import type { InterfaceLicense, InterfaceLicensesResponse, PaginateParams, LicenseFleetSummary } from '../types';
 
 const BASE = (buId: string) => `/api-system/business-units/${buId}/interface-licenses`;
 
@@ -64,6 +64,12 @@ const businessUnitInterfaceLicenseService = {
   delete: async (buId: string, id: string) => {
     const response = await api.delete(`${BASE(buId)}/${id}`);
     return response.data;
+  },
+
+  /** ตัวเลขสรุปทั้ง fleet สำหรับแถบการ์ดของ License Center — ไม่รับตัวกรอง (ต้องนิ่งกับตัวกรองของตาราง) */
+  getPlatformSummary: async (): Promise<LicenseFleetSummary> => {
+    const response = await api.get(`${PLATFORM_BASE}/summary`);
+    return response.data.data || response.data;
   },
 
   /**

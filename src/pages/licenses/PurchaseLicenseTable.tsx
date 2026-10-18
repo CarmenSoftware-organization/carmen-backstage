@@ -25,7 +25,7 @@ import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { licenseStatus as buLicenseStatus } from '../../utils/buLicense';
 import { licenseStatus as clusterLicenseStatus } from '../../utils/clusterLicense';
 import type { LicenseKind, LicenseKindConfig } from './licenseKindConfig';
-import type { SeatLicenseRow, BuQuotaLicenseRow, InterfaceLicenseRow, PaginateParams } from '../../types';
+import type { SeatLicenseRow, BuQuotaLicenseRow, InterfaceLicenseRow, PaginateParams, LicenseFleetSummary } from '../../types';
 import type { TKey } from '../../i18n/types';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { readStoredPerpage } from '../../utils/pageRange';
@@ -258,15 +258,6 @@ export interface PurchaseLicenseTableProps {
   deletedView?: DeletedViewControl;
 }
 
-/** ตัวเลขของแถบสรุป — `deleted` เป็น undefined เมื่อไม่ได้ขอ (ไม่ใช่ superadmin) */
-interface PurchaseSummary {
-  total: number;
-  active: number;
-  scheduled: number;
-  expired: number;
-  deleted?: number;
-}
-
 /** สีตัวเลขของการ์ดสถานะ — ชุดเดียวกับแถบสรุปของแท็บสัญญา (active เขียว · expired จาง) */
 const SUMMARY_COLOR: Record<'active' | 'scheduled' | 'expired', string> = {
   active: 'text-success',
@@ -381,34 +372,19 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   }, [fetchRows]);
 
   /**
-   * แถบสรุปของแท็บนี้ — backend ไม่มี endpoint summary ของใบสามชนิดนี้ จึงขอ `perpage: 1` ต่อการ์ด
-   * แล้วอ่าน `paginate.total` (ไม่ใช่ perpage:-1 ที่ดึงทุกแถวมานับ) ตัวกรองสถานะใช้ `buildAdvance`
-   * ตัวเดียวกับตาราง ตัวเลขบนการ์ดจึงเท่ากับจำนวนแถวที่ได้เมื่อกดการ์ดนั้นเสมอ
+   * แถบสรุปของแท็บนี้ อ่านจาก `GET .../summary` ซึ่งนับในขอบเขตอ่านเดียวกับรายการ และใช้เกณฑ์วันที่
+   * เดียวกับ `buildAdvance` ตัวเลขบนการ์ดจึงเท่ากับจำนวนแถวที่ได้เมื่อกดการ์ดนั้นเสมอ
    *
    * ไม่ผูกกับช่องค้นหา/ตัวกรอง/หน้า โดยตั้งใจ — ตัวเลขต้องนิ่งกับตัวกรอง (เหตุผลเดียวกับ
    * `SubscriptionTable.fetchSummary`) โหลดตอน mount และหลังลบ/กู้คืนเท่านั้น
    */
-  const wantDeletedCount = !!deletedView;
-  const [summary, setSummary] = useState<PurchaseSummary | null>(null);
+  const [summary, setSummary] = useState<LicenseFleetSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState('');
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
-    const count = (status: StatusFilterValue | null) =>
-      config.service
-        .listPlatform({ page: 1, perpage: 1, advance: buildAdvance(config.kind, status) })
-        .then((d) => d.paginate?.total ?? d.data.length);
     try {
-      const [total, active, scheduled, expired, deleted] = await Promise.all([
-        count(null),
-        count('active'),
-        count('scheduled'),
-        count('expired'),
-        wantDeletedCount
-          ? config.service.listDeleted({ page: 1, perpage: 1 }).then((d) => d.paginate?.total ?? d.data.length)
-          : Promise.resolve(undefined),
-      ]);
-      setSummary({ total, active, scheduled, expired, deleted });
+      setSummary(await config.service.getPlatformSummary());
       setSummaryError('');
     } catch (err: unknown) {
       setSummaryError(t('pages.licenses.loadFailedTitle'));
@@ -416,7 +392,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
     } finally {
       setSummaryLoading(false);
     }
-  }, [config, wantDeletedCount, t]);
+  }, [config, t]);
 
   useEffect(() => {
     fetchSummary();

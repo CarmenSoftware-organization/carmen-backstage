@@ -1,6 +1,6 @@
 import api from './api';
 import { buildQuery } from '../utils/buildQuery';
-import type { ClusterLicense, PaginateParams, BuQuotaLicensesResponse } from '../types';
+import type { ClusterLicense, PaginateParams, BuQuotaLicensesResponse, LicenseFleetSummary } from '../types';
 
 const BASE = (clusterId: string) => `/api-system/clusters/${clusterId}/licenses`;
 
@@ -71,6 +71,12 @@ const clusterLicenseService = {
   ) => {
     const response = await api.post(`${BASE(clusterId)}/${id}/cancel`, data);
     return response.data;
+  },
+
+  /** ตัวเลขสรุปทั้ง fleet สำหรับแถบการ์ดของ License Center — ไม่รับตัวกรอง (ต้องนิ่งกับตัวกรองของตาราง) */
+  getPlatformSummary: async (): Promise<LicenseFleetSummary> => {
+    const response = await api.get(`${PLATFORM_BASE}/summary`);
+    return response.data.data || response.data;
   },
 
   /**
