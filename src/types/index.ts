@@ -1665,6 +1665,8 @@ export interface LicenseFleetSummary {
   active: number;
   /** ใบโควตา BU เท่านั้น — อยู่ในช่วงวันแต่ถูกใบใหม่กว่าแทนที่ */
   superseded?: number;
+  /** ใบ interface เท่านั้น — อยู่ในช่วงวันแต่สัญญาหลักของ BU ไม่ active */
+  capped?: number;
   scheduled: number;
   expired: number;
   /** ใบโควตา BU เท่านั้น — ยกเลิกแล้ว (มาก่อนวันที่) */

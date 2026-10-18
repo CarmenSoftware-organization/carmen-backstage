@@ -21,8 +21,16 @@ const businessUnitInterfaceLicenseService = {
   },
 
   // มุมมองรายใบทั้ง fleet (ไม่ผูก BU เดียว) — paginated ตัวเดียวกับ subscriptions/clusters
-  listPlatform: async (paginate: PaginateParams = {}): Promise<InterfaceLicensesResponse> => {
-    const response = await api.get(`${PLATFORM_BASE}?${buildQuery(paginate, defaultSearchFields)}`);
+  /**
+   * `status` แยกจาก `PaginateParams` — backend รับ `?status=` (active/capped/scheduled/expired)
+   * เพราะ `capped` ต้องรู้สถานะสัญญาแม่ ซึ่ง `advance` บนตารางเดียวแสดงไม่ได้
+   */
+  listPlatform: async (
+    { status, ...paginate }: PaginateParams & { status?: string } = {},
+  ): Promise<InterfaceLicensesResponse> => {
+    const qs = buildQuery(paginate, defaultSearchFields);
+    const statusQs = status ? `&status=${encodeURIComponent(status)}` : '';
+    const response = await api.get(`${PLATFORM_BASE}?${qs}${statusQs}`);
     return response.data;
   },
 
