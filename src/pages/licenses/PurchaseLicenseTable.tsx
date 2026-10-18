@@ -33,23 +33,28 @@ import clusterLicenseService from '../../services/clusterLicenseService';
 import { LicenseSummaryBand, deletedCountColor, type SummaryBandItem } from './LicenseSummaryBand';
 import { DeletedLicenseTable, type DeletedViewControl } from './DeletedLicenseTable';
 
-type StatusFilterValue = 'active' | 'superseded' | 'scheduled' | 'expired' | 'cancelled';
+type StatusFilterValue = 'active' | 'superseded' | 'capped' | 'scheduled' | 'expired' | 'cancelled';
 
 // The complete enumeration of `StatusFilterValue` — used both for the Sheet's filter
 // buttons and to type-check STATUS_VARIANT/STATUS_LABEL_KEYS below. Pure data, module scope
 // is fine; the label lookup itself happens inside the component (see `statusLabel`).
-// ใบที่นั่ง/interface มี 3 สถานะ ส่วนใบโควตามี `superseded`/`cancelled` เพิ่ม (ลำดับเดียวกับ
-// `BU_QUOTA_STATUSES` ฝั่ง backend) — ไม่ใส่สองค่านี้ให้แท็บที่นั่ง เพราะปุ่มกรองที่ไม่มีวันคืนผลคือปุ่มที่หลอกคน
-const STATUS_VALUES: StatusFilterValue[] = ['active', 'scheduled', 'expired'];
-const BU_QUOTA_STATUS_VALUES: StatusFilterValue[] = ['active', 'superseded', 'scheduled', 'expired', 'cancelled'];
-const statusValuesFor = (kind: LicenseKind): StatusFilterValue[] =>
-  kind === 'bu-quota' ? BU_QUOTA_STATUS_VALUES : STATUS_VALUES;
+// ใบที่นั่งมี 3 สถานะ · ใบโควตามี `superseded`/`cancelled` เพิ่ม · ใบ interface มี `capped` เพิ่ม
+// (ลำดับเดียวกับ `BU_QUOTA_STATUSES`/`INTERFACE_STATUSES` ฝั่ง backend) — ไม่ใส่ค่าของชนิดอื่นให้
+// แท็บที่ไม่มีวันคืนผล เพราะปุ่มกรองที่ไม่มีวันคืนผลคือปุ่มที่หลอกคน
+const STATUS_VALUES_BY_KIND: Record<LicenseKind, StatusFilterValue[]> = {
+  seat: ['active', 'scheduled', 'expired'],
+  'bu-quota': ['active', 'superseded', 'scheduled', 'expired', 'cancelled'],
+  interface: ['active', 'capped', 'scheduled', 'expired'],
+};
+const statusValuesFor = (kind: LicenseKind): StatusFilterValue[] => STATUS_VALUES_BY_KIND[kind];
 
 type StatusBadgeVariant = 'success' | 'secondary' | 'destructive' | 'warning';
 
 const STATUS_VARIANT: Record<StatusFilterValue, StatusBadgeVariant> = {
   active: 'success',
   superseded: 'secondary',
+  // ใบที่วันยังไม่หมดแต่สัญญาแม่ไม่ active ให้สิทธิ์อะไรไม่ได้เลย — ไม่ใช่ "ปกติ"
+  capped: 'warning',
   cancelled: 'secondary',
   scheduled: 'secondary',
   expired: 'destructive',
@@ -57,7 +62,7 @@ const STATUS_VARIANT: Record<StatusFilterValue, StatusBadgeVariant> = {
 
 /** ลำดับเดียวกับ bucket ฝั่ง backend (`BU_QUOTA_STATUSES`) — ใช้แค่ให้ accessorFn มีค่า ไม่ได้ใช้เรียงจริง */
 const STATUS_SORT_RANK: Record<StatusFilterValue, number> = {
-  active: 0, superseded: 1, scheduled: 2, expired: 3, cancelled: 4,
+  active: 0, superseded: 1, capped: 1, scheduled: 2, expired: 3, cancelled: 4,
 };
 
 // Catalog KEYS only — resolved with `t` inside the component (see `statusLabel`). Reuses
@@ -66,6 +71,7 @@ const STATUS_SORT_RANK: Record<StatusFilterValue, number> = {
 const STATUS_LABEL_KEYS: Record<StatusFilterValue, TKey> = {
   active: 'common.status.active',
   superseded: 'common.status.superseded',
+  capped: 'pages.businessUnits.interfaceCapped',
   cancelled: 'common.status.cancelled',
   scheduled: 'common.status.scheduled',
   expired: 'common.status.expired',
@@ -158,18 +164,10 @@ interface FleetLicenseRow {
    */
   group_code?: string;
   group_name?: string;
-  /**
-   * ใบ interface ที่ "วันยังไม่หมด แต่ใช้ไม่ได้" เพราะสัญญาแม่ไม่ active — backend ตอบมาใน
-   * `in_force`/`contract_state` คอลัมน์สถานะที่คำนวณจากวันอย่างเดียวจะขึ้น "Active" ให้ใบที่
-   * ไม่ให้สิทธิ์อะไรเลย ธงนี้จึงเปลี่ยน **ป้ายที่แสดง** อย่างเดียว (ตาราง + CSV) ไม่แตะตัวกรอง
-   * สถานะกับ `buildAdvance` ที่ยังอิงวันที่ล้วน เพราะ backend ไม่มีคอลัมน์ให้กรองด้วย `in_force`
-   */
-  interface_capped?: boolean;
 }
 
-/** สีป้ายสถานะของแถว — คู่กับ `rowStatusLabel` ในคอมโพเนนต์ ใบที่ถูกสัญญาแม่ครอบไม่ใช่ "ปกติ" */
-const rowStatusVariant = (r: FleetLicenseRow): StatusBadgeVariant =>
-  r.interface_capped ? 'warning' : STATUS_VARIANT[r.status];
+/** สีป้ายสถานะของแถว — คู่กับ `rowStatusLabel` ในคอมโพเนนต์ */
+const rowStatusVariant = (r: FleetLicenseRow): StatusBadgeVariant => STATUS_VARIANT[r.status];
 
 function toFleetRow(
   kind: LicenseKind,
@@ -194,12 +192,18 @@ function toFleetRow(
     const base = clusterLicenseStatus(quota, now);
     return base === 'active' && quota.is_in_force === false ? 'superseded' : base;
   };
-  // ใบ interface ใช้สูตร **วัน** เดียวกับใบที่นั่ง (`t <= end`) เพื่อให้ตรงกับตัวกรองที่แปลงเป็น
-  // ช่วงวันที่ (`buildAdvance`) — ส่วน `in_force` (ที่รวมสถานะสัญญาแม่เข้ามาด้วย) ไม่ทับค่านี้
-  // แต่ไปอยู่ที่ `interface_capped` ซึ่งเปลี่ยนเฉพาะป้ายที่แสดง ไม่เปลี่ยนค่าที่ใช้กรอง
-  const status: StatusFilterValue = isBuOwned
-    ? buLicenseStatus(row as unknown as Parameters<typeof buLicenseStatus>[0], now)
-    : quotaStatus();
+  // ใบ interface ใช้สูตร **วัน** เดียวกับใบที่นั่ง (`t <= end`) แล้วเช็ก `in_force` ที่ backend
+  // คำนวณ (รวมสถานะสัญญาแม่) — วันยังไม่หมดแต่ไม่ in force = `capped` ตรงกับ `interfaceStatusWhere`
+  // ฝั่ง backend ที่ใช้ทั้งตัวกรองและตัวเลขสรุป · `undefined` (backend รุ่นเก่า) = ไม่รู้ คงสถานะตามวัน
+  const interfaceStatus = (): StatusFilterValue => {
+    const base = buLicenseStatus(row as unknown as Parameters<typeof buLicenseStatus>[0], now);
+    return base === 'active' && inf.in_force === false ? 'capped' : base;
+  };
+  const status: StatusFilterValue = kind === 'interface'
+    ? interfaceStatus()
+    : isBuOwned
+      ? buLicenseStatus(row as unknown as Parameters<typeof buLicenseStatus>[0], now)
+      : quotaStatus();
   // ใบที่นั่ง (BusinessUnitLicense) ไม่มี audit ในฝั่ง backend เลย — อีกสองชนิดมีจริง (ใบโควตา BU
   // จาก cluster-license.service.ts, ใบ interface จาก DTO ที่มี created_*/updated_* ครบ) เงื่อนไข
   // จึงเป็น `kind === 'seat'` ไม่ใช่ `isBuOwned` ที่กลืนใบ interface ไปด้วยเพราะเจ้าของเป็น BU
@@ -226,22 +230,24 @@ function toFleetRow(
     cluster_name: isBuOwned ? seat.cluster_name : undefined,
     group_code: kind === 'interface' ? inf.group?.code : undefined,
     group_name: kind === 'interface' ? inf.group?.name : undefined,
-    interface_capped: kind === 'interface' && status === 'active' && inf.in_force === false,
   };
 }
 
 /**
- * เงื่อนไข `advance.where` จากสถานะที่เลือก สำหรับใบที่นั่ง/interface — backend **ไม่มีคอลัมน์
+ * เงื่อนไข `advance.where` จากสถานะที่เลือก สำหรับใบที่นั่ง — backend **ไม่มีคอลัมน์
  * status** ให้กรอง ต้องแปลเป็นช่วงวันที่บน `start_date`/`end_date` เอง และห้ามส่ง
  * `filter=status:active` เด็ดขาด (`status` ไม่ใช่คอลัมน์จริง ค่านั้นไหลเข้า Prisma ตรง ๆ แล้วได้ 500)
  * ขอบเขตตาม `buLicense.ts`: `end_date` คือวันสุดท้ายที่ยังคุ้มครอง (`t <= end` ยัง active)
  *
- * ใบโควตา BU ไม่ผ่านที่นี่ — ส่ง `?status=` ให้ backend แทน (ดูคอมเมนต์ในฟังก์ชัน)
+ * ใบโควตา BU / interface ไม่ผ่านที่นี่ — ส่ง `?status=` ให้ backend แทน (ดูคอมเมนต์ในฟังก์ชัน)
  */
+/** ชนิดใบที่ backend รับ `?status=` (สถานะที่คำนวณจากข้อมูลนอกแถว) แทน `advance` ช่วงวันที่ */
+const usesStatusParam = (kind: LicenseKind): boolean => kind !== 'seat';
+
 function buildAdvance(kind: LicenseKind, status: StatusFilterValue | null): string {
-  // ใบโควตากรองผ่านพารามิเตอร์ `status` แทน — `superseded` ต้องรู้ว่าใบไหนชนะใน view ซึ่ง where
-  // บนตารางเดียวแสดงไม่ได้ (ดู `listPlatform` ของ clusterLicenseService)
-  if (!status || kind === 'bu-quota') return '';
+  // ใบโควตา/interface กรองผ่านพารามิเตอร์ `status` แทน — `superseded` ต้องรู้ใบที่ชนะใน view และ
+  // `capped` ต้องรู้สถานะสัญญาแม่ ซึ่ง where บนตารางเดียวแสดงไม่ได้ (ดู `usesStatusParam`)
+  if (!status || usesStatusParam(kind)) return '';
   const now = new Date().toISOString();
   if (status === 'scheduled') return JSON.stringify({ where: { start_date: { gt: now } } });
   if (status === 'expired') return JSON.stringify({ where: { end_date: { lt: now } } });
@@ -258,6 +264,7 @@ export interface PurchaseLicenseTableProps {
 const SUMMARY_COLOR: Record<StatusFilterValue, string> = {
   active: 'text-success',
   superseded: 'text-foreground',
+  capped: 'text-warning',
   scheduled: 'text-foreground',
   expired: 'text-muted-foreground',
   cancelled: 'text-muted-foreground',
@@ -282,17 +289,8 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   // license-status column and the active-filter chip) and the Sheet's filter buttons all
   // call this, so a given status can never read two ways on one page.
   const statusLabel = useCallback((s: StatusFilterValue) => t(STATUS_LABEL_KEYS[s]), [t]);
-  /**
-   * ป้ายสถานะ **ของแถว** — ต่างจาก `statusLabel` ตรงที่รู้จัก `interface_capped` ด้วย ใบ interface
-   * ที่วันยังไม่หมดแต่สัญญาแม่ไม่ active ให้สิทธิ์อะไรไม่ได้เลย การพิมพ์ "Active" ให้มันคือการโกหก
-   * ทั้งตารางและ CSV ต้องเรียกตัวนี้ตัวเดียวกัน ไม่งั้นไฟล์ที่ export ไม่ตรงกับที่ตาเห็นบนจอ
-   * (ตัวกรองสถานะยังอิงวันที่ล้วนตามเดิม — ดู `buildAdvance`)
-   */
-  const rowStatusLabel = useCallback(
-    (r: FleetLicenseRow) =>
-      r.interface_capped ? t('pages.businessUnits.interfaceCapped') : statusLabel(r.status),
-    [statusLabel, t],
-  );
+  /** ป้ายสถานะของแถว — ตารางและ CSV ต้องเรียกตัวนี้ตัวเดียวกัน ไม่งั้นไฟล์ที่ export ไม่ตรงกับจอ */
+  const rowStatusLabel = useCallback((r: FleetLicenseRow) => statusLabel(r.status), [statusLabel]);
   const ownerLabel = t(OWNER_LABEL_KEYS[config.kind]);
   const amountLabel = t(AMOUNT_LABEL_KEYS[config.kind]);
 
@@ -346,7 +344,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
         sort: paginate.sort,
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
         advance: buildAdvance(config.kind, statusFilter),
-        ...(config.kind === 'bu-quota' && statusFilter ? { status: statusFilter } : {}),
+        ...(usesStatusParam(config.kind) && statusFilter ? { status: statusFilter } : {}),
       };
       const data = await config.service.listPlatform(params);
       const now = new Date();
