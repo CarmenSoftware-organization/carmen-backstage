@@ -1656,6 +1656,22 @@ export interface SubscriptionSummary {
   deleted: number;
 }
 
+/**
+ * ตัวเลขสรุปทั้ง fleet ของใบชนิดหนึ่ง (ที่นั่ง / โควตา BU / interface) จาก `GET .../summary` —
+ * อยู่ในขอบเขตที่ผู้เรียกอ่านได้ สถานะใช้เกณฑ์วันที่เดียวกับตัวกรองสถานะของรายการ
+ */
+export interface LicenseFleetSummary {
+  total: number;
+  active: number;
+  /** ใบโควตา BU เท่านั้น — อยู่ในช่วงวันแต่ถูกใบใหม่กว่าแทนที่ */
+  superseded?: number;
+  scheduled: number;
+  expired: number;
+  /** ใบโควตา BU เท่านั้น — ยกเลิกแล้ว (มาก่อนวันที่) */
+  cancelled?: number;
+  deleted: number;
+}
+
 export interface SubscriptionsResponse {
   data: Subscription[];
   paginate: { total: number; page: number; perpage: number; pages: number };

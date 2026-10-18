@@ -132,6 +132,20 @@ export const getErrorCode = (err: unknown): string | undefined => {
 };
 
 /**
+ * ข้อความ error ของปุ่มกู้คืน/ลบถาวรใบ license — 409 (LICENSE_HARD_DELETE_ACTIVE /
+ * LICENSE_RESTORE_CONFLICT) เป็น conflict ที่แน่นอน ลองใหม่ก็ไม่หาย ต้องโชว์ข้อความจาก catalog เสมอ
+ * ไม่ใช่ "ลองใหม่ภายหลัง" ที่ `getErrorDetail` ซ่อนไว้ใน production (เหตุผลเดียวกับ
+ * BusinessUnitEdit.tsx) · error อื่นใช้ `getErrorDetail` ตามปกติ
+ *
+ * Error text for licence restore/hard-delete: a 409 is a deterministic conflict, so its catalog
+ * message is always shown; anything else goes through `getErrorDetail`.
+ */
+export const licenseActionErrorMessage = (err: unknown, t: TFunction): string =>
+  (err as { response?: { status?: number } })?.response?.status === 409
+    ? parseApiError(err, t).message
+    : getErrorDetail(err, t);
+
+/**
  * Conditionally logs errors only in development.
  */
 export const devLog = (label: string, err: unknown) => {

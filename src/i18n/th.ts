@@ -1693,6 +1693,25 @@ export const th: Translations = {
       licenseCancelled: 'ยกเลิกใบแล้ว',
       cancelLicenseFailedTitle: 'ยกเลิกใบไม่สำเร็จ',
       removeLicenseFailedTitle: 'นำไลเซนส์ออกไม่สำเร็จ',
+      // ── ใบที่ลบแล้ว / กู้คืน / ลบถาวร (TypeToConfirmDialog) ──
+      deleted: {
+        viewing: 'กำลังดูใบที่ลบแล้ว — กู้คืนหรือลบถาวรได้จากแต่ละแถว',
+        backToList: 'กลับรายการปกติ',
+        empty: 'ไม่มีใบที่ลบแล้ว',
+        deletedAt: 'ลบเมื่อ',
+        deletedBy: 'ลบโดย',
+        restore: 'กู้คืน',
+        restoreConfirm: 'กู้คืนใบนี้? ใบจะกลับมาใช้งานได้อีกครั้ง',
+        restored: 'กู้คืนใบแล้ว',
+        hardDelete: 'ลบถาวร',
+        hardDeleteTitle: 'ลบใบนี้ถาวร',
+        hardDeleteWarning: 'ย้อนกลับไม่ได้ ข้อมูลจะถูกลบทิ้งจริง และเลขที่ใบนี้จะไม่ถูกออกซ้ำอีก',
+        hardDeleteType: 'พิมพ์เลขที่ใบ {{number}} เพื่อยืนยัน',
+        hardDeleted: 'ลบใบถาวรแล้ว',
+        hardDeleteRowAria: 'ลบใบ {{number}} ถาวร',
+        softDelete: 'ลบ',
+        softDeleteConfirm: 'ลบใบนี้? ใบจะถูกซ่อนจากรายการและกู้คืนได้ภายหลัง',
+      },
     },
 
     clusterAdmin: {

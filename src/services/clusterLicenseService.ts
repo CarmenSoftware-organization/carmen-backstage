@@ -1,6 +1,6 @@
 import api from './api';
 import { buildQuery } from '../utils/buildQuery';
-import type { ClusterLicense, PaginateParams, BuQuotaLicensesResponse } from '../types';
+import type { ClusterLicense, PaginateParams, BuQuotaLicensesResponse, LicenseFleetSummary } from '../types';
 
 const BASE = (clusterId: string) => `/api-system/clusters/${clusterId}/licenses`;
 
@@ -21,8 +21,16 @@ const clusterLicenseService = {
   },
 
   // มุมมองรายใบทั้ง fleet (ไม่ผูก cluster เดียว) — paginated ตัวเดียวกับ subscriptions/clusters
-  listPlatform: async (paginate: PaginateParams = {}): Promise<BuQuotaLicensesResponse> => {
-    const response = await api.get(`${PLATFORM_BASE}?${buildQuery(paginate, defaultSearchFields)}`);
+  /**
+   * `status` แยกจาก `PaginateParams` — backend รับ `?status=` (active/superseded/scheduled/expired/
+   * cancelled) เพราะ `superseded` ต้องรู้ใบที่ชนะใน view ซึ่ง `advance` บนตารางเดียวแสดงไม่ได้
+   */
+  listPlatform: async (
+    { status, ...paginate }: PaginateParams & { status?: string } = {},
+  ): Promise<BuQuotaLicensesResponse> => {
+    const qs = buildQuery(paginate, defaultSearchFields);
+    const statusQs = status ? `&status=${encodeURIComponent(status)}` : '';
+    const response = await api.get(`${PLATFORM_BASE}?${qs}${statusQs}`);
     return response.data;
   },
 
@@ -70,6 +78,37 @@ const clusterLicenseService = {
     data: { doc_version: number; cancel_reason?: string },
   ) => {
     const response = await api.post(`${BASE(clusterId)}/${id}/cancel`, data);
+    return response.data;
+  },
+
+  /** ตัวเลขสรุปทั้ง fleet สำหรับแถบการ์ดของ License Center — ไม่รับตัวกรอง (ต้องนิ่งกับตัวกรองของตาราง) */
+  getPlatformSummary: async (): Promise<LicenseFleetSummary> => {
+    const response = await api.get(`${PLATFORM_BASE}/summary`);
+    return response.data.data || response.data;
+  },
+
+  /**
+   * รายการใบโควตา BUที่ถูกลบแบบซ่อน (deleted_at ไม่ว่าง) — เฉพาะ platform superadmin
+   * envelope เดียวกับ listPlatform; แถวมี `deleted_at` / `deleted_by_id` และชื่อผู้ลบที่ `audit.deleted`
+   */
+  listDeleted: async (paginate: PaginateParams = {}): Promise<BuQuotaLicensesResponse> => {
+    const response = await api.get(`${PLATFORM_BASE}/deleted?${buildQuery(paginate, defaultSearchFields)}`);
+    return response.data;
+  },
+
+  /** กู้คืนใบที่ลบแบบซ่อน — 409 `LICENSE_RESTORE_CONFLICT` เมื่อเลขชนกับใบที่ active อยู่ (ต้องมีสิทธิ์ subscription.manage) */
+  restore: async (id: string): Promise<unknown> => {
+    const response = await api.post(`${PLATFORM_BASE}/${id}/restore`);
+    return response.data;
+  },
+
+  /**
+   * ลบถาวร (ย้อนไม่ได้ เลขที่ใบจะไม่ถูกออกซ้ำ) — เฉพาะ platform superadmin
+   * คืน `{ id, license_number }` (subscription ก็ใช้คีย์ license_number)
+   * 409 `LICENSE_HARD_DELETE_ACTIVE` เมื่อแถวยัง active
+   */
+  hardDelete: async (id: string): Promise<unknown> => {
+    const response = await api.delete(`${PLATFORM_BASE}/${id}/hard`);
     return response.data;
   },
 };

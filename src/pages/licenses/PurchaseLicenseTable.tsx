@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Download, FileText, Filter, Loader2, RotateCw, X } from 'lucide-react';
+import { AlertTriangle, Download, FileText, Filter, Loader2, RotateCw, Trash2, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
@@ -12,29 +13,37 @@ import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from '../../components/ui/sheet';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
+import { TypeToConfirmDialog } from '../../components/TypeToConfirmDialog';
+import { useAuth } from '../../context/AuthContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useI18n } from '../../hooks/useI18n';
 import { generateCSV, downloadCSV } from '../../utils/csvExport';
-import { devLog } from '../../utils/errorParser';
+import { devLog, licenseActionErrorMessage } from '../../utils/errorParser';
 import { fmtDate, isPerpetual } from './licenseDates';
 import { auditColumns } from '../../components/auditColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { licenseStatus as buLicenseStatus } from '../../utils/buLicense';
 import { licenseStatus as clusterLicenseStatus } from '../../utils/clusterLicense';
 import type { LicenseKind, LicenseKindConfig } from './licenseKindConfig';
-import type { SeatLicenseRow, BuQuotaLicenseRow, InterfaceLicenseRow, PaginateParams } from '../../types';
+import type { SeatLicenseRow, BuQuotaLicenseRow, InterfaceLicenseRow, PaginateParams, LicenseFleetSummary } from '../../types';
 import type { TKey } from '../../i18n/types';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { readStoredPerpage } from '../../utils/pageRange';
+import clusterLicenseService from '../../services/clusterLicenseService';
+import { LicenseSummaryBand, deletedCountColor, type SummaryBandItem } from './LicenseSummaryBand';
+import { DeletedLicenseTable, type DeletedViewControl } from './DeletedLicenseTable';
 
 type StatusFilterValue = 'active' | 'superseded' | 'scheduled' | 'expired' | 'cancelled';
 
 // The complete enumeration of `StatusFilterValue` — used both for the Sheet's filter
 // buttons and to type-check STATUS_VARIANT/STATUS_LABEL_KEYS below. Pure data, module scope
 // is fine; the label lookup itself happens inside the component (see `statusLabel`).
-// ตัวกรองใน Sheet ยังคง 3 ค่าเดิมโดยตั้งใจ: `superseded`/`cancelled` มีเฉพาะใบโควตา การใส่
-// ปุ่มกรองที่ไม่มีวันคืนผลเมื่อผู้ใช้ดูแท็บที่นั่งอยู่ คือปุ่มที่หลอกคน
+// ใบที่นั่ง/interface มี 3 สถานะ ส่วนใบโควตามี `superseded`/`cancelled` เพิ่ม (ลำดับเดียวกับ
+// `BU_QUOTA_STATUSES` ฝั่ง backend) — ไม่ใส่สองค่านี้ให้แท็บที่นั่ง เพราะปุ่มกรองที่ไม่มีวันคืนผลคือปุ่มที่หลอกคน
 const STATUS_VALUES: StatusFilterValue[] = ['active', 'scheduled', 'expired'];
+const BU_QUOTA_STATUS_VALUES: StatusFilterValue[] = ['active', 'superseded', 'scheduled', 'expired', 'cancelled'];
+const statusValuesFor = (kind: LicenseKind): StatusFilterValue[] =>
+  kind === 'bu-quota' ? BU_QUOTA_STATUS_VALUES : STATUS_VALUES;
 
 type StatusBadgeVariant = 'success' | 'secondary' | 'destructive' | 'warning';
 
@@ -46,10 +55,9 @@ const STATUS_VARIANT: Record<StatusFilterValue, StatusBadgeVariant> = {
   expired: 'destructive',
 };
 
-/** ลำดับเดียวกับ bucket ฝั่ง backend — ใช้แค่ให้ accessorFn มีค่า ไม่ได้ใช้เรียงจริง · superseded อยู่กับ active
- *  เพราะ backend ไม่แยก (ใบที่ถูกแทนที่ยังอยู่ในช่วงวันของตัวเอง) */
+/** ลำดับเดียวกับ bucket ฝั่ง backend (`BU_QUOTA_STATUSES`) — ใช้แค่ให้ accessorFn มีค่า ไม่ได้ใช้เรียงจริง */
 const STATUS_SORT_RANK: Record<StatusFilterValue, number> = {
-  active: 0, superseded: 0, scheduled: 1, expired: 2, cancelled: 3,
+  active: 0, superseded: 1, scheduled: 2, expired: 3, cancelled: 4,
 };
 
 // Catalog KEYS only — resolved with `t` inside the component (see `statusLabel`). Reuses
@@ -223,32 +231,37 @@ function toFleetRow(
 }
 
 /**
- * เงื่อนไข `advance.where` จากสถานะที่เลือก — backend **ไม่มีคอลัมน์ status** ให้กรอง (controller
- * ruling R21) ต้องแปลเป็นช่วงวันที่บน `start_date`/`end_date` เอง และห้ามส่ง `filter=status:active`
- * เด็ดขาด เพราะ `status` ไม่ใช่คอลัมน์จริง ค่านั้นจะไหลเข้า Prisma ตรง ๆ แล้วได้ 500 ไม่ใช่ 400
+ * เงื่อนไข `advance.where` จากสถานะที่เลือก สำหรับใบที่นั่ง/interface — backend **ไม่มีคอลัมน์
+ * status** ให้กรอง ต้องแปลเป็นช่วงวันที่บน `start_date`/`end_date` เอง และห้ามส่ง
+ * `filter=status:active` เด็ดขาด (`status` ไม่ใช่คอลัมน์จริง ค่านั้นไหลเข้า Prisma ตรง ๆ แล้วได้ 500)
+ * ขอบเขตตาม `buLicense.ts`: `end_date` คือวันสุดท้ายที่ยังคุ้มครอง (`t <= end` ยัง active)
  *
- * ขอบเขตสองชนิดไม่เท่ากัน: ที่นั่ง (`buLicense.ts`) นับ `end_date` เป็นวันสุดท้ายที่ยังคุ้มครองอยู่
- * (`t <= end` ยังถือว่า active) ส่วนโควตา BU (`clusterLicense.ts`) หมดอายุทันทีที่ถึง `end_date`
- * (`t < end` ถึงจะยัง active) — เงื่อนไข `lt`/`lte` ของ "expired"/"active" จึงต้องแยกตาม `kind`
- * ไม่งั้นแถวที่ badge ขึ้น "Active" จะไม่โผล่ในผลกรอง "Active" (หรือกลับกัน) พอดีวันที่ตรงขอบเขต
+ * ใบโควตา BU ไม่ผ่านที่นี่ — ส่ง `?status=` ให้ backend แทน (ดูคอมเมนต์ในฟังก์ชัน)
  */
 function buildAdvance(kind: LicenseKind, status: StatusFilterValue | null): string {
-  if (!status) return '';
+  // ใบโควตากรองผ่านพารามิเตอร์ `status` แทน — `superseded` ต้องรู้ว่าใบไหนชนะใน view ซึ่ง where
+  // บนตารางเดียวแสดงไม่ได้ (ดู `listPlatform` ของ clusterLicenseService)
+  if (!status || kind === 'bu-quota') return '';
   const now = new Date().toISOString();
   if (status === 'scheduled') return JSON.stringify({ where: { start_date: { gt: now } } });
-  if (status === 'expired') {
-    return JSON.stringify({ where: { end_date: kind !== 'bu-quota' ? { lt: now } : { lte: now } } });
-  }
-  return JSON.stringify({
-    where: kind !== 'bu-quota'
-      ? { start_date: { lte: now }, end_date: { gte: now } }
-      : { start_date: { lte: now }, end_date: { gt: now } },
-  });
+  if (status === 'expired') return JSON.stringify({ where: { end_date: { lt: now } } });
+  return JSON.stringify({ where: { start_date: { lte: now }, end_date: { gte: now } } });
 }
 
 export interface PurchaseLicenseTableProps {
   config: LicenseKindConfig;
+  /** มุมมองใบที่ลบแล้ว (superadmin) — การ์ด "ลบแล้ว" ในแถบสรุปเป็นทางเข้า ดู `DeletedViewControl` */
+  deletedView?: DeletedViewControl;
 }
+
+/** สีตัวเลขของการ์ดสถานะ — ชุดเดียวกับแถบสรุปของแท็บสัญญา (active เขียว · expired จาง) */
+const SUMMARY_COLOR: Record<StatusFilterValue, string> = {
+  active: 'text-success',
+  superseded: 'text-foreground',
+  scheduled: 'text-foreground',
+  expired: 'text-muted-foreground',
+  cancelled: 'text-muted-foreground',
+};
 
 /**
  * ตารางรายใบทั้ง fleet ของใบชนิดใดชนิดหนึ่ง (ที่นั่ง หรือ โควตา BU) — server-side ทั้งหมด
@@ -257,8 +270,14 @@ export interface PurchaseLicenseTableProps {
  * `loadFailed` แยกจาก "ไม่มีใบ" โดยตั้งใจ: ในระบบนี้ 0 ใบแปลว่าไม่มีความจุจริง การกลืน error
  * เป็นตารางว่างคือการโกหกผู้ใช้ว่าเขาไม่ได้ซื้ออะไรไว้เลย
  */
-export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
+export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTableProps) {
   const { t } = useI18n();
+  const { isSuperAdmin } = useAuth();
+  // ใบโควตา BU ที่ยกเลิกแล้วคงอยู่ในตารางนี้ (ไม่ถูกลบแบบซ่อน) — ทางลบถาวรของมันจึงอยู่ที่นี่
+  // ไม่ใช่ในมุมมองใบที่ลบแล้ว · เห็นเฉพาะ superadmin เหมือนปุ่มลบถาวรทุกจุด
+  const canHardDeleteCancelled = config.kind === 'bu-quota' && isSuperAdmin;
+  const [hardDeleteRow, setHardDeleteRow] = useState<FleetLicenseRow | null>(null);
+  const [hardDeleting, setHardDeleting] = useState(false);
   // One lookup for every rendering of a status value in this file — both badges (the
   // license-status column and the active-filter chip) and the Sheet's filter buttons all
   // call this, so a given status can never read two ways on one page.
@@ -294,7 +313,7 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   const [search, setSearch] = useState(() => localStorage.getItem(searchKey) || '');
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue | null>(() => {
     const raw = localStorage.getItem(statusKey);
-    return (STATUS_VALUES as string[]).includes(raw ?? '') ? (raw as StatusFilterValue) : null;
+    return (statusValuesFor(config.kind) as string[]).includes(raw ?? '') ? (raw as StatusFilterValue) : null;
   });
 
   const [paginate, setPaginate] = useState(() => ({
@@ -321,12 +340,13 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   const fetchRows = useCallback(async () => {
     setLoading(true);
     try {
-      const params: PaginateParams = {
+      const params: PaginateParams & { status?: StatusFilterValue } = {
         page: paginate.page,
         perpage: paginate.perpage,
         sort: paginate.sort,
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
         advance: buildAdvance(config.kind, statusFilter),
+        ...(config.kind === 'bu-quota' && statusFilter ? { status: statusFilter } : {}),
       };
       const data = await config.service.listPlatform(params);
       const now = new Date();
@@ -349,6 +369,57 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   useEffect(() => {
     fetchRows();
   }, [fetchRows]);
+
+  /**
+   * แถบสรุปของแท็บนี้ อ่านจาก `GET .../summary` ซึ่งนับในขอบเขตอ่านเดียวกับรายการ และใช้เกณฑ์วันที่
+   * เดียวกับ `buildAdvance` ตัวเลขบนการ์ดจึงเท่ากับจำนวนแถวที่ได้เมื่อกดการ์ดนั้นเสมอ
+   *
+   * ไม่ผูกกับช่องค้นหา/ตัวกรอง/หน้า โดยตั้งใจ — ตัวเลขต้องนิ่งกับตัวกรอง (เหตุผลเดียวกับ
+   * `SubscriptionTable.fetchSummary`) โหลดตอน mount และหลังลบ/กู้คืนเท่านั้น
+   */
+  const [summary, setSummary] = useState<LicenseFleetSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState('');
+  const fetchSummary = useCallback(async () => {
+    setSummaryLoading(true);
+    try {
+      setSummary(await config.service.getPlatformSummary());
+      setSummaryError('');
+    } catch (err: unknown) {
+      setSummaryError(t('pages.licenses.loadFailedTitle'));
+      devLog(`Failed to load ${config.kind} license summary:`, err);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, [config, t]);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
+  const handleHardDelete = async () => {
+    if (!hardDeleteRow) return;
+    setHardDeleting(true);
+    try {
+      await clusterLicenseService.hardDelete(hardDeleteRow.id);
+      toast.success(t('pages.licenses.deleted.hardDeleted'));
+      setHardDeleteRow(null);
+      fetchSummary();
+      // แถวสุดท้ายของหน้า ≥2 หายไป — ถอยหนึ่งหน้า (setPaginate ทำให้ fetch เอง) ไม่งั้นได้ empty
+      // state "ยังไม่มีใบ" หลอก ๆ ทั้งที่หน้าก่อนหน้ายังมีใบอยู่
+      if (rows.length === 1 && paginate.page > 1) {
+        const prev = paginate.page - 1;
+        localStorage.setItem(pageKey, String(prev));
+        setPaginate((p) => ({ ...p, page: prev }));
+      } else {
+        await fetchRows();
+      }
+    } catch (err: unknown) {
+      toast.error(licenseActionErrorMessage(err, t));
+    } finally {
+      setHardDeleting(false);
+    }
+  };
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -392,6 +463,48 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
   };
 
   const activeFilterCount = statusFilter ? 1 : 0;
+
+  // การ์ดกรองกดระหว่างดูใบที่ลบ = กลับไปตารางปกติที่กรองตามการ์ดนั้น (ถ้าตัวกรองนั้นเปิดอยู่แล้ว
+  // แค่กลับ ไม่ toggle ปิดทิ้ง) — ท่าเดียวกับ SubscriptionTable
+  const showingDeleted = !!deletedView?.open;
+  const summaryItems: SummaryBandItem[] = [
+    {
+      key: 'total',
+      label: t('common.option.all'),
+      value: summary?.total,
+      color: 'text-foreground',
+      active: !showingDeleted && statusFilter === null,
+      onClick: () => {
+        if (showingDeleted) deletedView.onToggle();
+        handleClearFilters();
+      },
+    },
+    ...statusValuesFor(config.kind).map((value): SummaryBandItem => ({
+      key: value,
+      label: statusLabel(value),
+      value: summary?.[value],
+      color: SUMMARY_COLOR[value],
+      active: !showingDeleted && statusFilter === value,
+      onClick: () => {
+        if (showingDeleted) {
+          deletedView.onToggle();
+          if (statusFilter === value) return;
+        }
+        handleStatusFilter(value);
+      },
+    })),
+    ...(deletedView
+      ? [{
+          key: 'deleted',
+          label: t('common.status.deleted'),
+          value: summary?.deleted,
+          color: deletedCountColor(summary?.deleted),
+          active: showingDeleted,
+          onClick: deletedView.onToggle,
+          variant: 'view' as const,
+        }]
+      : []),
+  ];
 
   const handleExport = () => {
     // คอลัมน์ค่าหลักของ CSV สลับตามชนิดใบ ต้องประกาศชนิดให้ชัดก่อน spread — array literal ที่
@@ -541,28 +654,48 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
         cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.reference_no}</span>,
       },
       createdColumn,
+      ...(canHardDeleteCancelled
+        ? [{
+            id: 'actions',
+            header: '',
+            enableSorting: false,
+            meta: { headerClassName: 'w-10', cellClassName: 'text-center p-0', card: 'actions' },
+            // เฉพาะแถวที่ยกเลิกแล้ว — แถว active ลบถาวรไม่ได้ (backend ตอบ 409 LICENSE_HARD_DELETE_ACTIVE)
+            cell: ({ row }: { row: Row<FleetLicenseRow> }) =>
+              row.original.status === 'cancelled' ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  aria-label={t('pages.licenses.deleted.hardDeleteRowAria', { number: row.original.license_number })}
+                  title={t('pages.licenses.deleted.hardDelete')}
+                  onClick={() => setHardDeleteRow(row.original)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : null,
+          } as ColumnDef<FleetLicenseRow, unknown>]
+        : []),
     ];
-  }, [config, t, ownerLabel, amountLabel, rowStatusLabel]);
+  }, [config, t, ownerLabel, amountLabel, rowStatusLabel, canHardDeleteCancelled]);
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || loadFailed || rows.length === 0}>
-          <Download className="mr-2 h-4 w-4" />
-          {t('common.action.export')}
-        </Button>
-      </div>
+    <div className="space-y-6 sm:space-y-8">
+      <LicenseSummaryBand items={summaryItems} loading={summaryLoading} error={summaryError} onRetry={fetchSummary} />
 
+      {showingDeleted ? (
+        <DeletedLicenseTable kind={config.kind} onExit={deletedView.onToggle} onChanged={fetchSummary} />
+      ) : (
       <Card>
         <CardHeader className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-wrap items-center gap-2">
             <SearchInput
               ref={searchInputRef}
               value={search}
               onValueChange={handleSearchChange}
               onClear={handleSearchClear}
               placeholder={t('pages.licenses.searchLicensesPlaceholder')}
-              className="flex-1 sm:max-w-sm"
+              className="min-w-0 flex-1 sm:max-w-sm"
             />
             <Sheet open={showFilters} onOpenChange={setShowFilters}>
               <SheetTrigger asChild>
@@ -585,7 +718,7 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
                   <div className="space-y-3">
                     <span className="text-sm font-medium">{t('common.status.label')}</span>
                     <div className="flex flex-wrap gap-1">
-                      {STATUS_VALUES.map((value) => (
+                      {statusValuesFor(config.kind).map((value) => (
                         <Button
                           key={value}
                           variant={statusFilter === value ? 'default' : 'outline'}
@@ -608,6 +741,16 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
                 </div>
               </SheetContent>
             </Sheet>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto shrink-0"
+              onClick={handleExport}
+              disabled={loading || loadFailed || rows.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {t('common.action.export')}
+            </Button>
           </div>
 
           {activeFilterCount > 0 && statusFilter && (
@@ -683,6 +826,21 @@ export function PurchaseLicenseTable({ config }: PurchaseLicenseTableProps) {
           )}
         </CardContent>
       </Card>
+      )}
+
+      {canHardDeleteCancelled && (
+        <TypeToConfirmDialog
+          open={hardDeleteRow !== null}
+          onOpenChange={(open) => { if (!open) setHardDeleteRow(null); }}
+          title={t('pages.licenses.deleted.hardDeleteTitle')}
+          description={t('pages.licenses.deleted.hardDeleteWarning')}
+          confirmValue={hardDeleteRow?.license_number ?? ''}
+          confirmLabel={t('pages.licenses.deleted.hardDelete')}
+          inputLabel={t('pages.licenses.deleted.hardDeleteType', { number: hardDeleteRow?.license_number ?? '' })}
+          busy={hardDeleting}
+          onConfirm={handleHardDelete}
+        />
+      )}
     </div>
   );
 }

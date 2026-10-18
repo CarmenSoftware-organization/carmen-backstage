@@ -1,8 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from '../../../components/ui/card';
-import { Skeleton } from '../../../components/ui/skeleton';
-import { cn } from '../../../lib/utils';
-import { FetchErrorState } from '../../../components/FetchErrorState';
+import { LicenseSummaryBand, deletedCountColor, type SummaryBandItem } from '../LicenseSummaryBand';
 import { useI18n } from '../../../hooks/useI18n';
 import type { SubscriptionSummary as SummaryType } from '../../../types';
 
@@ -20,6 +17,10 @@ interface SubscriptionSummaryProps {
   activeKeys?: SummaryFilterKey[];
   /** การ์ดที่กดไม่ได้ชั่วคราวเพราะตัวกรองอื่นบังอยู่ (ดู `handleStateFilter` ใน SubscriptionTable) */
   disabledKeys?: SummaryFilterKey[];
+  /** ส่งมา = การ์ด "ลบแล้ว" กดเพื่อสลับมุมมองใบที่ลบได้ (LicenseCenter ส่งเฉพาะ superadmin) */
+  onDeletedClick?: () => void;
+  /** กำลังแสดงมุมมองใบที่ลบอยู่ — การ์ด "ลบแล้ว" ติดไฟ การ์ดกรองไม่ติด */
+  deletedActive?: boolean;
 }
 
 /**
@@ -35,89 +36,43 @@ interface SubscriptionSummaryProps {
  * ที่เหลือเป็น 0 แล้วกดกลับไม่ได้เพราะกลายเป็นทางตัน (เดิมทั้งแถบจึงกดไม่ได้เลยด้วยเหตุผลนี้ ก่อนมี
  * endpoint แยก)
  *
- * "ลบแล้ว" ไม่มีวันกดได้ ไม่ว่าตัวเลขจะมาจากไหน — backend ไม่มีทางให้ list ระเบียนที่ลบแล้ว
- * (§8.2 ของสัญญา) การ์ดที่กดแล้วได้ 0 แถวคือทางตัน จึงคงเป็นตัวเลขอ่านอย่างเดียวตลอดไป
+ * "ลบแล้ว" ไม่ใช่ตัวกรอง — กดได้เฉพาะเมื่อผู้เรียกส่ง `onDeletedClick` มา (superadmin ใน License
+ * Center) แล้วจะสลับไปมุมมองใบที่ลบแล้วของแท็บนี้ ไม่ได้กรองตารางเดิม (backend list ใบที่ลบให้
+ * superadmin ได้แล้วผ่าน `listDeleted`) ผู้ใช้อื่นยังเห็นเป็นตัวเลขอ่านอย่างเดียว
  */
 export const SubscriptionSummary: React.FC<SubscriptionSummaryProps> = ({
   summary, loading, error, onRetry, onFilter, activeKeys = [], disabledKeys = [],
+  onDeletedClick, deletedActive = false,
 }) => {
   const { t } = useI18n();
 
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-0">
-          <FetchErrorState message={error} onRetry={onRetry} />
-        </CardContent>
-      </Card>
-    );
-  }
+  const filterItem = (key: SummaryFilterKey, label: string, value: number | undefined, color: string): SummaryBandItem => ({
+    key,
+    label,
+    value,
+    color,
+    onClick: onFilter ? () => onFilter(key) : undefined,
+    // ระหว่างดูใบที่ลบ การ์ดกรองไม่ติดไฟ — ตารางที่มันกรองไม่ได้แสดงอยู่
+    active: !deletedActive && activeKeys.includes(key),
+    disabled: disabledKeys.includes(key),
+    disabledHint: t('pages.subscriptions.clearExpiringSoonFirst'),
+  });
 
-  const items = [
-    { key: 'total', label: t('common.option.all'), value: summary?.total, color: 'text-foreground' },
-    { key: 'active', label: t('common.status.active'), value: summary?.active, color: 'text-success' },
-    { key: 'expired', label: t('common.status.expired'), value: summary?.expired, color: 'text-muted-foreground' },
-    { key: 'expiring_soon', label: t('common.state.expiringSoon'), value: summary?.expiring_soon, color: 'text-warning' },
-    { key: 'deleted', label: t('common.status.deleted'), value: summary?.deleted, color: 'text-destructive' },
-  ] as const;
+  const items: SummaryBandItem[] = [
+    filterItem('total', t('common.option.all'), summary?.total, 'text-foreground'),
+    filterItem('active', t('common.status.active'), summary?.active, 'text-success'),
+    filterItem('expired', t('common.status.expired'), summary?.expired, 'text-muted-foreground'),
+    filterItem('expiring_soon', t('common.state.expiringSoon'), summary?.expiring_soon, 'text-warning'),
+    {
+      key: 'deleted',
+      label: t('common.status.deleted'),
+      value: summary?.deleted,
+      color: deletedCountColor(summary?.deleted),
+      onClick: onDeletedClick,
+      active: deletedActive,
+      variant: 'view',
+    },
+  ];
 
-  return (
-    <Card>
-      <CardContent className="p-0">
-        <div className="flex flex-wrap divide-x divide-border">
-          {items.map(({ key, label, value, color }) => {
-            // `deleted` ไม่เคยกดได้ · การ์ดอื่นกดได้เมื่อผู้เรียกส่ง onFilter มาและไม่ได้ถูกบังอยู่
-            const filterKey = key === 'deleted' ? null : (key as SummaryFilterKey);
-            const disabled = !!filterKey && disabledKeys.includes(filterKey);
-            const active = !!filterKey && activeKeys.includes(filterKey);
-            const clickable = !!onFilter && !!filterKey && !disabled;
-
-            const body = (
-              <>
-                <div className="text-sm font-medium text-muted-foreground">{label}</div>
-                <div className="mt-1 flex items-baseline gap-2">
-                  {loading && value === undefined ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <span className={cn('text-2xl sm:text-3xl font-bold tracking-tight', color)}>
-                      {value ?? 0}
-                    </span>
-                  )}
-                </div>
-              </>
-            );
-            const box = 'flex-1 basis-1/2 p-4 text-left sm:basis-1/3 sm:p-6 lg:basis-1/5';
-
-            if (!clickable) {
-              return (
-                <div
-                  key={key}
-                  className={cn(box, active && 'bg-muted', disabled && 'opacity-50')}
-                  // การ์ดที่ถูกบังยังอ่านค่าได้ แต่ต้องบอกว่าทำไมกดไม่ได้ ไม่ใช่กดแล้วเงียบ
-                  title={disabled ? t('pages.subscriptions.clearExpiringSoonFirst') : undefined}
-                >
-                  {body}
-                </div>
-              );
-            }
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => onFilter(filterKey)}
-                aria-pressed={active}
-                className={cn(
-                  box,
-                  'transition-colors hover:bg-muted focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
-                  active && 'bg-muted',
-                )}
-              >
-                {body}
-              </button>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return <LicenseSummaryBand items={items} loading={loading} error={error} onRetry={onRetry} />;
 };

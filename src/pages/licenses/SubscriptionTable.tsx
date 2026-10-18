@@ -20,6 +20,7 @@ import { TableSkeleton } from '../../components/TableSkeleton';
 import { DevDebugSheet } from '../../components/ui/dev-debug-sheet';
 import Can from '../../components/Can';
 import { SubscriptionSummary, type SummaryFilterKey } from './subscriptionManagement/SubscriptionSummary';
+import { DeletedLicenseTable, type DeletedViewControl } from './DeletedLicenseTable';
 import { buildAdvance, type SubscriptionFilters } from './subscriptionManagement/buildAdvance';
 import { isExpiringSoon } from '../../utils/subscriptionState';
 import { useAuth } from '../../context/AuthContext';
@@ -86,9 +87,11 @@ interface SubscriptionTableProps {
    * render แบบไม่ส่ง prop นี้ใช้อยู่ ไม่ใช่เส้นทางที่ผู้ใช้จริงเจอ
    */
   embedded?: boolean;
+  /** มุมมองใบที่ลบแล้ว (superadmin) — การ์ด "ลบแล้ว" ในแถบสรุปเป็นทางเข้า ดู `DeletedViewControl` */
+  deletedView?: DeletedViewControl;
 }
 
-const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false }) => {
+const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false, deletedView }) => {
   const { t } = useI18n();
   const { thresholds } = useExpiryThresholds();
   // Single lookup for every place `state`/`s` (a raw SubscriptionState value) is rendered —
@@ -314,6 +317,15 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
   // ไม่ใช่กดแล้วเงียบ เหมือนที่ปุ่มใน Sheet ถูก disabled ไว้ด้วยเหตุผลเดียวกัน
   const summaryDisabledKeys: SummaryFilterKey[] = expiringSoonFilter ? ['active', 'expired'] : [];
 
+  // กดการ์ดกรองระหว่างดูใบที่ลบ = กลับไปตารางปกติที่กรองตามการ์ดนั้น — ถ้าตัวกรองนั้นเปิดอยู่แล้ว
+  // แค่กลับเฉย ๆ ไม่ส่งต่อให้ handleSummaryFilter ที่จะ toggle มันปิดทิ้งแทน
+  const showingDeleted = !!deletedView?.open;
+  const handleSummaryCardFilter = (key: SummaryFilterKey) => {
+    if (!showingDeleted) return handleSummaryFilter(key);
+    deletedView.onToggle();
+    if (!summaryActiveKeys.includes(key)) handleSummaryFilter(key);
+  };
+
   const handleSortChange = (sort: string) => {
     // DataTable's 3-state header toggle can cycle back to "" (unsorted) — never let that
     // through, or the next fetch drops `orderBy` entirely (see DEFAULT_SORT comment above).
@@ -450,12 +462,11 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
       updatedColumn,
     ];
   }, [t, stateLabel, thresholds.subscription_days]);
-  // No actions column: with Delete removed (review B2#1 — the backend can never surface a
-  // soft-deleted subscription, so a delete button nobody can verify or undo was worse than no
-  // button), the only remaining row action was "Edit", which just duplicated the already-
-  // clickable Subscription/Cluster links above. A single-item dropdown that only navigates
-  // (never mutates) is redundant chrome, not a genuine menu — so it's gone rather than kept
-  // as a one-item DropdownMenu.
+  // No actions column: the only row action would be "Edit", which just duplicates the
+  // already-clickable Subscription/Cluster links above — a one-item navigate-only dropdown is
+  // redundant chrome. Soft-delete lives on the edit page (the place you decide), and deleted
+  // subscriptions are visible/restorable in the superadmin "deleted" view of this tab (review
+  // B2#1's "can never surface a soft-deleted subscription" no longer holds).
 
   // Export + Add Subscription — same buttons regardless of embedded: spec §3.2 requires the
   // subscription view to keep every capability of the standalone `/subscriptions` page when
@@ -469,7 +480,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
         {t('common.action.export')}
       </Button>
       <Can permission="subscription.manage">
-        <Button onClick={() => navigate('/licenses/subscriptions/new')}>
+        <Button size={embedded ? 'sm' : 'default'} onClick={() => navigate('/licenses/subscriptions/new')}>
           <Plus className="mr-2 h-4 w-4" />
           <span className="hidden sm:inline">{t('pages.subscriptions.addSubscription')}</span>
           <span className="sm:hidden">{t('common.action.add')}</span>
@@ -480,9 +491,8 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
 
   const content = (
     <div className="space-y-6 sm:space-y-8">
-        {embedded ? (
-          <div className="flex justify-end gap-3">{actions}</div>
-        ) : (
+        {/* embedded: ปุ่มย้ายไปอยู่แถวเดียวกับช่องค้นหา (toolbar ชั้นเดียว) แทนแถวลอยของมันเอง */}
+        {!embedded && (
           <PageHeader
             title={t('common.label.subscriptions')}
             subtitle={t('pages.subscriptions.subtitle')}
@@ -495,14 +505,19 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
           loading={summaryLoading}
           error={summaryError}
           onRetry={fetchSummary}
-          onFilter={handleSummaryFilter}
+          onFilter={handleSummaryCardFilter}
           activeKeys={summaryActiveKeys}
           disabledKeys={summaryDisabledKeys}
+          onDeletedClick={deletedView?.onToggle}
+          deletedActive={showingDeleted}
         />
 
+        {showingDeleted ? (
+          <DeletedLicenseTable kind="subscription" onExit={deletedView.onToggle} onChanged={fetchSummary} />
+        ) : (
         <Card>
           <CardHeader className="space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <SearchInput
                 ref={searchInputRef}
                 value={searchTerm}
@@ -601,6 +616,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
                   </div>
                 </SheetContent>
               </Sheet>
+              {embedded && <div className="ml-auto flex items-center gap-2">{actions}</div>}
             </div>
             {activeFilterCount > 0 && (
               <div className="flex flex-wrap items-center gap-1.5">
@@ -688,6 +704,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false 
             ) : null}
           </CardContent>
         </Card>
+        )}
     </div>
   );
 

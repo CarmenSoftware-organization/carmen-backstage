@@ -114,6 +114,34 @@ const subscriptionService = {
     const response = await api.get('/api-system/platform/license-features');
     return response.data;
   },
+
+  /**
+   * รายการสัญญาที่ถูกลบแบบซ่อน (deleted_at ไม่ว่าง) — เฉพาะ platform superadmin
+   * envelope เดียวกับ listPlatform; แถวมี `deleted_at` / `deleted_by_id` และชื่อผู้ลบที่ `audit.deleted`
+   *
+   * หมายเหตุ: ของ subscription ห้ามเรียงด้วย `bu_code` / `bu_name` / `state` / `feature_count` — backend ตอบ 422
+   * (แถวแคบกว่า listPlatform: ไม่มี feature_count / seat_used / seat_cap)
+   */
+  listDeleted: async (paginate: PaginateParams = {}): Promise<SubscriptionsResponse> => {
+    const response = await api.get(`${BASE}/deleted?${buildQuery(paginate, defaultSearchFields)}`);
+    return response.data;
+  },
+
+  /** กู้คืนใบที่ลบแบบซ่อน — 409 `LICENSE_RESTORE_CONFLICT` เมื่อเลขชนกับใบที่ active อยู่ (ต้องมีสิทธิ์ subscription.manage) */
+  restore: async (id: string): Promise<unknown> => {
+    const response = await api.post(`${BASE}/${id}/restore`);
+    return response.data;
+  },
+
+  /**
+   * ลบถาวร (ย้อนไม่ได้ เลขที่ใบจะไม่ถูกออกซ้ำ) — เฉพาะ platform superadmin
+   * คืน `{ id, license_number }` (subscription ก็ใช้คีย์ license_number)
+   * 409 `LICENSE_HARD_DELETE_ACTIVE` เมื่อแถวยัง active
+   */
+  hardDelete: async (id: string): Promise<unknown> => {
+    const response = await api.delete(`${BASE}/${id}/hard`);
+    return response.data;
+  },
 };
 
 export default subscriptionService;

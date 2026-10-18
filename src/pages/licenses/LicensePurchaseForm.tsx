@@ -13,13 +13,13 @@ import { Textarea } from '../../components/ui/textarea';
 import { cn } from '../../lib/utils';
 import { ReadOnlyField } from '../../components/ReadOnlyField';
 import { DevDebugSheet } from '../../components/ui/dev-debug-sheet';
-import { Save, X, Loader2, SearchX, AlertTriangle, Ban } from 'lucide-react';
+import { Save, X, Loader2, SearchX, AlertTriangle, Ban, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { EmptyState } from '../../components/EmptyState';
 import { Skeleton } from '../../components/ui/skeleton';
 import Can from '../../components/Can';
 import { validateField } from '../../utils/validation';
-import { devLog, getErrorDetail, isNotFoundError, parseApiError } from '../../utils/errorParser';
+import { devLog, getErrorDetail, isNotFoundError, parseApiError, licenseActionErrorMessage } from '../../utils/errorParser';
 import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../../utils/docVersion';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
@@ -27,6 +27,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../hooks/useI18n';
 import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
 import licenseFeatureGroupService from '../../services/licenseFeatureGroupService';
+import businessUnitInterfaceLicenseService from '../../services/businessUnitInterfaceLicenseService';
 import { IssuedLicensePlate } from './licenseEdit/IssuedLicensePlate';
 import type { StatusBadgeInfo } from './licenseEdit/IssuedLicensePlate';
 import { toIsoStartOfDay, toIsoEndOfDay, isPerpetual, fmtDate, PERPETUAL_END_DATE } from './licenseDates';
@@ -559,6 +560,9 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
     useState<'loading' | 'ready' | 'failed'>('loading');
   const [cancelling, setCancelling] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  // ลบแบบซ่อน (soft-delete) — มีเฉพาะใบ interface; ใบที่นั่ง/โควตา BU ไม่มีทางนี้
+  const [softDeleting, setSoftDeleting] = useState(false);
+  const [confirmSoftDelete, setConfirmSoftDelete] = useState(false);
 
   const [draft, setDraft] = useState<LicenseDraft>(() => emptyDraft(new Date()));
   const [savedDraft, setSavedDraft] = useState<LicenseDraft>(draft);
@@ -801,6 +805,21 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  /** ลบใบ interface แบบซ่อน (กู้คืนได้ที่มุมมองใบที่ลบแล้ว) / soft-delete an interface licence. */
+  const handleSoftDelete = async () => {
+    if (config.kind !== 'interface' || isNew || !id || !ownerId) return;
+    setSoftDeleting(true);
+    try {
+      await businessUnitInterfaceLicenseService.delete(ownerId, id);
+      toast.success(t('toast.deleted', { entity: t('pages.licenses.license') }));
+      navigate(config.listPath);
+    } catch (err: unknown) {
+      toast.error(licenseActionErrorMessage(err, t));
+    } finally {
+      setSoftDeleting(false);
     }
   };
 
@@ -1131,9 +1150,39 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
                 </div>
               </Can>
             )}
+
+            {/* ลบแบบซ่อน — เฉพาะใบ interface บนหน้าแก้ไข; ใบถูกซ่อนจากรายการและกู้คืนได้ที่มุมมองใบที่ลบแล้ว */}
+            {config.kind === 'interface' && ownerId && (
+              <Can permission="subscription.manage">
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive hover:text-destructive"
+                    disabled={softDeleting || saving}
+                    onClick={() => setConfirmSoftDelete(true)}
+                  >
+                    {softDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                    {t('pages.licenses.deleted.softDelete')}
+                  </Button>
+                </div>
+              </Can>
+            )}
           </>
         )}
       </div>
+
+      {config.kind === 'interface' && (
+        <ConfirmDialog
+          open={confirmSoftDelete}
+          onOpenChange={setConfirmSoftDelete}
+          title={t('pages.licenses.deleted.softDelete')}
+          description={t('pages.licenses.deleted.softDeleteConfirm')}
+          confirmVariant="destructive"
+          onConfirm={handleSoftDelete}
+        />
+      )}
 
       {config.cancel && (
         <ConfirmDialog
