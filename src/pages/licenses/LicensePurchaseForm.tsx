@@ -808,12 +808,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
     }
   };
 
-  /**
-   * ยกเลิกใบ — ใบยังอยู่ในบัญชีแต่หยุดให้โควตาทันที ไม่มีทางกลับ
-   *
-   * `ConfirmDialog` เป็นด่านเดียวที่กั้นอยู่ (กฎข้อ 3 ห้าม `window.confirm`) และ 409 คือกรณี
-   * ที่คนอื่นยกเลิก/แก้ใบเดียวกันไปแล้ว ซึ่งต้องโหลดใหม่ให้เห็นสภาพจริง ไม่ใช่ขึ้น error ลอย ๆ
-   */
+  /** ลบใบ interface แบบซ่อน (กู้คืนได้ที่มุมมองใบที่ลบแล้ว) / soft-delete an interface licence. */
   const handleSoftDelete = async () => {
     if (config.kind !== 'interface' || isNew || !id || !ownerId) return;
     setSoftDeleting(true);
@@ -828,6 +823,12 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
     }
   };
 
+  /**
+   * ยกเลิกใบ — ใบยังอยู่ในบัญชีแต่หยุดให้โควตาทันที ไม่มีทางกลับ
+   *
+   * `ConfirmDialog` เป็นด่านเดียวที่กั้นอยู่ (กฎข้อ 3 ห้าม `window.confirm`) และ 409 คือกรณี
+   * ที่คนอื่นยกเลิก/แก้ใบเดียวกันไปแล้ว ซึ่งต้องโหลดใหม่ให้เห็นสภาพจริง ไม่ใช่ขึ้น error ลอย ๆ
+   */
   const handleCancelLicense = async () => {
     const cancel = config.cancel;
     if (!cancel || !canEdit || isNew || !id) return;
