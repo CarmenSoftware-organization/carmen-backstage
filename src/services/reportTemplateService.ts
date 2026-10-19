@@ -39,6 +39,9 @@ export interface ReportTemplate {
   // template per report_group may be true — enforced by a DB partial unique
   // index, not the application (see ReportTemplateEdit.tsx submit payload).
   is_default: boolean;
+  // list templates only — absent on older backends (treated as run=true, export=false)
+  allow_run?: boolean;
+  allow_export?: boolean;
   allow_business_unit?: unknown;
   deny_business_unit?: unknown;
   // empty / absent = supports every calculation method
