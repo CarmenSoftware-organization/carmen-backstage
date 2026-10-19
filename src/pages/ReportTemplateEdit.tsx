@@ -93,6 +93,8 @@ interface ReportTemplateFormData {
   template_type: '' | 'form' | 'list';
   is_standard: boolean;
   is_default: boolean;
+  allow_run: boolean;
+  allow_export: boolean;
   allow_business_unit: string;
   deny_business_unit: string;
   calculation_methods: CalculationMethod[];
@@ -115,6 +117,8 @@ const initialFormData: ReportTemplateFormData = {
   template_type: '',
   is_standard: true,
   is_default: false,
+  allow_run: true,
+  allow_export: false,
   allow_business_unit: '',
   deny_business_unit: '',
   calculation_methods: [],
@@ -283,6 +287,8 @@ const ReportTemplateEdit: React.FC = () => {
         template_type: (template.template_type as 'form' | 'list') || '',
         is_standard: template.is_standard ?? true,
         is_default: template.is_default ?? false,
+        allow_run: template.allow_run ?? true,
+        allow_export: template.allow_export ?? false,
         allow_business_unit: toCsv(template.allow_business_unit),
         deny_business_unit: toCsv(template.deny_business_unit),
         calculation_methods: sortCalculationMethods(
@@ -426,6 +432,9 @@ const ReportTemplateEdit: React.FC = () => {
       // server's "omitting on update preserves the stored value" rule applies
       // rather than us asserting a value for a field that isn't ours to own here.
       is_default: isForm ? formData.is_default : undefined,
+      // ปุ่มรัน/ส่งออกมีเฉพาะหน้ารายการรายงาน — form ไม่ส่ง
+      allow_run: isForm ? undefined : formData.allow_run,
+      allow_export: isForm ? undefined : formData.allow_export,
       allow_business_unit: isForm ? '' : formData.allow_business_unit,
       deny_business_unit: isForm ? '' : formData.deny_business_unit,
       // form = เอกสารพิมพ์ ไม่ขึ้นกับวิธีคิดต้นทุน — ล้างเหมือน allow/deny
@@ -852,6 +861,47 @@ const ReportTemplateEdit: React.FC = () => {
                               {t('common.status.active')}
                             </label>
                           </div>
+                          {formData.template_type === 'list' && (
+                            <div className="space-y-2">
+                              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  id="allow_run"
+                                  name="allow_run"
+                                  checked={formData.allow_run}
+                                  onChange={handleChange}
+                                  className="mt-0.5 h-4 w-4 rounded border-input"
+                                />
+                                <span>
+                                  {t('pages.reportTemplates.allowRun')}
+                                  <span className="block text-xs text-muted-foreground">{t('pages.reportTemplates.allowRunHint')}</span>
+                                </span>
+                              </label>
+                              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  id="allow_export"
+                                  name="allow_export"
+                                  checked={formData.allow_export}
+                                  onChange={handleChange}
+                                  className="mt-0.5 h-4 w-4 rounded border-input"
+                                />
+                                <span>
+                                  {t('pages.reportTemplates.allowExport')}
+                                  <span className="block text-xs text-muted-foreground">{t('pages.reportTemplates.allowExportHint')}</span>
+                                </span>
+                              </label>
+                              {formData.allow_export && !formData.export_xml.trim() && (
+                                <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs">
+                                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                                  <span>{t('pages.reportTemplates.allowExportNoXml')}</span>
+                                </p>
+                              )}
+                              {!formData.allow_run && !formData.allow_export && (
+                                <p className="text-xs text-muted-foreground">{t('pages.reportTemplates.bothOffHidden')}</p>
+                              )}
+                            </div>
+                          )}
                           {isForm && (
                             <p className="text-xs text-muted-foreground">
                               {t('pages.reportTemplates.defaultNote')}

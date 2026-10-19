@@ -59,7 +59,13 @@ const SCALAR_FIELDS: Array<{ key: string; read: (s: Partial<ReportTemplateSnapsh
     key: 'calculation_methods',
     read: (s) => (s.calculation_methods === undefined ? undefined : [...s.calculation_methods].sort().join(', ')),
   },
+  // snapshot ก่อนมีสวิตช์นี้ = undefined — ไม่นับเป็นความต่าง (เหมือน calculation_methods)
+  { key: 'allow_run', read: (s) => s.allow_run },
+  { key: 'allow_export', read: (s) => s.allow_export },
 ];
+
+/** ฟิลด์ที่ snapshot เก่าอาจไม่มี — from เป็น undefined = ไม่แสดงเป็นความต่าง */
+const OPTIONAL_IN_SNAPSHOT = new Set(['calculation_methods', 'allow_run', 'allow_export']);
 
 const fmt = (v: unknown) => (v === '' || v == null ? '—' : String(v));
 
@@ -253,7 +259,7 @@ const VersionDetail: React.FC<{
   const changes = useMemo(
     () =>
       SCALAR_FIELDS.map((f) => ({ key: f.key, from: f.read(snapshot), to: f.read(current) })).filter(
-        (c) => fmt(c.from) !== fmt(c.to) && !(c.key === 'calculation_methods' && c.from === undefined),
+        (c) => fmt(c.from) !== fmt(c.to) && !(OPTIONAL_IN_SNAPSHOT.has(c.key) && c.from === undefined),
       ),
     [snapshot, current],
   );

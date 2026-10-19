@@ -3296,6 +3296,12 @@ export const en = {
       dialogXmlTab: 'Dialog XML',
       contentXmlTab: 'Content XML',
       exportXmlTab: 'Export XML',
+      allowRun: 'Run report',
+      allowRunHint: 'Show the Run Report button in Report List.',
+      allowExport: 'Export data',
+      allowExportHint: 'Show the Export data button. Needs an Export XML.',
+      allowExportNoXml: 'Export data is on but this template has no Export XML — the button stays hidden.',
+      bothOffHidden: 'Both off: this template is hidden from Report List.',
       previewTab: 'Preview',
       createTemplate: 'Create Template',
       // ป้ายฟิลด์บังคับ ป้อนเข้า common.validation.requiredMessage

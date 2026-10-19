@@ -14,7 +14,7 @@ export const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 export const BACKUP_FIELDS = [
   'name', 'name_i18n', 'description', 'description_i18n', 'report_group', 'template_type',
   'dialog', 'content', 'export_xml', 'builder_key', 'view_name', 'source_type', 'source_name', 'source_params',
-  'orientation', 'signature_config', 'is_standard', 'is_default', 'is_active',
+  'orientation', 'signature_config', 'is_standard', 'is_default', 'allow_run', 'allow_export', 'is_active',
   'allow_business_unit', 'deny_business_unit', 'calculation_methods',
 ] as const;
 
