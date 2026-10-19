@@ -50,6 +50,7 @@ export function lintExportXml(exportXml: string, contentXml: string): string[] {
   };
 
   const columns = Array.from(root.children).filter((el) => el.nodeName === 'Column');
+  if (columns.length === 0) warnings.push('At least one <Column> is required.');
   columns.forEach((col, i) => {
     const label = `Column ${i + 1}`;
     if (!col.getAttribute('Header')?.trim()) warnings.push(`${label}: missing Header.`);
@@ -58,6 +59,7 @@ export function lintExportXml(exportXml: string, contentXml: string): string[] {
       warnings.push(`${label}: needs exactly one of Field / Value / Expression (found ${sources.length}).`);
     }
     const field = col.getAttribute('Field');
+    if (field != null && !field.trim()) warnings.push(`${label}: Field is empty.`);
     if (field != null) checkField(field, `${label} Field`);
     const expr = col.getAttribute('Expression');
     if (expr != null) {
@@ -67,7 +69,15 @@ export function lintExportXml(exportXml: string, contentXml: string): string[] {
 
   for (const sort of Array.from(root.children).filter((el) => el.nodeName === 'Sort')) {
     const field = sort.getAttribute('Field');
-    if (field != null) checkField(field, 'Sort Field');
+    if (field == null || !field.trim()) {
+      warnings.push('Sort: missing or empty Field.');
+    } else {
+      checkField(field, 'Sort Field');
+    }
+    const desc = sort.getAttribute('Desc');
+    if (desc != null && desc !== 'true' && desc !== 'false') {
+      warnings.push(`Sort: Desc must be "true" or "false" (found "${desc}").`);
+    }
   }
   return warnings;
 }
