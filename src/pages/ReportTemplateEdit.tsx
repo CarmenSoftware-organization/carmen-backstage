@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
@@ -24,7 +24,7 @@ import { XmlEditor } from '../components/XmlEditor';
 import { DialogPreview } from '../components/DialogPreview';
 import { EmptyState } from '../components/EmptyState';
 import { FetchErrorState } from '../components/FetchErrorState';
-import { Save, Pencil, X, Loader2, SearchX, Download } from 'lucide-react';
+import { Save, Pencil, X, Loader2, SearchX, Download, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import Can from '../components/Can';
 import { validateField } from '../utils/validation';
@@ -33,6 +33,7 @@ import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../util
 import { normalizeAudit } from '../utils/audit';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 import { countLines, type XmlValidation } from '../utils/xml';
+import { lintExportXml } from '../utils/exportXml';
 import { ReadOnlyField } from '../components/ReadOnlyField';
 import { HIT_SLOP_44 } from '../lib/hitSlop';
 import { FORM_REPORT_GROUPS } from '../constants/reportGroups';
@@ -88,6 +89,7 @@ interface ReportTemplateFormData {
   report_group: string;
   dialog: string;
   content: string;
+  export_xml: string;
   template_type: '' | 'form' | 'list';
   is_standard: boolean;
   is_default: boolean;
@@ -109,6 +111,7 @@ const initialFormData: ReportTemplateFormData = {
   report_group: '',
   dialog: '',
   content: '',
+  export_xml: '',
   template_type: '',
   is_standard: true,
   is_default: false,
@@ -159,7 +162,7 @@ const ReportTemplateEdit: React.FC = () => {
   const [docVersion, setDocVersion] = useState<number | undefined>(undefined);
   const [rawResponse, setRawResponse] = useState<unknown>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<'dialog' | 'content' | 'preview'>('dialog');
+  const [activeTab, setActiveTab] = useState<'dialog' | 'content' | 'export' | 'preview'>('dialog');
   // เลือกแท็บเริ่มต้นครั้งเดียวตอนโหลดแรก — refetch หลังบันทึก/กู้คืนเวอร์ชันต้องไม่ดึงผู้ใช้ออกจากแท็บที่เปิดอยู่
   const initialTabPickedRef = useRef(false);
   // dnd-kit ใช้ Esc ยกเลิกการลากด้วยคีย์บอร์ด และ useGlobalShortcuts ก็ฟัง Esc บน window เหมือนกัน
@@ -174,7 +177,12 @@ const ReportTemplateEdit: React.FC = () => {
   }, []);
   const [dialogValidation, setDialogValidation] = useState<XmlValidation>({ valid: true });
   const [contentValidation, setContentValidation] = useState<XmlValidation>({ valid: true });
+  const [exportValidation, setExportValidation] = useState<XmlValidation>({ valid: true });
   const formRef = useRef<HTMLFormElement>(null);
+  const exportWarnings = useMemo(
+    () => lintExportXml(formData.export_xml, formData.content),
+    [formData.export_xml, formData.content],
+  );
 
   // Probe BU + DB-objects picker — lets admin browse views/functions/procedures
   // that actually exist in a chosen tenant schema instead of typing source_name from memory.
@@ -271,6 +279,7 @@ const ReportTemplateEdit: React.FC = () => {
         report_group: template.report_group || '',
         dialog: template.dialog || '',
         content: template.content || '',
+        export_xml: template.export_xml ?? '',
         template_type: (template.template_type as 'form' | 'list') || '',
         is_standard: template.is_standard ?? true,
         is_default: template.is_default ?? false,
@@ -345,7 +354,7 @@ const ReportTemplateEdit: React.FC = () => {
     setFieldErrors((prev) => ({ ...prev, [e.target.name]: '' }));
   };
 
-  const handleXmlChange = (field: 'dialog' | 'content') => (val: string) => {
+  const handleXmlChange = (field: 'dialog' | 'content' | 'export_xml') => (val: string) => {
     setFormData((prev) => ({ ...prev, [field]: val }));
     setError('');
   };
@@ -424,6 +433,8 @@ const ReportTemplateEdit: React.FC = () => {
       // null ล้างค่าที่เก็บไว้ตอน update (undefined = ไม่แตะ ทำให้ลบชื่อ source ไม่ได้); create รับ null เท่ากับไม่มี
       source_name: formData.source_name.trim() || null,
       source_params: { params: cleanParams },
+      // ว่าง = ไม่มี Export XML — backend เก็บเป็น null
+      export_xml: formData.export_xml.trim() ? formData.export_xml : null,
     };
 
     try {
@@ -483,10 +494,12 @@ const ReportTemplateEdit: React.FC = () => {
   const isForm = formData.template_type === 'form';
   const dialogLines = countLines(formData.dialog);
   const contentLines = countLines(formData.content);
+  const exportLines = countLines(formData.export_xml);
 
   const XML_TABS: TabStripItem<typeof activeTab>[] = [
     { id: 'dialog', label: t('pages.reportTemplates.dialogXmlTab'), count: dialogLines, hasError: !dialogValidation.valid },
     { id: 'content', label: t('pages.reportTemplates.contentXmlTab'), count: contentLines, hasError: !contentValidation.valid },
+    { id: 'export', label: t('pages.reportTemplates.exportXmlTab'), count: exportLines, hasError: !exportValidation.valid },
     { id: 'preview', label: t('pages.reportTemplates.previewTab') },
   ];
 
@@ -1271,6 +1284,29 @@ const ReportTemplateEdit: React.FC = () => {
                           minHeight={360}
                           maxHeight={EDITOR_MAX_HEIGHT}
                         />
+                      </div>
+                      <div hidden={activeTab !== 'export'}>
+                        <XmlEditor
+                          value={formData.export_xml}
+                          onChange={handleXmlChange('export_xml')}
+                          onParseChange={setExportValidation}
+                          label="Export"
+                          filename="export.xml"
+                          uploadAccept=".xml,.txt"
+                          readOnly={!editing}
+                          minHeight={360}
+                          maxHeight={EDITOR_MAX_HEIGHT}
+                        />
+                        {exportWarnings.length > 0 && (
+                          <ul className="mt-3 space-y-1 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
+                            {exportWarnings.map((text, i) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                                <span>{text}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                       <div hidden={activeTab !== 'preview'} className="lg:max-h-[calc(100vh-18rem)] lg:overflow-y-auto">
                         <DialogPreview

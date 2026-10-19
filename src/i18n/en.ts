@@ -3295,6 +3295,7 @@ export const en = {
       builderKeyPlaceholder: 'e.g. pr-summary',
       dialogXmlTab: 'Dialog XML',
       contentXmlTab: 'Content XML',
+      exportXmlTab: 'Export XML',
       previewTab: 'Preview',
       createTemplate: 'Create Template',
       // ป้ายฟิลด์บังคับ ป้อนเข้า common.validation.requiredMessage

@@ -33,6 +33,7 @@ export interface ReportTemplate {
   template_type?: ReportTemplateType;
   dialog: string;
   content: string;
+  export_xml?: string | null;
   is_standard: boolean;
   // Meaningful only for template_type === 'form'. At most one live form
   // template per report_group may be true — enforced by a DB partial unique
