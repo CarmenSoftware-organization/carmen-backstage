@@ -67,7 +67,7 @@ export const ReportTemplateVersionsSheet: React.FC<Props> = ({ templateId, curre
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(null);
-  const [xmlTab, setXmlTab] = useState<'dialog' | 'content'>('content');
+  const [xmlTab, setXmlTab] = useState<XmlTabId>('content');
   const [confirmVersion, setConfirmVersion] = useState<number | null>(null);
   // hook probe ให้เองครั้งเดียวตอน mount (รู้ `unsupported` ก่อนผู้ใช้เปิด) แล้วโหลดใหม่ทุกครั้งที่เปิดแผ่น
   const v = useReportTemplateVersions(templateId, open);
@@ -241,11 +241,13 @@ export const ReportTemplateVersionsSheet: React.FC<Props> = ({ templateId, curre
   );
 };
 
+type XmlTabId = 'dialog' | 'content' | 'export';
+
 const VersionDetail: React.FC<{
   snapshot: ReportTemplateSnapshot;
   current: ReportTemplate;
-  xmlTab: 'dialog' | 'content';
-  onXmlTab: (tab: 'dialog' | 'content') => void;
+  xmlTab: XmlTabId;
+  onXmlTab: (tab: XmlTabId) => void;
 }> = ({ snapshot, current, xmlTab, onXmlTab }) => {
   const { t } = useI18n();
   const changes = useMemo(
@@ -257,6 +259,7 @@ const VersionDetail: React.FC<{
   );
   const dialogChanged = (snapshot.dialog ?? '') !== (current.dialog ?? '');
   const contentChanged = (snapshot.content ?? '') !== (current.content ?? '');
+  const exportChanged = (snapshot.export_xml ?? '') !== (current.export_xml ?? '');
   const lineDelta = (a: string, b: string) => Math.abs(countLines(a) - countLines(b));
 
   return (
@@ -287,12 +290,19 @@ const VersionDetail: React.FC<{
             label: t('pages.reportTemplates.contentXmlTab'),
             count: contentChanged ? lineDelta(snapshot.content ?? '', current.content ?? '') : undefined,
           },
+          {
+            id: 'export',
+            label: t('pages.reportTemplates.exportXmlTab'),
+            count: exportChanged ? lineDelta(snapshot.export_xml ?? '', current.export_xml ?? '') : undefined,
+          },
         ]}
         value={xmlTab}
         onChange={onXmlTab}
       />
       {xmlTab === 'dialog' ? (
         <XmlDiffView original={snapshot.dialog ?? ''} current={current.dialog ?? ''} />
+      ) : xmlTab === 'export' ? (
+        <XmlDiffView original={snapshot.export_xml ?? ''} current={current.export_xml ?? ''} />
       ) : (
         <XmlDiffView original={snapshot.content ?? ''} current={current.content ?? ''} />
       )}

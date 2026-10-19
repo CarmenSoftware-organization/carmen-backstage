@@ -3573,6 +3573,7 @@ export const th: Translations = {
       builderKeyPlaceholder: 'เช่น pr-summary',
       dialogXmlTab: 'Dialog XML',
       contentXmlTab: 'Content XML',
+      exportXmlTab: 'Export XML',
       previewTab: 'ตัวอย่าง',
       createTemplate: 'สร้างเทมเพลต',
       fieldLabelReportGroup: 'กลุ่มรายงาน',
