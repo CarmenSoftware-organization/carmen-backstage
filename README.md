@@ -1,4 +1,4 @@
-# Carmen Platform
+# Carmen Blue Platform
 
 **Version 1.1.0** · React + TypeScript admin dashboard for managing clusters, business units, users, and report templates. Backed by a separate NestJS/Prisma API.
 
@@ -67,4 +67,4 @@ See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#ci-workflows).
 
 ---
 
-© Carmen Software
+© CarmenSoftware

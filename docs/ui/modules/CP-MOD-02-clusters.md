@@ -1,7 +1,7 @@
 ---
 **Module Number:** 2
 **Module Name:** Clusters
-**System / Product:** Carmen Platform (admin SPA)
+**System / Product:** Carmen Blue Platform (admin SPA)
 **Version:** v1.0 (as of app v1.0.0 / API v3.0.2, 2026-09-29)
 **Status:** Draft
 **Created:** 2026-09-29
@@ -15,7 +15,7 @@
 
 ### 2.1 Purpose
 
-A **cluster** is the top-level tenant in Carmen: a hotel group that owns business units
+A **cluster** is the top-level tenant in Carmen Blue: a hotel group that owns business units
 (BUs, one per property) and a pool of member users. This module is where platform staff
 register clusters, keep their identity up to date, and see at a glance how much of each
 cluster's licence is in use.

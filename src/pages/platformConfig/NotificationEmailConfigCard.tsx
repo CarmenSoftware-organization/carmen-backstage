@@ -238,7 +238,7 @@ export const NotificationEmailConfigCard: React.FC<NotificationEmailConfigCardPr
           onChange={(e) => handleChange('subject_prefix', e.target.value)}
           onBlur={() => handleBlur('subject_prefix')}
           className={fieldErrors.subject_prefix ? 'border-destructive' : ''}
-          placeholder="[Carmen]"
+          placeholder="[Carmen Blue]"
         />
       </ConfigField>
     </ConfigCardShell>

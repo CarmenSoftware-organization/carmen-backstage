@@ -1,6 +1,6 @@
 # SITEMAP
 
-All routes in the Carmen Platform SPA. Source: `src/App.tsx`.
+All routes in the Carmen Blue Platform SPA. Source: `src/App.tsx`.
 
 ## Route table
 
