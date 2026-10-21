@@ -1014,14 +1014,14 @@ export const en = {
   /** Per-slice page vocabulary. One child object per phase-2 slice. */
   pages: {
     landing: {
-      brand: 'Carmen Platform',
+      brand: 'Carmen Blue Platform',
       console: 'Operations console',
       loading: 'Loading…',
       signIn: 'Sign in',
       // พาดหัวคร่อม <span> สีเน้น จึงเป็นสองโหนด DOM — ห้ามยุบเป็นคีย์เดียว
       heroTitle: 'Run the whole operation from',
       heroTitleAccent: 'one console.',
-      heroBody: 'Carmen brings your clusters, business units, users, and the documents that keep them running into a single admin platform.',
+      heroBody: 'Carmen Blue brings your clusters, business units, users, and the documents that keep them running into a single admin platform.',
       whatsNew: "See what's new",
       insideConsole: 'Inside the console',
       captionOrganization: 'Who and what you operate.',
@@ -2401,7 +2401,7 @@ export const en = {
       sendInvitationFailed: 'Failed to send invitation',
       // Shared with ClusterUsers.tsx's "Invite user" button — same dialog, same word, one key.
       inviteUser: 'Invite user',
-      inviteUserDescription: "Send an invitation to join this cluster. The recipient does not need a Carmen account yet — the link lets them set a password and join in one step.",
+      inviteUserDescription: "Send an invitation to join this cluster. The recipient does not need a Carmen Blue account yet — the link lets them set a password and join in one step.",
       // Format-example placeholder, not prose — identical value in both languages, same
       // rationale as pages.users.usernamePlaceholder ('user@example.com').
       emailPlaceholder: 'name@example.com',
@@ -3841,7 +3841,7 @@ export const en = {
       googleSignInTitle: 'Google sign-in',
       googleSignInDesc:
         'Turns the "Continue with Google" button on or off per app. When off, the button is shown disabled and the gateway also blocks the Google flow. The button is only clickable when the gateway has Google OAuth configured.',
-      googleSignInPlatform: 'Carmen Platform',
+      googleSignInPlatform: 'Carmen Blue Platform',
       googleSignInPlatformHint: 'The login page of this admin app.',
       googleSignInApp: 'App',
       googleSignInAppHint: 'The inventory web app and every other client that is not Platform.',
@@ -3854,7 +3854,7 @@ export const en = {
       sectionExternalApi: 'External API',
       externalApiTitle: 'External API',
       externalApiDescription:
-        'Public base URL of the Carmen API that external systems (e.g. accounting) call with a BU API key. The endpoint shown to customers is this URL + /api/ext/v1. Leave empty to use the server default.',
+        'Public base URL of the Carmen Blue API that external systems (e.g. accounting) call with a BU API key. The endpoint shown to customers is this URL + /api/ext/v1. Leave empty to use the server default.',
       externalApiUrlHint: 'Public root URL without /api/ext/v1, e.g.',
       urlNoApiExt: 'Do not include /api/ext — enter only the root URL',
       passwordResetTitle: 'Password Reset',
@@ -3888,9 +3888,9 @@ export const en = {
       signupUrlPlaceholder: 'https://inventory.carmen.io/register/verify',
       // สองย่อหน้านี้เป็นอังกฤษมาแต่เดิม (ไม่เหมือนการ์ดอื่นในหน้านี้) แยกเป็นสองท่อน
       // เพราะมี <code> คั่นกลาง — ท่อนแรกยาว ท่อนสองต่อท้ายก่อน <code> ตัวที่สอง
-      invitationHint1: 'Where the invitation link in the email points. This is the Carmen inventory app, not this console — the recipient accepts the invitation there, and can create their account from the same link without signing up first. The system appends',
+      invitationHint1: 'Where the invitation link in the email points. This is the Carmen Blue inventory app, not this console — the recipient accepts the invitation there, and can create their account from the same link without signing up first. The system appends',
       invitationHint2: 'itself, so enter the page URL only, e.g.',
-      signupHint1: 'Where the link in the sign-up verification email points. This is the Carmen inventory app, not this console — the recipient sets their password there and the account is created only at that point. The system appends',
+      signupHint1: 'Where the link in the sign-up verification email points. This is the Carmen Blue inventory app, not this console — the recipient sets their password there and the account is created only at that point. The system appends',
       signupHint2: 'itself, so enter the page URL only, e.g.',
       // Rate limits card
       countRequired: 'A number is required',
@@ -5027,7 +5027,7 @@ export const en = {
     hero: 'One place to manage your clusters, business units, and the people who run them.',
     allSystemsOperational: 'All systems operational',
     signInHeading: 'Sign in',
-    signInSubtitle: 'Access the Carmen operations console.',
+    signInSubtitle: 'Access the Carmen Blue operations console.',
     usernameLabel: 'Email or username',
     usernamePlaceholder: 'you@company.com',
     usernameRequired: 'Username is required',
@@ -5044,7 +5044,7 @@ export const en = {
     googleContinue: 'Continue with Google',
     googleFailed: 'Google sign-in failed. Please try again.',
     googleNoAccount:
-      'No Carmen Platform account exists for this Google email address. Ask an administrator to add you first.',
+      'No Carmen Blue Platform account exists for this Google email address. Ask an administrator to add you first.',
     googleAccountConflict:
       'This email address conflicts with another account. Please contact your administrator.',
     googleTooManyAttempts: 'Too many sign-in attempts. Please wait a moment and try again.',

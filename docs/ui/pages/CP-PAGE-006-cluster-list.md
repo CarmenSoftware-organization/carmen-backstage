@@ -1,7 +1,7 @@
 ---
 **Doc ID:** CP-PAGE-006
 **Title:** Cluster List (Cluster Management)
-**Domain:** Carmen Platform — actor: Platform user
+**Domain:** Carmen Blue Platform — actor: Platform user
 **Route:** `/clusters`
 **Component:** `src/pages/ClusterManagement.tsx` (+ `src/pages/clusterManagement/FleetCapacity.tsx`, `CapacityGauge.tsx`, `CapacityMeter.tsx`)
 **Status:** Draft

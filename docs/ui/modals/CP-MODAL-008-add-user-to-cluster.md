@@ -1,7 +1,7 @@
 ---
 **Doc ID:** CP-MODAL-008
 **Title:** Add User to Cluster
-**Domain:** Carmen Platform — actor: Platform user
+**Domain:** Carmen Blue Platform — actor: Platform user
 **Parent Page(s):** CP-PAGE-007 — Cluster Edit (Users tab)
 **Component:** inline `<Dialog>` in `src/pages/ClusterEdit.tsx` (~L689–816); data via `src/pages/clusterEdit/useClusterUsers.ts`
 **Status:** Draft

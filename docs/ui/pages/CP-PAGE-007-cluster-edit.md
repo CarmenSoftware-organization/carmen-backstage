@@ -1,7 +1,7 @@
 ---
 **Doc ID:** CP-PAGE-007
 **Title:** Cluster Edit (create / edit / read-only)
-**Domain:** Carmen Platform — actor: Platform user
+**Domain:** Carmen Blue Platform — actor: Platform user
 **Route:** `/clusters/new`, `/clusters/:id/edit` (`?tab=business-units|users`)
 **Component:** `src/pages/ClusterEdit.tsx` + `src/pages/clusterManagement/ClusterCreateForm.tsx` + `src/pages/clusterEdit/*` (`ClusterDraftPlate`, `ClusterPlate`, `PlateField`, `InlineCell`, `BulkActionBar`, `TableToolbar`, `useClusterUsers`, `sections/BusinessUnitsSection`, `sections/UsersSection`, `sections/SubscriptionCard`)
 **Status:** Draft

@@ -35,7 +35,7 @@ export const ProductLogo = ({ variant = 'lockup', className }: ProductLogoProps)
     <>
       <img
         src={src.light}
-        alt="Carmen"
+        alt="Carmen Blue"
         className={cn('shrink-0 dark:hidden', shape, className)}
       />
       <img

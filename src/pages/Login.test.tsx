@@ -240,7 +240,7 @@ describe('Login — Google sign-in', () => {
   });
 
   it.each([
-    ['google_no_account', /no carmen platform account/i],
+    ['google_no_account', /no carmen blue platform account/i],
     ['google_account_conflict', /conflicts with another account/i],
     ['google_too_many_attempts', /too many sign-in attempts/i],
     ['google_failed', /google sign-in failed/i],
