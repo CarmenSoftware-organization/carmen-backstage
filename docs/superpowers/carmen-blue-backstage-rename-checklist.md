@@ -28,7 +28,7 @@
 
 **ไม่บล็อกแต่ควรเก็บ:** `PLATFORM_SCHEMA` ของ micro-cronjobs (`apps-vm.tf:111`) — โค้ดใหม่อ่าน `BACKSTAGE_SCHEMA` default `CARMEN_SYSTEM` = ค่าเดิม · `PLATFORM_MIGRATION_API_ENABLED` (`cloud-run.tf:190`) ไม่มีโค้ดอ่านแล้ว (ย้ายไป config) · runbook ขั้น 9 ยัง `cd ~/carmen-turborepo-backend-v2/packages/prisma-shared-schema-platform` → `carmen-turborepo-backend/packages/prisma-shared-schema-backstage` · `docs/known-issues.md`/`variables.tf` อ้าง `api-system/platform/*`
 
-**PR เตรียมแล้ว (ยังไม่ merge/apply):** [carmen-infra-gcp#1](https://github.com/CarmenSoftware-organization/carmen-infra-gcp/pull/1) — เพิ่ม `BACKSTAGE_*` คู่กับ `PLATFORM_*` (micro-data, micro-report, gateway, micro-cronjobs) + runbook ขั้น 9 path ใหม่ · `tofu fmt`/`validate` ผ่าน ไม่ได้รัน plan/apply
+**PR merged 2026-10-26 แต่ยังไม่ได้ `terraform apply`:** [carmen-infra-gcp#1](https://github.com/CarmenSoftware-organization/carmen-infra-gcp/pull/1) — เพิ่ม `BACKSTAGE_*` คู่กับ `PLATFORM_*` (micro-data, micro-report, gateway, micro-cronjobs) + runbook ขั้น 9 path ใหม่ · `tofu fmt`/`validate` ผ่าน ไม่ได้รัน plan/apply
 
 **⚠️ เจอเพิ่ม (นอก PR):** WIF `principalSet`/`var.github_repos`, `cloudbuild.tf` remote_uri และ key ของ service account ยังผูกชื่อ repo เดิม (`carmen-turborepo-backend-v2`, `carmen-platform`, `carmen-inventory-frontend-react`) ที่ถูก rename ในโปรเจกต์ 2 → deploy ผ่าน GitHub Actions เข้า GCP อาจถูกปฏิเสธ; เปลี่ยน key ตรง ๆ = Terraform สร้าง SA ใหม่ — เจ้าของ infra ต้องตัดสิน (รายละเอียดใน PR)
 
