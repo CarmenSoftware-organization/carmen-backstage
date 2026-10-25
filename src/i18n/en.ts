@@ -3888,9 +3888,9 @@ export const en = {
       signupUrlPlaceholder: 'https://inventory.carmen.io/register/verify',
       // สองย่อหน้านี้เป็นอังกฤษมาแต่เดิม (ไม่เหมือนการ์ดอื่นในหน้านี้) แยกเป็นสองท่อน
       // เพราะมี <code> คั่นกลาง — ท่อนแรกยาว ท่อนสองต่อท้ายก่อน <code> ตัวที่สอง
-      invitationHint1: 'Where the invitation link in the email points. This is the Carmen Blue inventory app, not this console — the recipient accepts the invitation there, and can create their account from the same link without signing up first. The system appends',
+      invitationHint1: 'Where the invitation link in the email points. This is the Carmen Blue Platform app, not this console — the recipient accepts the invitation there, and can create their account from the same link without signing up first. The system appends',
       invitationHint2: 'itself, so enter the page URL only, e.g.',
-      signupHint1: 'Where the link in the sign-up verification email points. This is the Carmen Blue inventory app, not this console — the recipient sets their password there and the account is created only at that point. The system appends',
+      signupHint1: 'Where the link in the sign-up verification email points. This is the Carmen Blue Platform app, not this console — the recipient sets their password there and the account is created only at that point. The system appends',
       signupHint2: 'itself, so enter the page URL only, e.g.',
       // Rate limits card
       countRequired: 'A number is required',
@@ -5027,7 +5027,7 @@ export const en = {
     hero: 'One place to manage your clusters, business units, and the people who run them.',
     allSystemsOperational: 'All systems operational',
     signInHeading: 'Sign in',
-    signInSubtitle: 'Access the Carmen Blue operations console.',
+    signInSubtitle: 'Access Carmen Blue Backstage, the operations console.',
     usernameLabel: 'Email or username',
     usernamePlaceholder: 'you@company.com',
     usernameRequired: 'Username is required',
