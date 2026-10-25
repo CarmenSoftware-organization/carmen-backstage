@@ -200,7 +200,7 @@ const Login: React.FC = () => {
           <div className="leading-none">
             <div className="text-lg font-extrabold tracking-tight">CARMEN BLUE</div>
             <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.3em] text-primary-foreground/60">
-              Platform
+              Backstage
             </div>
           </div>
         </div>
