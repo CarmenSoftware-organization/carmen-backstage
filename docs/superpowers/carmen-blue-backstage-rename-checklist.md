@@ -5,8 +5,10 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 1 — ขั้น 1.3 รอผู้ใช้อนุมัติ spec (builder check เสร็จแล้ว)
-- **คำถามที่ค้างอยู่:** ไม่มี — รออนุมัติ spec
+- **อยู่ที่:** โปรเจกต์ 1 — ขั้น 1.4 plan เขียนแล้ว รอผู้ใช้ตรวจ + เลือกวิธีลงมือ
+- **plan:** `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` (9 task, หนึ่ง task ต่อหนึ่ง repo) — ทำต่อจาก task แรกที่ยังไม่ติ๊กใน plan
+- **กิ่งใน repo นี้:** `feature/carmen-blue-backstage-rename`
+- **คำถามที่ค้างอยู่:** ไม่มี
 - **อัปเดตล่าสุด:** 2026-10-25
 
 ## วิธีทำต่อ (สำหรับเซสชันใหม่)
@@ -47,8 +49,8 @@
 
 - [x] 1.1 brainstorm รายละเอียด (2026-10-25)
 - [x] 1.2 เขียน spec `docs/superpowers/specs/2026-10-25-carmen-blue-backstage-rename-p1-design.md` + builder check (2026-10-25)
-- [ ] 1.3 Owner/ผู้ใช้อนุมัติ spec ← **อยู่ตรงนี้**
-- [ ] 1.4 เขียน plan (`superpowers:writing-plans`)
+- [x] 1.3 Owner/ผู้ใช้อนุมัติ spec (2026-10-25, commit 256a12d1)
+- [x] 1.4 เขียน plan `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` (2026-10-25) — รอผู้ใช้ตรวจ ← **อยู่ตรงนี้**
 - [ ] 1.5 ลงมือ (ทุก repo ใน worktree แยกจาก `origin/main`) — typecheck + lint
 - [ ] 1.6 PR แต่ละ repo + merge
 - [ ] 1.7 deploy DEV + ตรวจเบราว์เซอร์
