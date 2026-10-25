@@ -9,9 +9,9 @@
 - **plan:** `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` · ledger: `.superpowers/sdd/2026-10-25-carmen-blue-backstage-rename-p1/progress.md` (gitignored)
 - **กิ่ง:** `feature/carmen-blue-backstage-rename` ทุก repo — repo นี้ทำในโฟลเดอร์หลัก; อีก 7 repo อยู่ใน worktree `../<repo>-rename`
   (carmen-inventory-frontend-react, carmen-turborepo-backend-v2, carmen-turborepo-backend-bruno, micro-notification,
-  carmen-platform-support-usermanual, carmen-platform-e2e, carmen-wiki) — ยังไม่ push
+  carmen-platform-support-usermanual, carmen-platform-e2e, carmen-wiki) — push + เปิด PR แล้ว (ดู 1.6)
 - **ค้างตัดสิน (minor):** `invitationHint1`/`signupHint1` เรียกแอปหลักว่า "Carmen Blue inventory app"; `signInSubtitle` "Carmen Blue operations console"
-- **คำถามที่ค้างอยู่:** อนุมัติ push + เปิด PR 8 repo
+- **คำถามที่ค้างอยู่:** อนุมัติ merge 8 PR (ลำดับใน 1.6) → จากนั้นตรวจ DEV ในเบราว์เซอร์ (plan Task 9 Step 3–4)
 - **อัปเดตล่าสุด:** 2026-10-25
 
 ## วิธีทำต่อ (สำหรับเซสชันใหม่)
@@ -55,7 +55,15 @@
 - [x] 1.3 Owner/ผู้ใช้อนุมัติ spec (2026-10-25, commit 256a12d1)
 - [x] 1.4 เขียน plan `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` (2026-10-25)
 - [x] 1.5 ลงมือ Task 1–8 + final review + แก้ 2 ข้อ Important (2026-10-25) — console 1393/1393 tests, typecheck/lint ผ่านทุก repo
-- [ ] 1.6 PR แต่ละ repo + merge ← **อยู่ตรงนี้** (รออนุมัติ push)
+- [ ] 1.6 PR แต่ละ repo + merge ← **อยู่ตรงนี้** — เปิด PR แล้ว 2026-10-25, รออนุมัติ merge
+  - [ ] carmen-platform #360 (merge ก่อน)
+  - [ ] carmen-inventory-frontend-react #440
+  - [ ] carmen-turborepo-backend-v2 #914 (eslint/gates ยังไม่รันในเครื่อง — ดู CI)
+  - [ ] carmen-turborepo-backend-bruno #38
+  - [ ] micro-notification #16
+  - [ ] carmen-platform-support-usermanual #4 (หลัง #360)
+  - [ ] carmen-platform-e2e #16 (หลัง #360)
+  - [ ] carmen-wiki #21 (หลัง #360)
 - [ ] 1.7 deploy DEV + ตรวจเบราว์เซอร์
 - [ ] 1.8 ขึ้น production (`git push origin main:vercel` — ต้องได้รับอนุมัติ)
 
