@@ -5,13 +5,14 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 1 — ขั้น 1.6 ลงมือ + final review เสร็จ (Task 1–8) รอผู้ใช้อนุมัติ push + เปิด PR (Task 9)
-- **plan:** `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` · ledger: `.superpowers/sdd/2026-10-25-carmen-blue-backstage-rename-p1/progress.md` (gitignored)
-- **กิ่ง:** `feature/carmen-blue-backstage-rename` ทุก repo — repo นี้ทำในโฟลเดอร์หลัก; อีก 7 repo อยู่ใน worktree `../<repo>-rename`
-  (carmen-inventory-frontend-react, carmen-turborepo-backend-v2, carmen-turborepo-backend-bruno, micro-notification,
-  carmen-platform-support-usermanual, carmen-platform-e2e, carmen-wiki) — push + เปิด PR แล้ว (ดู 1.6)
-- **ค้างตัดสิน (minor):** `invitationHint1`/`signupHint1` เรียกแอปหลักว่า "Carmen Blue inventory app"; `signInSubtitle` "Carmen Blue operations console"
-- **คำถามที่ค้างอยู่:** อนุมัติ merge 8 PR (ลำดับใน 1.6) → จากนั้นตรวจ DEV ในเบราว์เซอร์ (plan Task 9 Step 3–4)
+- **อยู่ที่:** โปรเจกต์ 1 — merge ครบ 9 PR แล้ว เหลือ **งานที่ผู้ใช้ต้องทำเอง** (ดูด้านล่าง) จากนั้นเริ่มโปรเจกต์ 2 ขั้น 2.1
+- **ผู้ใช้ต้องทำเอง:**
+  1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-platform (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ #359–#361) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
+  2. production แอปหลัก: **ยังไม่ควร push** — vercel ตามหลัง main 640 commit รวมงาน POS ที่มีลำดับ deploy บังคับ; `<title>` ใหม่จะขึ้นพร้อมรอบ deploy ปกติของ inventory
+  3. backend-v2 (#914) และ micro-notification (#16) ยังไม่ขึ้น DEV — GitHub Actions ติด billing (CI ล้มใน 2 วินาที) ต้อง deploy มือหรือรอ billing
+  4. ตรวจหน้าจอจริง: Login จอใหญ่ (แผงโลโก้ CARMEN BLUE / BACKSTAGE), Landing, Platform Config → การ์ด Google sign-in (TH/EN) — Claude ตรวจในเบราว์เซอร์ไม่ได้ (นโยบายบล็อกโฮสต์ dev.blueledgers.com) ตรวจได้แค่ด้วย curl
+  5. ส่งอีเมลทดสอบจากหน้า Email Settings (หลัง micro-notification ขึ้น DEV) → หัวเรื่อง "Carmen Blue Backstage email test"
+- **คำถามที่ค้างอยู่:** ไม่มี
 - **อัปเดตล่าสุด:** 2026-10-25
 
 ## วิธีทำต่อ (สำหรับเซสชันใหม่)
@@ -55,17 +56,17 @@
 - [x] 1.3 Owner/ผู้ใช้อนุมัติ spec (2026-10-25, commit 256a12d1)
 - [x] 1.4 เขียน plan `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` (2026-10-25)
 - [x] 1.5 ลงมือ Task 1–8 + final review + แก้ 2 ข้อ Important (2026-10-25) — console 1393/1393 tests, typecheck/lint ผ่านทุก repo
-- [ ] 1.6 PR แต่ละ repo + merge ← **อยู่ตรงนี้** — เปิด PR แล้ว 2026-10-25, รออนุมัติ merge
-  - [ ] carmen-platform #360 (merge ก่อน)
-  - [ ] carmen-inventory-frontend-react #440
-  - [ ] carmen-turborepo-backend-v2 #914 (eslint/gates ยังไม่รันในเครื่อง — ดู CI)
-  - [ ] carmen-turborepo-backend-bruno #38
-  - [ ] micro-notification #16
-  - [ ] carmen-platform-support-usermanual #4 (หลัง #360)
-  - [ ] carmen-platform-e2e #16 (หลัง #360)
-  - [ ] carmen-wiki #21 (หลัง #360)
-- [ ] 1.7 deploy DEV + ตรวจเบราว์เซอร์
-- [ ] 1.8 ขึ้น production (`git push origin main:vercel` — ต้องได้รับอนุมัติ)
+- [x] 1.6 PR แต่ละ repo + merge (2026-10-25)
+  - [x] carmen-platform #360, #361 (ข้อความ minor: แอปหลัก = Carmen Blue Platform, คำบรรยาย Login)
+  - [x] carmen-inventory-frontend-react #440
+  - [x] carmen-turborepo-backend-v2 #914 — gates ในเครื่อง: ผ่าน 16 ล้ม 3 (prettier 349 ไฟล์ไม่ใช่ของ PR, audit:dependencies, micro-business test 3 suites — ล้มเหมือนกันบน origin/main)
+  - [x] carmen-turborepo-backend-bruno #38
+  - [x] micro-notification #16 (CI ล้มเพราะ billing; build+eslint+jest ในเครื่องผ่าน)
+  - [x] carmen-platform-support-usermanual #4
+  - [x] carmen-platform-e2e #16
+  - [x] carmen-wiki #21
+- [ ] 1.7 deploy DEV + ตรวจ — คอนโซลขึ้น DEV แล้ว (550296ef, curl ยืนยัน title + bundle); backend/micro-notification ค้าง (billing); ตรวจหน้าจอจริงค้าง (ผู้ใช้)
+- [ ] 1.8 ขึ้น production — ค้าง (ผู้ใช้ push เอง ดู "สถานะปัจจุบัน")
 
 ## โปรเจกต์ 2 — ชื่อ repo, package, deploy path
 
