@@ -1,7 +1,7 @@
 ---
 **Module Number:** 2
 **Module Name:** Clusters
-**System / Product:** Carmen Blue Platform (admin SPA)
+**System / Product:** Carmen Blue Backstage (admin SPA)
 **Version:** v1.0 (as of app v1.0.0 / API v3.0.2, 2026-09-29)
 **Status:** Draft
 **Created:** 2026-09-29

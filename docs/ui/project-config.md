@@ -1,5 +1,5 @@
 # Project Config
-**Project:** Carmen Blue Platform
+**Project:** Carmen Blue Backstage
 **Created:** 2026-09-29
 
 ## Domains
@@ -9,7 +9,7 @@ doc prefix — record the actor in each doc's frontmatter instead.
 
 | Domain | Prefix | Description |
 |--------|--------|-------------|
-| Carmen Blue Platform | `CP-` | All screens of the admin SPA |
+| Carmen Blue Backstage | `CP-` | All screens of the admin SPA |
 
 | Actor | Where they work | Gate |
 |-------|-----------------|------|

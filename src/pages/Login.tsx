@@ -240,7 +240,7 @@ const Login: React.FC = () => {
                 C
               </div>
               <div className="leading-none">
-                <div className="text-base font-bold tracking-tight text-foreground">Carmen Blue Platform</div>
+                <div className="text-base font-bold tracking-tight text-foreground">Carmen Blue Backstage</div>
                 <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
                   {t('login.operationsConsole')}
                 </div>

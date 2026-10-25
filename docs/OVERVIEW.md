@@ -1,10 +1,10 @@
-# Carmen Blue Platform — Overview
+# Carmen Blue Backstage — Overview
 
 Product and architecture overview. For setup and operations, see [DEVELOPMENT.md](./DEVELOPMENT.md). For AI coding guidance, see [../CLAUDE.md](../CLAUDE.md). For routes, see [../SITEMAP.md](../SITEMAP.md).
 
 ## What it is
 
-Carmen Blue Platform is a frontend-only React + TypeScript admin dashboard for managing clusters, business units, users, report templates, and print-template mappings. It talks to a separate NestJS/Prisma backend over HTTPS. The frontend is deployed as a static build to a GCS bucket behind Cloud CDN + a global HTTPS load balancer (Terraform in `infra/gcp/`), published by GitHub Actions via Workload Identity Federation.
+Carmen Blue Backstage is a frontend-only React + TypeScript admin dashboard for managing clusters, business units, users, report templates, and print-template mappings. It talks to a separate NestJS/Prisma backend over HTTPS. The frontend is deployed as a static build to a GCS bucket behind Cloud CDN + a global HTTPS load balancer (Terraform in `infra/gcp/`), published by GitHub Actions via Workload Identity Federation.
 
 ## Users and roles
 

@@ -781,7 +781,7 @@ export const th: Translations = {
 
   pages: {
     landing: {
-      brand: 'Carmen Blue Platform',
+      brand: 'Carmen Blue Backstage',
       console: 'ศูนย์ควบคุมการดำเนินงาน',
       loading: 'กำลังโหลด…',
       signIn: 'เข้าสู่ระบบ',
@@ -2701,10 +2701,10 @@ export const th: Translations = {
       googleSignInTitle: 'เข้าสู่ระบบด้วย Google',
       googleSignInDesc:
         'เปิด/ปิดปุ่ม "ดำเนินการต่อด้วย Google" แยกต่อแอป ปิดแล้วปุ่มจะแสดงแต่กดไม่ได้ และ gateway จะบล็อก flow ของ Google ด้วย ปุ่มจะกดได้จริงเมื่อ gateway ตั้งค่า Google OAuth ครบแล้วเท่านั้น',
-      googleSignInPlatform: 'Carmen Blue Platform',
+      googleSignInPlatform: 'Carmen Blue Backstage',
       googleSignInPlatformHint: 'หน้า login ของแอปผู้ดูแลนี้',
-      googleSignInApp: 'App',
-      googleSignInAppHint: 'เว็บ inventory และ client อื่นทุกตัวที่ไม่ใช่ Platform',
+      googleSignInApp: 'Carmen Blue Platform',
+      googleSignInAppHint: 'เว็บหลัก Carmen Blue Platform และ client อื่นทุกตัวที่ไม่ใช่ Backstage',
       googleSignInCheckbox: 'อนุญาตให้เข้าสู่ระบบด้วย Google',
       googleSignInOn: 'เปิด',
       googleSignInOff: 'ปิด',
@@ -3989,7 +3989,7 @@ export const th: Translations = {
     googleContinue: 'ดำเนินการต่อด้วย Google',
     googleFailed: 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ กรุณาลองใหม่',
     googleNoAccount:
-      'ไม่พบบัญชี Carmen Blue Platform สำหรับอีเมล Google นี้ กรุณาให้ผู้ดูแลระบบเพิ่มบัญชีให้ก่อน',
+      'ไม่พบบัญชี Carmen Blue Backstage สำหรับอีเมล Google นี้ กรุณาให้ผู้ดูแลระบบเพิ่มบัญชีให้ก่อน',
     googleAccountConflict: 'อีเมลนี้ขัดแย้งกับบัญชีอื่น กรุณาติดต่อผู้ดูแลระบบ',
     googleTooManyAttempts: 'พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่',
     googleDisabled: 'ปิดการเข้าสู่ระบบด้วย Google อยู่ กรุณาเข้าสู่ระบบด้วยอีเมลและรหัสผ่าน',
