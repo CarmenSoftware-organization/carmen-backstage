@@ -5,7 +5,7 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 4 เสร็จ + ขึ้น DEV (2026-10-26) → กำลังทำ **โปรเจกต์ 5** (slice 5a ค่าในข้อมูล/ค่าบนสาย → 5b ตาราง+package) ตาม spec `docs/superpowers/specs/2026-10-26-carmen-blue-backstage-rename-p5-design.md` · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
+- **อยู่ที่:** โปรเจกต์ 3–5 เสร็จ + ขึ้น DEV ครบ (2026-10-26) · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง) · UAT/production จะได้ migration ของโปรเจกต์ 5 ตอน deploy backend รอบถัดไป (ต้อง deploy micro-notification คู่กัน)
 - **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
   1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-backstage (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
@@ -106,7 +106,11 @@
 
 ## โปรเจกต์ 5 — ฐานข้อมูล
 
-- [x] 5.1 brainstorm — ผู้ใช้: "DEV อย่างเดียว ยังไม่มีใครใช้จริง ทำได้เลย" · [x] 5.2 spec `docs/superpowers/specs/2026-10-26-carmen-blue-backstage-rename-p5-design.md` (2026-10-26) · ข้ามอนุมัติ/plan ตามคำสั่ง · [ ] 5.5 ลงมือ 5a · [ ] 5.5 ลงมือ 5b · [ ] 5.6 PR/merge · [ ] 5.7 apply **DEV เท่านั้น** (UAT/production จะได้ migration ตอน deploy backend รอบถัดไป — ผู้ใช้รับทราบ)
+- [x] 5.1 brainstorm — ผู้ใช้: "DEV อย่างเดียว ยังไม่มีใครใช้จริง ทำได้เลย" · [x] 5.2 spec `docs/superpowers/specs/2026-10-26-carmen-blue-backstage-rename-p5-design.md` (2026-10-26) · ข้ามอนุมัติ/plan ตามคำสั่ง · [x] 5.5 ลงมือ 5a · [x] 5.5 ลงมือ 5b · [x] 5.6 PR/merge · [x] 5.7 apply **DEV เท่านั้น** (2026-10-26) (UAT/production จะได้ migration ตอน deploy backend รอบถัดไป — ผู้ใช้รับทราบ)
+- **5a merged + DEV:** backend #920 (migration `20261026120000_rename_platform_values_to_backstage` — ไม่ auto-apply ต้องรัน `db:deploy` เอง), คอนโซล #371, god-mode #33, bruno #41 · ตรวจ: ค่าใน DB เปลี่ยนครบ, `/api/user/permission/backstage` 401 / `/platform` 404, bundle คอนโซลไม่มี route เก่า
+- **5b merged + DEV:** backend #921 (migration `20261026130000_rename_platform_tables_to_backstage` — RENAME ตาราง 6/คอลัมน์ 3/pkey 6/fkey 3/index 12), micro-notification #18, god-mode #34, คอนโซล #372 (filter `backstage_role_id`), แอปหลัก #444 (comment) · publish `prisma-shared-schema-backstage@1.0.0` + `notification-contract@2.0.1` · ตรวจ: ไม่เหลือตาราง `tb_platform_*`, role-permission 323 แถวอยู่ครบ, log backend ไม่มี 42P01, micro-notification healthy + dist อ่าน `tb_backstage_config`
+- **กับดักที่เจอ:** โฟลเดอร์ package เปลี่ยนชื่อ → `.env` (gitignored) ไม่ตามมา ต้อง `cp` จากโฟลเดอร์เก่าบนเครื่อง DEV ก่อน `db:deploy` (UAT/production ก็ต้องทำ) · micro-notification ต้อง `NODE_AUTH_TOKEN` ตอน deploy เพราะ dependency เปลี่ยน
+- **ค้าง:** `generate-test-user-bu` ยังใช้ raw SQL ชื่อตารางเก่า (`src/discover.ts`, `src/access.ts`, `src/wipe.ts`) → discover/wipe พัง · index `platform_dashboard_*` 2 ตัวของตาราง dashboard ไม่ได้เปลี่ยน (นอกขอบเขต) · script `audit:platform-permission-resource` ชื่อเดิม · โฟลเดอร์ `packages/prisma-shared-schema-platform/` (untracked: dist/.env) ยังค้างบนเครื่อง DEV · god-mode Deploy workflow แดงจาก health check `localhost:9903` (มีมาก่อน)
 - ผลสำรวจ DEV: ไม่มี DB `carmen_platform` (ตารางอยู่ใน schema `CARMEN_SYSTEM` ของ DB `postgres`) → ไม่ต้องเปลี่ยนชื่อฐานข้อมูล; `api_name` ไม่มีในแถวข้อมูล
 - **รับงานต่อจากโปรเจกต์ 4 (ค่าที่เก็บใน DB / ผูกกับ schema):**
   - permission key `platform_role.*`, `platform_config.*`, `user_platform.*`, `platform_migration` (seed + ข้อมูลใน DB + `<Can>` ฝั่ง FE)
