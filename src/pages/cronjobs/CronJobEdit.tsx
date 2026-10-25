@@ -543,7 +543,7 @@ const CronJobEdit: React.FC = () => {
             key: 'formData',
             label: 'Form',
             data: formData,
-            endpoint: isNew ? 'New scheduled job (not yet saved)' : `GET /api-system/platform/cronjobs/${id}`,
+            endpoint: isNew ? 'New scheduled job (not yet saved)' : `GET /api-system/backstage/cronjobs/${id}`,
           },
           { key: 'saved', label: 'Saved', data: savedFormData },
           { key: 'meta', label: 'Meta', data: { docVersion, sourceService, fieldErrors } },

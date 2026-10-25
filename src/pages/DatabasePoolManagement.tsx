@@ -460,7 +460,7 @@ const DatabasePoolManagement: React.FC = () => {
         onConfirm={handleDelete}
       />
 
-      <DevDebugSheet title="API Response" endpoint="GET /api-system/platform/database-pools" data={rawResponse} />
+      <DevDebugSheet title="API Response" endpoint="GET /api-system/backstage/database-pools" data={rawResponse} />
     </Layout>
   );
 };

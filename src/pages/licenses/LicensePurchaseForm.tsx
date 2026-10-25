@@ -149,7 +149,7 @@ function ownerFromRow(kind: LicenseKind, row: LicenseRow): { id: string; label: 
  * คลัสเตอร์ที่เจ้าของใบสังกัด — คู่กับ `ownerFromRow` แต่คืน `null` เมื่อใบชนิดนี้ไม่แยกคลัสเตอร์
  * ออกจากเจ้าของ (ใบโควตา BU: คลัสเตอร์ **คือ** เจ้าของอยู่แล้ว ดู `showCluster` ใน config)
  *
- * ค่ามาจาก detail endpoint ตรง ๆ — `GET /platform/business-unit-licenses/:id` ส่ง
+ * ค่ามาจาก detail endpoint ตรง ๆ — `GET /backstage/business-unit-licenses/:id` ส่ง
  * `cluster_id`/`cluster_code`/`cluster_name` มาพร้อมแถวอยู่แล้ว จึงไม่ต้องยิง API เพิ่ม
  * และไม่ต้องพึ่ง query param แบบ `?ownerLabel=` (ที่หายไปเมื่อเปิด URL ตรง ๆ)
  */

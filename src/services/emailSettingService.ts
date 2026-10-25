@@ -1,7 +1,7 @@
 import api from './api';
 import type { ApiListResponse, EmailSetting, EmailSettingTestResult } from '../types';
 
-const BASE = '/api-system/platform/email-settings';
+const BASE = '/api-system/backstage/email-settings';
 
 // The purpose enum caps this list at 3 rows, so an explicit perpage is plenty.
 // It is stated rather than left to the backend default so a future change to that

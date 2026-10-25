@@ -555,7 +555,7 @@ const CronJobManagement: React.FC = () => {
         <DevDebugSheet
           title="Scheduled Jobs Debug"
           tabs={[
-            { key: 'items', label: 'Items', data: items, endpoint: 'GET /api-system/platform/cronjobs' },
+            { key: 'items', label: 'Items', data: items, endpoint: 'GET /api-system/backstage/cronjobs' },
             { key: 'query', label: 'Query', data: { page, perpage, search: debouncedSearch, sort, filter } },
             { key: 'meta', label: 'Meta', data: { total, activeJobs } },
           ]}

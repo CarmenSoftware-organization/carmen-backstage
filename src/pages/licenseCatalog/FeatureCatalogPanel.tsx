@@ -412,7 +412,7 @@ export const FeatureCatalogPanel: React.FC = () => {
       {process.env.NODE_ENV === 'development' && (
         <DevDebugSheet
           title={t('pages.licenseFeatures.title')}
-          endpoint="/api-system/platform/license-features/all"
+          endpoint="/api-system/backstage/license-features/all"
           tabs={[
             { key: 'response', label: 'response', data: rawResponse },
             { key: 'visible', label: 'visible', data: visible },

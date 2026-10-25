@@ -14,7 +14,7 @@ const mockApi = api as unknown as {
   delete: ReturnType<typeof vi.fn>;
 };
 
-const BASE = '/api-system/platform/users';
+const BASE = '/api-system/backstage/users';
 
 describe('userPlatformService', () => {
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe('userPlatformService', () => {
   });
 
   describe('getAll', () => {
-    it('requests the platform/users endpoint with default pagination and default searchfields', async () => {
+    it('requests the backstage/users endpoint with default pagination and default searchfields', async () => {
       mockApi.get.mockResolvedValue({ data: { data: [], paginate: { total: 0, page: 1, perpage: 10 } } });
       await userPlatformService.getAll();
       expect(mockApi.get).toHaveBeenCalledWith(

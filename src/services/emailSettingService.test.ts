@@ -13,7 +13,7 @@ const mockApi = api as unknown as {
   delete: ReturnType<typeof vi.fn>;
 };
 
-const BASE = '/api-system/platform/email-settings';
+const BASE = '/api-system/backstage/email-settings';
 
 describe('emailSettingService', () => {
   beforeEach(() => {

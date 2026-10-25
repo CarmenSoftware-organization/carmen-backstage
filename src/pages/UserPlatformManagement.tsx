@@ -647,7 +647,7 @@ const UserPlatformManagement: React.FC = () => {
         onConfirm={handleRevokeAll}
       />
 
-      <DevDebugSheet title="API Response" endpoint="GET /api-system/platform/users" data={rawResponse} />
+      <DevDebugSheet title="API Response" endpoint="GET /api-system/backstage/users" data={rawResponse} />
     </Layout>
   );
 };

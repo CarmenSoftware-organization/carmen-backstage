@@ -37,6 +37,6 @@ Pass-through services (`Partial<T>`) forward it automatically once the type carr
 
 ## Backend gotcha
 
-The admin "Role" page is **platform roles** (`/api-system/platform/roles`), not application roles (`/api-system/roles`). Locking fires only when the read exposes `doc_version` AND the update guards `where: { id, doc_version }`.
+The admin "Role" page is **platform roles** (`/api-system/backstage/roles`), not application roles (`/api-system/roles`). Locking fires only when the read exposes `doc_version` AND the update guards `where: { id, doc_version }`.
 
 Full contract: `docs/doc-version-optimistic-locking-spec.md`

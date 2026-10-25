@@ -9,7 +9,7 @@ import type {
 // ตรงกับ defaultSearchFields ฝั่ง backend (database-pool.service.ts:80)
 const defaultSearchFields = ['name', 'host', 'database'];
 
-const BASE = '/api-system/platform/database-pools';
+const BASE = '/api-system/backstage/database-pools';
 
 /**
  * Platform database pools — โปรไฟล์การเชื่อมต่อที่ตั้งชื่อได้ ใช้ร่วมกันข้าม business unit

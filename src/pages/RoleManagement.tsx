@@ -555,7 +555,7 @@ const RoleManagement: React.FC = () => {
         onConfirm={handleConfirmDelete}
       />
 
-      <DevDebugSheet title="API Response" endpoint="GET /api-system/platform/roles" data={rawResponse} />
+      <DevDebugSheet title="API Response" endpoint="GET /api-system/backstage/roles" data={rawResponse} />
     </Layout>
   );
 };

@@ -1,7 +1,7 @@
 import api from './api';
 import type { FeatureState } from '../constants/featureFlags';
 
-const BASE = '/api-system/platform/feature-flags';
+const BASE = '/api-system/backstage/feature-flags';
 
 /**
  * แมป key→state ตามที่ backend ส่งมา ไม่ใช่แถว config เต็ม — endpoint นี้ปอกเปลือกให้แล้ว

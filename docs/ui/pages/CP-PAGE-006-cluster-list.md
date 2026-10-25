@@ -202,7 +202,7 @@ injection. BU **used** and deletion info are **not** exported.
 
 N/A. There is no approval workflow. Record-level change history is available through
 **Change history** → CP-MODAL-003:
-`GET /api-system/platform/activity-logs/record/{id}?entity_type=cluster`.
+`GET /api-system/backstage/activity-logs/record/{id}?entity_type=cluster`.
 
 ---
 
@@ -282,8 +282,8 @@ All calls go to the `/api-system` backend (the platform registry).
 | GET | `/api-system/clusters?page&perpage&search&searchfields=name,code&sort&advance` | List page |
 | GET | `/api-system/clusters/summary` | Fleet Capacity band (no params) |
 | DELETE | `/api-system/clusters/{id}` | Soft delete |
-| GET | `/api-system/platform/activity-logs/record/{id}?entity_type=cluster&page&perpage` | Change history (CP-MODAL-003) |
-| GET | `/api-system/platform/activity-logs/{logId}/detail` | Expand one history entry |
+| GET | `/api-system/backstage/activity-logs/record/{id}?entity_type=cluster&page&perpage` | Change history (CP-MODAL-003) |
+| GET | `/api-system/backstage/activity-logs/{logId}/detail` | Expand one history entry |
 
 **List query syntax:**
 - Sort: `sort=created_at:desc`. Clearing the sort sends `sort=`.

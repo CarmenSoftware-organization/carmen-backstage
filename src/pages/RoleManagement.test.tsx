@@ -35,7 +35,7 @@ vi.mock('../components/Layout', () => ({
 // to always render its children would make every permission assertion below vacuous,
 // exactly the defect this effort exists to close. This is the *platform roles* page
 // (`/platform/roles`, backed by the `platform_role` service via `roleService` ->
-// `/api-system/platform/roles`) — NOT application roles. `role.*` is a platform-scoped
+// `/api-system/backstage/roles`) — NOT application roles. `role.*` is a platform-scoped
 // permission (never granted per-cluster), and none of the four `<Can>` call sites in
 // RoleManagement.tsx pass a `clusterId` prop, so (like
 // UserManagement/ReportTemplateManagement) there is no scoped-gate discrimination to
@@ -84,7 +84,7 @@ const setupGetAll = (mainResponse: typeof listResponse | typeof emptyResponse) =
 };
 
 // RoleManagement's RBAC summary band (`RolesAccessSummary`) independently calls
-// `roleService.getAccessSummary()` (dedicated `/api-system/platform/roles/summary` endpoint)
+// `roleService.getAccessSummary()` (dedicated `/api-system/backstage/roles/summary` endpoint)
 // on mount to roll up the whole unfiltered role set. Kept empty (no `top_roles`) in every
 // test so its "Broadest roles" panel never renders a second `sampleRole.name` node — an
 // unrelated duplicate would make `findByText('Admin')` throw "found multiple elements" and

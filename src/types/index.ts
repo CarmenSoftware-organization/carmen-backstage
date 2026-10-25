@@ -242,11 +242,11 @@ export interface BusinessUnit {
   doc_version?: number; // optimistic-lock token (read model)
 }
 
-// Platform database migration (super-admin หรือ deploy token) — /api-system/platform/migrations/*
+// Platform database migration (super-admin หรือ deploy token) — /api-system/backstage/migrations/*
 // ฝั่ง backend คืน stdout ดิบของ prisma มาใน `raw` หลัง sanitize แล้ว ฟิลด์ทั้งหมดเป็น optional
 // เพราะ controller ห่อด้วย Result<unknown> — สัญญาไม่ได้การันตีว่าจะมีครบทุกครั้ง
 /**
- * หนึ่งรายการในทะเบียนของคอนโซล seed — `/api-system/platform/seeds/catalog`
+ * หนึ่งรายการในทะเบียนของคอนโซล seed — `/api-system/backstage/seeds/catalog`
  * One entry in the platform seed console catalog.
  *
  * ไม่มี label เพราะ backend ส่งแค่ id ชื่อและคำอธิบายอยู่ใน i18n ของหน้าเว็บ เนื่องจากต้องแปลสองภาษา
@@ -687,7 +687,7 @@ export interface PlatformUserRow {
 }
 
 /**
- * Registry-wide aggregate for `GET /api-system/platform/users`: describes every holder
+ * Registry-wide aggregate for `GET /api-system/backstage/users`: describes every holder
  * matching the current `advance` filter + `search`, not just the loaded page — so it stays
  * correct however pagination sorts the results (e.g. the one inactive holder landing on
  * page 3 must not make page 1 look clean). `holders` duplicates `paginate.total`
@@ -707,7 +707,7 @@ export interface PlatformUserRegistrySummary {
   inactive: number;
 }
 
-/** Response shape for `GET /api-system/platform/users` — `ApiListResponse` plus the filter-consistent `summary` block (see `PlatformUserRegistrySummary`). */
+/** Response shape for `GET /api-system/backstage/users` — `ApiListResponse` plus the filter-consistent `summary` block (see `PlatformUserRegistrySummary`). */
 export interface PlatformUsersResponse extends ApiListResponse<PlatformUserRow> {
   summary?: PlatformUserRegistrySummary;
 }
@@ -853,7 +853,7 @@ export interface TopRole {
  * RBAC aggregate for the `/platform-roles` band.
  *
  * The page (`RoleManagement.tsx`) reads this from the dedicated, unfiltered endpoint
- * `GET /api-system/platform/roles/summary` via `roleService.getAccessSummary()` — not the
+ * `GET /api-system/backstage/roles/summary` via `roleService.getAccessSummary()` — not the
  * `summary` block `RolesResponse` carries (that one is filter-scoped to whatever `advance`/
  * `search` the list request used). The bar scale (`maxCount` in the old client-side shape) is
  * `top_roles[0].permission_count`, derived at render time rather than sent twice.
@@ -868,7 +868,7 @@ export interface RolesSummaryData {
   top_roles: TopRole[];
 }
 
-/** Response shape for `GET /api-system/platform/roles` — `ApiListResponse` plus `summary`. */
+/** Response shape for `GET /api-system/backstage/roles` — `ApiListResponse` plus `summary`. */
 export interface RolesResponse extends ApiListResponse<Role> {
   summary?: RolesSummaryData;
 }
@@ -1096,7 +1096,7 @@ export interface BroadcastsResponse extends ApiListResponse<BroadcastListItem> {
 
 /**
  * A row of the platform super-admin allowlist as returned by
- * GET /api-system/platform/super-admins.
+ * GET /api-system/backstage/super-admins.
  *
  * `email` and `name` are joined server-side. They are optional because a
  * frontend deployed ahead of its backend still has to render the table — and
@@ -1375,7 +1375,7 @@ export interface GoogleSignInConfig {
  * เป็นเกณฑ์ **แสดงผล** ไม่ใช่เกณฑ์บังคับใช้ — เปลี่ยนแล้วไม่มีใครถูกบล็อกเพิ่มหรือลด
  * อ่านผ่าน `useExpiryThresholds()` ไม่ใช่ผ่าน `platformConfigService` เพราะ GET ของเส้นทางนั้น
  * บังคับ `platform_config.read` ซึ่งผู้ใช้ที่เปิดหน้ารายการใบทั่วไปไม่มี
- * A display threshold, read through the dedicated open endpoint, not /platform/configs.
+ * A display threshold, read through the dedicated open endpoint, not /backstage/configs.
  */
 export interface ExpiryThresholdsConfig {
   /** ใบสัญญา (subscription) */
@@ -1389,7 +1389,7 @@ export interface ExpiryThresholdsConfig {
 }
 
 /**
- * หนึ่งรายการจาก /api-system/platform/configs
+ * หนึ่งรายการจาก /api-system/backstage/configs
  * `id` เป็น null เมื่อยังไม่เคยบันทึกคีย์นี้ และ backend กำลังคืนค่าเริ่มต้นในตัวมาแทน
  */
 export interface PlatformConfig {

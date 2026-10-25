@@ -628,7 +628,7 @@ const SubscriptionForm: React.FC = () => {
           title="Subscription Debug"
           fabClassName={hasChanges ? 'bottom-20' : undefined}
           tabs={[
-            { key: 'subscription', label: 'Subscription', data: rawResponse, endpoint: `GET /api-system/platform/subscriptions/${id}` },
+            { key: 'subscription', label: 'Subscription', data: rawResponse, endpoint: `GET /api-system/backstage/subscriptions/${id}` },
           ]}
         />
       )}

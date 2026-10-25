@@ -239,7 +239,7 @@ const UsageAnalytics: React.FC = () => {
       {process.env.NODE_ENV === 'development' && (
         <DevDebugSheet
           title="API Response"
-          endpoint="GET /api-system/platform/analytics/overview"
+          endpoint="GET /api-system/backstage/analytics/overview"
           data={rawResponse}
         />
       )}

@@ -15,21 +15,21 @@ export interface RoleWriteData {
 const roleService = {
   getAll: async (paginate: PaginateParams = {}): Promise<RolesResponse> => {
     const response = await api.get(
-      `/api-system/platform/roles?${buildQuery(paginate, defaultSearchFields)}`,
+      `/api-system/backstage/roles?${buildQuery(paginate, defaultSearchFields)}`,
     );
     return response.data;
   },
   getById: async (id: string) => {
-    const response = await api.get(`/api-system/platform/roles/${id}`);
+    const response = await api.get(`/api-system/backstage/roles/${id}`);
     return response.data;
   },
   /**
-   * RBAC aggregate from `GET /api-system/platform/roles/summary` — unfiltered, no
+   * RBAC aggregate from `GET /api-system/backstage/roles/summary` — unfiltered, no
    * `search`/`advance` params. Counts every role, not the current table view. See
    * `RolesSummaryData` in `types/index.ts`.
    */
   getAccessSummary: async (): Promise<RolesSummaryData> => {
-    const response = await api.get('/api-system/platform/roles/summary');
+    const response = await api.get('/api-system/backstage/roles/summary');
     return response.data.data || response.data;
   },
   create: async (data: RoleWriteData) => {
@@ -39,7 +39,7 @@ const roleService = {
       is_active: data.is_active,
       permissions: { add: data.permissions.add },
     };
-    const response = await api.post('/api-system/platform/roles', body);
+    const response = await api.post('/api-system/backstage/roles', body);
     return response.data;
   },
   update: async (id: string, data: RoleWriteData) => {
@@ -50,11 +50,11 @@ const roleService = {
       permissions: { add: data.permissions.add, remove: data.permissions.remove ?? [] },
       ...(data.doc_version != null ? { doc_version: data.doc_version } : {}),
     };
-    const response = await api.put(`/api-system/platform/roles/${id}`, body);
+    const response = await api.put(`/api-system/backstage/roles/${id}`, body);
     return response.data;
   },
   delete: async (id: string) => {
-    const response = await api.delete(`/api-system/platform/roles/${id}`);
+    const response = await api.delete(`/api-system/backstage/roles/${id}`);
     return response.data;
   },
 };

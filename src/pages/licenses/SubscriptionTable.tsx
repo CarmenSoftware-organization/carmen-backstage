@@ -709,7 +709,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
   );
 
   const debugSheet = (
-    <DevDebugSheet title="API Response" endpoint="GET /api-system/platform/subscriptions" data={rawResponse} />
+    <DevDebugSheet title="API Response" endpoint="GET /api-system/backstage/subscriptions" data={rawResponse} />
   );
 
   if (embedded) {

@@ -2,7 +2,7 @@ import api from './api';
 import { buildQuery } from '../utils/buildQuery';
 import type { ActivityLogDetail, ActivityLogsResponse, PaginateParams } from '../types';
 
-const BASE = '/api-system/platform/activity-logs';
+const BASE = '/api-system/backstage/activity-logs';
 
 const activityLogService = {
   /**
