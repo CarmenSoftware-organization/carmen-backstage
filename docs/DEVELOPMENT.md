@@ -182,7 +182,7 @@ See `src/components/PrivateRoute.tsx` for the route-guard usage and `src/App.tsx
 | `/applications` | Applications | Backstage | `application.read` |
 | `/backstage/roles` | Roles | Backstage | `role.read` |
 | `/backstage/super-admins` | Super Admins | Backstage | super admin only |
-| `/backstage/user-backstage` | User Backstage | Backstage | `user_platform.read` |
+| `/backstage/user-backstage` | User Backstage | Backstage | `user_backstage.read` |
 
 See [../SITEMAP.md](../SITEMAP.md) for the authoritative route list.
 

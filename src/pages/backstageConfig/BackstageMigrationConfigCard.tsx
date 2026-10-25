@@ -11,7 +11,7 @@ import { useI18n } from '../../hooks/useI18n';
 interface BackstageMigrationConfigCardProps {
   config: BackstageConfig | null;
   /**
-   * ต้องเป็น **super-admin** ไม่ใช่แค่ `platform_config.manage` — backend มีด่านที่สองเฉพาะคีย์นี้
+   * ต้องเป็น **super-admin** ไม่ใช่แค่ `backstage_config.manage` — backend มีด่านที่สองเฉพาะคีย์นี้
    * (`platform_configs.controller.ts` → `writeKeyDenial`) ซึ่งไม่รับสิทธิ์ใด ๆ แทน ต่างจากคีย์
    * `license` ที่ยอมรับ `license.manage` ส่ง canManage ที่ผ่อนกว่านี้มาจะได้ปุ่ม Edit ที่กด Save
    * แล้ว 403 เสมอ
@@ -75,7 +75,7 @@ export const BackstageMigrationConfigCard: React.FC<BackstageMigrationConfigCard
       setSaving(true);
       // PATCH ไม่ใช่ PUT ด้วยเหตุผลเดียวกับการ์ดอื่นในหน้านี้: วันที่ schema ของคีย์นี้มีฟิลด์ที่สอง
       // การ์ดนี้ยังบันทึกได้ตามเดิมแทนที่จะได้ 422 ทันที
-      await backstageConfigService.patch('platform_migration', {
+      await backstageConfigService.patch('backstage_migration', {
         api_enabled: formData.api_enabled,
       });
       toast.success(

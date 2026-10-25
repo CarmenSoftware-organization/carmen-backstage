@@ -3822,7 +3822,7 @@ export const en = {
       sectionBackstageMigration: 'Backstage Database',
       migrationTitle: 'Backstage migration API',
       migrationDesc1: 'Opens or closes the whole',
-      migrationDesc2: ' route. It used to be a backend-gateway env var, and only super-admins may change it — not holders of platform_config.manage.',
+      migrationDesc2: ' route. It used to be a backend-gateway env var, and only super-admins may change it — not holders of backstage_config.manage.',
       migrationApi: 'API status',
       migrationApiOn: 'Enabled',
       migrationApiOff: 'Disabled',
@@ -4208,7 +4208,7 @@ export const en = {
       catalogLoadFailedDetail: 'Failed to load permission catalog: {{detail}}',
       // เดิมเป็นภาษาไทยล้วนในซอร์ส — ผู้ใช้อังกฤษเห็นไทย (จุดบอด "ข้อความที่เป็นไทยอยู่แล้ว")
       // อังกฤษเป็นคำที่เขียนขึ้นใหม่ ไทยคือถ้อยคำเดิมย้ายมาทั้งดุ้น
-      catalogForbidden: "Missing platform_role.read, so the permission list couldn't be loaded",
+      catalogForbidden: "Missing backstage_role.read, so the permission list couldn't be loaded",
       catalogForbiddenDetail: "You can still edit the role's name and status, but not its permissions",
       singularTitle: 'Role',
       notFoundTitle: 'Role not found',

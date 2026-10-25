@@ -42,7 +42,7 @@ const auth = vi.hoisted(() => ({
   hasBackstageAuthority: true,
   hasClusterAdminScope: false,
   adminScope: { all: false, clusters: [] as { id: string }[] },
-  effectivePermissions: { is_super_admin: false, platform: [] as string[], clusters: {} as Record<string, string[]> },
+  effectivePermissions: { is_super_admin: false, backstage: [] as string[], clusters: {} as Record<string, string[]> },
 }));
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => auth,

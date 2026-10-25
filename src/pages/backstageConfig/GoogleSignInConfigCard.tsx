@@ -9,7 +9,7 @@ import { useI18n } from '../../hooks/useI18n';
 
 interface GoogleSignInConfigCardProps {
   config: BackstageConfig | null;
-  /** `platform_config.manage` อย่างเดียว — คีย์นี้ไม่มีด่านที่สองฝั่ง backend */
+  /** `backstage_config.manage` อย่างเดียว — คีย์นี้ไม่มีด่านที่สองฝั่ง backend */
   canManage: boolean;
   isEditing: boolean;
   onRequestEdit: () => void;
@@ -22,7 +22,7 @@ interface GoogleSignInConfigCardProps {
 /** `=== true` ไม่ใช่ truthy — ตรงกับ GoogleSignInFlagService ฝั่ง gateway ที่ถือว่าค่าเพี้ยน = ปิด */
 const toForm = (config: BackstageConfig | null): GoogleSignInConfig => {
   const value = (config?.value ?? {}) as Partial<GoogleSignInConfig>;
-  return { platform: value.platform === true, app: value.app === true };
+  return { backstage: value.backstage === true, app: value.app === true };
 };
 
 /**
@@ -53,7 +53,7 @@ export const GoogleSignInConfigCard: React.FC<GoogleSignInConfigCardProps> = ({
     try {
       setSaving(true);
       await backstageConfigService.patch('google_sign_in', {
-        platform: formData.platform,
+        backstage: formData.backstage,
         app: formData.app,
       });
       toast.success(t('pages.backstageConfig.googleSignInSavedToast'));
@@ -108,7 +108,7 @@ export const GoogleSignInConfigCard: React.FC<GoogleSignInConfigCardProps> = ({
       footer={footer}
     >
       {field(
-        'platform',
+        'backstage',
         t('pages.backstageConfig.googleSignInBackstage'),
         t('pages.backstageConfig.googleSignInBackstageHint'),
       )}

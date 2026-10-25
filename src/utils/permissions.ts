@@ -54,7 +54,7 @@ export function checkPermission(
 ): boolean {
   if (!eff) return false;
   if (eff?.is_super_admin) return true;
-  if (eff.platform?.includes(key)) return true;
+  if (eff.backstage?.includes(key)) return true;
   if (opts?.clusterId) {
     return !!eff.clusters?.[opts.clusterId]?.includes(key);
   }
@@ -74,5 +74,5 @@ export function checkPermission(
  */
 export function checkBackstageAuthority(eff: EffectivePermissions | null | undefined): boolean {
   if (!eff) return false;
-  return eff.is_super_admin || (eff.platform?.length ?? 0) > 0 || Object.keys(eff.clusters ?? {}).length > 0;
+  return eff.is_super_admin || (eff.backstage?.length ?? 0) > 0 || Object.keys(eff.clusters ?? {}).length > 0;
 }

@@ -64,7 +64,7 @@ describe('userBackstageService', () => {
       const envelope = {
         data: [],
         paginate: { total: 25, page: 1, perpage: 10 },
-        summary: { holders: 25, platform_wide: 9, cluster_only: 16, assignments: 41, inactive: 3 },
+        summary: { holders: 25, backstage_wide: 9, cluster_only: 16, assignments: 41, inactive: 3 },
       };
       mockApi.get.mockResolvedValue({ data: envelope });
       const result = await userBackstageService.getAll();
@@ -89,7 +89,7 @@ describe('userBackstageService', () => {
               id: 'r1',
               role_id: 'role-1',
               role_name: 'platform_admin',
-              scope: { type: 'platform' },
+              scope: { type: 'backstage' },
               audit: { created: { at: '2026-08-01T09:12:00Z', id: 'uid-1', name: 'นภา สุขใจ' } },
             },
           ],
@@ -110,7 +110,7 @@ describe('userBackstageService', () => {
             {
               id: 'r2',
               role_id: 'role-2',
-              scope: { type: 'platform' },
+              scope: { type: 'backstage' },
               audit: { created: { at: '2020-01-01T00:00:00Z' } },
             },
           ],
@@ -150,11 +150,11 @@ describe('userBackstageService', () => {
       mockApi.post.mockResolvedValue({ data: { data: { ok: true } } });
       await userBackstageService.assignBulk('user-1', {
         role_ids: ['role-a', 'role-b'],
-        scope: { type: 'platform' },
+        scope: { type: 'backstage' },
       });
       expect(mockApi.post).toHaveBeenCalledWith(`${BASE}/user-1/roles/bulk`, {
         role_ids: ['role-a', 'role-b'],
-        scope: { type: 'platform' },
+        scope: { type: 'backstage' },
       });
     });
 
@@ -173,7 +173,7 @@ describe('userBackstageService', () => {
     it('returns the unwrapped response body', async () => {
       mockApi.post.mockResolvedValue({ data: { data: { updated: 2 } } });
       await expect(
-        userBackstageService.assignBulk('user-3', { role_ids: ['role-x'], scope: { type: 'platform' } }),
+        userBackstageService.assignBulk('user-3', { role_ids: ['role-x'], scope: { type: 'backstage' } }),
       ).resolves.toEqual({ data: { updated: 2 } });
     });
   });

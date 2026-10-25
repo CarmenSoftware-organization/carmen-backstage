@@ -97,7 +97,7 @@ const UserBackstageManagement: React.FC = () => {
   const buildAdvance = (roles: string[], scope: string, statuses: string[]) => {
     const where: Record<string, unknown> = {};
     if (roles.length > 0) where.platform_role_id = { in: roles };
-    if (scope === 'platform') where.cluster_id = null;
+    if (scope === 'backstage') where.cluster_id = null;
     else if (scope) where.cluster_id = { in: [scope] };
     if (statuses.length === 1) where.is_active = statuses[0] === 'true';
     return Object.keys(where).length > 0 ? JSON.stringify({ where }) : '';
@@ -265,7 +265,7 @@ const UserBackstageManagement: React.FC = () => {
         email: r.email ?? '',
         is_active: r.is_active ? t('common.status.active') : t('common.status.inactive'),
         role: role.role_name ?? role.role_id,
-        scope: role.scope.type === 'platform'
+        scope: role.scope.type === 'backstage'
           ? t('pages.userBackstage.scopeBackstage')
           : (role.scope.cluster_name || role.scope.cluster_id),
         granted_at: normalizeAudit(role).created?.at ?? '',
@@ -387,7 +387,7 @@ const UserBackstageManagement: React.FC = () => {
               <Pencil className="mr-2 h-4 w-4" />
               {t('pages.userBackstage.manageRoles')}
             </DropdownMenuItem>
-            <Can permission="user_platform.manage">
+            <Can permission="user_backstage.manage">
               <DropdownMenuItem
                 onClick={() => setRevokeTarget(row.original)}
                 className="cursor-pointer text-destructive"
@@ -414,7 +414,7 @@ const UserBackstageManagement: React.FC = () => {
                 <Download className="mr-2 h-4 w-4" />
                 {t('common.action.export')}
               </Button>
-              <Can permission="user_platform.manage">
+              <Can permission="user_backstage.manage">
                 <Button size="sm" onClick={() => setShowGrant(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   {t('pages.userBackstage.grantAccess')}
@@ -431,7 +431,7 @@ const UserBackstageManagement: React.FC = () => {
           error={!!error}
           onRetry={() => fetchRows(paginate)}
           onShowInactive={() => handleStatusFilter('false')}
-          onShowBackstageWide={() => handleScopeFilter(scopeFilter === 'platform' ? '' : 'platform')}
+          onShowBackstageWide={() => handleScopeFilter(scopeFilter === 'backstage' ? '' : 'backstage')}
         />
 
         <Card>
@@ -522,7 +522,7 @@ const UserBackstageManagement: React.FC = () => {
                         className={selectClassName}
                       >
                         <option value="">{t('pages.userBackstage.anyScope')}</option>
-                        <option value="platform">{t('pages.userBackstage.backstageWide')}</option>
+                        <option value="backstage">{t('pages.userBackstage.backstageWide')}</option>
                         {clusterOptions.map((c) => (
                           <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
@@ -551,7 +551,7 @@ const UserBackstageManagement: React.FC = () => {
                 ))}
                 {scopeFilter && (
                   <Badge variant="secondary" className="text-xs gap-1 pr-1">
-                    {scopeFilter === 'platform'
+                    {scopeFilter === 'backstage'
                       ? t('pages.userBackstage.backstageWide')
                       : (clusterOptions.find((c) => c.id === scopeFilter)?.name || scopeFilter)}
                     <button onClick={() => handleScopeFilter('')} className="ml-0.5 hover:text-foreground">
@@ -583,7 +583,7 @@ const UserBackstageManagement: React.FC = () => {
                 emptyTitle={t('pages.userBackstage.emptyTitle')}
                 emptyDescription={t('pages.userBackstage.emptyDescription')}
                 addAction={
-                  <Can permission="user_platform.manage">
+                  <Can permission="user_backstage.manage">
                     <Button size="sm" onClick={() => setShowGrant(true)}>
                       <Plus className="mr-2 h-4 w-4" />
                       {t('pages.userBackstage.grantAccess')}

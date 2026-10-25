@@ -16,10 +16,10 @@ const permissionService = {
   },
 
   getMyBackstagePermissions: async (): Promise<EffectivePermissions | null> => {
-    const response = await api.get('/api/user/permission/platform');
+    const response = await api.get('/api/user/permission/backstage');
     const body = response.data?.data ?? response.data;
-    if (body && typeof body === 'object' && Array.isArray(body.platform)) {
-      return { platform: body.platform ?? [], clusters: body.clusters ?? {}, is_super_admin: body.is_super_admin ?? false };
+    if (body && typeof body === 'object' && Array.isArray(body.backstage)) {
+      return { backstage: body.backstage ?? [], clusters: body.clusters ?? {}, is_super_admin: body.is_super_admin ?? false };
     }
     return null;
   },

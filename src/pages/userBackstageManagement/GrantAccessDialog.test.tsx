@@ -124,7 +124,7 @@ describe('GrantAccessDialog', () => {
     await waitFor(() =>
       expect(userBackstageService.assignBulk).toHaveBeenCalledWith('user-1', {
         role_ids: ['role-1', 'role-2'],
-        scope: { type: 'platform' },
+        scope: { type: 'backstage' },
       }),
     );
     expect(onGranted).toHaveBeenCalled();

@@ -5,7 +5,7 @@ import type { BackstageSeedOp, SeedRunEvent } from '../types';
 
 // คอนโซล seed และ drift check ของฐานข้อมูลแพลตฟอร์ม
 // ด่านฝั่ง backend เป็นตัวเดียวกับ platform migrations: super-admin (หรือ deploy token)
-// บวกสวิตช์ `platform_migration.api_enabled` ใน tb_platform_config — สวิตช์เดียวคุมทั้งคอนโซล
+// บวกสวิตช์ `backstage_migration.api_enabled` ใน tb_platform_config — สวิตช์เดียวคุมทั้งคอนโซล
 const backstageSeedService = {
   getCatalog: async (): Promise<BackstageSeedOp[]> => {
     const res = await api.get('/api-system/backstage/seeds/catalog');

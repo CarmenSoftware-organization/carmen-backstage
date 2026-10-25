@@ -11,7 +11,7 @@ import { useI18n } from '../../hooks/useI18n';
 interface ExpiryThresholdsCardProps {
   config: BackstageConfig | null;
   /**
-   * ต้องเป็น `platform_config.manage` **เฉย ๆ** ไม่ต้องบวก `license.manage` เหมือน
+   * ต้องเป็น `backstage_config.manage` **เฉย ๆ** ไม่ต้องบวก `license.manage` เหมือน
    * `LicenseEnforcementCard` ที่อยู่ในหัวข้อเดียวกัน — คีย์นี้ไม่มีด่านที่สองใน
    * `platform_configs.controller.ts` → `mayWriteKey` การลอก `canManageLicense` มาใช้จะซ่อน
    * ปุ่ม Edit จากผู้ที่มีสิทธิ์เขียนจริง
@@ -66,7 +66,7 @@ const toForm = (config: BackstageConfig | null): ThresholdsFormData => {
  *
  * ต่างจาก `LicenseEnforcementCard` ที่อยู่ในหัวข้อเดียวกันตรงที่มันเป็น **เกณฑ์แสดงผล** ไม่ใช่
  * ตัวบังคับใช้ — เพิ่มค่าแล้วป้ายเตือนขึ้นเร็วขึ้นเท่านั้น ไม่มีใครถูกบล็อกเพิ่มหรือลด จึงไม่มี
- * ConfirmDialog และ gate ด้วย `platform_config.manage` เฉย ๆ
+ * ConfirmDialog และ gate ด้วย `backstage_config.manage` เฉย ๆ
  */
 export const ExpiryThresholdsCard: React.FC<ExpiryThresholdsCardProps> = ({
   config,

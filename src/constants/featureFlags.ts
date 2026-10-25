@@ -70,12 +70,12 @@ export const FEATURE_CATALOG: readonly FeatureDefinition[] = [
   // Backstage
   { key: 'applications', labelKey: 'nav.applications', groupKey: 'navGroup.backstage', defaultState: 'active' },
   { key: 'email_settings', labelKey: 'nav.emailSettings', groupKey: 'navGroup.backstage', defaultState: 'active' },
-  { key: 'platform_config', labelKey: 'nav.backstageConfig', groupKey: 'navGroup.backstage', defaultState: 'active' },
-  { key: 'platform_roles', labelKey: 'nav.backstageRoles', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'backstage_config', labelKey: 'nav.backstageConfig', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'backstage_roles', labelKey: 'nav.backstageRoles', groupKey: 'navGroup.backstage', defaultState: 'active' },
   { key: 'super_admins', labelKey: 'nav.superAdmins', groupKey: 'navGroup.backstage', defaultState: 'active' },
-  { key: 'user_platform', labelKey: 'nav.userBackstage', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'user_backstage', labelKey: 'nav.userBackstage', groupKey: 'navGroup.backstage', defaultState: 'active' },
   // Database — กลุ่มเดียวกับที่ sidebar ใช้ ทั้งสองหน้าต้องจัดกลุ่มตรงกัน
-  { key: 'platform_migrations', labelKey: 'nav.backstageMigrations', groupKey: 'navGroup.database', defaultState: 'active' },
+  { key: 'backstage_migrations', labelKey: 'nav.backstageMigrations', groupKey: 'navGroup.database', defaultState: 'active' },
   { key: 'sql_workbench', labelKey: 'nav.sqlWorkbench', groupKey: 'navGroup.database', defaultState: 'active' },
   { key: 'database_pools', labelKey: 'nav.databasePools', groupKey: 'navGroup.database', defaultState: 'active' },
   // Cluster admin — คีย์แยกจากของ platform เพราะเป็นคนละหน้าคนละสิทธิ์ ต่อให้ชื่อเมนูซ้ำกัน

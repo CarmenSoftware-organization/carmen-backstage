@@ -179,7 +179,7 @@ const UserBackstageEdit: React.FC = () => {
   };
 
   const reach = useMemo(() => {
-    const backstageWide = roleAssignments.some((a) => a.scope.type === 'platform');
+    const backstageWide = roleAssignments.some((a) => a.scope.type === 'backstage');
     const clusterNames = Array.from(
       new Set(
         roleAssignments
@@ -299,7 +299,7 @@ const UserBackstageEdit: React.FC = () => {
                 </CardTitle>
                 <CardDescription>{t('pages.userBackstage.rolesAndScopeDescription')}</CardDescription>
               </div>
-              <Can permission="user_platform.manage">
+              <Can permission="user_backstage.manage">
                 <AddRoleSheet
                   userId={userId!}
                   roleOptions={roleOptions}

@@ -74,7 +74,7 @@ const subscriptionService = {
   },
 
   // PATCH ไม่ใช่ PUT — แก้เฉพาะข้อมูลสัญญา (วันที่/status) ไม่แตะ feature
-  // doc_version บังคับส่งเสมอ — backend คืน 400 ถ้าไม่ส่ง เหมือน platform_role
+  // doc_version บังคับส่งเสมอ — backend คืน 400 ถ้าไม่ส่ง เหมือน backstage_role
   // การป้องกันที่ข้ามได้เงียบๆ ไม่ใช่การป้องกัน
   update: async (
     id: string,

@@ -9,7 +9,7 @@ vi.mock('../components/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// Mutable auth so a test can revoke platform_role.update. `Can` (the REAL component, not
+// Mutable auth so a test can revoke backstage_role.update. `Can` (the REAL component, not
 // mocked here) reads this via useAuth() — mocking `Can` itself to always render its
 // children would make the permission tests below vacuous.
 const auth = vi.hoisted(() => ({
@@ -150,12 +150,12 @@ describe('RoleEdit — not-found state', () => {
   });
 });
 
-describe('RoleEdit — Edit is gated on platform_role.update', () => {
+describe('RoleEdit — Edit is gated on backstage_role.update', () => {
   beforeEach(() => {
     asMock(roleService.getById).mockResolvedValue({ data: fakeRole });
   });
 
-  it('hides Edit without platform_role.update', async () => {
+  it('hides Edit without backstage_role.update', async () => {
     auth.hasPermission = () => false;
     renderAt('/backstage/roles/r1/edit');
 
@@ -163,7 +163,7 @@ describe('RoleEdit — Edit is gated on platform_role.update', () => {
     expect(screen.queryByRole('button', { name: /^edit$/i })).toBeNull();
   });
 
-  it('shows Edit when platform_role.update is held (discriminating control)', async () => {
+  it('shows Edit when backstage_role.update is held (discriminating control)', async () => {
     renderAt('/backstage/roles/r1/edit');
 
     expect(await screen.findByRole('button', { name: /^edit$/i })).toBeInTheDocument();

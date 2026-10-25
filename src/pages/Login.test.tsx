@@ -224,7 +224,7 @@ describe('Login — Google sign-in', () => {
     expect(assign).toHaveBeenCalledTimes(1);
     const url = new URL(assign.mock.calls[0][0] as string, 'http://x');
     expect(url.pathname).toBe('/api/auth/google/authorize');
-    expect(url.searchParams.get('app')).toBe('platform');
+    expect(url.searchParams.get('app')).toBe('backstage');
     expect(url.searchParams.get('locale')).toBe('en');
     expect(url.searchParams.has('next')).toBe(false);
   });

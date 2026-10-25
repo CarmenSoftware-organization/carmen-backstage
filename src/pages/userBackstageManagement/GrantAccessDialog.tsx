@@ -33,7 +33,7 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
   const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
   const [clusterOptions, setClusterOptions] = useState<{ id: string; name: string }[]>([]);
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
-  const [scopeType, setScopeType] = useState<'platform' | 'cluster'>('platform');
+  const [scopeType, setScopeType] = useState<'backstage' | 'cluster'>('backstage');
   const [clusterId, setClusterId] = useState('');
   const [saving, setSaving] = useState(false);
   const [conflictRoleIds, setConflictRoleIds] = useState<string[]>([]);
@@ -51,7 +51,7 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
     pickerOpenRef.current = false;
     setUser(null);
     setSelectedRoleIds([]);
-    setScopeType('platform');
+    setScopeType('backstage');
     setClusterId('');
     setConflictRoleIds([]);
     (async () => {
@@ -86,7 +86,7 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
     setConflictRoleIds([]);
     try {
       const scope: BackstageUserScope =
-        scopeType === 'cluster' ? { type: 'cluster', cluster_id: clusterId } : { type: 'platform' };
+        scopeType === 'cluster' ? { type: 'cluster', cluster_id: clusterId } : { type: 'backstage' };
       await userBackstageService.assignBulk(user.id, { role_ids: selectedRoleIds, scope });
       toast.success(t('pages.userBackstage.accessGranted'));
       onOpenChange(false);
@@ -164,14 +164,14 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
               id="grant_scope"
               value={scopeType}
               onChange={(e) => {
-                setScopeType(e.target.value as 'platform' | 'cluster');
+                setScopeType(e.target.value as 'backstage' | 'cluster');
                 setClusterId('');
                 setConflictRoleIds([]);
               }}
               disabled={saving}
               className={selectClassName}
             >
-              <option value="platform">{t('pages.userBackstage.backstageWide')}</option>
+              <option value="backstage">{t('pages.userBackstage.backstageWide')}</option>
               <option value="cluster">{t('pages.userBackstage.scopeCluster')}</option>
             </select>
           </div>

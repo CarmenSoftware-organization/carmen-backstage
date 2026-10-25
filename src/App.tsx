@@ -438,7 +438,7 @@ function AppContent() {
             <Route
               path="/backstage/roles"
               element={
-                <PrivateRoute requiredPermission="platform_role.read" feature="platform_roles">
+                <PrivateRoute requiredPermission="backstage_role.read" feature="backstage_roles">
                   <RoleManagement />
                 </PrivateRoute>
               }
@@ -446,7 +446,7 @@ function AppContent() {
             <Route
               path="/backstage/roles/new"
               element={
-                <PrivateRoute requiredPermission="platform_role.create" feature="platform_roles">
+                <PrivateRoute requiredPermission="backstage_role.create" feature="backstage_roles">
                   <RoleEdit />
                 </PrivateRoute>
               }
@@ -454,7 +454,7 @@ function AppContent() {
             <Route
               path="/backstage/roles/:id/edit"
               element={
-                <PrivateRoute requiredPermission="platform_role.update" feature="platform_roles">
+                <PrivateRoute requiredPermission="backstage_role.update" feature="backstage_roles">
                   <RoleEdit />
                 </PrivateRoute>
               }
@@ -470,7 +470,7 @@ function AppContent() {
             <Route
               path="/backstage/migrations"
               element={
-                <PrivateRoute requireSuperAdmin feature="platform_migrations">
+                <PrivateRoute requireSuperAdmin feature="backstage_migrations">
                   <BackstageMigrationManagement />
                 </PrivateRoute>
               }
@@ -486,7 +486,7 @@ function AppContent() {
             <Route
               path="/backstage/user-backstage"
               element={
-                <PrivateRoute requiredPermission="user_platform.read" feature="user_platform">
+                <PrivateRoute requiredPermission="user_backstage.read" feature="user_backstage">
                   <UserBackstageManagement />
                 </PrivateRoute>
               }
@@ -494,7 +494,7 @@ function AppContent() {
             <Route
               path="/backstage/user-backstage/:userId"
               element={
-                <PrivateRoute requiredPermission="user_platform.read" feature="user_platform">
+                <PrivateRoute requiredPermission="user_backstage.read" feature="user_backstage">
                   <UserBackstageEdit />
                 </PrivateRoute>
               }
@@ -534,7 +534,7 @@ function AppContent() {
             <Route
               path="/backstage/configs"
               element={
-                <PrivateRoute requiredPermission="platform_config.read" feature="platform_config">
+                <PrivateRoute requiredPermission="backstage_config.read" feature="backstage_config">
                   <BackstageConfigManagement />
                 </PrivateRoute>
               }

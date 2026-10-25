@@ -34,7 +34,7 @@ vi.mock('../components/Layout', () => ({
 // (the REAL component, not mocked here) reads this via useAuth() — mocking `Can` itself
 // to always render its children would make every permission assertion below vacuous,
 // exactly the defect this effort exists to close. This is the *platform roles* page
-// (`/backstage/roles`, backed by the `platform_role` service via `roleService` ->
+// (`/backstage/roles`, backed by the `backstage_role` service via `roleService` ->
 // `/api-system/backstage/roles`) — NOT application roles. `role.*` is a platform-scoped
 // permission (never granted per-cluster), and none of the four `<Can>` call sites in
 // RoleManagement.tsx pass a `clusterId` prop, so (like
@@ -133,7 +133,7 @@ describe('RoleManagement — row action gates (role.update / role.delete)', () =
   });
 
   it('shows Edit and Delete with full permissions (discriminating control)', async () => {
-    auth.hasPermission = (perm) => perm === 'platform_role.update' || perm === 'platform_role.delete';
+    auth.hasPermission = (perm) => perm === 'backstage_role.update' || perm === 'backstage_role.delete';
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('Admin');
@@ -145,7 +145,7 @@ describe('RoleManagement — row action gates (role.update / role.delete)', () =
   });
 
   it('gates Edit on role.update alone — Delete stays hidden', async () => {
-    auth.hasPermission = (perm) => perm === 'platform_role.update';
+    auth.hasPermission = (perm) => perm === 'backstage_role.update';
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('Admin');
@@ -157,7 +157,7 @@ describe('RoleManagement — row action gates (role.update / role.delete)', () =
   });
 
   it('gates Delete on role.delete alone — Edit stays hidden', async () => {
-    auth.hasPermission = (perm) => perm === 'platform_role.delete';
+    auth.hasPermission = (perm) => perm === 'backstage_role.delete';
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('Admin');
@@ -179,7 +179,7 @@ describe('RoleManagement — Add Role gates (role.create)', () => {
   });
 
   it('shows the header Add Role button with role.create (discriminating control)', async () => {
-    auth.hasPermission = (perm) => perm === 'platform_role.create';
+    auth.hasPermission = (perm) => perm === 'backstage_role.create';
     renderPage();
     await screen.findByText('Admin');
 
@@ -197,7 +197,7 @@ describe('RoleManagement — Add Role gates (role.create)', () => {
 
   it('shows both the header and empty-state Add Role buttons with role.create (discriminating control)', async () => {
     setupGetAll(emptyResponse);
-    auth.hasPermission = (perm) => perm === 'platform_role.create';
+    auth.hasPermission = (perm) => perm === 'backstage_role.create';
     renderPage();
 
     expect(await screen.findByText('No roles yet')).toBeInTheDocument();

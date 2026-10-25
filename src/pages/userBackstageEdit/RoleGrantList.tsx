@@ -36,7 +36,7 @@ export interface RoleGrantListProps {
 }
 
 const scopeKey = (a: UserRoleAssignment, t: TFunction) =>
-  a.scope.type === 'platform' ? t('pages.userBackstage.scopeBackstage') : a.scope.cluster_id;
+  a.scope.type === 'backstage' ? t('pages.userBackstage.scopeBackstage') : a.scope.cluster_id;
 
 /**
  * A holder's grants, grouped by scope with the widest first — the same ordering the
@@ -123,7 +123,7 @@ export function RoleGrantList({
                     </div>
                   </div>
                 </div>
-                <Can permission="user_platform.manage">
+                <Can permission="user_backstage.manage">
                   <Button
                     variant="ghost"
                     size="sm"
