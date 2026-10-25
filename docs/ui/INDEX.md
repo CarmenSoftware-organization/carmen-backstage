@@ -23,7 +23,7 @@ path but not enforced · **L** = inferred, confirm with the product owner.
 | 8 | News & Broadcasts | 024–028 | 012 | 006 | — | Planned |
 | 9 | Analytics | 029–030 | 018 | — | — | Planned |
 | 10 | Scheduling (Cron Jobs) | 031–032 | — | — | — | Planned |
-| 11 | Platform Settings | 033–037 | 014 | — | — | Planned |
+| 11 | Backstage Settings | 033–037 | 014 | — | — | Planned |
 | 12 | Access Control (RBAC) | 038–043 | 016, 017 | 005 | — | Planned |
 | 13 | Database Operations | 044–047 | — | — | — | Planned |
 | 14 | Cluster Admin Portal | 048–053 | 013 | 008 | — | Planned |
@@ -69,7 +69,7 @@ CP-MODAL-003 (Activity Trail Sheet).
 | CP-PAGE-030 | Activity Events | `/activity-events` | `ActivityEventManagement` | `activity_event.detail` | Planned | — |
 | CP-PAGE-031 | Cron Job List | `/cronjobs` | `CronJobManagement` | `cronjob.read` | Planned | — |
 | CP-PAGE-032 | Cron Job Edit | `/cronjobs/new`, `/cronjobs/:id/edit` | `CronJobEdit` | `cronjob.read` | Planned | — |
-| CP-PAGE-033 | Platform Config | `/platform/configs` | `PlatformConfigManagement` | `platform_config.read` | Planned | — |
+| CP-PAGE-033 | Backstage Config | `/platform/configs` | `PlatformConfigManagement` | `platform_config.read` | Planned | — |
 | CP-PAGE-034 | Email Settings | `/platform/email-settings` | `EmailSettingManagement` | `email_setting.read` | Planned | — |
 | CP-PAGE-035 | Application List | `/applications` | `ApplicationManagement` | `application.read` | Planned | — |
 | CP-PAGE-036 | Application Edit | `/applications/new`, `…/:id/edit` | `ApplicationEdit` | `application.create` / `.update` | Planned | — |
@@ -77,10 +77,10 @@ CP-MODAL-003 (Activity Trail Sheet).
 | CP-PAGE-038 | Role List | `/platform/roles` | `RoleManagement` | `platform_role.read` | Planned | — |
 | CP-PAGE-039 | Role Edit | `/platform/roles/new`, `…/:id/edit` | `RoleEdit` | `platform_role.create` / `.update` | Planned | — |
 | CP-PAGE-040 | Permission Catalog | `/platform/category-permissions` | `PermissionCatalog` | Authenticated | Planned | — |
-| CP-PAGE-041 | User Platform List | `/platform/user-platform` | `UserPlatformManagement` | `user_platform.read` | Planned | — |
-| CP-PAGE-042 | User Platform Edit | `/platform/user-platform/:userId` | `UserPlatformEdit` | `user_platform.read` | Planned | — |
+| CP-PAGE-041 | Backstage Users List | `/platform/user-platform` | `UserPlatformManagement` | `user_platform.read` | Planned | — |
+| CP-PAGE-042 | Backstage Users Edit | `/platform/user-platform/:userId` | `UserPlatformEdit` | `user_platform.read` | Planned | — |
 | CP-PAGE-043 | Super Admins | `/platform/super-admins` | `SuperAdminManagement` | Super admin | Planned | — |
-| CP-PAGE-044 | Platform Migrations | `/platform/migrations` | `PlatformMigrationManagement` | Super admin | Planned | — |
+| CP-PAGE-044 | Backstage Migrations | `/platform/migrations` | `PlatformMigrationManagement` | Super admin | Planned | — |
 | CP-PAGE-045 | SQL Workbench | `/sql-workbench` | `SqlWorkbench` | `sql_workbench.read` | Planned | — |
 | CP-PAGE-046 | Database Pool List | `/platform/database-pools` | `DatabasePoolManagement` | `database_pool.read` | Planned | — |
 | CP-PAGE-047 | Database Pool Edit | `/platform/database-pools/new`, `…/:id/edit` | `DatabasePoolEdit` | `database_pool.read` | Planned | — |
@@ -123,7 +123,7 @@ Redirect-only routes (no doc): `/subscriptions` → `/licenses`; `/subscriptions
 | CP-MODAL-014 | Send Test Email | Dialog | `emailSettings/TestEmailDialog` | 034 | Planned | — |
 | CP-MODAL-015 | Seed Set Picker | Dialog | `tenantSeed/SeedSetPickerDialog` | 013 | Planned | — |
 | CP-MODAL-016 | Add Role | Sheet | `userPlatformEdit/AddRoleSheet` | 042 | Planned | — |
-| CP-MODAL-017 | Grant Platform Access | Dialog | `userPlatformManagement/GrantAccessDialog` | 041 | Planned | — |
+| CP-MODAL-017 | Grant Backstage access | Dialog | `userPlatformManagement/GrantAccessDialog` | 041 | Planned | — |
 | CP-MODAL-018 | Activity Event Detail | Sheet | `activityEvents/EventDetailSheet` | 030 | Planned | — |
 | CP-MODAL-019 | Soft-Delete Confirm (Import) | Dialog | `tenantImport/StepPanel` | 014 | Planned | — |
 
@@ -136,10 +136,10 @@ Out of scope: dev-only Debug Sheet (~50 pages), and the mobile nav drawer in `Si
 | ID | Flow | Actor | Constituent docs | Conf. | Status | File |
 |----|------|-------|------------------|-------|--------|------|
 | CP-FLOW-001 | Sign-in & landing routing | All | 001, 002, 004, 048, ERR-001 | H | Planned | — |
-| CP-FLOW-002 | Cluster onboarding (cluster → BU → users) | Platform user | 006, 007, 008, 009, 011, MODAL-008, 010 | M | Planned | — |
-| CP-FLOW-003 | License lifecycle (subscription → seats / BU quota / interface) | Platform user | 015, 016, 017, 018, 019, 020 | M | Planned | — |
-| CP-FLOW-004 | Tenant provisioning (migrate → seed → import) | Platform user | 012, 013, 014, MODAL-015, 019 | L | Planned | — |
-| CP-FLOW-005 | Grant platform access (role → assignment) | Platform user | 038, 039, 040, 041, 042, MODAL-016, 017 | M | Planned | — |
-| CP-FLOW-006 | Broadcast compose → schedule → edit | Platform user | 026, 027, 028 | M | Planned | — |
-| CP-FLOW-007 | Report template authoring | Platform user | 021, 022, 023 | L | Planned | — |
+| CP-FLOW-002 | Cluster onboarding (cluster → BU → users) | Backstage user | 006, 007, 008, 009, 011, MODAL-008, 010 | M | Planned | — |
+| CP-FLOW-003 | License lifecycle (subscription → seats / BU quota / interface) | Backstage user | 015, 016, 017, 018, 019, 020 | M | Planned | — |
+| CP-FLOW-004 | Tenant provisioning (migrate → seed → import) | Backstage user | 012, 013, 014, MODAL-015, 019 | L | Planned | — |
+| CP-FLOW-005 | Grant Backstage access (role → assignment) | Backstage user | 038, 039, 040, 041, 042, MODAL-016, 017 | M | Planned | — |
+| CP-FLOW-006 | Broadcast compose → schedule → edit | Backstage user | 026, 027, 028 | M | Planned | — |
+| CP-FLOW-007 | Report template authoring | Backstage user | 021, 022, 023 | L | Planned | — |
 | CP-FLOW-008 | Cluster admin invites a user | Cluster admin | 048, 052, MODAL-013 | H | Planned | — |
