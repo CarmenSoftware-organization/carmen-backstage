@@ -8,7 +8,7 @@ import type { ExternalApiConfig, BackstageConfig } from '../../types';
 import { useI18n } from '../../hooks/useI18n';
 
 interface ExternalApiConfigCardProps {
-  /** คีย์ใน tb_platform_config เช่น `external_api` */
+  /** คีย์ใน tb_backstage_config เช่น `external_api` */
   configKey: string;
   title: string;
   description: string;

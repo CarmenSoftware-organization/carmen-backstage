@@ -22,7 +22,7 @@ const featureFlagService = {
 
   /**
    * แทนที่แมปทั้งใบ — คีย์ที่ไม่ได้ส่งไปถือว่าถูกลบ ต้องมี feature_flag.manage
-   * ห้ามส่ง doc_version: ตาราง tb_platform_config มีคอลัมน์นั้นแต่ backend ยังไม่บังคับ
+   * ห้ามส่ง doc_version: ตาราง tb_backstage_config มีคอลัมน์นั้นแต่ backend ยังไม่บังคับ
    */
   update: async (states: FeatureStateMap): Promise<FeatureStateMap> => {
     const response = await api.put(BASE, { value: states });

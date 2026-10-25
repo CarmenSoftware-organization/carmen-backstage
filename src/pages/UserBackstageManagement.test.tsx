@@ -351,7 +351,7 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
     );
   });
 
-  it('serializes a role filter into platform_role_id.in', async () => {
+  it('serializes a role filter into backstage_role_id.in', async () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('jane@example.com');
@@ -361,7 +361,7 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
 
     await waitFor(() => {
       const call = asMock(userBackstageService.getAll).mock.calls.at(-1)?.[0];
-      expect(JSON.parse(call.advance)).toEqual({ where: { platform_role_id: { in: ['role-1'] } } });
+      expect(JSON.parse(call.advance)).toEqual({ where: { backstage_role_id: { in: ['role-1'] } } });
     });
   });
 
@@ -410,7 +410,7 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
     await waitFor(() => {
       const call = asMock(userBackstageService.getAll).mock.calls.at(-1)?.[0];
       expect(JSON.parse(call.advance)).toEqual({
-        where: { platform_role_id: { in: ['role-1'] }, cluster_id: null, is_active: true },
+        where: { backstage_role_id: { in: ['role-1'] }, cluster_id: null, is_active: true },
       });
     });
   });

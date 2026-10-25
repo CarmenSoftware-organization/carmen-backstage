@@ -31,7 +31,7 @@ import type { BusinessUnit, Cluster, ClusterLicense } from '../../types';
  * เปิดด้วยสองสระว่ายน้ำที่ใช้อยู่จริง แล้วค่อยเป็นตารางเทียบราย BU ส่วนตัวใบยุบไว้ข้างล่าง
  *
  * ไม่มีทางเขียนใด ๆ ที่นี่ และไม่ใช่เพราะซ่อนปุ่ม: cluster admin ไม่มีสิทธิ์ใดใน
- * EffectivePermissions เลย (สมาชิกภาพมาจากตารางคลัสเตอร์ ไม่ใช่ `tb_user_tb_platform_role`)
+ * EffectivePermissions เลย (สมาชิกภาพมาจากตารางคลัสเตอร์ ไม่ใช่ `tb_user_tb_backstage_role`)
  * ทุก endpoint เขียนของ license บังคับ `subscription.manage` จึงตอบ 403 เสมอ — และหน้านี้
  * ไม่ยิง `GET /backstage/subscriptions` เลยด้วยเหตุผลเดียวกัน (403 ทุกครั้ง ไม่ใช่ edge case)
  */
