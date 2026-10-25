@@ -96,7 +96,7 @@ const UserBackstageManagement: React.FC = () => {
   // assignments. Do not let an `if (scope)` truthiness guard drop it.
   const buildAdvance = (roles: string[], scope: string, statuses: string[]) => {
     const where: Record<string, unknown> = {};
-    if (roles.length > 0) where.platform_role_id = { in: roles };
+    if (roles.length > 0) where.backstage_role_id = { in: roles };
     if (scope === 'backstage') where.cluster_id = null;
     else if (scope) where.cluster_id = { in: [scope] };
     if (statuses.length === 1) where.is_active = statuses[0] === 'true';

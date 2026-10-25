@@ -8,7 +8,7 @@ import type { LinkConfig, BackstageConfig } from '../../types';
 import { useI18n } from '../../hooks/useI18n';
 
 interface LinkConfigCardProps {
-  /** คีย์ใน tb_platform_config เช่น `email_verification` หรือ `password_reset` */
+  /** คีย์ใน tb_backstage_config เช่น `email_verification` หรือ `password_reset` */
   configKey: string;
   title: string;
   description: string;

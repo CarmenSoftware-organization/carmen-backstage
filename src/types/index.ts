@@ -1278,7 +1278,7 @@ export interface DatabasePoolWriteInput {
   note?: string;
 }
 
-// ==================== Backstage Config (tb_platform_config) ====================
+// ==================== Backstage Config (tb_backstage_config) ====================
 
 /**
  * ค่า config ของคีย์ `invitation` — ใช้ประกอบลิงก์คำเชิญและกำหนดอายุคำเชิญ
@@ -1338,7 +1338,7 @@ export interface NotificationEmailConfig {
  * สวิตช์เดียวที่ตัดสินว่า licensing "บังคับใช้" จริงหรือแค่บันทึก (shadow mode)
  *
  * ไม่ได้อ่านผ่าน service ของ platform config — backend-gateway (`LicenseInterceptor`) และ
- * micro-cluster (`assertSeatAvailable`) อ่าน `tb_platform_config` ตรง ๆ คนละ process
+ * micro-cluster (`assertSeatAvailable`) อ่าน `tb_backstage_config` ตรง ๆ คนละ process
  * ต่างมี cache 60 วิของตัวเอง การบันทึกจากหน้านี้จึงมีผลภายในราวหนึ่งนาที ไม่ใช่ทันที
  * และไม่ต้อง deploy ใหม่
  *

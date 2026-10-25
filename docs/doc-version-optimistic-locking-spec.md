@@ -32,7 +32,7 @@ Concurrent case: A and B both load `N`. A saves → server sets `N+1`. B saves w
 ## Backend contract
 
 ### Optimistic-lock hook (the engine)
-`packages/prisma-shared-schema-platform/src/index.ts` (mirrored in the tenant schema) wraps the system PrismaClient with a `$extends` `update` hook:
+`packages/prisma-shared-schema-backstage/src/index.ts` (mirrored in the tenant schema) wraps the system PrismaClient with a `$extends` `update` hook:
 - **Opt-in per call:** engages only when `where.doc_version` is a number; otherwise a normal pass-through update.
 - **Auto-increments:** if `data.doc_version` is `undefined`, sets `{ increment: 1 }` on success — so services must *not* write `doc_version` into `data`.
 - **Conflict:** on Prisma `P2025` (no row) where the row still exists, throws `OptimisticLockError` (`code: 'DOC_VERSION_CONFLICT'`).
