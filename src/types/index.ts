@@ -440,7 +440,7 @@ export interface PreconfigStepMeta {
   table_name: string;
   display_name: string;
   description: string;
-  target: 'tenant' | 'platform';
+  target: 'tenant' | 'backstage';
   required_columns: string[];
   optional_columns: string[];
   duplicate_key: string[];
@@ -611,10 +611,10 @@ export interface ClusterInvitation {
   business_units?: InvitationBusinessUnit[];
 }
 
-export type Scope = { type: 'platform' } | { type: 'cluster'; cluster_id: string };
+export type Scope = { type: 'backstage' } | { type: 'cluster'; cluster_id: string };
 
 export interface EffectivePermissions {
-  platform: string[];                    // permission keys "resource.action"
+  backstage: string[];                    // permission keys "resource.action"
   clusters: Record<string, string[]>;    // clusterId -> permission keys
   is_super_admin?: boolean;              // god-mode bypass flag from the backend
 }
@@ -661,7 +661,7 @@ export interface UserRoleAssignment {
 
 /** Scope of a platform-role assignment as returned by the registry endpoint, with the cluster's display name resolved server-side. */
 export type BackstageUserScope =
-  | { type: 'platform' }
+  | { type: 'backstage' }
   | { type: 'cluster'; cluster_id: string; cluster_name?: string | null };
 
 export interface BackstageUserRoleAssignment {
@@ -701,7 +701,7 @@ export interface BackstageUserRow {
  */
 export interface BackstageUserRegistrySummary {
   holders: number;
-  platform_wide: number;
+  backstage_wide: number;
   cluster_only: number;
   assignments: number;
   inactive: number;
@@ -1349,11 +1349,11 @@ export interface LicenseConfig {
 }
 
 /**
- * สวิตช์เปิด/ปิด API migration ของฐานข้อมูลแพลตฟอร์ม — คีย์ `platform_migration` ใน Backstage Config
+ * สวิตช์เปิด/ปิด API migration ของฐานข้อมูลแพลตฟอร์ม — คีย์ `backstage_migration` ใน Backstage Config
  * The on/off switch for the platform-database migration API.
  *
  * เคยเป็น env `PLATFORM_MIGRATION_API_ENABLED` ของ backend-gateway ย้ายมาเป็น config เพราะเป็นค่าที่
- * ผู้ดูแลระบบเปิด/ปิดเอง แต่ **เขียนได้เฉพาะ super-admin** ไม่ใช่ผู้ถือ `platform_config.manage`
+ * ผู้ดูแลระบบเปิด/ปิดเอง แต่ **เขียนได้เฉพาะ super-admin** ไม่ใช่ผู้ถือ `backstage_config.manage`
  * ต่างจากคีย์อื่นทุกตัวในหน้านี้ — สิ่งที่มันเปิดคือ endpoint ที่บังคับ super-admin อยู่แล้ว
  *
  * guard ฝั่ง backend cache ไว้ 60 วินาที การสลับค่าจึงมีผลภายในหนึ่งนาที ไม่ใช่ทันที
@@ -1364,7 +1364,7 @@ export interface BackstageMigrationConfig {
 
 /** สวิตช์ Google sign-in แยกต่อแอป (`google_sign_in`) — `app` = ทุก client ที่ไม่ใช่ Backstage */
 export interface GoogleSignInConfig {
-  platform: boolean;
+  backstage: boolean;
   app: boolean;
 }
 
@@ -1374,7 +1374,7 @@ export interface GoogleSignInConfig {
  *
  * เป็นเกณฑ์ **แสดงผล** ไม่ใช่เกณฑ์บังคับใช้ — เปลี่ยนแล้วไม่มีใครถูกบล็อกเพิ่มหรือลด
  * อ่านผ่าน `useExpiryThresholds()` ไม่ใช่ผ่าน `backstageConfigService` เพราะ GET ของเส้นทางนั้น
- * บังคับ `platform_config.read` ซึ่งผู้ใช้ที่เปิดหน้ารายการใบทั่วไปไม่มี
+ * บังคับ `backstage_config.read` ซึ่งผู้ใช้ที่เปิดหน้ารายการใบทั่วไปไม่มี
  * A display threshold, read through the dedicated open endpoint, not /backstage/configs.
  */
 export interface ExpiryThresholdsConfig {

@@ -86,7 +86,7 @@ const backstageRole: BackstageUserRoleAssignment = {
   id: 'ra-1',
   role_id: 'role-1',
   role_name: 'Support Admin',
-  scope: { type: 'platform' },
+  scope: { type: 'backstage' },
   audit: { created: { at: '2026-08-01T10:00:00Z', name: 'Alice' } },
 };
 
@@ -259,7 +259,7 @@ describe('UserBackstageManagement — registry-wide summary band', () => {
     asMock(userBackstageService.getAll).mockResolvedValue({
       data: [jane],
       paginate: { total: 25, page: 1, perpage: 10 },
-      summary: { holders: 25, platform_wide: 9, cluster_only: 16, assignments: 41, inactive: 3 },
+      summary: { holders: 25, backstage_wide: 9, cluster_only: 16, assignments: 41, inactive: 3 },
     });
     renderPage();
 
@@ -367,14 +367,14 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
 
   // The endpoint selects platform-wide grants via a literal `cluster_id: null` — a naive
   // `if (scope)` truthiness guard would silently drop it since `scope` here is a non-empty
-  // string ('platform'), so this pins the value survives JSON serialization intact.
+  // string ('backstage'), so this pins the value survives JSON serialization intact.
   it('serializes platform-wide scope as cluster_id: null, not dropped', async () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('jane@example.com');
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
-    await user.selectOptions(await screen.findByLabelText('Scope'), 'platform');
+    await user.selectOptions(await screen.findByLabelText('Scope'), 'backstage');
 
     await waitFor(() => {
       const call = asMock(userBackstageService.getAll).mock.calls.at(-1)?.[0];
@@ -404,7 +404,7 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
     await user.click(await screen.findByRole('button', { name: 'Support Admin' }));
-    await user.selectOptions(screen.getByLabelText('Scope'), 'platform');
+    await user.selectOptions(screen.getByLabelText('Scope'), 'backstage');
     await user.click(screen.getByRole('button', { name: 'Active' }));
 
     await waitFor(() => {
@@ -550,13 +550,13 @@ describe('UserBackstageManagement — revoke all access', () => {
   });
 });
 
-// SECURITY. Two <Can permission="user_platform.manage"> gates guard this page's write
+// SECURITY. Two <Can permission="user_backstage.manage"> gates guard this page's write
 // surfaces: the header Grant access button and the row menu's Revoke all access item.
 // `Can` is the REAL component here (not mocked) — mocking it away would make these tests
 // vacuous, which is exactly the pattern that let ~8 permission holes (2 of them P0) through
 // in an earlier review wave on this codebase. Mirrors ClusterManagement.test.tsx.
-describe('UserBackstageManagement — permission gates (user_platform.manage)', () => {
-  it('hides Grant access and Revoke all access without user_platform.manage', async () => {
+describe('UserBackstageManagement — permission gates (user_backstage.manage)', () => {
+  it('hides Grant access and Revoke all access without user_backstage.manage', async () => {
     auth.hasPermission = () => false;
     const user = userEvent.setup();
     renderPage();
@@ -573,8 +573,8 @@ describe('UserBackstageManagement — permission gates (user_platform.manage)', 
   // Discriminating control: grants only the exact permission string this page checks, so a
   // gate that lost its `permission` prop (and fell back to "always visible") or checked the
   // wrong string would still fail this test, not just a blanket `() => true`.
-  it('shows Grant access and Revoke all access with user_platform.manage (discriminating control)', async () => {
-    auth.hasPermission = (perm) => perm === 'user_platform.manage';
+  it('shows Grant access and Revoke all access with user_backstage.manage (discriminating control)', async () => {
+    auth.hasPermission = (perm) => perm === 'user_backstage.manage';
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('jane@example.com');

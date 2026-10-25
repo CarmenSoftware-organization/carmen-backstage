@@ -7,7 +7,7 @@ const backstageRole = (overrides: Partial<BackstageUserRoleAssignment> = {}): Ba
   id: 'assign-1',
   role_id: 'role-1',
   role_name: 'Backstage Admin',
-  scope: { type: 'platform' },
+  scope: { type: 'backstage' },
   ...overrides,
 });
 

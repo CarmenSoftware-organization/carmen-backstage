@@ -6,12 +6,12 @@ import type { TFunction } from '../../i18n/types';
 
 /** True when any assignment is platform-wide — the widest blast radius a holder can have. */
 export function hasBackstageWide(roles: BackstageUserRoleAssignment[]): boolean {
-  return roles.some((r) => r.scope.type === 'platform');
+  return roles.some((r) => r.scope.type === 'backstage');
 }
 
 // รับ `t` เข้ามาแทนที่จะเรียก hook — ฟังก์ชันนี้ถูกใช้ตอนจัดกลุ่ม/เรียงลำดับนอก render
 const scopeLabel = (scope: BackstageUserRoleAssignment['scope'], t: TFunction): string =>
-  scope.type === 'platform'
+  scope.type === 'backstage'
     ? t('pages.userBackstage.scopeBackstage')
     : scope.cluster_name || scope.cluster_id;
 

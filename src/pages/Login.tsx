@@ -171,7 +171,7 @@ const Login: React.FC = () => {
   };
 
   const handleGoogle = () => {
-    const query = new URLSearchParams({ app: 'platform', locale: lang });
+    const query = new URLSearchParams({ app: 'backstage', locale: lang });
     const next = searchParams.get('next');
     // Only a safe same-site path goes to the gateway (which re-validates it anyway).
     if (next && resolveNextPath(next) === next) query.set('next', next);

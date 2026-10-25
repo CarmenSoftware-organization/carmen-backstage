@@ -340,7 +340,7 @@ export default function TenantImportWizard() {
               <div className="space-y-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
                   <StepRail steps={readySteps} states={states} activeId={activeId} onSelect={setActiveId} />
-                  {activeStep.target === 'platform' ? (
+                  {activeStep.target === 'backstage' ? (
                     // Company Profile writes the platform business-unit record, not the
                     // tenant database — it has no preview/import options, no NDJSON run, and
                     // never touches `states[activeStep.id]`, so it renders its own diff panel

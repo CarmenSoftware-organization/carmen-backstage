@@ -314,7 +314,7 @@ const RoleManagement: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <Can permission="platform_role.update">
+            <Can permission="backstage_role.update">
               <DropdownMenuItem
                 onClick={() => navigate(`/backstage/roles/${row.original.id}/edit`)}
                 className="cursor-pointer"
@@ -323,7 +323,7 @@ const RoleManagement: React.FC = () => {
                 {t('common.action.edit')}
               </DropdownMenuItem>
             </Can>
-            <Can permission="platform_role.delete">
+            <Can permission="backstage_role.delete">
               <DropdownMenuItem
                 onClick={() => handleDelete(row.original.id)}
                 className="cursor-pointer text-destructive focus:text-destructive"
@@ -364,7 +364,7 @@ const RoleManagement: React.FC = () => {
                 <Download className="mr-2 h-4 w-4" />
                 {t('common.action.export')}
               </Button>
-              <Can permission="platform_role.create">
+              <Can permission="backstage_role.create">
                 <Button onClick={() => navigate('/backstage/roles/new')}>
                   <Plus className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">{t('pages.roles.addRole')}</span>
@@ -498,7 +498,7 @@ const RoleManagement: React.FC = () => {
                 emptyTitle={t('pages.roles.emptyTitle')}
                 emptyDescription={t('pages.roles.emptyDescription')}
                 addAction={
-                  <Can permission="platform_role.create">
+                  <Can permission="backstage_role.create">
                     <Button size="sm" onClick={() => navigate('/backstage/roles/new')}>
                       <Plus className="mr-2 h-4 w-4" />
                       {t('pages.roles.addRole')}

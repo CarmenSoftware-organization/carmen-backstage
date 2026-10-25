@@ -8,7 +8,7 @@ vi.mock('../components/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// Mutable auth so a test can revoke user_platform.manage. `Can` (the REAL component,
+// Mutable auth so a test can revoke user_backstage.manage. `Can` (the REAL component,
 // not mocked here) reads this via useAuth() — mocking `Can` itself to always render its
 // children would make the permission tests below vacuous, which is exactly what hid the
 // wave-2 permission holes on the pages this page's harness is copied from.
@@ -52,7 +52,7 @@ const assignment = {
   id: 'ra1',
   role_id: 'r1',
   role_name: 'Backstage Admin',
-  scope: { type: 'platform' as const },
+  scope: { type: 'backstage' as const },
 };
 
 beforeEach(() => {
@@ -87,13 +87,13 @@ describe('UserBackstageEdit (integration)', () => {
   });
 });
 
-// SECURITY. Every write surface on this page is gated on user_platform.manage:
+// SECURITY. Every write surface on this page is gated on user_backstage.manage:
 //   1. the Add Role trigger         (UserBackstageEdit.tsx — <Can> around <AddRoleSheet>)
 //   2. the per-assignment Remove    (userBackstageEdit/RoleGrantList.tsx — <Can> around the button)
 //   3. the grant form itself        (userBackstageEdit/AddRoleSheet.tsx, inside gate 1)
 // These tests must FAIL if gate 1 or 2 is deleted. See the note on gate 3 below.
-describe('UserBackstageEdit — role write surfaces are gated on user_platform.manage', () => {
-  it('hides Add Role and Remove without user_platform.manage', async () => {
+describe('UserBackstageEdit — role write surfaces are gated on user_backstage.manage', () => {
+  it('hides Add Role and Remove without user_backstage.manage', async () => {
     auth.hasPermission = () => false;
     renderPage();
 
@@ -106,9 +106,9 @@ describe('UserBackstageEdit — role write surfaces are gated on user_platform.m
   });
 
   // Discriminating control. Proves the negatives above aren't passing because of a bad
-  // selector, and that the gates key on user_platform.manage rather than any truthy perm.
-  it('shows Add Role and Remove when user_platform.manage is held (discriminating control)', async () => {
-    auth.hasPermission = (perm) => perm === 'user_platform.manage';
+  // selector, and that the gates key on user_backstage.manage rather than any truthy perm.
+  it('shows Add Role and Remove when user_backstage.manage is held (discriminating control)', async () => {
+    auth.hasPermission = (perm) => perm === 'user_backstage.manage';
     renderPage();
 
     expect(await screen.findByRole('button', { name: /add role/i })).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('UserBackstageEdit — role write surfaces are gated on user_platform.m
   });
 
   it('does not unlock the write surfaces on the read-only permission', async () => {
-    auth.hasPermission = (perm) => perm === 'user_platform.read';
+    auth.hasPermission = (perm) => perm === 'user_backstage.read';
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Jane Doe' })).toBeInTheDocument();
@@ -125,12 +125,12 @@ describe('UserBackstageEdit — role write surfaces are gated on user_platform.m
   });
 
   // Gate 3 (the sheet's form) is only reachable through gate 1's Add Role trigger,
-  // so no UI path can open the form without user_platform.manage — this asserts the
+  // so no UI path can open the form without user_backstage.manage — this asserts the
   // reachable behaviour. NOTE: because both gates read the same permission and the form
   // has no other opener, deleting gate 3 *alone* would not fail any test. It is
   // defense-in-depth behind gate 1; see the task report.
-  it('opens the add-role form only with user_platform.manage', async () => {
-    auth.hasPermission = (perm) => perm === 'user_platform.manage';
+  it('opens the add-role form only with user_backstage.manage', async () => {
+    auth.hasPermission = (perm) => perm === 'user_backstage.manage';
     const user = userEvent.setup();
     renderPage();
 
@@ -140,7 +140,7 @@ describe('UserBackstageEdit — role write surfaces are gated on user_platform.m
     expect(screen.getByLabelText(/scope/i)).toBeInTheDocument();
   });
 
-  it('never renders the add-role form without user_platform.manage', async () => {
+  it('never renders the add-role form without user_backstage.manage', async () => {
     auth.hasPermission = () => false;
     renderPage();
 

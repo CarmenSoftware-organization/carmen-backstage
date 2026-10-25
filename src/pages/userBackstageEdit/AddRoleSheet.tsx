@@ -35,17 +35,17 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [roleId, setRoleId] = useState('');
-  const [scopeType, setScopeType] = useState<'platform' | 'cluster'>('platform');
+  const [scopeType, setScopeType] = useState<'backstage' | 'cluster'>('backstage');
   const [clusterId, setClusterId] = useState('');
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // No saved baseline to diff against — "dirty" means the open form has been touched.
-  useUnsavedChanges(open && (roleId !== '' || scopeType !== 'platform' || clusterId !== ''));
+  useUnsavedChanges(open && (roleId !== '' || scopeType !== 'backstage' || clusterId !== ''));
 
   const reset = useCallback(() => {
     setRoleId('');
-    setScopeType('platform');
+    setScopeType('backstage');
     setClusterId('');
     setFieldErrors({});
   }, []);
@@ -70,7 +70,7 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
     try {
       const scope: Scope = scopeType === 'cluster'
         ? { type: 'cluster', cluster_id: clusterId }
-        : { type: 'platform' };
+        : { type: 'backstage' };
       await userRoleService.add(userId, { role_id: roleId, scope });
       toast.success(t('pages.userBackstage.roleAssigned'));
       close();
@@ -123,17 +123,17 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
               id="scope_type"
               value={scopeType}
               onChange={(e) => {
-                setScopeType(e.target.value as 'platform' | 'cluster');
+                setScopeType(e.target.value as 'backstage' | 'cluster');
                 setClusterId('');
                 setFieldErrors((prev) => ({ ...prev, cluster_id: '' }));
               }}
               className={selectClassName}
             >
-              <option value="platform">{t('pages.userBackstage.scopeBackstage')}</option>
+              <option value="backstage">{t('pages.userBackstage.scopeBackstage')}</option>
               <option value="cluster">{t('pages.userBackstage.scopeSpecificCluster')}</option>
             </select>
             <p className="text-muted-foreground text-xs">
-              {scopeType === 'platform'
+              {scopeType === 'backstage'
                 ? t('pages.userBackstage.scopeBackstageHint')
                 : t('pages.userBackstage.scopeClusterHint')}
             </p>

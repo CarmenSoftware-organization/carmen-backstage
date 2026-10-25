@@ -11,8 +11,8 @@ import { useI18n } from '../../hooks/useI18n';
 interface LicenseEnforcementCardProps {
   config: BackstageConfig | null;
   /**
-   * ต้องเป็น `platform_config.manage` **และ** `license.manage` รวมกันมาแล้ว — backend มีด่านที่สอง
-   * เฉพาะคีย์นี้ (`platform_configs.controller.ts` → `mayWriteKey`) ส่งแค่ `platform_config.manage`
+   * ต้องเป็น `backstage_config.manage` **และ** `license.manage` รวมกันมาแล้ว — backend มีด่านที่สอง
+   * เฉพาะคีย์นี้ (`platform_configs.controller.ts` → `mayWriteKey`) ส่งแค่ `backstage_config.manage`
    * มาจะได้ปุ่ม Edit ที่กด Save แล้ว 403 เสมอ
    */
   canManage: boolean;
@@ -108,7 +108,7 @@ export const LicenseEnforcementCard: React.FC<LicenseEnforcementCardProps> = ({
             {t('pages.backstageConfig.licenseDesc1')}{' '}
             <code className="font-mono">license.manage</code>{' '}
             {t('pages.backstageConfig.licenseDesc2')}{' '}
-            <code className="font-mono">platform_config.manage</code>
+            <code className="font-mono">backstage_config.manage</code>
             {t('pages.backstageConfig.licenseDesc3')}
           </>
         }

@@ -11,7 +11,7 @@ const auth = vi.hoisted(() => ({
   hasBackstageAuthority: true,
   hasClusterAdminScope: false,
   adminScope: { all: false, clusters: [] },
-  effectivePermissions: { is_super_admin: false, platform: [], clusters: {} },
+  effectivePermissions: { is_super_admin: false, backstage: [], clusters: {} },
 }));
 vi.mock('../context/AuthContext', () => ({ useAuth: () => auth }));
 
@@ -58,7 +58,7 @@ beforeEach(() => {
   auth.hasBackstageAuthority = true;
   auth.hasClusterAdminScope = false;
   auth.adminScope = { all: false, clusters: [] };
-  auth.effectivePermissions = { is_super_admin: false, platform: [], clusters: {} };
+  auth.effectivePermissions = { is_super_admin: false, backstage: [], clusters: {} };
 });
 
 describe('PrivateRoute', () => {

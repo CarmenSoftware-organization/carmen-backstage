@@ -6,7 +6,7 @@ import type { BackstageUserRegistrySummary } from '../../types';
 
 const summary = (overrides: Partial<BackstageUserRegistrySummary> = {}): BackstageUserRegistrySummary => ({
   holders: 137,
-  platform_wide: 6,
+  backstage_wide: 6,
   cluster_only: 14,
   assignments: 28,
   inactive: 0,
@@ -109,7 +109,7 @@ describe('BackstageAccessSummary', () => {
     expect(screen.getByText('holders')).toBeInTheDocument();
     expect(screen.getByText(/scope breakdown isn.t available yet/i)).toBeInTheDocument();
 
-    // The breakdown itself must not appear — there is no `summary.platform_wide` /
+    // The breakdown itself must not appear — there is no `summary.backstage_wide` /
     // `cluster_only` / `assignments` to source it from.
     expect(screen.queryByText('Backstage-wide')).not.toBeInTheDocument();
     expect(screen.queryByText('Cluster-scoped')).not.toBeInTheDocument();

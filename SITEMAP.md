@@ -41,8 +41,8 @@ Route guards are **permission-based**: `PrivateRoute` takes `requiredPermission=
 | `/backstage/roles/:id/edit` | `RoleEdit` | `role.update` | View/edit platform role + permissions |
 | `/backstage/permissions` | `PermissionCatalog` | `role.read` | Read-only permission catalog |
 | `/backstage/super-admins` | `SuperAdminManagement` | Super admin only | Super admin management |
-| `/backstage/user-backstage` | `UserBackstageManagement` | `user_platform.read` | User ↔ platform-role assignments |
-| `/backstage/user-backstage/:userId` | `UserBackstageEdit` | `user_platform.read` | Edit a user's platform-role scope |
+| `/backstage/user-backstage` | `UserBackstageManagement` | `user_backstage.read` | User ↔ platform-role assignments |
+| `/backstage/user-backstage/:userId` | `UserBackstageEdit` | `user_backstage.read` | Edit a user's platform-role scope |
 | `/profile` | `Profile` | Authenticated | View/edit own profile, change password |
 | `*` | `<Navigate to="/" />` | — | Catch-all redirect to Landing |
 
@@ -68,7 +68,7 @@ Defined in `allNavItems` in `src/components/Layout.tsx`. Items carry a `group` a
   10. Applications — `/applications` — `application.read`
   11. Roles — `/backstage/roles` — `role.read`
   12. Super Admins — `/backstage/super-admins` — super admin only
-  13. User Backstage — `/backstage/user-backstage` — `user_platform.read`
+  13. User Backstage — `/backstage/user-backstage` — `user_backstage.read`
 
 Not in the sidebar (reached from within other pages): `/backstage/permissions` (from Role pages), `/changelog` (footer/version badge), `/profile` (avatar menu at the sidebar bottom).
 

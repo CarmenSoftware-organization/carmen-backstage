@@ -40,7 +40,7 @@ type CardId =
   | 'notification_email'
   | 'license'
   | 'expiry_thresholds'
-  | 'platform_migration'
+  | 'backstage_migration'
   | 'google_sign_in'
   | 'external_api';
 
@@ -73,13 +73,13 @@ const StatusItem: React.FC<{ label: string; children: React.ReactNode }> = ({
 const BackstageConfigManagement: React.FC = () => {
   const { hasPermission, isSuperAdmin } = useAuth();
   const { t } = useI18n();
-  const canManage = hasPermission('platform_config.manage');
+  const canManage = hasPermission('backstage_config.manage');
   // คีย์ `license` มีด่านที่สองฝั่ง backend (`platform_configs.controller.ts` → `mayWriteKey`)
   // ต้องมี `license.manage` เพิ่มจึงจะเขียนได้ ไม่ gate ตรงนี้ = ปุ่ม Edit ที่ Save แล้ว 403 เสมอ
   const canManageLicense = canManage && hasPermission('license.manage');
-  // คีย์ `platform_migration` มีด่านที่สองเหมือนกัน แต่ไม่รับสิทธิ์ใด ๆ แทน — ต้องเป็น super-admin
+  // คีย์ `backstage_migration` มีด่านที่สองเหมือนกัน แต่ไม่รับสิทธิ์ใด ๆ แทน — ต้องเป็น super-admin
   // (`platform_configs.controller.ts` → `writeKeyDenial`) เพราะสิ่งที่สวิตช์นี้เปิดคือ endpoint
-  // ที่บังคับ super-admin อยู่แล้ว ผู้ถือ platform_config.manage เปิดประตูที่ตัวเองเดินผ่านไม่ได้
+  // ที่บังคับ super-admin อยู่แล้ว ผู้ถือ backstage_config.manage เปิดประตูที่ตัวเองเดินผ่านไม่ได้
   const canManageBackstageMigration = canManage && isSuperAdmin;
 
   const [configs, setConfigs] = useState<BackstageConfig[]>([]);
@@ -122,7 +122,7 @@ const BackstageConfigManagement: React.FC = () => {
   const notificationEmail = configs.find((c) => c.key === 'notification_email') ?? null;
   const license = configs.find((c) => c.key === 'license') ?? null;
   const expiryThresholds = configs.find((c) => c.key === 'expiry_thresholds') ?? null;
-  const backstageMigration = configs.find((c) => c.key === 'platform_migration') ?? null;
+  const backstageMigration = configs.find((c) => c.key === 'backstage_migration') ?? null;
   const googleSignIn = configs.find((c) => c.key === 'google_sign_in') ?? null;
   const externalApi = configs.find((c) => c.key === 'external_api') ?? null;
 
@@ -383,8 +383,8 @@ const BackstageConfigManagement: React.FC = () => {
                   key={`platform_migration-${backstageMigrationAudit.updated?.at ?? backstageMigrationAudit.created?.at ?? 'default'}`}
                   config={backstageMigration}
                   canManage={canManageBackstageMigration}
-                  isEditing={editingCard === 'platform_migration'}
-                  onRequestEdit={() => setEditingCard('platform_migration')}
+                  isEditing={editingCard === 'backstage_migration'}
+                  onRequestEdit={() => setEditingCard('backstage_migration')}
                   onCancelEdit={() => setEditingCard(null)}
                   onSaved={handleSaved}
                   footer={auditFooter(backstageMigrationLatest)}

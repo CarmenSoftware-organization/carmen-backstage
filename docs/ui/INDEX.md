@@ -69,16 +69,16 @@ CP-MODAL-003 (Activity Trail Sheet).
 | CP-PAGE-030 | Activity Events | `/activity-events` | `ActivityEventManagement` | `activity_event.detail` | Planned | — |
 | CP-PAGE-031 | Cron Job List | `/cronjobs` | `CronJobManagement` | `cronjob.read` | Planned | — |
 | CP-PAGE-032 | Cron Job Edit | `/cronjobs/new`, `/cronjobs/:id/edit` | `CronJobEdit` | `cronjob.read` | Planned | — |
-| CP-PAGE-033 | Backstage Config | `/backstage/configs` | `BackstageConfigManagement` | `platform_config.read` | Planned | — |
+| CP-PAGE-033 | Backstage Config | `/backstage/configs` | `BackstageConfigManagement` | `backstage_config.read` | Planned | — |
 | CP-PAGE-034 | Email Settings | `/backstage/email-settings` | `EmailSettingManagement` | `email_setting.read` | Planned | — |
 | CP-PAGE-035 | Application List | `/applications` | `ApplicationManagement` | `application.read` | Planned | — |
 | CP-PAGE-036 | Application Edit | `/applications/new`, `…/:id/edit` | `ApplicationEdit` | `application.create` / `.update` | Planned | — |
 | CP-PAGE-037 | Feature Flags | `/backstage/features` | `FeatureFlagManagement` | `feature_flag.manage` | Planned | — |
-| CP-PAGE-038 | Role List | `/backstage/roles` | `RoleManagement` | `platform_role.read` | Planned | — |
-| CP-PAGE-039 | Role Edit | `/backstage/roles/new`, `…/:id/edit` | `RoleEdit` | `platform_role.create` / `.update` | Planned | — |
+| CP-PAGE-038 | Role List | `/backstage/roles` | `RoleManagement` | `backstage_role.read` | Planned | — |
+| CP-PAGE-039 | Role Edit | `/backstage/roles/new`, `…/:id/edit` | `RoleEdit` | `backstage_role.create` / `.update` | Planned | — |
 | CP-PAGE-040 | Permission Catalog | `/backstage/category-permissions` | `PermissionCatalog` | Authenticated | Planned | — |
-| CP-PAGE-041 | Backstage Users List | `/backstage/user-backstage` | `UserBackstageManagement` | `user_platform.read` | Planned | — |
-| CP-PAGE-042 | Backstage Users Edit | `/backstage/user-backstage/:userId` | `UserBackstageEdit` | `user_platform.read` | Planned | — |
+| CP-PAGE-041 | Backstage Users List | `/backstage/user-backstage` | `UserBackstageManagement` | `user_backstage.read` | Planned | — |
+| CP-PAGE-042 | Backstage Users Edit | `/backstage/user-backstage/:userId` | `UserBackstageEdit` | `user_backstage.read` | Planned | — |
 | CP-PAGE-043 | Super Admins | `/backstage/super-admins` | `SuperAdminManagement` | Super admin | Planned | — |
 | CP-PAGE-044 | Backstage Migrations | `/backstage/migrations` | `BackstageMigrationManagement` | Super admin | Planned | — |
 | CP-PAGE-045 | SQL Workbench | `/sql-workbench` | `SqlWorkbench` | `sql_workbench.read` | Planned | — |

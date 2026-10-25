@@ -39,12 +39,12 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   // Sidebar จัดกลุ่มจากแถวที่ groupKey ซ้ำกันติดกัน แถวนี้ต้องไม่ถูกคั่น
   { path: '/cronjobs', labelKey: 'nav.cronjobs', icon: Clock, permission: 'cronjob.read', groupKey: 'navGroup.scheduling', feature: 'cronjobs' },
   // Backstage
-  { path: '/backstage/configs', labelKey: 'nav.backstageConfig', icon: Settings, permission: 'platform_config.read', groupKey: 'navGroup.backstage', feature: 'platform_config' },
+  { path: '/backstage/configs', labelKey: 'nav.backstageConfig', icon: Settings, permission: 'backstage_config.read', groupKey: 'navGroup.backstage', feature: 'backstage_config' },
   { path: '/backstage/email-settings', labelKey: 'nav.emailSettings', icon: Mail, permission: 'email_setting.read', groupKey: 'navGroup.backstage', feature: 'email_settings' },
   { path: '/applications', labelKey: 'nav.applications', icon: AppWindow, permission: 'application.read', groupKey: 'navGroup.backstage', feature: 'applications' },
   // เส้นคั่น: เหนือเส้นคือการตั้งค่าตัวระบบ ใต้เส้นคือการกำหนดว่าใครทำอะไรได้
-  { path: '/backstage/roles', labelKey: 'nav.backstageRoles', icon: ShieldCheck, permission: 'platform_role.read', groupKey: 'navGroup.backstage', feature: 'platform_roles', dividerBefore: true },
-  { path: '/backstage/user-backstage', labelKey: 'nav.userBackstage', icon: UserCog, permission: 'user_platform.read', groupKey: 'navGroup.backstage', feature: 'user_platform' },
+  { path: '/backstage/roles', labelKey: 'nav.backstageRoles', icon: ShieldCheck, permission: 'backstage_role.read', groupKey: 'navGroup.backstage', feature: 'backstage_roles', dividerBefore: true },
+  { path: '/backstage/user-backstage', labelKey: 'nav.userBackstage', icon: UserCog, permission: 'user_backstage.read', groupKey: 'navGroup.backstage', feature: 'user_backstage' },
   // เส้นคั่นแบ่งสองแถวล่างออกจากงานตั้งค่าประจำวัน — ทั้งคู่เปลี่ยนสิ่งที่คนอื่นเข้าถึงได้
   // ไม่ตั้งเป็นกลุ่มใหม่เพราะยังเป็นเรื่อง Backstage เหมือนกัน ต่างแค่ระดับความเสี่ยง
   { path: '/backstage/super-admins', labelKey: 'nav.superAdmins', icon: ShieldAlert, superAdminOnly: true, groupKey: 'navGroup.backstage', feature: 'super_admins', dividerBefore: true },
@@ -54,7 +54,7 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   // Database — ต้องอยู่ท้ายสุด: ทั้งสองแถวเคยอยู่กลางกลุ่ม Backstage การแยกออกเป็นกลุ่มของตัวเอง
   // โดยทิ้งไว้ตำแหน่งเดิมจะทำให้กลุ่ม Backstage ขาดเป็นสองท่อนและวาดหัวข้อซ้ำสองครั้ง
   // Must stay last: pulling these out mid-group would split Backstage's heading in two.
-  { path: '/backstage/migrations', labelKey: 'nav.backstageMigrations', icon: DatabaseBackup, superAdminOnly: true, groupKey: 'navGroup.database', feature: 'platform_migrations' },
+  { path: '/backstage/migrations', labelKey: 'nav.backstageMigrations', icon: DatabaseBackup, superAdminOnly: true, groupKey: 'navGroup.database', feature: 'backstage_migrations' },
   { path: '/sql-workbench', labelKey: 'nav.sqlWorkbench', icon: Database, permission: 'sql_workbench.read', groupKey: 'navGroup.database', feature: 'sql_workbench' },
   { path: '/backstage/database-pools', labelKey: 'nav.databasePools', icon: Server, permission: 'database_pool.read', groupKey: 'navGroup.database', feature: 'database_pools' },
 ];

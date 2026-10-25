@@ -88,19 +88,19 @@ export function BackstageAccessSummary({
           {/*
             The scope split as one proportional bar rather than a row of standalone
             counters. The counters read as four independent facts when they are really
-            one: `platform_wide + cluster_only = holders` by contract, so a bar shows the
+            one: `backstage_wide + cluster_only = holders` by contract, so a bar shows the
             only thing an access review actually asks of them — how much of the registry
             reaches everywhere — in a shape that stays legible whether the ratio is 4/0
             or 6/131. The numbers themselves stay written in the legend; the bar is the
             accelerator, never the sole carrier.
           */}
           <div className="w-full max-w-[22rem] space-y-2">
-            <ScopeSplitBar backstageWide={summary.platform_wide} clusterOnly={summary.cluster_only} />
+            <ScopeSplitBar backstageWide={summary.backstage_wide} clusterOnly={summary.cluster_only} />
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
               <ScopeLegendItem
                 swatchClassName="bg-primary"
                 label={t('pages.userBackstage.backstageWide')}
-                count={summary.platform_wide}
+                count={summary.backstage_wide}
                 onClick={onShowBackstageWide}
               />
               <ScopeLegendItem

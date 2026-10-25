@@ -7,7 +7,7 @@
 | Prefix | Scope | Top-level segments in use |
 |---|---|---|
 | `/api-system/…` | platform registry, cross-tenant | `applications` `business-units` `clusters` `fetch-user` `me` `platform` `report-templates` `tenant` `user` |
-| `/api/…` | tenant / BU-scoped, or user-self | `auth/login` `auth/refresh-token` `user/profile` `user/permission/platform` `news` `notifications/broadcasts/*` `config/{buCode}/…` |
+| `/api/…` | tenant / BU-scoped, or user-self | `auth/login` `auth/refresh-token` `user/profile` `user/permission/backstage` `news` `notifications/broadcasts/*` `config/{buCode}/…` |
 
 Heuristic: **does the endpoint need a BU/tenant to mean anything?** → `/api`. Is it a platform-wide registry the admin app owns? → `/api-system`.
 
