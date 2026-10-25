@@ -12,6 +12,7 @@
   2. production แอปหลัก: **ยังไม่ควร push** — vercel ตามหลัง main 640 commit รวมงาน POS ที่มีลำดับ deploy บังคับ; `<title>` ใหม่จะขึ้นพร้อมรอบ deploy ปกติของ inventory
   3. ~~backend-v2 (#914) และ micro-notification (#16) ยังไม่ขึ้น DEV~~ — ขึ้น DEV แล้วด้วยการ deploy มือ (2026-10-26, รวมอยู่ใน backend #921+ / micro-notification #18)
   4. ตรวจหน้าจอจริง: Login จอใหญ่ (แผงโลโก้ CARMEN BLUE / BACKSTAGE), Landing, Platform Config → การ์ด Google sign-in (TH/EN) — Claude ตรวจในเบราว์เซอร์ไม่ได้ (นโยบายบล็อกโฮสต์ dev.blueledgers.com) ตรวจได้แค่ด้วย curl
+     - **ตรวจแล้วบางส่วน (Claude, 2026-10-26, production ผ่าน read_page — screenshot/คลิก/JS ยังโดน policy บล็อก):** Dashboard + เมนู Backstage ครบ, Backstage Config → การ์ด Google sign-in (EN) อ่าน "Carmen Blue Backstage / Carmen Blue Platform" ถูก, Backstage Roles (Backstage Admin 64/64), Backstage Users 4 คน · **ยังเหลือ:** Login จอใหญ่ + Landing (ต้อง logout), การ์ดภาษาไทย (คลิกสลับภาษาไม่ได้), redirect `/platform/*`
   5. ส่งอีเมลทดสอบจากหน้า Email Settings (หลัง micro-notification ขึ้น DEV) → หัวเรื่อง "Carmen Blue Backstage email test"
 - **คำถามที่ค้างอยู่:** ไม่มี
 - **อัปเดตล่าสุด:** 2026-10-26
