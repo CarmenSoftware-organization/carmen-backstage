@@ -10,7 +10,7 @@
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
   1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-backstage (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
   2. production แอปหลัก: **ยังไม่ควร push** — vercel ตามหลัง main 640 commit รวมงาน POS ที่มีลำดับ deploy บังคับ; `<title>` ใหม่จะขึ้นพร้อมรอบ deploy ปกติของ inventory
-  3. backend-v2 (#914) และ micro-notification (#16) ยังไม่ขึ้น DEV — GitHub Actions ติด billing (CI ล้มใน 2 วินาที) ต้อง deploy มือหรือรอ billing
+  3. ~~backend-v2 (#914) และ micro-notification (#16) ยังไม่ขึ้น DEV~~ — ขึ้น DEV แล้วด้วยการ deploy มือ (2026-10-26, รวมอยู่ใน backend #921+ / micro-notification #18)
   4. ตรวจหน้าจอจริง: Login จอใหญ่ (แผงโลโก้ CARMEN BLUE / BACKSTAGE), Landing, Platform Config → การ์ด Google sign-in (TH/EN) — Claude ตรวจในเบราว์เซอร์ไม่ได้ (นโยบายบล็อกโฮสต์ dev.blueledgers.com) ตรวจได้แค่ด้วย curl
   5. ส่งอีเมลทดสอบจากหน้า Email Settings (หลัง micro-notification ขึ้น DEV) → หัวเรื่อง "Carmen Blue Backstage email test"
 - **คำถามที่ค้างอยู่:** ไม่มี
@@ -66,7 +66,7 @@
   - [x] carmen-platform-support-usermanual #4
   - [x] carmen-platform-e2e #16
   - [x] carmen-wiki #21
-- [ ] 1.7 deploy DEV + ตรวจ — คอนโซลขึ้น DEV แล้ว (550296ef, curl ยืนยัน title + bundle); backend/micro-notification ค้าง (billing); ตรวจหน้าจอจริงค้าง (ผู้ใช้)
+- [ ] 1.7 deploy DEV + ตรวจ — คอนโซล, backend, micro-notification ขึ้น DEV ครบแล้ว (2026-10-26); เหลือตรวจหน้าจอจริง + ส่งอีเมลทดสอบ (ผู้ใช้)
 - [ ] 1.8 ขึ้น production — ค้าง (ผู้ใช้ push เอง ดู "สถานะปัจจุบัน")
 
 ## โปรเจกต์ 2 — ชื่อ repo, package, deploy path
@@ -110,7 +110,8 @@
 - **5a merged + DEV:** backend #920 (migration `20261026120000_rename_platform_values_to_backstage` — ไม่ auto-apply ต้องรัน `db:deploy` เอง), คอนโซล #371, god-mode #33, bruno #41 · ตรวจ: ค่าใน DB เปลี่ยนครบ, `/api/user/permission/backstage` 401 / `/platform` 404, bundle คอนโซลไม่มี route เก่า
 - **5b merged + DEV:** backend #921 (migration `20261026130000_rename_platform_tables_to_backstage` — RENAME ตาราง 6/คอลัมน์ 3/pkey 6/fkey 3/index 12), micro-notification #18, god-mode #34, คอนโซล #372 (filter `backstage_role_id`), แอปหลัก #444 (comment) · publish `prisma-shared-schema-backstage@1.0.0` + `notification-contract@2.0.1` · ตรวจ: ไม่เหลือตาราง `tb_platform_*`, role-permission 323 แถวอยู่ครบ, log backend ไม่มี 42P01, micro-notification healthy + dist อ่าน `tb_backstage_config`
 - **กับดักที่เจอ:** โฟลเดอร์ package เปลี่ยนชื่อ → `.env` (gitignored) ไม่ตามมา ต้อง `cp` จากโฟลเดอร์เก่าบนเครื่อง DEV ก่อน `db:deploy` (UAT/production ก็ต้องทำ) · micro-notification ต้อง `NODE_AUTH_TOKEN` ตอน deploy เพราะ dependency เปลี่ยน
-- **ค้าง:** `generate-test-user-bu` ยังใช้ raw SQL ชื่อตารางเก่า (`src/discover.ts`, `src/access.ts`, `src/wipe.ts`) → discover/wipe พัง · index `platform_dashboard_*` 2 ตัวของตาราง dashboard ไม่ได้เปลี่ยน (นอกขอบเขต) · script `audit:platform-permission-resource` ชื่อเดิม · โฟลเดอร์ `packages/prisma-shared-schema-platform/` (untracked: dist/.env) ยังค้างบนเครื่อง DEV · god-mode Deploy workflow แดงจาก health check `localhost:9903` (มีมาก่อน)
+- **เก็บกวาดหลังโปรเจกต์ 5 (2026-10-26):** `generate-test-user-bu` ใช้ `tb_backstage_*` + route `/api-system/backstage/*` แล้ว (route `/platform` ก็พังมาตั้งแต่ 4b) · `audit:backstage-permission-resource` + `BACKSTAGE_PERMISSION_RESOURCE_SEED` (backend #922) · bun.lock sync notification-contract 2.0.1 (#923 — lock เก่าทำ `git pull` บน DEV ล้ม) · ลบโฟลเดอร์ package เก่าบน DEV แล้ว (สำรอง `.env` ไว้ `/root/rename-p5-oldpkg-env.tgz`) · god-mode health check แก้แล้ว (god-mode #35 ยิง `127.0.0.1:$PORT` แทน nginx :9903)
+- **ตั้งใจไม่แก้:** index `platform_dashboard_*` 2 ตัวอยู่บนตาราง backup `tb_dashboard_*_widget_bak_20261006` (ตารางจริงถูก DROP ใน migration 20261006) · `PLATFORM_SCHEMA` ใน `.env` ของ micro-cronjobs ลบได้หลัง deploy รอบหน้า (main มีงาน POS ค้าง ห้าม deploy เพื่องานนี้)
 - ผลสำรวจ DEV: ไม่มี DB `carmen_platform` (ตารางอยู่ใน schema `CARMEN_SYSTEM` ของ DB `postgres`) → ไม่ต้องเปลี่ยนชื่อฐานข้อมูล; `api_name` ไม่มีในแถวข้อมูล
 - **รับงานต่อจากโปรเจกต์ 4 (ค่าที่เก็บใน DB / ผูกกับ schema):**
   - permission key `platform_role.*`, `platform_config.*`, `user_platform.*`, `platform_migration` (seed + ข้อมูลใน DB + `<Can>` ฝั่ง FE)
