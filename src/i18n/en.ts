@@ -4058,7 +4058,7 @@ export const en = {
       // ตัวเรียงเทียบกับ 'Platform' ตรง ๆ จึงต้องเทียบกับค่าที่แปลแล้วด้วย ไม่ใช่ literal
       scopePlatform: 'Backstage',
       // ── UserPlatformManagement ──
-      title: 'User Backstage',
+      title: 'Backstage Users',
       subtitle: 'Users holding Backstage roles',
       searchPlaceholder: 'Search users...',
       loadFailed: 'Failed to load Backstage users',
@@ -4125,7 +4125,7 @@ export const en = {
       roleRemoved: 'Role removed',
       removeRoleTitle: 'Remove role',
       removeRoleConfirm: 'Are you sure you want to remove the role "{{role}}" from this user?',
-      removeRoleLastSuffix: ' This is their last Backstage role — they will no longer appear in the User Backstage registry.',
+      removeRoleLastSuffix: ' This is their last Backstage role — they will no longer appear in the Backstage Users registry.',
       // PlatformAccessSummary
       summaryStale: "Couldn't load the registry summary.",
       holder: 'holder',
