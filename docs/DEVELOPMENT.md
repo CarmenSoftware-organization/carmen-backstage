@@ -18,7 +18,7 @@ bun install        # or: npm install
 bun start          # or: npm start
 ```
 
-Dev server runs on `http://localhost:3304` (port set in `vite.config.mts`). `bun start` only needs `.env.localhost`; if you'll also run against the deployed DEV, UAT, or prod backends, copy `.env.example` to `.env.dev` / `.env.uat` / `.env.prod` too — see [Commands](#commands) for which script uses which file, and the `.env.example` header for each mode's URL and app id.
+Dev server runs on `http://localhost:3304` (port set in `vite.config.mts`). `bun start` only needs `.env.localhost`; if you'll also run against the deployed DEV or prod backends, copy `.env.example` to `.env.dev` / `.env.prod` too — see [Commands](#commands) for which script uses which file, and the `.env.example` header for each mode's URL and app id.
 
 ## Environment variables
 
@@ -28,8 +28,8 @@ Defined in the mode-scoped `.env.<mode>` file (e.g. `.env.dev`) at the project r
 | Variable | Required | Purpose | Example |
 |---|---|---|---|
 | `REACT_APP_API_BASE_URL` | Yes | Backend API origin (axios uses it as an absolute `baseURL`). `vite.config.mts` throws if missing | `https://dev.blueledgers.com:4001` |
-| `REACT_APP_API_APP_ID` | Yes | Sent as `x-app-id` header on all API requests. `vite.config.mts` throws if missing. UAT uses its own id | `bc1ade0a-a189-48c4-9445-807a3ea38253` |
-| `REACT_APP_ENV` | No | Environment label (drives the header badge; omit for no badge) | `development`, `uat`, `production` |
+| `REACT_APP_API_APP_ID` | Yes | Sent as `x-app-id` header on all API requests. `vite.config.mts` throws if missing | `bc1ade0a-a189-48c4-9445-807a3ea38253` |
+| `REACT_APP_ENV` | No | Environment label (drives the header badge; omit for no badge) | `development`, `production` |
 | `REACT_APP_PORT` | No | Dev server / preview port (fallback `3304`) | `3304` |
 | `REACT_APP_OTEL_ENABLED` | No | Turns on browser telemetry → `${REACT_APP_API_BASE_URL}/telemetry/v1`. **Build-time**: unset at build = the telemetry chunk is tree-shaken out; enabling later needs a rebuild | `true` |
 | `REACT_APP_OTEL_ENVIRONMENT` | No | Telemetry environment tag (default `dev`; `deploy-gcs.yml` sets `prod`) | `dev`, `prod` |
@@ -47,12 +47,10 @@ bun start                 # Vite dev server on :3304 (--mode localhost → .env.
 bun run dev               # same as bun start / dev:local (--mode localhost)
 bun run dev:local         # dev server against local backend (.env.localhost)
 bun run dev:dev           # dev server against deployed DEV backend (.env.dev)
-bun run dev:uat           # dev server against UAT backend (.env.uat)
 bun run dev:prod          # dev server against the prod slot (.env.prod) — placeholder: points at DEV
 bun run build             # Production build (--mode prod → .env.prod); sets REACT_APP_BUILD_DATE, emits to build/
 bun run build:local       # build with .env.localhost
 bun run build:dev         # build with .env.dev
-bun run build:uat         # build with .env.uat
 bun run build:prod        # build with .env.prod — placeholder: points at DEV
 bun run build:force       # clean + build — the from-scratch build (`build --force` is rejected by vite build)
 bun run clean             # rm build/, node_modules/.vite, .vite-temp, .cache
@@ -71,7 +69,7 @@ bun run generate:mock-preconfig  # node scripts/generate-preconfig-mock.mjs
 
 `vite-plugin-checker` also runs tsc and the same ESLint command during `start`/`build`; `typecheck` + `lint` run them standalone. Pass `CI=true` to treat warnings as errors (and to disable the browser overlay).
 
-The Vite **mode** selects the env file: `--mode localhost` → `.env.localhost`; `--mode dev` → `.env.dev`; `--mode uat` → `.env.uat`; `--mode prod` → `.env.prod`. Vite throws on a mode named `local` (it conflicts with the `.local` suffix), so the local-backend mode is `localhost`. Every script passes `--mode` explicitly — Vite's defaults match no mode file, so a bare `vite` finds no `.env.<mode>` and `vite.config.mts` throws — unless a bare `.env` exists, which Vite loads in **every** mode and would silently satisfy the guard. Never create a bare `.env` or `.env.local` (both load in every mode and leak across all four targets).
+The Vite **mode** selects the env file: `--mode localhost` → `.env.localhost`; `--mode dev` → `.env.dev`; `--mode prod` → `.env.prod`. Vite throws on a mode named `local` (it conflicts with the `.local` suffix), so the local-backend mode is `localhost`. Every script passes `--mode` explicitly — Vite's defaults match no mode file, so a bare `vite` finds no `.env.<mode>` and `vite.config.mts` throws — unless a bare `.env` exists, which Vite loads in **every** mode and would silently satisfy the guard. Never create a bare `.env` or `.env.local` (both load in every mode and leak across all three targets).
 
 ## Dev proxy
 
@@ -250,7 +248,7 @@ optional `REACT_APP_OTEL_ENABLED` (default `true`) / `REACT_APP_OTEL_ENVIRONMENT
 |---|---|---|
 | `deploy-dev.yml` | push to `main` (automatic) + `workflow_dispatch` | builds `--mode dev`, ships over SSH to the DEV host (`dev.blueledgers.com:9902`). Secrets `DEV_SSH_HOST/USER/KEY/PORT`, variable `DEV_API_APP_ID` |
 | `deploy-gcs.yml` | `workflow_dispatch` only | the GCS + CDN pipeline above |
-| `verify.yml` | PRs to `main`/`DEV`/`UAT`; pushes to every branch except `main`/`DEV`/`UAT`/`vercel` | `bun run test` then `bun run build`; a second job repeats the build under `npm ci` to mirror Vercel |
+| `verify.yml` | PRs to `main`/`DEV`; pushes to every branch except `main`/`DEV`/`vercel` | `bun run test` then `bun run build`; a second job repeats the build under `npm ci` to mirror Vercel |
 
 **Vercel** (`carmen-backstage.vercel.app`, the production users see)
 tracks the **`vercel`** branch, not `main` — ship with `git push origin main:vercel`.

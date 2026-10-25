@@ -6,11 +6,11 @@ name: Verify
 
 on:
   pull_request:
-    branches: [main, DEV, UAT]
+    branches: [main, DEV]
   push:
     # `vercel` คือกิ่ง deploy ของ Vercel — ทุก commit ที่ไปถึงมันผ่าน CI มาแล้วตอนเป็น PR
     # (main เป็น base เดียวและ push ตรงเข้ากิ่งนี้เป็น fast-forward จาก main เท่านั้น)
-    branches-ignore: [main, DEV, UAT, vercel]
+    branches-ignore: [main, DEV, vercel]
   workflow_dispatch:
 
 jobs:

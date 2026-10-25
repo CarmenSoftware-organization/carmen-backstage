@@ -25,7 +25,7 @@ Everything below applies **everywhere** in the repo.
 
 `package.json` lists every script. What it does **not** tell you:
 
-- `dev:*` / `build:*` pick the env file by Vite **mode** (`localhost`/`dev`/`uat`/`prod`) — see **Environment** below.
+- `dev:*` / `build:*` pick the env file by Vite **mode** (`localhost`/`dev`/`prod`) — see **Environment** below.
 - `dev:prod` and `build:prod` are **placeholders that point at DEV**, not production.
 - `build` also stamps `REACT_APP_BUILD_DATE` and emits to `build/` (not `dist/`).
 - `build --force` does **not** work — `vite build` rejects `--force` (`Unknown option`; it is a dev-server/optimizer flag). For a from-scratch build use `build:force`, which runs `clean` (wipes `build/`, `node_modules/.vite`, `.vite-temp`, `.cache`) then `build`.
@@ -46,13 +46,13 @@ The version the app displays comes from `src/data/changelog.json` → `versions[
 
 ## Environment
 
-Copy `.env.example` → `.env.localhost` (local backend), `.env.dev` (deployed DEV backend), `.env.uat` (UAT backend), and `.env.prod` (production slot — **currently a placeholder pointing at DEV**). All are gitignored. The Vite **mode** selects the file: `vite --mode localhost` → `.env.localhost`; `--mode dev` → `.env.dev`; `--mode uat` → `.env.uat`; `--mode prod` → `.env.prod`. **Every script passes `--mode` explicitly** — Vite's defaults (`development` for `vite`, `production` for `vite build`/`vite preview`) match no file, so a bare `vite` finds no env and `vite.config.mts` throws `[env] Missing …` rather than silently falling back. Vite **throws** on a mode literally named `local` (it conflicts with the `.local` suffix), which is why the local-backend mode is `localhost` — and never create a bare `.env` or `.env.local`: Vite loads both in every mode, so they leak across all four targets and silently satisfy the guard. Every mode uses port `3304`, so only one dev server can run at a time. Variables:
+Copy `.env.example` → `.env.localhost` (local backend), `.env.dev` (deployed DEV backend), and `.env.prod` (production slot — **currently a placeholder pointing at DEV**). All are gitignored. The Vite **mode** selects the file: `vite --mode localhost` → `.env.localhost`; `--mode dev` → `.env.dev`; `--mode prod` → `.env.prod`. **Every script passes `--mode` explicitly** — Vite's defaults (`development` for `vite`, `production` for `vite build`/`vite preview`) match no file, so a bare `vite` finds no env and `vite.config.mts` throws `[env] Missing …` rather than silently falling back. Vite **throws** on a mode literally named `local` (it conflicts with the `.local` suffix), which is why the local-backend mode is `localhost` — and never create a bare `.env` or `.env.local`: Vite loads both in every mode, so they leak across all three targets and silently satisfy the guard. Every mode uses port `3304`, so only one dev server can run at a time. Variables:
 
 | Variable | Purpose |
 |----------|---------|
 | `REACT_APP_API_BASE_URL` | Backend base URL (axios uses it directly as an absolute `baseURL` — not proxied) |
 | `REACT_APP_API_APP_ID`   | Sent as `x-app-id` on every request |
-| `REACT_APP_ENV`          | `development` \| `uat` \| `production` |
+| `REACT_APP_ENV`          | `development` \| `production` |
 | `REACT_APP_PORT`         | Dev server / preview port (default `3304` if unset) |
 | `REACT_APP_API_APP_SECRET` | **Optional.** Sent as `x-app-secret` when set; needed only once this app's "Require secret" is on. Not in the `vite.config.mts` env guard on purpose. Bundled into the JS — not confidential for an SPA |
 
@@ -68,7 +68,7 @@ Static SPA. `.github/workflows/` holds **three** workflows that ship to **three 
 |---|---|---|---|
 | `deploy-dev.yml` | **push to `main` — automatic** | `/var/www/carmen-backstage` on the DEV host, served at `dev.blueledgers.com:9902` | `dev` → `dev.blueledgers.com:4001` |
 | `deploy-gcs.yml` | `workflow_dispatch` **only** | GCS bucket behind Cloud CDN + global HTTPS LB (Terraform in `infra/gcp/`), keyless via Workload Identity Federation (`gcloud storage rsync` + CDN invalidation) | `prod` |
-| `verify.yml` | PRs to `main`/`DEV`/`UAT`; pushes to every branch **except** `main`/`DEV`/`UAT`/`vercel` | nothing — `bun run test` then `bun run build` (ESLint + tsc + Vite); a second job repeats the build under `npm ci` to mirror Vercel's install | `prod` |
+| `verify.yml` | PRs to `main`/`DEV`; pushes to every branch **except** `main`/`DEV`/`vercel` | nothing — `bun run test` then `bun run build` (ESLint + tsc + Vite); a second job repeats the build under `npm ci` to mirror Vercel's install | `prod` |
 
 **So a push to `main` DOES deploy — to DEV, automatically, since 2026-08-23 (`ae64f0c`).** It touches neither GCS nor Vercel. Before claiming anything about what deploys when, run `ls .github/workflows/` and `gh run list --branch main` — this paragraph claimed the opposite for a while after `deploy-dev.yml` landed, and a session acted on it.
 
