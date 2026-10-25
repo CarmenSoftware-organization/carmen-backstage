@@ -62,7 +62,7 @@ const PermissionCatalog: React.FC = () => {
         <PageHeader
           title={t('pages.roles.permissionCatalog')}
           subtitle={t('pages.roles.catalogSubtitle')}
-          backTo="/platform/roles"
+          backTo="/backstage/roles"
         />
 
         {/* Error */}

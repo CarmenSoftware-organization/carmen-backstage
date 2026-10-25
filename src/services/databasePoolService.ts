@@ -12,7 +12,7 @@ const defaultSearchFields = ['name', 'host', 'database'];
 const BASE = '/api-system/backstage/database-pools';
 
 /**
- * Platform database pools — โปรไฟล์การเชื่อมต่อที่ตั้งชื่อได้ ใช้ร่วมกันข้าม business unit
+ * Backstage database pools — โปรไฟล์การเชื่อมต่อที่ตั้งชื่อได้ ใช้ร่วมกันข้าม business unit
  *
  * password ถูกมาสก์เป็น '••••••' ในทุก response และไม่มี endpoint reveal —
  * `update` จึงส่ง password เฉพาะตอนที่ผู้ใช้พิมพ์ค่าใหม่จริง ผู้เรียกต้องตัดฟิลด์นี้

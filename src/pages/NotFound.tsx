@@ -24,11 +24,11 @@ import { useI18n } from '../hooks/useI18n';
 const NotFound: React.FC = () => {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { loading, hasPlatformAuthority, hasClusterAdminScope } = useAuth();
+  const { loading, hasBackstageAuthority, hasClusterAdminScope } = useAuth();
   // Only a user who is *confined* to the cluster-admin space goes there. A user with neither
   // authority would land on the picker's "No clusters to administer" empty state — a second dead
   // end — and can reach the dashboard.
-  const isClusterAdminOnly = !hasPlatformAuthority && hasClusterAdminScope;
+  const isClusterAdminOnly = !hasBackstageAuthority && hasClusterAdminScope;
   const home = isClusterAdminOnly ? '/cluster-admin' : '/dashboard';
   const goBack = useBackOrFallback(home);
 

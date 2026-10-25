@@ -70,8 +70,8 @@ function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/platform/roles/new" element={<RoleEdit />} />
-        <Route path="/platform/roles/:id/edit" element={<RoleEdit />} />
+        <Route path="/backstage/roles/new" element={<RoleEdit />} />
+        <Route path="/backstage/roles/:id/edit" element={<RoleEdit />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -88,13 +88,13 @@ beforeEach(() => {
 describe('RoleEdit (integration)', () => {
   it('loads an existing role into the identity hero', async () => {
     asMock(roleService.getById).mockResolvedValue({ data: fakeRole });
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Billing Admin' })).toBeInTheDocument();
   });
 
   it('starts a new role in edit mode without calling getById', async () => {
-    renderAt('/platform/roles/new');
+    renderAt('/backstage/roles/new');
 
     await screen.findByText('Permissions');
     expect(roleService.getById).not.toHaveBeenCalled();
@@ -104,7 +104,7 @@ describe('RoleEdit (integration)', () => {
 describe('RoleEdit — not-found state', () => {
   it('gates the edit shell behind a not-found state on a 404', async () => {
     asMock(roleService.getById).mockRejectedValue({ response: { status: 404 } });
-    renderAt('/platform/roles/nope/edit');
+    renderAt('/backstage/roles/nope/edit');
 
     expect(await screen.findByText('Role not found')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^edit$/i })).toBeNull();
@@ -113,14 +113,14 @@ describe('RoleEdit — not-found state', () => {
 
   it('treats a 200 carrying no record as not-found', async () => {
     asMock(roleService.getById).mockResolvedValue({ data: null });
-    renderAt('/platform/roles/nope/edit');
+    renderAt('/backstage/roles/nope/edit');
 
     expect(await screen.findByText('Role not found')).toBeInTheDocument();
   });
 
   it('keeps the retryable inline banner for a transient failure (not not-found)', async () => {
     asMock(roleService.getById).mockRejectedValue({ response: { status: 500 } });
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/failed to load role/i);
     expect(screen.queryByText('Role not found')).toBeNull();
@@ -136,14 +136,14 @@ describe('RoleEdit — not-found state', () => {
     // MemoryRouter would not exercise this bug at all.
     asMock(roleService.getById).mockRejectedValueOnce({ response: { status: 404 } });
     const router = createMemoryRouter(
-      [{ path: '/platform/roles/:id/edit', element: <RoleEdit /> }],
-      { initialEntries: ['/platform/roles/bad/edit'] },
+      [{ path: '/backstage/roles/:id/edit', element: <RoleEdit /> }],
+      { initialEntries: ['/backstage/roles/bad/edit'] },
     );
     render(<RouterProvider router={router} />);
     expect(await screen.findByText('Role not found')).toBeInTheDocument();
 
     asMock(roleService.getById).mockResolvedValueOnce({ data: fakeRole });
-    router.navigate('/platform/roles/r1/edit');
+    router.navigate('/backstage/roles/r1/edit');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Billing Admin' })).toBeInTheDocument();
     expect(screen.queryByText('Role not found')).toBeNull();
@@ -157,14 +157,14 @@ describe('RoleEdit — Edit is gated on platform_role.update', () => {
 
   it('hides Edit without platform_role.update', async () => {
     auth.hasPermission = () => false;
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Billing Admin' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^edit$/i })).toBeNull();
   });
 
   it('shows Edit when platform_role.update is held (discriminating control)', async () => {
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
 
     expect(await screen.findByRole('button', { name: /^edit$/i })).toBeInTheDocument();
   });
@@ -176,7 +176,7 @@ describe('RoleEdit — permission catalog states', () => {
   it('shows a loading region while the catalog fetch is in flight (not an endless spinner with no exit)', async () => {
     const deferred = createDeferred<typeof fakeCatalog>();
     asMock(permissionService.getCatalog).mockReturnValue(deferred.promise);
-    renderAt('/platform/roles/new');
+    renderAt('/backstage/roles/new');
 
     expect(await screen.findByRole('status')).toHaveTextContent(/loading permission catalog/i);
     // Left pending deliberately — no further assertions depend on resolution.
@@ -184,7 +184,7 @@ describe('RoleEdit — permission catalog states', () => {
 
   it('distinguishes a loaded-but-empty catalog from the loading state', async () => {
     asMock(permissionService.getCatalog).mockResolvedValue([]);
-    renderAt('/platform/roles/new');
+    renderAt('/backstage/roles/new');
 
     expect(await screen.findByText(/no permissions are defined in the catalog/i)).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
@@ -195,7 +195,7 @@ describe('RoleEdit — permission catalog states', () => {
     asMock(permissionService.getCatalog)
       .mockRejectedValueOnce(new Error('network down'))
       .mockResolvedValueOnce(fakeCatalog);
-    renderAt('/platform/roles/new');
+    renderAt('/backstage/roles/new');
 
     expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load the permission catalog.");
     expect(screen.queryByText(/loading permission catalog/i)).not.toBeInTheDocument();
@@ -213,7 +213,7 @@ describe('RoleEdit — permission catalog states', () => {
 describe('RoleEdit — the read-only grant view', () => {
   it('shows the actions the role does NOT hold, not only the ones it does', async () => {
     asMock(roleService.getById).mockResolvedValue({ data: fakeRole });
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
 
     // `cluster.read` is granted, `cluster.update` is in the catalog and withheld. Both are
     // on screen; only the withheld one is drawn as an outline.
@@ -226,7 +226,7 @@ describe('RoleEdit — the read-only grant view', () => {
   it('greys nothing when the catalog is unavailable — a missing action is not a withheld one', async () => {
     asMock(roleService.getById).mockResolvedValue({ data: fakeRole });
     asMock(permissionService.getCatalog).mockRejectedValue(new Error('boom'));
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
 
     expect(await screen.findByText('read')).toBeInTheDocument();
     // Without the catalog the page cannot know `cluster.update` exists, so it must not
@@ -239,7 +239,7 @@ describe('RoleEdit — the read-only grant view', () => {
 describe('RoleEdit — audit borrowed from the list endpoint', () => {
   it('asks the list endpoint for this one role by id', async () => {
     asMock(roleService.getById).mockResolvedValue({ data: fakeRole });
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
     await screen.findByRole('heading', { level: 1, name: 'Billing Admin' });
 
     expect(roleService.getAll).toHaveBeenCalledWith(
@@ -252,7 +252,7 @@ describe('RoleEdit — audit borrowed from the list endpoint', () => {
     asMock(roleService.getAll).mockResolvedValue({
       data: [{ id: 'r1', audit: { created: { at: '2020-01-01T00:00:00Z' } } }],
     });
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
     await screen.findByRole('heading', { level: 1, name: 'Billing Admin' });
 
     expect(await screen.findByText(/Created/)).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe('RoleEdit — audit borrowed from the list endpoint', () => {
     asMock(roleService.getAll).mockResolvedValue({
       data: [{ id: 'someone-else', audit: { created: { at: '2020-01-01T00:00:00Z' } } }],
     });
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
     await screen.findByRole('heading', { level: 1, name: 'Billing Admin' });
 
     expect(screen.queryByText(/Created/)).not.toBeInTheDocument();
@@ -275,7 +275,7 @@ describe('RoleEdit — audit borrowed from the list endpoint', () => {
 describe('RoleEdit — editing the grant in place', () => {
   const enterEditMode = async () => {
     asMock(roleService.getById).mockResolvedValue({ data: fakeRole });
-    renderAt('/platform/roles/r1/edit');
+    renderAt('/backstage/roles/r1/edit');
     await screen.findByRole('heading', { level: 1, name: 'Billing Admin' });
     await userEvent.click(screen.getByRole('button', { name: /Edit/ }));
   };

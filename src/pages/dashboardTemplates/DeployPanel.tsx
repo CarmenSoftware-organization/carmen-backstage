@@ -8,7 +8,7 @@ import { mapWithConcurrency } from '../../utils/concurrent';
 import { getErrorDetail } from '../../utils/errorParser';
 import { useI18n } from '../../hooks/useI18n';
 import { useAuth } from '../../context/AuthContext';
-import { PLATFORM_SCOPED_RECORD } from '../../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../../utils/permissions';
 import Can from '../../components/Can';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -193,7 +193,7 @@ export default function DeployPanel() {
     }).format(d);
   };
 
-  if (!hasPermission('dashboard_template.deploy', { clusterId: PLATFORM_SCOPED_RECORD })) return null;
+  if (!hasPermission('dashboard_template.deploy', { clusterId: BACKSTAGE_SCOPED_RECORD })) return null;
 
   const busyAny = running || bus.some((b) => rowState[b.code]?.checking);
   const emptySet = activeCount === 0;
@@ -214,7 +214,7 @@ export default function DeployPanel() {
               <RefreshCw className={`mr-2 h-4 w-4 ${busyAny && !running ? 'animate-spin' : ''}`} />
               {t('pages.dashboardTemplates.refreshStatus')}
             </Button>
-            <Can permission="dashboard_template.deploy" clusterId={PLATFORM_SCOPED_RECORD}>
+            <Can permission="dashboard_template.deploy" clusterId={BACKSTAGE_SCOPED_RECORD}>
               <Button variant="outline" size="sm" onClick={selectOutdated} disabled={running || emptySet}>
                 {t('pages.dashboardTemplates.selectOutdated')}
               </Button>
@@ -312,7 +312,7 @@ export default function DeployPanel() {
         </CardContent>
       </Card>
 
-      <Can permission="dashboard_template.deploy" clusterId={PLATFORM_SCOPED_RECORD}>
+      <Can permission="dashboard_template.deploy" clusterId={BACKSTAGE_SCOPED_RECORD}>
         <OverwriteConfirmDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}

@@ -6,7 +6,7 @@ There are **three** kinds of `<Entity>Edit` page. Pick by structure, not by pref
 |---|---|---|---|---|---|
 | **Toggle** | One form, saved as a unit | ✓ | ✓ | ✓ | `RoleEdit` `UserEdit` `NewsEdit` `ApplicationEdit` `ReportTemplateEdit` |
 | **Edit-in-place** | Several sections + related tables edited row by row | ✓ | ✓ | ✗ | `ClusterEdit` `BusinessUnitEdit` |
-| **Relationship** | No form at all — you manage links, not fields | ✗ | ✗ | ✗ | `UserPlatformEdit` |
+| **Relationship** | No form at all — you manage links, not fields | ✗ | ✗ | ✗ | `UserBackstageEdit` |
 
 **Decision rule:** count the sections and related tables. One form section → Toggle. Multiple sections plus tables users edit row by row → Edit-in-place. Nothing but assignments/memberships → Relationship.
 

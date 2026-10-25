@@ -38,7 +38,7 @@ import Can from '../components/Can';
 import { ActivityTrailSheet } from '../components/activityTrail/ActivityTrailSheet';
 import { useRowActivityTrail } from '../components/activityTrail/useRowActivityTrail';
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
-import { PLATFORM_SCOPED_RECORD } from '../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import { auditColumns } from '../components/auditColumns';
 import { AuditMeta } from '../components/AuditMeta';
 import { normalizeAudit, auditCsvFields } from '../utils/audit';
@@ -550,7 +550,7 @@ const UserManagement: React.FC = () => {
                   {t('common.action.edit')}
                 </DropdownMenuItem>
               </Can>
-              <Can permission="activity_log.read" clusterId={PLATFORM_SCOPED_RECORD}>
+              <Can permission="activity_log.read" clusterId={BACKSTAGE_SCOPED_RECORD}>
                 {/* onSelect ไม่ใช่ onClick — ให้เมนูปิดเสร็จก่อนแผ่นเปิด ไม่งั้น focus trap
                     ของ Radix สองชั้นจะชนกัน */}
                 <DropdownMenuItem

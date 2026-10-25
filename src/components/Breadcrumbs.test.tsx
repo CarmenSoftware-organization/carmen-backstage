@@ -24,9 +24,9 @@ describe('crumbsFromPath', () => {
     ]);
   });
 
-  it('handles nested platform routes', () => {
-    expect(crumbsFromPath('/platform/roles')).toEqual([
-      { labelKey: 'breadcrumb.platform', fallback: 'Platform' },
+  it('handles nested backstage routes', () => {
+    expect(crumbsFromPath('/backstage/roles')).toEqual([
+      { labelKey: 'breadcrumb.backstage', fallback: 'Backstage' },
       { labelKey: 'breadcrumb.roles', fallback: 'Roles' },
     ]);
   });

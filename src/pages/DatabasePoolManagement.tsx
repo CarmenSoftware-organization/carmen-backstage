@@ -218,7 +218,7 @@ const DatabasePoolManagement: React.FC = () => {
                 min-content ของมันเหลือหนึ่งตัวอักษร) แล้วค่อยกลับไป truncate บรรทัดเดียวบนตาราง */}
             <div className="flex min-w-0 items-start gap-1.5 lg:items-center">
               <Link
-                to={`/platform/database-pools/${pool.id}/edit`}
+                to={`/backstage/database-pools/${pool.id}/edit`}
                 className="break-all font-mono text-[13px] font-medium hover:underline lg:truncate"
                 title={dsn}
               >
@@ -277,7 +277,7 @@ const DatabasePoolManagement: React.FC = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/platform/database-pools/${row.original.id}/edit`)}>
+              <DropdownMenuItem onClick={() => navigate(`/backstage/database-pools/${row.original.id}/edit`)}>
                 <Pencil className="mr-2 h-4 w-4" />
                 {t('common.action.edit')}
               </DropdownMenuItem>
@@ -308,7 +308,7 @@ const DatabasePoolManagement: React.FC = () => {
                 {t('common.action.exportCsv')}
               </Button>
               <Can permission="database_pool.manage">
-                <Button onClick={() => navigate('/platform/database-pools/new')}>
+                <Button onClick={() => navigate('/backstage/database-pools/new')}>
                   <Plus className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">{t('pages.databasePools.addPool')}</span>
                   <span className="sm:hidden">{t('common.action.add')}</span>
@@ -410,7 +410,7 @@ const DatabasePoolManagement: React.FC = () => {
                 emptyDescription={t('pages.databasePools.emptyDescription')}
                 addAction={
                   <Can permission="database_pool.manage">
-                    <Button size="sm" onClick={() => navigate('/platform/database-pools/new')}>
+                    <Button size="sm" onClick={() => navigate('/backstage/database-pools/new')}>
                       <Plus className="mr-2 h-4 w-4" />
                       {t('pages.databasePools.addPool')}
                     </Button>

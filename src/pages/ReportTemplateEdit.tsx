@@ -4,7 +4,7 @@ import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
 import { ActivityTrailSheet } from '../components/activityTrail/ActivityTrailSheet';
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
-import { PLATFORM_SCOPED_RECORD } from '../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import reportTemplateService, { type ReportTemplate, type CalculationMethod } from '../services/reportTemplateService';
 import { CALCULATION_METHODS, CALCULATION_METHOD_KEYS, CalculationMethodBadges, sortCalculationMethods } from './reportTemplates/calculationMethods';
 import { toBackupTemplate, buildBackup, backupFileName, downloadJSON } from '../utils/reportTemplateBackup';
@@ -551,9 +551,9 @@ const ReportTemplateEdit: React.FC = () => {
           // ถ้าผูกกับ loading แผ่นเวอร์ชันที่เปิดอยู่จะถูก unmount กลางการกู้คืน; ปุ่มที่ห้ามกดระหว่าง refetch ใช้ disabled แทน
           actions={!isNew && templateRecord != null && (
             <>
-              {/* report template ไม่สังกัด cluster — PLATFORM_SCOPED_RECORD ทำให้เหลือ
+              {/* report template ไม่สังกัด cluster — BACKSTAGE_SCOPED_RECORD ทำให้เหลือ
                   ทางเดียวคือสิทธิ์ระดับ platform ตรงกับที่ backend บังคับ */}
-              <Can permission="activity_log.read" clusterId={PLATFORM_SCOPED_RECORD}>
+              <Can permission="activity_log.read" clusterId={BACKSTAGE_SCOPED_RECORD}>
                 <ActivityTrailSheet
                   entityType="report_template"
                   entityId={id}

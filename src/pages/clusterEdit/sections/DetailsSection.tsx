@@ -7,7 +7,7 @@ export interface DetailsSectionProps {
   fieldErrors: Record<string, string>;
   canEdit: boolean;
   /**
-   * Platform-only fields are a platform decision — the server silently strips
+   * Backstage-only fields are a platform decision — the server silently strips
    * `max_license_users`, `is_active`, and `info` from a membership admin's cluster update (no
    * error, just a discarded write). This component only renders one of those (`is_active`,
    * gated behind this flag rather than plain `canEdit`) so an admin never sees an editable
@@ -20,14 +20,14 @@ export interface DetailsSectionProps {
    * 2026-08-21-cluster-bu-license plan — this component never rendered it).
    * Defaults to canEdit so existing call sites are unchanged.
    */
-  canEditPlatformFields?: boolean;
+  canEditBackstageFields?: boolean;
   /**
    * Code is the cluster's system/API identifier — unlike the platform-only fields above,
    * the backend does not strip it from a membership admin's update (it stays fully
    * writable server-side), so hiding it here is a pure front-end decision, not a mirror of
    * a server-side restriction. The cluster-admin page (ClusterProfile.tsx) has no
    * operational reason to show a cluster admin its own cluster's system identifier, so it
-   * opts out. Unlike `canEditPlatformFields`, which still renders its fields (disabled),
+   * opts out. Unlike `canEditBackstageFields`, which still renders its fields (disabled),
    * this removes the field from the render tree entirely — there is no "disabled but
    * visible" state for an identifier the admin should not be looking at at all. Defaults
    * to true so every existing call site is unchanged.
@@ -46,14 +46,14 @@ export function DetailsSection({
   formData,
   fieldErrors,
   canEdit,
-  canEditPlatformFields = canEdit,
+  canEditBackstageFields = canEdit,
   showCode = true,
   onCommit,
   onValidate,
 }: DetailsSectionProps) {
   const { t } = useI18n();
   const disabled = !canEdit;
-  const platformFieldsDisabled = !canEditPlatformFields;
+  const backstageFieldsDisabled = !canEditBackstageFields;
   return (
     <div className="divide-y">
       {showCode && (
@@ -94,7 +94,7 @@ export function DetailsSection({
         name="is_active"
         label={t('common.status.label')}
         type="select"
-        disabled={platformFieldsDisabled}
+        disabled={backstageFieldsDisabled}
         value={formData.is_active ? 'true' : 'false'}
         options={[
           { value: 'true', label: t('common.status.active') },

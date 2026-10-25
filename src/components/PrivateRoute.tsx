@@ -41,7 +41,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredPermissio
     loading,
     hasPermission,
     isSuperAdmin,
-    hasPlatformAuthority,
+    hasBackstageAuthority,
     hasClusterAdminScope,
     adminScope,
     effectivePermissions,
@@ -57,13 +57,13 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredPermissio
     return <Navigate to="/login" replace />;
   }
 
-  // `hasPlatformAuthority` reads false both for a user who genuinely has none and for a session
+  // `hasBackstageAuthority` reads false both for a user who genuinely has none and for a session
   // whose permissions have not resolved — or whose fetch failed, which nulls the value and drops
   // its cache. Only the first is a boundary decision. Requiring a resolved payload keeps a
   // transient fetch failure from ejecting a platform admin into the cluster-admin space for the
   // rest of the session, with no way back: the degraded session falls through to the checks below
   // instead, which is exactly how it behaved before this guard existed.
-  if (effectivePermissions !== null && !hasPlatformAuthority) {
+  if (effectivePermissions !== null && !hasBackstageAuthority) {
     // Still resolving. Rendering the page for even one frame mounts it — for /dashboard that
     // means a burst of platform-wide list requests that all 403.
     if (adminScope === null) {
@@ -73,7 +73,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredPermissio
       return <Navigate to="/cluster-admin" replace />;
     }
     // Neither authority. Deliberately falls through rather than returning <Forbidden /> here:
-    // `hasPlatformAuthority` also reads false while `userCount` is still in flight — it is never
+    // `hasBackstageAuthority` also reads false while `userCount` is still in flight — it is never
     // cached, so every cold reload passes through that state — and returning here would 403 a
     // bootstrap administrator on the page they exist to set up, permanently if that one request
     // fails. Falling through reproduces the pre-guard behaviour for a state the login gate

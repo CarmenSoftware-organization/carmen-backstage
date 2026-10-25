@@ -4,7 +4,7 @@ import type { BusinessUnitLicense, PaginateParams, SeatLicensesResponse, License
 
 const BASE = (buId: string) => `/api-system/business-units/${buId}/licenses`;
 
-const PLATFORM_BASE = '/api-system/backstage/business-unit-licenses';
+const BACKSTAGE_BASE = '/api-system/backstage/business-unit-licenses';
 
 /** ค้นได้ที่เลขที่ใบและเลขอ้างอิงเท่านั้น — backend ตั้ง default นี้ไว้ ส่งฟิลด์อื่นไปก็ถูกเมิน */
 const defaultSearchFields = ['license_number', 'reference_no'];
@@ -21,8 +21,8 @@ const businessUnitLicenseService = {
   },
 
   // มุมมองรายใบทั้ง fleet (ไม่ผูก BU เดียว) — paginated ตัวเดียวกับ subscriptions/clusters
-  listPlatform: async (paginate: PaginateParams = {}): Promise<SeatLicensesResponse> => {
-    const response = await api.get(`${PLATFORM_BASE}?${buildQuery(paginate, defaultSearchFields)}`);
+  listBackstage: async (paginate: PaginateParams = {}): Promise<SeatLicensesResponse> => {
+    const response = await api.get(`${BACKSTAGE_BASE}?${buildQuery(paginate, defaultSearchFields)}`);
     return response.data;
   },
 
@@ -30,8 +30,8 @@ const businessUnitLicenseService = {
    * ใบเดียวจาก id ล้วน — หน้าฟอร์มแก้ไขเปิดจาก deep link ได้โดยไม่ต้องรู้ BU ล่วงหน้า
    * คืน `business_unit_id` มาด้วย ผู้เรียกใช้มันประกอบ path ของ update/delete ซึ่งยังเป็น nested
    */
-  getByIdPlatform: async (id: string) => {
-    const response = await api.get(`${PLATFORM_BASE}/${id}`);
+  getByIdBackstage: async (id: string) => {
+    const response = await api.get(`${BACKSTAGE_BASE}/${id}`);
     return response.data;
   },
 
@@ -60,23 +60,23 @@ const businessUnitLicenseService = {
   },
 
   /** ตัวเลขสรุปทั้ง fleet สำหรับแถบการ์ดของ License Center — ไม่รับตัวกรอง (ต้องนิ่งกับตัวกรองของตาราง) */
-  getPlatformSummary: async (): Promise<LicenseFleetSummary> => {
-    const response = await api.get(`${PLATFORM_BASE}/summary`);
+  getBackstageSummary: async (): Promise<LicenseFleetSummary> => {
+    const response = await api.get(`${BACKSTAGE_BASE}/summary`);
     return response.data.data || response.data;
   },
 
   /**
    * รายการใบ seatที่ถูกลบแบบซ่อน (deleted_at ไม่ว่าง) — เฉพาะ platform superadmin
-   * envelope เดียวกับ listPlatform; แถวมี `deleted_at` / `deleted_by_id` และชื่อผู้ลบที่ `audit.deleted`
+   * envelope เดียวกับ listBackstage; แถวมี `deleted_at` / `deleted_by_id` และชื่อผู้ลบที่ `audit.deleted`
    */
   listDeleted: async (paginate: PaginateParams = {}): Promise<SeatLicensesResponse> => {
-    const response = await api.get(`${PLATFORM_BASE}/deleted?${buildQuery(paginate, defaultSearchFields)}`);
+    const response = await api.get(`${BACKSTAGE_BASE}/deleted?${buildQuery(paginate, defaultSearchFields)}`);
     return response.data;
   },
 
   /** กู้คืนใบที่ลบแบบซ่อน — 409 `LICENSE_RESTORE_CONFLICT` เมื่อเลขชนกับใบที่ active อยู่ (ต้องมีสิทธิ์ subscription.manage) */
   restore: async (id: string): Promise<unknown> => {
-    const response = await api.post(`${PLATFORM_BASE}/${id}/restore`);
+    const response = await api.post(`${BACKSTAGE_BASE}/${id}/restore`);
     return response.data;
   },
 
@@ -86,7 +86,7 @@ const businessUnitLicenseService = {
    * 409 `LICENSE_HARD_DELETE_ACTIVE` เมื่อแถวยัง active
    */
   hardDelete: async (id: string): Promise<unknown> => {
-    const response = await api.delete(`${PLATFORM_BASE}/${id}/hard`);
+    const response = await api.delete(`${BACKSTAGE_BASE}/${id}/hard`);
     return response.data;
   },
 };

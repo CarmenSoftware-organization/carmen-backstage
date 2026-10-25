@@ -8,7 +8,7 @@ Carmen Blue Backstage is a frontend-only React + TypeScript admin dashboard for 
 
 ## Users and roles
 
-All authenticated users have a `platform_role` that maps to a set of permissions (Platform RBAC). Route access is enforced client-side in `PrivateRoute` via `hasPermission()` / `requireSuperAdmin`, and on the backend. The allowed login roles are:
+All authenticated users have a `platform_role` that maps to a set of permissions (Backstage RBAC). Route access is enforced client-side in `PrivateRoute` via `hasPermission()` / `requireSuperAdmin`, and on the backend. The allowed login roles are:
 
 | Role | Description |
 |------|-------------|
@@ -38,7 +38,7 @@ Users outside this list are rejected at login with an "access denied" message. S
 
 **News & Broadcast.** News is an editorial CRUD entity with image upload, surfaced publicly on the changelog page. Broadcast composes a notification with system-wide or per-BU targeting and optional scheduling. Managed under `/news` and `/broadcasts/new`.
 
-**Platform RBAC.** Platform roles bundle permissions (`<module>.<action>`). The permission catalog (`/platform/permissions`) is read-only; roles are managed under `/platform/roles`, super admins under `/platform/super-admins`, and user ↔ platform-role scope under `/platform/user-platform`. Guards throughout the app check permissions rather than hard-coded role names.
+**Backstage RBAC.** Backstage roles bundle permissions (`<module>.<action>`). The permission catalog (`/backstage/permissions`) is read-only; roles are managed under `/backstage/roles`, super admins under `/backstage/super-admins`, and user ↔ platform-role scope under `/backstage/user-backstage`. Guards throughout the app check permissions rather than hard-coded role names.
 
 ## Architecture
 

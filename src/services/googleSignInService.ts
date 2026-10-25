@@ -1,7 +1,7 @@
 const apiBaseUrl = String(import.meta.env.REACT_APP_API_BASE_URL ?? '').replace(/\/+$/, '');
 
 /**
- * หน้า login ของ Platform ควรแสดงปุ่ม Google ไหม — ถาม gateway (สวิตช์ `google_sign_in.platform`
+ * หน้า login ของ Backstage ควรแสดงปุ่ม Google ไหม — ถาม gateway (สวิตช์ `google_sign_in.platform`
  * ใน platform config + การตั้งค่า Google ของ gateway)
  *
  * ใช้ `fetch` ตรง ๆ ไม่ใช่ instance `api` เพราะ endpoint นี้สาธารณะและถูกเรียกก่อนมี session —

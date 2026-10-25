@@ -254,7 +254,7 @@ const RoleManagement: React.FC = () => {
       cell: ({ row }) => (
         <div className="flex flex-col gap-0.5">
           <Link
-            to={`/platform/roles/${row.original.id}/edit`}
+            to={`/backstage/roles/${row.original.id}/edit`}
             className="text-primary hover:underline font-medium whitespace-nowrap"
             title={row.original.name}
           >
@@ -316,7 +316,7 @@ const RoleManagement: React.FC = () => {
           <DropdownMenuContent align="end">
             <Can permission="platform_role.update">
               <DropdownMenuItem
-                onClick={() => navigate(`/platform/roles/${row.original.id}/edit`)}
+                onClick={() => navigate(`/backstage/roles/${row.original.id}/edit`)}
                 className="cursor-pointer"
               >
                 <Pencil className="mr-2 h-4 w-4" />
@@ -350,7 +350,7 @@ const RoleManagement: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/platform/category-permissions')}
+                onClick={() => navigate('/backstage/category-permissions')}
               >
                 <BookOpen className="mr-2 h-4 w-4" />
                 {t('pages.roles.permissionCatalog')}
@@ -365,7 +365,7 @@ const RoleManagement: React.FC = () => {
                 {t('common.action.export')}
               </Button>
               <Can permission="platform_role.create">
-                <Button onClick={() => navigate('/platform/roles/new')}>
+                <Button onClick={() => navigate('/backstage/roles/new')}>
                   <Plus className="mr-2 h-4 w-4" />
                   <span className="hidden sm:inline">{t('pages.roles.addRole')}</span>
                   <span className="sm:hidden">{t('common.action.add')}</span>
@@ -499,7 +499,7 @@ const RoleManagement: React.FC = () => {
                 emptyDescription={t('pages.roles.emptyDescription')}
                 addAction={
                   <Can permission="platform_role.create">
-                    <Button size="sm" onClick={() => navigate('/platform/roles/new')}>
+                    <Button size="sm" onClick={() => navigate('/backstage/roles/new')}>
                       <Plus className="mr-2 h-4 w-4" />
                       {t('pages.roles.addRole')}
                     </Button>

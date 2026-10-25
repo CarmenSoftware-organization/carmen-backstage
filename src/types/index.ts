@@ -235,14 +235,14 @@ export interface BusinessUnit {
   deleted_by_name?: string;
   // `@EnrichAuditUsers()` on `GET /api-system/business-units` deletes the flat `created_at`
   // (and the other audit-timestamp fields) off every list row and re-nests it here as
-  // `audit.created.at` instead — same rewrite as `PlatformUserRoleAssignment`/`SuperAdmin`
+  // `audit.created.at` instead — same rewrite as `BackstageUserRoleAssignment`/`SuperAdmin`
   // above. Both `created_at` and `audit` are kept on this type because which shape a given
   // response actually carries depends on the route; read `created_at ?? audit?.created?.at`.
   audit?: Audit;
   doc_version?: number; // optimistic-lock token (read model)
 }
 
-// Platform database migration (super-admin หรือ deploy token) — /api-system/backstage/migrations/*
+// Backstage database migration (super-admin หรือ deploy token) — /api-system/backstage/migrations/*
 // ฝั่ง backend คืน stdout ดิบของ prisma มาใน `raw` หลัง sanitize แล้ว ฟิลด์ทั้งหมดเป็น optional
 // เพราะ controller ห่อด้วย Result<unknown> — สัญญาไม่ได้การันตีว่าจะมีครบทุกครั้ง
 /**
@@ -262,13 +262,13 @@ export interface BusinessUnit {
  * ถ้าวันหนึ่ง op ตัวอื่นต้องการ BU ด้วย มันจะได้ dialog เองโดยไม่ต้องแก้ที่นี่
  * The page reads this instead of hardcoding op ids, so a new per-BU op gets the dialog free.
  */
-export interface PlatformSeedOpParam {
+export interface BackstageSeedOpParam {
   name: string;
   type: 'uuid';
   required: boolean;
 }
 
-export interface PlatformSeedOp {
+export interface BackstageSeedOp {
   id: string;
   group: 'seed' | 'check';
   script: string;
@@ -276,7 +276,7 @@ export interface PlatformSeedOp {
   readonly: boolean;
   missing: boolean;
   /** ไม่มีหรือว่าง = กดรันได้ทันที · มี = ต้องถามค่าก่อน */
-  params?: PlatformSeedOpParam[];
+  params?: BackstageSeedOpParam[];
 }
 
 /** เหตุการณ์ที่สตรีมกลับระหว่างรัน op หนึ่งตัว — รูปเดียวกับ SeedRunEvent ฝั่ง micro-business */
@@ -286,14 +286,14 @@ export type SeedRunEvent =
   | { type: 'done'; success: boolean; exit_code: number }
   | { type: 'error'; message: string };
 
-export interface PlatformMigrationStatus {
+export interface BackstageMigrationStatus {
   has_pending?: boolean;
   pending?: string[];
   up_to_date?: boolean;
   raw?: string;
 }
 
-export interface PlatformMigrationDeployResult {
+export interface BackstageMigrationDeployResult {
   success?: boolean;
   already_up_to_date?: boolean;
   applied_migrations?: string[];
@@ -301,9 +301,9 @@ export interface PlatformMigrationDeployResult {
 }
 
 /** 'applied' = ทำเครื่องหมายว่ารันสำเร็จแล้ว · 'rolled-back' = ทำเครื่องหมายว่าย้อนกลับแล้ว */
-export type PlatformMigrationResolveAction = 'applied' | 'rolled-back';
+export type BackstageMigrationResolveAction = 'applied' | 'rolled-back';
 
-export interface PlatformMigrationResolveResult {
+export interface BackstageMigrationResolveResult {
   success?: boolean;
   migration_name?: string;
   action?: string;
@@ -660,29 +660,29 @@ export interface UserRoleAssignment {
 }
 
 /** Scope of a platform-role assignment as returned by the registry endpoint, with the cluster's display name resolved server-side. */
-export type PlatformUserScope =
+export type BackstageUserScope =
   | { type: 'platform' }
   | { type: 'cluster'; cluster_id: string; cluster_name?: string | null };
 
-export interface PlatformUserRoleAssignment {
+export interface BackstageUserRoleAssignment {
   id: string;
   role_id: string;
   role_name?: string | null;
-  scope: PlatformUserScope;
+  scope: BackstageUserScope;
   // The gateway's @EnrichAuditUsers rewrites created_at/created_by_id into this shape.
   // `audit.created.name` is absent when the grant predates actor recording, and is the
   // literal "Unknown" when an id was recorded but no longer resolves to a user.
   audit?: Audit;
 }
 
-export interface PlatformUserRow {
+export interface BackstageUserRow {
   user_id: string;
   username?: string;
   email?: string;
   firstname?: string;
   lastname?: string;
   is_active: boolean;
-  roles: PlatformUserRoleAssignment[];
+  roles: BackstageUserRoleAssignment[];
   last_granted_at?: string | null;
 }
 
@@ -694,12 +694,12 @@ export interface PlatformUserRow {
  * deliberately, per the design doc, so the summary band reads one coherent block instead
  * of stitching two response fields together.
  *
- * Optional on `PlatformUsersResponse` because it ships in a later backend deploy than this
+ * Optional on `BackstageUsersResponse` because it ships in a later backend deploy than this
  * frontend change — every request made against the current backend omits it, and callers
  * must render an explicit "unavailable" state rather than defaulting fields to 0, which
  * would misreport (e.g.) inactive holders as zero.
  */
-export interface PlatformUserRegistrySummary {
+export interface BackstageUserRegistrySummary {
   holders: number;
   platform_wide: number;
   cluster_only: number;
@@ -707,9 +707,9 @@ export interface PlatformUserRegistrySummary {
   inactive: number;
 }
 
-/** Response shape for `GET /api-system/backstage/users` — `ApiListResponse` plus the filter-consistent `summary` block (see `PlatformUserRegistrySummary`). */
-export interface PlatformUsersResponse extends ApiListResponse<PlatformUserRow> {
-  summary?: PlatformUserRegistrySummary;
+/** Response shape for `GET /api-system/backstage/users` — `ApiListResponse` plus the filter-consistent `summary` block (see `BackstageUserRegistrySummary`). */
+export interface BackstageUsersResponse extends ApiListResponse<BackstageUserRow> {
+  summary?: BackstageUserRegistrySummary;
 }
 
 /** Capped/uncapped rollup for one license dimension of the fleet. A cap of 0/null/absent all mean uncapped. */
@@ -959,7 +959,7 @@ export interface LoginResult {
   success: boolean;
   error?: string;
   /** Set by `loginWithTokens` so the callback page can pick a translated message by code, not by text. */
-  code?: 'access_denied_platform' | 'login_failed';
+  code?: 'access_denied_backstage' | 'login_failed';
 }
 
 export interface AuthContextValue {
@@ -977,8 +977,8 @@ export interface AuthContextValue {
   isSuperAdmin: boolean;
   adminScope: AdminScope | null;
   isClusterAdminOf: (clusterId: string) => boolean;
-  /** May this user use the platform-administration view at all? See checkPlatformAuthority. */
-  hasPlatformAuthority: boolean;
+  /** May this user use the platform-administration view at all? See checkBackstageAuthority. */
+  hasBackstageAuthority: boolean;
   /** Does this user administer at least one cluster (or all of them)? */
   hasClusterAdminScope: boolean;
 }
@@ -1218,7 +1218,7 @@ export interface EmailRoutingConfig {
 }
 
 /**
- * Platform-wide outbound email sender profile.
+ * Backstage-wide outbound email sender profile.
  * `smtp_password` is ALWAYS the mask (`••••••`) when it comes from the API —
  * the real value is never returned. See docs/superpowers/specs/2026-07-30-*.
  */
@@ -1278,7 +1278,7 @@ export interface DatabasePoolWriteInput {
   note?: string;
 }
 
-// ==================== Platform Config (tb_platform_config) ====================
+// ==================== Backstage Config (tb_platform_config) ====================
 
 /**
  * ค่า config ของคีย์ `invitation` — ใช้ประกอบลิงก์คำเชิญและกำหนดอายุคำเชิญ
@@ -1349,7 +1349,7 @@ export interface LicenseConfig {
 }
 
 /**
- * สวิตช์เปิด/ปิด API migration ของฐานข้อมูลแพลตฟอร์ม — คีย์ `platform_migration` ใน Platform Config
+ * สวิตช์เปิด/ปิด API migration ของฐานข้อมูลแพลตฟอร์ม — คีย์ `platform_migration` ใน Backstage Config
  * The on/off switch for the platform-database migration API.
  *
  * เคยเป็น env `PLATFORM_MIGRATION_API_ENABLED` ของ backend-gateway ย้ายมาเป็น config เพราะเป็นค่าที่
@@ -1358,22 +1358,22 @@ export interface LicenseConfig {
  *
  * guard ฝั่ง backend cache ไว้ 60 วินาที การสลับค่าจึงมีผลภายในหนึ่งนาที ไม่ใช่ทันที
  */
-export interface PlatformMigrationConfig {
+export interface BackstageMigrationConfig {
   api_enabled: boolean;
 }
 
-/** สวิตช์ Google sign-in แยกต่อแอป (`google_sign_in`) — `app` = ทุก client ที่ไม่ใช่ Platform */
+/** สวิตช์ Google sign-in แยกต่อแอป (`google_sign_in`) — `app` = ทุก client ที่ไม่ใช่ Backstage */
 export interface GoogleSignInConfig {
   platform: boolean;
   app: boolean;
 }
 
 /**
- * เกณฑ์ "ใกล้หมดอายุ" ของใบแต่ละชนิด หน่วยเป็นวัน — คีย์ `expiry_thresholds` ใน Platform Config
+ * เกณฑ์ "ใกล้หมดอายุ" ของใบแต่ละชนิด หน่วยเป็นวัน — คีย์ `expiry_thresholds` ใน Backstage Config
  * The per-kind "expiring soon" windows, in days.
  *
  * เป็นเกณฑ์ **แสดงผล** ไม่ใช่เกณฑ์บังคับใช้ — เปลี่ยนแล้วไม่มีใครถูกบล็อกเพิ่มหรือลด
- * อ่านผ่าน `useExpiryThresholds()` ไม่ใช่ผ่าน `platformConfigService` เพราะ GET ของเส้นทางนั้น
+ * อ่านผ่าน `useExpiryThresholds()` ไม่ใช่ผ่าน `backstageConfigService` เพราะ GET ของเส้นทางนั้น
  * บังคับ `platform_config.read` ซึ่งผู้ใช้ที่เปิดหน้ารายการใบทั่วไปไม่มี
  * A display threshold, read through the dedicated open endpoint, not /backstage/configs.
  */
@@ -1392,7 +1392,7 @@ export interface ExpiryThresholdsConfig {
  * หนึ่งรายการจาก /api-system/backstage/configs
  * `id` เป็น null เมื่อยังไม่เคยบันทึกคีย์นี้ และ backend กำลังคืนค่าเริ่มต้นในตัวมาแทน
  */
-export interface PlatformConfig {
+export interface BackstageConfig {
   id: string | null;
   key: string;
   value: Record<string, unknown>;

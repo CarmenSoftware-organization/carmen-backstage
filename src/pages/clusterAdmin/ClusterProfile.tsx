@@ -64,7 +64,7 @@ const toMember = (cu: {
  *
  * The edit surface stays narrow (see ClusterEdit.tsx for the canonical orchestration this
  * mirrors): identity and branding only. `is_active` renders read-only even in edit mode
- * (`canEditPlatformFields={false}`) because the backend silently strips `max_license_users`,
+ * (`canEditBackstageFields={false}`) because the backend silently strips `max_license_users`,
  * `is_active`, and `info` from a membership admin's cluster update — a discarded write, with no
  * error to show for it. Capacity, business units, and people are read-only always; their writes
  * live behind `subscription.manage` at the gateway.
@@ -397,7 +397,7 @@ const ClusterProfile: React.FC = () => {
                         formData={formData}
                         fieldErrors={fieldErrors}
                         canEdit={editing}
-                        canEditPlatformFields={false}
+                        canEditBackstageFields={false}
                         showCode={false}
                         onCommit={handleCommit}
                         onValidate={handleValidate}

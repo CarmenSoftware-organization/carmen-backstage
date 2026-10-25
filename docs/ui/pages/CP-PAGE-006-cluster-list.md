@@ -48,8 +48,8 @@ Permission is checked before the flag, so a user without access sees 403, not 40
 
 | Role | Permission | Scope | Notes |
 |------|-----------|-------|-------|
-| Any Backstage role | `cluster.read` | Platform | Required to open the page |
-| — | `cluster.create` | Platform | Shows **Add Cluster** (header and empty state) |
+| Any Backstage role | `cluster.read` | Backstage | Required to open the page |
+| — | `cluster.create` | Backstage | Shows **Add Cluster** (header and empty state) |
 | — | `cluster.update` | Cluster (`clusterId=row.id`) | Shows row menu → **Edit** |
 | — | `activity_log.read` | Cluster | Shows row menu → **Change history** |
 | — | `cluster.delete` | Cluster | Shows row menu → **Delete** |

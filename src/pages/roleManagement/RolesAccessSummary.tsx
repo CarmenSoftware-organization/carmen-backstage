@@ -75,7 +75,7 @@ export function RolesAccessSummary({ summary, loading, error = false, onRetry = 
                     return (
                       <Fragment key={r.id}>
                         <Link
-                          to={`/platform/roles/${r.id}/edit`}
+                          to={`/backstage/roles/${r.id}/edit`}
                           className="hover:text-primary truncate text-sm hover:underline"
                           title={r.name}
                         >

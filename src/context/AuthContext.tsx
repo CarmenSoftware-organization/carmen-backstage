@@ -4,7 +4,7 @@ import userService from '../services/userService';
 import permissionService from '../services/permissionService';
 import clusterAdminService from '../services/clusterAdminService';
 import type { User, LoginCredentials, LoginResult, LoginResponse, AuthContextValue, EffectivePermissions, AdminScope } from '../types';
-import { checkPermission, checkPlatformAuthority } from '../utils/permissions';
+import { checkPermission, checkBackstageAuthority } from '../utils/permissions';
 import { clearListViewState } from '../utils/clearListViewState';
 import { useI18n } from '../hooks/useI18n';
 import { isAppSecretInvalid } from '../services/appIdentity';
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchEffectivePermissions = async (): Promise<EffectivePermissions | null> => {
     try {
-      const eff = await permissionService.getMyPlatformPermissions();
+      const eff = await permissionService.getMyBackstagePermissions();
       return applyEffectivePermissions(eff);
     } catch {
       return applyEffectivePermissions(null); // no permissions resolved
@@ -185,7 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         fetchUserCount(),
         fetchAdminScope(),
       ]);
-      const hasAnyPermission = checkPlatformAuthority(eff);
+      const hasAnyPermission = checkBackstageAuthority(eff);
       // A cluster-admin membership is authority in its own right — it is what gates every
       // invitation and membership route on the server. Without this clause a user whose only
       // authority is that membership cannot enter the app at all.
@@ -202,7 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAdminScope(null);
         return {
           success: false,
-          error: t('login.accessDeniedPlatform'),
+          error: t('login.accessDeniedBackstage'),
         };
       }
 
@@ -263,9 +263,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   /**
-   * Same session bootstrap and the same Platform-authority gate as login(), for tokens the gateway hands back
+   * Same session bootstrap and the same Backstage-authority gate as login(), for tokens the gateway hands back
    * after a Google sign-in. Separate because there are no credentials: the user label comes from the token.
-   * The gateway never creates an account for Platform, so a Google user with no Platform authority is refused
+   * The gateway never creates an account for Backstage, so a Google user with no Backstage authority is refused
    * here exactly like a password user would be.
    */
   const loginWithTokens = async (accessToken: string, refreshToken: string): Promise<LoginResult> => {
@@ -289,7 +289,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         fetchUserCount(),
         fetchAdminScope(),
       ]);
-      const hasAnyPermission = checkPlatformAuthority(eff);
+      const hasAnyPermission = checkBackstageAuthority(eff);
       const hasClusterAdmin = !!scope && (scope.all || scope.clusters.length > 0);
       const isBootstrap = count !== null && count <= 1; // first-admin escape hatch
       if (!hasAnyPermission && !hasClusterAdmin && !isBootstrap) {
@@ -304,7 +304,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setLoginResponse(null);
         setEffectivePermissions(null);
         setAdminScope(null);
-        return { success: false, error: t('login.accessDeniedPlatform'), code: 'access_denied_platform' };
+        return { success: false, error: t('login.accessDeniedBackstage'), code: 'access_denied_backstage' };
       }
 
       const email = decodeJwtEmail(accessToken);
@@ -340,12 +340,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const isSuperAdmin = !!effectivePermissions?.is_super_admin;
 
-  // The bootstrap escape hatch belongs here rather than in checkPlatformAuthority: the very
+  // The bootstrap escape hatch belongs here rather than in checkBackstageAuthority: the very
   // first administrator of a fresh install has no permission rows yet, and hasPermission
   // (below) already treats that state as full access. The two must agree, or the first admin
   // is bounced out of the view they exist to set up.
-  const hasPlatformAuthority =
-    (userCount !== null && userCount <= 1) || checkPlatformAuthority(effectivePermissions);
+  const hasBackstageAuthority =
+    (userCount !== null && userCount <= 1) || checkBackstageAuthority(effectivePermissions);
 
   const hasClusterAdminScope =
     !!adminScope && (adminScope.all || adminScope.clusters.length > 0);
@@ -374,7 +374,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isSuperAdmin,
     adminScope,
     isClusterAdminOf,
-    hasPlatformAuthority,
+    hasBackstageAuthority,
     hasClusterAdminScope,
   };
 

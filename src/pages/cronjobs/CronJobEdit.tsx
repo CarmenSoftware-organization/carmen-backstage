@@ -218,7 +218,7 @@ const CronJobEdit: React.FC = () => {
         setNotFound(true);
         return;
       }
-      // FOREIGN_OWNED_JOB: gateway รุ่นใหม่ไม่ตอบรหัสนี้แล้ว (ด่าน assertPlatformOwned ถูกถอด
+      // FOREIGN_OWNED_JOB: gateway รุ่นใหม่ไม่ตอบรหัสนี้แล้ว (ด่าน assertBackstageOwned ถูกถอด
       // ออกจาก update/delete) แต่ยังต้องจับไว้ เพราะ FE ขึ้นก่อน BE ได้ และถ้า BE ยังเป็นรุ่นเก่า
       // ผู้ใช้ต้องเห็นเหตุผลจริง ไม่ใช่ข้อความ conflict ทั่วไป
       // ลำดับสำคัญ ห้ามสลับ: gateway ตอบ 409 ด้วยสองเหตุผลที่แยกกันไม่ได้จาก status code เดียว

@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./hooks/useDarkMode";
 import { I18nProvider } from "./hooks/useI18n";
@@ -35,7 +35,7 @@ const LicenseCatalog = lazy(() => import("./pages/LicenseCatalog"));
 const LicenseFeatureGroupEdit = lazy(() => import("./pages/LicenseFeatureGroupEdit"));
 const TenantMigrationManagement = lazy(() => import("./pages/TenantMigrationManagement"));
 const TenantSeedManagement = lazy(() => import("./pages/TenantSeedManagement"));
-const PlatformMigrationManagement = lazy(() => import("./pages/PlatformMigrationManagement"));
+const BackstageMigrationManagement = lazy(() => import("./pages/BackstageMigrationManagement"));
 const TenantImportWizard = lazy(() => import("./pages/TenantImportWizard"));
 const UserManagement = lazy(() => import("./pages/UserManagement"));
 const UserEdit = lazy(() => import("./pages/UserEdit"));
@@ -54,13 +54,13 @@ const RoleManagement = lazy(() => import("./pages/RoleManagement"));
 const RoleEdit = lazy(() => import("./pages/RoleEdit"));
 const PermissionCatalog = lazy(() => import("./pages/PermissionCatalog"));
 const SuperAdminManagement = lazy(() => import("./pages/SuperAdminManagement"));
-const UserPlatformManagement = lazy(() => import("./pages/UserPlatformManagement"));
-const UserPlatformEdit = lazy(() => import("./pages/UserPlatformEdit"));
+const UserBackstageManagement = lazy(() => import("./pages/UserBackstageManagement"));
+const UserBackstageEdit = lazy(() => import("./pages/UserBackstageEdit"));
 const SqlWorkbench = lazy(() => import("./pages/sqlWorkbench/SqlWorkbench"));
 const UsageAnalytics = lazy(() => import("./pages/UsageAnalytics"));
 const ActivityEventManagement = lazy(() => import("./pages/ActivityEventManagement"));
 const EmailSettingManagement = lazy(() => import("./pages/EmailSettingManagement"));
-const PlatformConfigManagement = lazy(() => import("./pages/PlatformConfigManagement"));
+const BackstageConfigManagement = lazy(() => import("./pages/BackstageConfigManagement"));
 const DatabasePoolManagement = lazy(() => import("./pages/DatabasePoolManagement"));
 const DatabasePoolEdit = lazy(() => import("./pages/DatabasePoolEdit"));
 const CronJobManagement = lazy(() => import("./pages/cronjobs/CronJobManagement"));
@@ -436,7 +436,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/roles"
+              path="/backstage/roles"
               element={
                 <PrivateRoute requiredPermission="platform_role.read" feature="platform_roles">
                   <RoleManagement />
@@ -444,7 +444,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/roles/new"
+              path="/backstage/roles/new"
               element={
                 <PrivateRoute requiredPermission="platform_role.create" feature="platform_roles">
                   <RoleEdit />
@@ -452,7 +452,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/roles/:id/edit"
+              path="/backstage/roles/:id/edit"
               element={
                 <PrivateRoute requiredPermission="platform_role.update" feature="platform_roles">
                   <RoleEdit />
@@ -460,7 +460,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/category-permissions"
+              path="/backstage/category-permissions"
               element={
                 <PrivateRoute>
                   <PermissionCatalog />
@@ -468,15 +468,15 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/migrations"
+              path="/backstage/migrations"
               element={
                 <PrivateRoute requireSuperAdmin feature="platform_migrations">
-                  <PlatformMigrationManagement />
+                  <BackstageMigrationManagement />
                 </PrivateRoute>
               }
             />
             <Route
-              path="/platform/super-admins"
+              path="/backstage/super-admins"
               element={
                 <PrivateRoute requireSuperAdmin feature="super_admins">
                   <SuperAdminManagement />
@@ -484,18 +484,18 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/user-platform"
+              path="/backstage/user-backstage"
               element={
                 <PrivateRoute requiredPermission="user_platform.read" feature="user_platform">
-                  <UserPlatformManagement />
+                  <UserBackstageManagement />
                 </PrivateRoute>
               }
             />
             <Route
-              path="/platform/user-platform/:userId"
+              path="/backstage/user-backstage/:userId"
               element={
                 <PrivateRoute requiredPermission="user_platform.read" feature="user_platform">
-                  <UserPlatformEdit />
+                  <UserBackstageEdit />
                 </PrivateRoute>
               }
             />
@@ -524,7 +524,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/email-settings"
+              path="/backstage/email-settings"
               element={
                 <PrivateRoute requiredPermission="email_setting.read" feature="email_settings">
                   <EmailSettingManagement />
@@ -532,15 +532,15 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/configs"
+              path="/backstage/configs"
               element={
                 <PrivateRoute requiredPermission="platform_config.read" feature="platform_config">
-                  <PlatformConfigManagement />
+                  <BackstageConfigManagement />
                 </PrivateRoute>
               }
             />
             <Route
-              path="/platform/database-pools"
+              path="/backstage/database-pools"
               element={
                 <PrivateRoute requiredPermission="database_pool.read" feature="database_pools">
                   <DatabasePoolManagement />
@@ -548,7 +548,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/database-pools/new"
+              path="/backstage/database-pools/new"
               element={
                 <PrivateRoute requiredPermission="database_pool.read" feature="database_pools">
                   <DatabasePoolEdit />
@@ -556,7 +556,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/database-pools/:id/edit"
+              path="/backstage/database-pools/:id/edit"
               element={
                 <PrivateRoute requiredPermission="database_pool.read" feature="database_pools">
                   <DatabasePoolEdit />
@@ -588,7 +588,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/platform/features"
+              path="/backstage/features"
               element={
                 <PrivateRoute requiredPermission="feature_flag.manage">
                   <FeatureFlagManagement />
@@ -639,6 +639,8 @@ function AppContent() {
               path="/cluster-admin/:clusterId/profile"
               element={<ClusterAdminRoute><Profile /></ClusterAdminRoute>}
             />
+            {/* Console เดิมชื่อ Platform — path เก่า /platform/* (บุ๊กมาร์ก, e2e) ส่งต่อไป /backstage/* */}
+            <Route path="/platform/*" element={<LegacyPlatformRedirect />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
@@ -656,6 +658,13 @@ function AppContent() {
 const SubscriptionEditRedirect: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   return <Navigate to={`/licenses/subscriptions/${id}/edit`} replace />;
+};
+
+/** เปลี่ยนชื่อ prefix /platform → /backstage (และ segment user-platform → user-backstage) พร้อมคง query/hash */
+const LegacyPlatformRedirect: React.FC = () => {
+  const { pathname, search, hash } = useLocation();
+  const next = pathname.replace(/^\/platform(?=\/|$)/, "/backstage").replace(/\/user-platform(?=\/|$)/, "/user-backstage");
+  return <Navigate to={`${next}${search}${hash}`} replace />;
 };
 
 export default App;

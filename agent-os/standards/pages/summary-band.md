@@ -3,7 +3,7 @@
 Management pages carry a stat band above the table: `<Entity>Summary.tsx` in the page's
 subdirectory. Seven of these are the running example set for the two patterns below —
 `UserDirectorySummary`, `NewsroomSummary`, `ApplicationRegistrySummary`, `BuSummary`,
-`RolesAccessSummary`, `PlatformAccessSummary`, `FleetCapacity`. Two more of the same shape exist
+`RolesAccessSummary`, `BackstageAccessSummary`, `FleetCapacity`. Two more of the same shape exist
 elsewhere in the app — `broadcastManagement/BroadcastSummary.tsx` (`/broadcasts`) and
 `licenses/subscriptionManagement/SubscriptionSummary.tsx` (`/licenses`) — both already covered by
 the callouts below (the `/broadcasts` one still unreviewed, the `/licenses` one on the
@@ -21,14 +21,14 @@ Pick the section below that matches what your band claims — they use different
 
 ## Band describes the filtered result set: read the aggregate from the backend
 
-Reference: `UserPlatformManagement.tsx:60-66` (rendered by `PlatformAccessSummary.tsx`). Also on this side: `/licenses` (`SubscriptionTable.tsx:137-139`, rendered by `subscriptionManagement/SubscriptionSummary.tsx`).
+Reference: `UserBackstageManagement.tsx:60-66` (rendered by `BackstageAccessSummary.tsx`). Also on this side: `/licenses` (`SubscriptionTable.tsx:137-139`, rendered by `subscriptionManagement/SubscriptionSummary.tsx`).
 
 ```ts
-const [summary, setSummary] = useState<PlatformUserRegistrySummary | null>(null);
+const [summary, setSummary] = useState<BackstageUserRegistrySummary | null>(null);
 setSummary(data?.summary ?? null);        // registry-wide, from the list response
 ```
 
-The band is **filter-consistent** — it describes every row matching the current `advance` filter and `search`, not just the current page. It is *not* registry-wide: changing a filter changes the band, and for `/user-platform` and `/licenses` that's the intended behavior, not a bug — both bands sit inside the filtered view and answer "how many of what I'm looking at now." `summary.total` equals `paginate.total` whenever the list is showing live rows only, which is the invariant to assert. Say so in a comment; readers assume registry-wide otherwise.
+The band is **filter-consistent** — it describes every row matching the current `advance` filter and `search`, not just the current page. It is *not* registry-wide: changing a filter changes the band, and for `/user-backstage` and `/licenses` that's the intended behavior, not a bug — both bands sit inside the filtered view and answer "how many of what I'm looking at now." `summary.total` equals `paginate.total` whenever the list is showing live rows only, which is the invariant to assert. Say so in a comment; readers assume registry-wide otherwise.
 
 `summary` stays `null` until the backend deploys (see `api/backend-deploy-order.md`). Render a headline the band can compute without it — `paginate.total` usually equals the top-line count.
 
@@ -82,4 +82,4 @@ const [summaryError, setSummaryError] = useState(false);
 
 - `loadSummary` is a `useCallback`; call it after **every** mutation, not just on mount
 - Props are `{ summary, loading, error, onRetry }` on six of the seven bands. `FleetCapacity` takes `{ summary, loading, error }` — no `onRetry`. It has the same error affordance as the other six (a `role="alert"` cue, and — once numbers have already loaded — dimming the stale-but-plausible numbers on a later failure instead of blanking them), it just has no retry button: a first-ever failure renders plain "Capacity unavailable" text rather than `FetchErrorState`'s "Try again". `ClusterManagement` also names its state `fleet`/`fleetLoading` rather than `summary*`.
-- **The band fails independently.** On error set `summaryError = true` — never let a failed aggregate blank the page or block the table. Two cases, not one: a **first-ever failure** (no `summary` has ever loaded) shows the plain unavailable state; a **failure after numbers were already loaded** keeps the last known `summary` on screen, dims it (`error && 'opacity-70'`), and adds a `role="alert"` cue reading "Couldn't refresh — showing the last known numbers." Do NOT clear `summary` to `null` in the catch block — that's what collapses the second case into the first. Reference implementation: `FleetCapacity`. **Six of the seven follow this**; the exception is `PlatformAccessSummary` (`src/pages/userPlatformManagement/PlatformAccessSummary.tsx:49`), which still uses a flat `error ? <FetchErrorState/> : …` and so discards numbers already on screen when a refresh fails. It was outside the scope of the branch that fixed the other five and has not been triaged — bring it across before citing this section as universally applied.
+- **The band fails independently.** On error set `summaryError = true` — never let a failed aggregate blank the page or block the table. Two cases, not one: a **first-ever failure** (no `summary` has ever loaded) shows the plain unavailable state; a **failure after numbers were already loaded** keeps the last known `summary` on screen, dims it (`error && 'opacity-70'`), and adds a `role="alert"` cue reading "Couldn't refresh — showing the last known numbers." Do NOT clear `summary` to `null` in the catch block — that's what collapses the second case into the first. Reference implementation: `FleetCapacity`. **Six of the seven follow this**; the exception is `BackstageAccessSummary` (`src/pages/userBackstageManagement/BackstageAccessSummary.tsx:49`), which still uses a flat `error ? <FetchErrorState/> : …` and so discards numbers already on screen when a refresh fails. It was outside the scope of the branch that fixed the other five and has not been triaged — bring it across before citing this section as universally applied.

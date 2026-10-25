@@ -6,7 +6,7 @@ Frontend and backend are separate repos with **manual** deploys (`workflow_dispa
 
 - **Every new field the backend will return is optional (`?`) in `src/types/index.ts`.** No exceptions.
 - **If the client can compute it, derive it as a fallback.** `applicationService.getApiCatalog` uses backend `groups` when present and valid, otherwise calls `groupApiNames(api_names)` — the identical split rule, so the fallback equals server data exactly.
-- **If it can't be derived, treat absence as a normal state.** `userPlatformService.getAll` documents `summary` as absent until the backend deploys; callers must not assume it.
+- **If it can't be derived, treat absence as a normal state.** `userBackstageService.getAll` documents `summary` as absent until the backend deploys; callers must not assume it.
 
 ## Runtime guards
 

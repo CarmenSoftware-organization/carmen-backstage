@@ -29,7 +29,7 @@ import { PermissionGrid } from './roleEdit/PermissionGrid';
 import { AccessShapeStrip } from './roleEdit/AccessShapeStrip';
 import { ESCALATION_KEYS } from '../utils/permissionRisk';
 import { actionRank } from '../utils/permissionOrder';
-import { resourceRank } from '../components/nav/platformNav';
+import { resourceRank } from '../components/nav/backstageNav';
 import { ReadOnlyField } from '../components/ReadOnlyField';
 import type { PermissionCatalogItem } from '../types';
 import { useI18n } from '../hooks/useI18n';
@@ -248,7 +248,7 @@ const RoleEdit: React.FC = () => {
         });
         const created = result.data || result;
         toast.success(t('toast.created', { entity: t('entity.role.title') }));
-        navigate(created?.id ? `/platform/roles/${created.id}/edit` : '/platform/roles', { replace: true });
+        navigate(created?.id ? `/backstage/roles/${created.id}/edit` : '/backstage/roles', { replace: true });
       } else {
         // Compute delta vs original permissions (loaded at fetch time)
         const add = desired.filter((p) => !originalPermissions.includes(p));
@@ -457,7 +457,7 @@ const RoleEdit: React.FC = () => {
     return (
       <Layout>
         <div className="space-y-4 sm:space-y-6">
-          <PageHeader backTo="/platform/roles" title={t('pages.roles.singularTitle')} />
+          <PageHeader backTo="/backstage/roles" title={t('pages.roles.singularTitle')} />
           <Card>
             <CardContent className="p-0">
               <EmptyState
@@ -465,7 +465,7 @@ const RoleEdit: React.FC = () => {
                 title={t('pages.roles.notFoundTitle')}
                 description={t('pages.roles.notFoundDescription')}
                 action={
-                  <Button size="sm" onClick={() => navigate('/platform/roles')}>
+                  <Button size="sm" onClick={() => navigate('/backstage/roles')}>
                     {t('pages.roles.backToList')}
                   </Button>
                 }
@@ -480,7 +480,7 @@ const RoleEdit: React.FC = () => {
   return (
     <Layout>
       <div className="space-y-4 sm:space-y-6 pb-24">
-        <BackLink to="/platform/roles" label={t('breadcrumb.roles')} />
+        <BackLink to="/backstage/roles" label={t('breadcrumb.roles')} />
 
         <RoleIdentityHero
           name={formData.name}
@@ -682,7 +682,7 @@ const RoleEdit: React.FC = () => {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={isNew ? () => navigate('/platform/roles') : handleCancelEdit}
+                onClick={isNew ? () => navigate('/backstage/roles') : handleCancelEdit}
                 disabled={saving}
               >
                 <X className="mr-2 h-4 w-4" />

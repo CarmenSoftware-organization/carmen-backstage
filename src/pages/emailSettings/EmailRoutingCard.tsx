@@ -5,7 +5,7 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
-import platformConfigService from '../../services/platformConfigService';
+import backstageConfigService from '../../services/backstageConfigService';
 import { EMAIL_FLOWS } from '../../constants/emailFlows';
 import { parseApiError } from '../../utils/errorParser';
 import { RoutingPanel } from './RoutingPanel';
@@ -121,7 +121,7 @@ export const EmailRoutingCard: React.FC<EmailRoutingCardProps> = ({
       setError('');
       // draft คือ payload อยู่แล้ว: เส้นทางที่ตกทอดถูก delete ออกไปตั้งแต่ตอนกดเลือกในเมนู
       const payload: EmailRoutingConfig = { ...draft };
-      await platformConfigService.update('email_routing', payload);
+      await backstageConfigService.update('email_routing', payload);
       toast.success(t('pages.emailSettings.routingSavedToast'));
       await onSaved(payload);
       onCancelEdit();

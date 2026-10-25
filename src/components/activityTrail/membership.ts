@@ -1,7 +1,7 @@
 import type { ActivityLogEntry } from '../../types';
 import type { TKey } from '../../i18n/types';
 
-/** คำนำหน้าของ event_type ที่ logPlatformEvent แบบมือใช้บันทึกการเปลี่ยนสมาชิก */
+/** คำนำหน้าของ event_type ที่ logBackstageEvent แบบมือใช้บันทึกการเปลี่ยนสมาชิก */
 const MEMBERSHIP_PREFIX = 'membership.';
 
 /**

@@ -37,7 +37,7 @@ describe('RolesAccessSummary', () => {
 
   it('links each spotlighted role to its edit page', () => {
     renderBand();
-    expect(screen.getByRole('link', { name: 'Manager' })).toHaveAttribute('href', '/platform/roles/b/edit');
+    expect(screen.getByRole('link', { name: 'Manager' })).toHaveAttribute('href', '/backstage/roles/b/edit');
   });
 
   it('labels each breadth bar against the catalog, not against the widest role', () => {

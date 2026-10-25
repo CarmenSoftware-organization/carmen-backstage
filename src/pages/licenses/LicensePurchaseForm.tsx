@@ -129,7 +129,7 @@ const draftFromLicense = (l: {
 });
 
 /**
- * เจ้าของใบ (id ใช้ประกอบ path ของ PATCH/DELETE nested + ป้ายแสดงผล) จากแถวที่ `getByIdPlatform` คืนมา
+ * เจ้าของใบ (id ใช้ประกอบ path ของ PATCH/DELETE nested + ป้ายแสดงผล) จากแถวที่ `getByIdBackstage` คืนมา
  *
  * ใบที่นั่งมี `business_unit_id` (จาก `BusinessUnitLicense` ฐาน) ส่วนใบโควตา BU มี `cluster_id` —
  * ชื่อฟิลด์เจ้าของต่างกันไปตามชนิด นี่คือหนึ่งในสองจุดในไฟล์นี้ที่ต้องรู้ความต่างนั้น
@@ -185,7 +185,7 @@ function statusOfRow(kind: LicenseKind, row: LicenseRow, now: Date): BuLicenseSt
   // ห้ามหยิบ `in_force` มาปนตรงนี้ — มันรวมสถานะสัญญาแม่เข้ามาด้วย ซึ่งไม่ใช่สถานะของ *ใบ*
   // (แบนเนอร์ "ถูกครอบด้วยสัญญา" ใต้แผ่นป้ายเป็นที่พูดเรื่องนั้นแยกต่างหาก)
   if (kind !== 'bu-quota') return buLicenseStatus(row as unknown as BusinessUnitLicense, now);
-  // ฟอร์มโหลดใบเดียวผ่าน getByIdPlatform จึงไม่มีเพื่อนให้เทียบว่าใบไหนชนะ — `is_in_force`
+  // ฟอร์มโหลดใบเดียวผ่าน getByIdBackstage จึงไม่มีเพื่อนให้เทียบว่าใบไหนชนะ — `is_in_force`
   // ที่ backend คำนวณจาก v_cluster_bu_cap คือคำตอบเดียว · `undefined` = ไม่รู้ ให้คงสถานะเดิม
   const quota = row as unknown as ClusterLicense;
   const base = clusterLicenseStatus(quota, now);
@@ -599,7 +599,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
     try {
       setLoading(true);
       setNotFound(false);
-      const raw = await config.service.getByIdPlatform(id!);
+      const raw = await config.service.getByIdBackstage(id!);
       setRawResponse(raw);
       const data = ((raw as { data?: LicenseRow })?.data || raw) as LicenseRow | undefined;
       if (!data?.id) {
@@ -859,7 +859,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
   const handleSave = async () => {
     if (!canEditFields || isNew) return;
     if (!validateBeforeSubmit()) return;
-    // ownerId ว่างไม่ควรเกิดได้ (load() เซ็ตจาก getByIdPlatform เสมอ) แต่ถ้าเกิดขึ้นจริงต้อง fail
+    // ownerId ว่างไม่ควรเกิดได้ (load() เซ็ตจาก getByIdBackstage เสมอ) แต่ถ้าเกิดขึ้นจริงต้อง fail
     // ให้เห็นชัดตรงนี้ ไม่ใช่ปล่อยให้ PATCH ไปที่ .../undefined/licenses/:id แล้วได้ 404 งง ๆ กลับมา
     if (docVersion == null || !ownerId) {
       setError(t('pages.licenses.missingDocVersionOrOwner'));

@@ -280,7 +280,7 @@ const CronJobManagement: React.FC = () => {
       header: t('cronjob.column.owner'),
       cell: ({ row }) => row.original.source_service
         ? <Badge variant="outline">{row.original.source_service}</Badge>
-        : <span className="text-xs text-muted-foreground">{t('cronjob.owner.platform')}</span>,
+        : <span className="text-xs text-muted-foreground">{t('cronjob.owner.backstage')}</span>,
     },
     {
       accessorKey: 'last_run_at',
@@ -388,7 +388,7 @@ const CronJobManagement: React.FC = () => {
       ...item,
       job_type_label: t(`cronjob.type.${item.job_type}` as TKey),
       status_label: item.is_active ? t('cronjob.status.running') : t('cronjob.status.stopped'),
-      owner_label: item.source_service || t('cronjob.owner.platform'),
+      owner_label: item.source_service || t('cronjob.owner.backstage'),
       bu_label: (() => {
         const codes = buCodesOf(item);
         if (codes.length > 0) return codes.join(', ');

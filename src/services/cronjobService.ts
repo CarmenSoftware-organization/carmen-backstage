@@ -20,9 +20,9 @@ const BASE = '/api-system/backstage/cronjobs';
  * Known gap: parseFilterString drops a "key:value" pair whose value is empty
  * (`if (key && value)`), so an empty-string value can never survive this wire format.
  * CronJobFilterSheet deliberately sends `source_service: ''` to mean "no owning
- * service" (Platform owner). That pair is still encoded correctly below
+ * service" (Backstage owner). That pair is still encoded correctly below
  * (`source_service:`), but the gateway parser drops it before platform_cronjobs
- * .service.ts ever sees it, so the "Platform" owner filter has no effect until the
+ * .service.ts ever sees it, so the "Backstage" owner filter has no effect until the
  * gateway's parseFilterString is changed to distinguish "omitted" from "intentionally
  * empty" — out of scope for this frontend-only fix.
  */

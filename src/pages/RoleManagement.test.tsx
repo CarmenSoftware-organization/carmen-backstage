@@ -34,7 +34,7 @@ vi.mock('../components/Layout', () => ({
 // (the REAL component, not mocked here) reads this via useAuth() — mocking `Can` itself
 // to always render its children would make every permission assertion below vacuous,
 // exactly the defect this effort exists to close. This is the *platform roles* page
-// (`/platform/roles`, backed by the `platform_role` service via `roleService` ->
+// (`/backstage/roles`, backed by the `platform_role` service via `roleService` ->
 // `/api-system/backstage/roles`) — NOT application roles. `role.*` is a platform-scoped
 // permission (never granted per-cluster), and none of the four `<Can>` call sites in
 // RoleManagement.tsx pass a `clusterId` prop, so (like

@@ -346,7 +346,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
         advance: buildAdvance(config.kind, statusFilter),
         ...(usesStatusParam(config.kind) && statusFilter ? { status: statusFilter } : {}),
       };
-      const data = await config.service.listPlatform(params);
+      const data = await config.service.listBackstage(params);
       const now = new Date();
       const noExpiryLabel = t('common.state.noExpiry');
       setRows(data.data.map((r) => toFleetRow(config.kind, r, now, config.showNoExpiry, noExpiryLabel)));
@@ -381,7 +381,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
     try {
-      setSummary(await config.service.getPlatformSummary());
+      setSummary(await config.service.getBackstageSummary());
       setSummaryError('');
     } catch (err: unknown) {
       setSummaryError(t('pages.licenses.loadFailedTitle'));

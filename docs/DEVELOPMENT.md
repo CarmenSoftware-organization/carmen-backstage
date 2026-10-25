@@ -141,7 +141,7 @@ Users with any other role are rejected with "access denied".
 4. Token stored; `Authorization` header activated for subsequent requests
 5. Fresh profile fetched from `/api/user/profile` to populate name fields
 
-**Route guards (permission-based — Platform RBAC):**
+**Route guards (permission-based — Backstage RBAC):**
 
 - `PrivateRoute` wraps any authenticated route. If not authenticated → redirect to `/login`. If `requiredPermission` is set and `hasPermission()` returns false → renders `<Forbidden>`. If `requireSuperAdmin` is set and `isSuperAdmin` is false → renders `<Forbidden>`.
 - `hasPermission(key)` (from `AuthContext`): resolves the user's effective platform permissions and returns `true` if `key` (`<module>.<action>`) is present — with a bootstrap exception that grants access when the total user count is ≤ 1 (first-admin escape hatch). `isSuperAdmin` reflects `is_super_admin` on the resolved permissions.
@@ -179,10 +179,10 @@ See `src/components/PrivateRoute.tsx` for the route-guard usage and `src/App.tsx
 | `/print-template-mapping` | Print Mapping | Content | `print_template_mapping.read` |
 | `/news` | News | Content | `news.read` |
 | `/broadcasts/new` | Send Broadcast | Content | `broadcast.send` |
-| `/applications` | Applications | Platform | `application.read` |
-| `/platform/roles` | Roles | Platform | `role.read` |
-| `/platform/super-admins` | Super Admins | Platform | super admin only |
-| `/platform/user-platform` | User Platform | Platform | `user_platform.read` |
+| `/applications` | Applications | Backstage | `application.read` |
+| `/backstage/roles` | Roles | Backstage | `role.read` |
+| `/backstage/super-admins` | Super Admins | Backstage | super admin only |
+| `/backstage/user-backstage` | User Backstage | Backstage | `user_platform.read` |
 
 See [../SITEMAP.md](../SITEMAP.md) for the authoritative route list.
 

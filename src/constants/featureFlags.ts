@@ -37,7 +37,7 @@ export interface FeatureDefinition {
  * All default to active on purpose: a deploy must never hide anything on its own.
  *
  * หน้าที่จงใจไม่มี flag เพราะปิดแล้วแอปเข้าไม่ถึงหรือปิดตัวเอง:
- * /dashboard · /platform/features · /profile · /changelog · /login · / · /403 · /404
+ * /dashboard · /backstage/features · /profile · /changelog · /login · / · /403 · /404
  * Deliberately ungated: closing any of them would lock the app or the switch itself.
  *
  * ลำดับในอาร์เรย์นี้คือลำดับที่หน้าตั้งค่าแสดง และรายการที่ groupKey ซ้ำกันต้องอยู่ติดกัน
@@ -67,15 +67,15 @@ export const FEATURE_CATALOG: readonly FeatureDefinition[] = [
   { key: 'activity_events', labelKey: 'nav.activityEvents', groupKey: 'navGroup.analytics', defaultState: 'active' },
   // Scheduling
   { key: 'cronjobs', labelKey: 'nav.cronjobs', groupKey: 'navGroup.scheduling', defaultState: 'active' },
-  // Platform
-  { key: 'applications', labelKey: 'nav.applications', groupKey: 'navGroup.platform', defaultState: 'active' },
-  { key: 'email_settings', labelKey: 'nav.emailSettings', groupKey: 'navGroup.platform', defaultState: 'active' },
-  { key: 'platform_config', labelKey: 'nav.platformConfig', groupKey: 'navGroup.platform', defaultState: 'active' },
-  { key: 'platform_roles', labelKey: 'nav.platformRoles', groupKey: 'navGroup.platform', defaultState: 'active' },
-  { key: 'super_admins', labelKey: 'nav.superAdmins', groupKey: 'navGroup.platform', defaultState: 'active' },
-  { key: 'user_platform', labelKey: 'nav.userPlatform', groupKey: 'navGroup.platform', defaultState: 'active' },
+  // Backstage
+  { key: 'applications', labelKey: 'nav.applications', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'email_settings', labelKey: 'nav.emailSettings', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'platform_config', labelKey: 'nav.backstageConfig', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'platform_roles', labelKey: 'nav.backstageRoles', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'super_admins', labelKey: 'nav.superAdmins', groupKey: 'navGroup.backstage', defaultState: 'active' },
+  { key: 'user_platform', labelKey: 'nav.userBackstage', groupKey: 'navGroup.backstage', defaultState: 'active' },
   // Database — กลุ่มเดียวกับที่ sidebar ใช้ ทั้งสองหน้าต้องจัดกลุ่มตรงกัน
-  { key: 'platform_migrations', labelKey: 'nav.platformMigrations', groupKey: 'navGroup.database', defaultState: 'active' },
+  { key: 'platform_migrations', labelKey: 'nav.backstageMigrations', groupKey: 'navGroup.database', defaultState: 'active' },
   { key: 'sql_workbench', labelKey: 'nav.sqlWorkbench', groupKey: 'navGroup.database', defaultState: 'active' },
   { key: 'database_pools', labelKey: 'nav.databasePools', groupKey: 'navGroup.database', defaultState: 'active' },
   // Cluster admin — คีย์แยกจากของ platform เพราะเป็นคนละหน้าคนละสิทธิ์ ต่อให้ชื่อเมนูซ้ำกัน

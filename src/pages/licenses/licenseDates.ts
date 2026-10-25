@@ -13,7 +13,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
  *
  * เดิมชื่อ `EXPIRING_SOON_DAYS` และเป็นค่าที่ทุกคนคำนวณจากมันตรง ๆ ตอนนี้ค่าจริงมาจาก
  * `useExpiryThresholds()` (`src/context/ExpiryThresholdContext.tsx`) ซึ่งอ่านคีย์
- * `expiry_thresholds` ที่ผู้ดูแลแก้ได้จากหน้า Platform Config
+ * `expiry_thresholds` ที่ผู้ดูแลแก้ได้จากหน้า Backstage Config
  * ตัวนี้เหลือบทบาทเดียวคือค่าตั้งต้นของ context — **ห้าม import ไปคำนวณป้ายเตือนโดยตรง**
  * Formerly the single constant everyone computed from; now only the context's fallback.
  *

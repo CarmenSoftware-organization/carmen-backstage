@@ -1,0 +1,114 @@
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { hasBackstageWide, ScopeRail, RoleChips } from './roleChips';
+import type { BackstageUserRoleAssignment } from '../../types';
+
+const backstageRole = (overrides: Partial<BackstageUserRoleAssignment> = {}): BackstageUserRoleAssignment => ({
+  id: 'assign-1',
+  role_id: 'role-1',
+  role_name: 'Backstage Admin',
+  scope: { type: 'platform' },
+  ...overrides,
+});
+
+const clusterRole = (overrides: Partial<BackstageUserRoleAssignment> = {}): BackstageUserRoleAssignment => ({
+  id: 'assign-2',
+  role_id: 'role-2',
+  role_name: 'Cluster Admin',
+  scope: { type: 'cluster', cluster_id: 'cluster-1', cluster_name: 'Cluster One' },
+  ...overrides,
+});
+
+describe('hasBackstageWide', () => {
+  it('is true when any assignment is platform-wide, even alongside cluster roles', () => {
+    expect(hasBackstageWide([clusterRole(), backstageRole()])).toBe(true);
+  });
+
+  it('is false when a holder only has cluster-scoped assignments', () => {
+    expect(
+      hasBackstageWide([
+        clusterRole({ id: 'r1' }),
+        clusterRole({ id: 'r2', scope: { type: 'cluster', cluster_id: 'cluster-2' } }),
+      ]),
+    ).toBe(false);
+  });
+
+  it('is false for an empty roles array', () => {
+    expect(hasBackstageWide([])).toBe(false);
+  });
+});
+
+describe('ScopeRail', () => {
+  it('is decorative — hidden from assistive tech since the scope name is written beside it elsewhere', () => {
+    const { container } = render(<ScopeRail backstageWide />);
+    expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy();
+  });
+
+  it('uses the primary token fill for a platform-wide holder', () => {
+    const { container } = render(<ScopeRail backstageWide />);
+    expect(container.firstChild).toHaveClass('bg-primary');
+  });
+
+  it('uses a bordered, unfilled treatment for a cluster-scoped holder', () => {
+    const { container } = render(<ScopeRail backstageWide={false} />);
+    expect(container.firstChild).not.toHaveClass('bg-primary');
+    expect(container.firstChild).toHaveClass('border');
+  });
+});
+
+describe('RoleChips', () => {
+  it('renders a dash placeholder for a holder with no role assignments', () => {
+    render(<RoleChips roles={[]} />);
+    expect(screen.getByText('-')).toBeInTheDocument();
+  });
+
+  it('groups assignments by scope, naming the scope once per group', () => {
+    render(
+      <RoleChips
+        roles={[
+          clusterRole({ id: 'r1', role_name: 'Viewer', scope: { type: 'cluster', cluster_id: 'cluster-1', cluster_name: 'Cluster One' } }),
+          clusterRole({ id: 'r2', role_name: 'Editor', scope: { type: 'cluster', cluster_id: 'cluster-1', cluster_name: 'Cluster One' } }),
+        ]}
+      />,
+    );
+    expect(screen.getAllByText('Cluster One')).toHaveLength(1);
+    expect(screen.getByText('Viewer')).toBeInTheDocument();
+    expect(screen.getByText('Editor')).toBeInTheDocument();
+  });
+
+  it('orders Backstage first and remaining clusters alphabetically, regardless of input order', () => {
+    render(
+      <RoleChips
+        roles={[
+          clusterRole({ id: 'r1', role_name: 'Zeta Role', scope: { type: 'cluster', cluster_id: 'z', cluster_name: 'Zeta Cluster' } }),
+          backstageRole({ id: 'r2', role_name: 'Backstage Admin' }),
+          clusterRole({ id: 'r3', role_name: 'Alpha Role', scope: { type: 'cluster', cluster_id: 'a', cluster_name: 'Alpha Cluster' } }),
+        ]}
+      />,
+    );
+    const scopeLabels = screen
+      .getAllByText(/^(Backstage|Alpha Cluster|Zeta Cluster)$/)
+      .map((el) => el.textContent);
+    expect(scopeLabels).toEqual(['Backstage', 'Alpha Cluster', 'Zeta Cluster']);
+  });
+
+  it('falls back to cluster_id, never a blank label, when cluster_name did not resolve', () => {
+    render(
+      <RoleChips
+        roles={[
+          clusterRole({
+            id: 'r1',
+            role_name: 'Viewer',
+            scope: { type: 'cluster', cluster_id: 'unresolved-cluster-id' },
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText('unresolved-cluster-id')).toBeInTheDocument();
+  });
+
+  it('falls back to role_id when role_name is absent', () => {
+    render(<RoleChips roles={[backstageRole({ role_name: undefined, role_id: 'role-xyz' })]} />);
+    expect(screen.getByText('role-xyz')).toBeInTheDocument();
+  });
+});

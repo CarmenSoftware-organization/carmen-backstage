@@ -6,7 +6,7 @@ import BusinessUnitLicensesCard from './BusinessUnitLicensesCard';
 import type { BusinessUnitLicense } from '../../types';
 
 /**
- * เกณฑ์ "ใกล้หมดอายุ" ย้ายจาก constant ไปเป็นค่าตั้งใน Platform Config คอมโพเนนต์จึงอ่านผ่าน
+ * เกณฑ์ "ใกล้หมดอายุ" ย้ายจาก constant ไปเป็นค่าตั้งใน Backstage Config คอมโพเนนต์จึงอ่านผ่าน
  * context ที่ต้องมี provider ครอบ · mock ด้วย 30 ซึ่งเป็นค่าเดิมก่อนย้าย assertion ทุกข้อในไฟล์นี้
  * จึงยังยืนยันพฤติกรรมเดียวกับก่อนเปลี่ยน
  * Mocked with 30, the former constant, so every assertion here still tests the same behaviour.

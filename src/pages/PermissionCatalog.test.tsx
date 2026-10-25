@@ -16,7 +16,7 @@ const toast = vi.hoisted(() => ({
 vi.mock('sonner', () => ({ toast }));
 
 vi.mock('../services/permissionService', () => ({
-  default: { getCatalog: vi.fn(), getMyPlatformPermissions: vi.fn() },
+  default: { getCatalog: vi.fn(), getMyBackstagePermissions: vi.fn() },
 }));
 
 import PermissionCatalog from './PermissionCatalog';

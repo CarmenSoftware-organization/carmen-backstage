@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import Can from '../components/Can';
 import { ActivityTrailSheet } from '../components/activityTrail/ActivityTrailSheet';
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
-import { PLATFORM_SCOPED_RECORD } from '../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import { cn } from '../lib/utils';
 import { NewsMasthead } from './newsEdit/NewsMasthead';
 import { validateField } from '../utils/validation';
@@ -299,9 +299,9 @@ const NewsEdit: React.FC = () => {
         <div className="flex items-center justify-between gap-3">
           <BackLink to="/news" label={t('breadcrumb.news')} />
           {!isNew && (
-            /* news ผูกได้หลาย BU จึงไม่มี cluster เดียว — PLATFORM_SCOPED_RECORD ทำให้
+            /* news ผูกได้หลาย BU จึงไม่มี cluster เดียว — BACKSTAGE_SCOPED_RECORD ทำให้
                เหลือทางเดียวคือสิทธิ์ระดับ platform ตรงกับที่ backend บังคับ */
-            <Can permission="activity_log.read" clusterId={PLATFORM_SCOPED_RECORD}>
+            <Can permission="activity_log.read" clusterId={BACKSTAGE_SCOPED_RECORD}>
               <ActivityTrailSheet
                 entityType="news"
                 entityId={id}
