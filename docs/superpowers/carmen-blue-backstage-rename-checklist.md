@@ -5,7 +5,7 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** **ปิดงาน rename แล้ว (2026-10-26)** — โปรเจกต์ 1–5 เสร็จบน DEV + คอนโซลขึ้น production; เหลืออย่างเดียวคือแอปหลักขึ้น production พร้อมรอบ deploy ปกติของ inventory · UAT/production backend จะได้ migration ของโปรเจกต์ 5 ตอน deploy รอบถัดไป (copy `.env` ของ package + deploy micro-notification คู่กัน + รัน `db:seed.backstage-role`/`db:seed.backstage-permission`)
+- **อยู่ที่:** **ปิดงาน rename แล้ว (2026-10-26)** — โปรเจกต์ 1–5 เสร็จบน DEV + คอนโซลขึ้น production; เหลือแอปหลักขึ้น production พร้อมรอบ deploy ปกติของ inventory · **ก่อน deploy backend ขึ้น production ดูหัวข้อ "ความพร้อมขึ้น production" ด้านล่าง — มีตัวบล็อก 2 ข้อใน `carmen-infra-gcp`**
 - **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
   1. ~~production คอนโซล: push `vercel`~~ — ผู้ใช้ push แล้ว 2026-10-26 (`5b8c3b28..a30400b3`); bundle production เรียก `/backstage` 16 จุด ไม่เหลือ `/platform`, title "Carmen Blue Backstage" (ก่อน push production พังตั้งแต่ BE ขึ้นโปรเจกต์ 4b เพราะ `.env.prod` ชี้ DEV)
@@ -17,6 +17,24 @@
      - **ผลลองส่ง 2026-10-26 04:31–04:32:** request ถึง micro-notification บน DEV จริง (ไม่เกี่ยวกับ Vercel — คอนโซลเป็น static SPA, อีเมลส่งจากเครื่อง DEV) แต่ Gmail ตอบ `535-5.7.8 Username and Password not accepted` → **ต้องใส่ Gmail App Password** (เปิด 2-Step Verification → myaccount.google.com/apppasswords) แทนรหัสผ่านปกติใน profile แล้วกดทดสอบใหม่ · ถอดรหัสถูกต้อง (AES-GCM ไม่มี error, key ตรงกับ micro-business) · error `wrong version number` 04:32:09 มาจาก profile No-reply ที่ตั้ง secure ผิดชั่วคราว แก้แล้ว (ทั้ง 3 profile = 587 + secure=false) · ลบ `SECRET_ENCRYPTION_KEY` ที่ซ้ำ (ค่าไม่ตรง) ใน `.env` micro-notification บน DEV แล้ว (สำรอง `.env.bak.dupkey`)
 - **คำถามที่ค้างอยู่:** ไม่มี
 - **อัปเดตล่าสุด:** 2026-10-26
+
+## ความพร้อมขึ้น production (ตรวจ 2026-10-26, อ่านอย่างเดียว — ไม่ได้แตะ GCP ตามคำสั่ง)
+
+> แก้ข้อเข้าใจผิดเดิม: **deploy ไม่ได้รัน migration อัตโนมัติ** — `deploy-gcp.yml` และ Cloud Build ไม่มี job migrate; migration ทำมือตาม `carmen-infra-gcp/docs/deploy-runbook.md` ขั้น 9 และต้องเสร็จ **ก่อน** deploy โค้ด · env ของ Cloud Run/VM มาจาก Terraform (`carmen-infra-gcp`) ไม่ใช่ `.env` · backend `main` นำ `prod` อยู่ 435 commit (prod = e68839e1c, 2026-10-09)
+
+**ตัวบล็อก (ต้องแก้ใน `carmen-infra-gcp` ก่อน deploy — ไม่งั้น service ไม่ขึ้น/ฟังก์ชันพัง):**
+1. 🔴 `PLATFORM_DATABASE_URL` → `BACKSTAGE_DATABASE_URL` — micro-data (`cloud-run.tf:576`) และ micro-report (`apps-vm.tf:100`); โค้ด Go ประกาศ `BACKSTAGE_DATABASE_URL` เป็น `required:"true"` → **start ไม่ขึ้น** (ชื่อ secret `platform-db-url-go` คงไว้ได้ เปลี่ยนแค่ชื่อ env)
+2. 🟠 backend-gateway (`cloud-run.tf:243`, `:263`): `CARMEN_PLATFORM_WEB_URL` → `CARMEN_BACKSTAGE_WEB_URL`, `PLATFORM_DEPLOY_TOKEN` → `BACKSTAGE_DEPLOY_TOKEN` — โค้ดมี default `''` จึงไม่ crash แต่ลิงก์ไปคอนโซลหายและทาง deploy-token ของ tenant migration ใช้ไม่ได้
+
+**ไม่บล็อกแต่ควรเก็บ:** `PLATFORM_SCHEMA` ของ micro-cronjobs (`apps-vm.tf:111`) — โค้ดใหม่อ่าน `BACKSTAGE_SCHEMA` default `CARMEN_SYSTEM` = ค่าเดิม · `PLATFORM_MIGRATION_API_ENABLED` (`cloud-run.tf:190`) ไม่มีโค้ดอ่านแล้ว (ย้ายไป config) · runbook ขั้น 9 ยัง `cd ~/carmen-turborepo-backend-v2/packages/prisma-shared-schema-platform` → `carmen-turborepo-backend/packages/prisma-shared-schema-backstage` · `docs/known-issues.md`/`variables.tf` อ้าง `api-system/platform/*`
+
+**ลำดับ deploy production ที่ต้องทำ:**
+1. Terraform: เปลี่ยนชื่อ env ตามตัวบล็อก 1–2 (apply พร้อม/ก่อน image ใหม่ — image เก่ายังอ่านชื่อเดิม จึงควรใส่ทั้งสองชื่อชั่วคราวแล้วค่อยถอดชื่อเก่า)
+2. migration มือ (runbook ขั้น 9, path ใหม่) — รวม `20261026120000` (ค่า) + `20261026130000` (RENAME ตาราง) ตามลำดับเดิม
+3. deploy backend + **micro-notification พร้อมกันทันที** (micro-notification เก่าอ่าน `tb_platform_config` ซึ่งถูก RENAME แล้ว) + micro-data/micro-report
+4. (ไม่บังคับ) `db:seed.backstage-role` + `db:seed.backstage-permission` — อัปเดตคำอธิบาย role/permission เป็น Backstage
+5. ตรวจ `db:check.application-api` (หา grant ที่เพิ่มมือ แบบที่เจอบน DEV) + `db:check.backstage-permission` / `db:check.backstage-role-permission`
+6. คอนโซล production (Vercel) ชี้ DEV อยู่ — ไม่ต้องทำอะไรเพิ่ม
 
 ## วิธีทำต่อ (สำหรับเซสชันใหม่)
 
