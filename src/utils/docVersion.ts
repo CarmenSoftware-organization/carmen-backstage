@@ -1,7 +1,7 @@
 import { toast } from 'sonner';
 import type { TFunction } from '../i18n/types';
 
-// Optimistic-locking helpers for doc_version. The backend (carmen-turborepo-backend-v2)
+// Optimistic-locking helpers for doc_version. The backend (carmen-turborepo-backend)
 // guards updates with a numeric doc_version and returns HTTP 409 (code DOC_VERSION_CONFLICT,
 // message "Record was modified by another request …") when a stale version is sent.
 

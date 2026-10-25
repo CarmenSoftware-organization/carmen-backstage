@@ -46,7 +46,7 @@ export function buildSheets(rng, { buCode, products, vendors }) {
  */
 export async function writeWorkbook(sheets, outPath) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'carmen-platform generate-preconfig-mock';
+  wb.creator = 'carmen-backstage generate-preconfig-mock';
   for (const sheet of sheets) {
     const ws = wb.addWorksheet(sheet.name);
     for (const row of sheet.rows) ws.addRow(row);

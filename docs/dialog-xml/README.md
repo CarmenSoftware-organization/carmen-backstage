@@ -5,9 +5,9 @@ four places — keep them in step:
 
 | Reader | File |
 |---|---|
-| Platform preview | `carmen-platform/src/utils/dialogXml.ts` → `src/components/DialogPreview.tsx` |
-| Inventory run dialog | `carmen-inventory-frontend-react/routes/report/list/parse-report-dialog.ts` |
-| Inventory schedule form | `carmen-inventory-frontend-react/routes/report/schedules/parse-schedule-dialog.ts` |
+| Platform preview | `carmen-backstage/src/utils/dialogXml.ts` → `src/components/DialogPreview.tsx` |
+| Inventory run dialog | `carmen-frontend/routes/report/list/parse-report-dialog.ts` |
+| Inventory schedule form | `carmen-frontend/routes/report/schedules/parse-schedule-dialog.ts` |
 | micro-report filter header | `micro-report/service/template_filter_inject.go` (`parseDialogDefs`) |
 
 ## Elements
@@ -68,7 +68,7 @@ Deleting the last field of a `<Group>` removes the group as well.
 
 `fixtures/<name>.xml` + `fixtures/<name>.expected.json`. Both frontends run every
 fixture as a test. The inventory copy lives at
-`carmen-inventory-frontend-react/routes/report/list/__fixtures__/dialog-xml/` —
+`carmen-frontend/routes/report/list/__fixtures__/dialog-xml/` —
 re-copy it by hand whenever this set changes. `real-*` files are the DEV
 templates as of 2026-10-08. Expected cells may carry `labels` (field labels)
 and `heading` (group label); runners compare them only where present.

@@ -1,6 +1,6 @@
 ---
 name: cutting-a-release
-description: Cut a release of carmen-platform with `bun run build:bump` — the guard order, what the script writes, and the tag-push order that must not be got wrong. Use when the user asks to cut, bump, tag, or publish a release, or when a release commit or tag needs fixing.
+description: Cut a release of carmen-backstage with `bun run build:bump` — the guard order, what the script writes, and the tag-push order that must not be got wrong. Use when the user asks to cut, bump, tag, or publish a release, or when a release commit or tag needs fixing.
 ---
 
 # Cutting a release

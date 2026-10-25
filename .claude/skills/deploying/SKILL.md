@@ -1,9 +1,9 @@
 ---
 name: deploying
-description: Deployment mechanics for carmen-platform — how deploy-dev.yml actually ships, why verify.yml skips the vercel branch, the Vercel Branch-Tracking trap that silently shipped nothing, and deploy-gcs.yml's failure history. Use when deploying, when a deploy appears to have shipped nothing, or when debugging a workflow in .github/workflows/.
+description: Deployment mechanics for carmen-backstage — how deploy-dev.yml actually ships, why verify.yml skips the vercel branch, the Vercel Branch-Tracking trap that silently shipped nothing, and deploy-gcs.yml's failure history. Use when deploying, when a deploy appears to have shipped nothing, or when debugging a workflow in .github/workflows/.
 ---
 
-# Deploying carmen-platform
+# Deploying carmen-backstage
 
 The three-workflow table, the fact that **a push to `main` auto-deploys to DEV**, and the
 `git push origin main:vercel` production step live in the root `CLAUDE.md` — they have to be

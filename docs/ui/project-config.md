@@ -30,7 +30,7 @@ Doc lifecycle status (Draft / Review / Stable / Deprecated) stays Title Case —
 property, not a data value.
 
 ## Docs Root
-`docs/ui/` (inside the `carmen-platform` repo)
+`docs/ui/` (inside the `carmen-backstage` repo)
 
 ## Source of Truth
 
@@ -59,7 +59,7 @@ property, not a data value.
 
 Passwords are **never** written into these docs. Use the credentials already signed in to the
 browser, or the team password manager. On DEV only a handful of accounts can enter
-carmen-platform at all — check that before assuming a login failure is a bug.
+carmen-backstage at all — check that before assuming a login failure is a bug.
 
 | Role | Account | Notes |
 |------|---------|-------|

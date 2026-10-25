@@ -28,8 +28,8 @@
 ## Quick start
 
 ```bash
-git clone <repo-url> carmen-platform
-cd carmen-platform
+git clone <repo-url> carmen-backstage
+cd carmen-backstage
 cp .env.example .env.localhost   # edit REACT_APP_API_BASE_URL — never a bare .env (it leaks into every mode)
 bun install                      # or: npm install
 bun start                        # dev server at http://localhost:3304

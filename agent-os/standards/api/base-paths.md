@@ -23,7 +23,7 @@ Tell: a `{buCode}` segment in the path is always `/api`.
 ## Verifying a new endpoint
 
 1. Open Scalar at `<backend>/swagger`. There is **no** `/swagger-json` — the OpenAPI 3.0 spec is HTML-entity-embedded in that page; unescape and brace-match from `"openapi":"3.0.0"`.
-2. Not in swagger? The backend may not be deployed yet — grep the controller in `carmen-turborepo-backend-v2`.
+2. Not in swagger? The backend may not be deployed yet — grep the controller in `carmen-turborepo-backend`.
 
 **Never infer the prefix from the service file next to yours.**
 
