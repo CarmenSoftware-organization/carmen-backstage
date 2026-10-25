@@ -5,10 +5,13 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 1 — ขั้น 1.4 plan เขียนแล้ว รอผู้ใช้ตรวจ + เลือกวิธีลงมือ
-- **plan:** `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` (9 task, หนึ่ง task ต่อหนึ่ง repo) — ทำต่อจาก task แรกที่ยังไม่ติ๊กใน plan
-- **กิ่งใน repo นี้:** `feature/carmen-blue-backstage-rename`
-- **คำถามที่ค้างอยู่:** ไม่มี
+- **อยู่ที่:** โปรเจกต์ 1 — ขั้น 1.6 ลงมือ + final review เสร็จ (Task 1–8) รอผู้ใช้อนุมัติ push + เปิด PR (Task 9)
+- **plan:** `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` · ledger: `.superpowers/sdd/2026-10-25-carmen-blue-backstage-rename-p1/progress.md` (gitignored)
+- **กิ่ง:** `feature/carmen-blue-backstage-rename` ทุก repo — repo นี้ทำในโฟลเดอร์หลัก; อีก 7 repo อยู่ใน worktree `../<repo>-rename`
+  (carmen-inventory-frontend-react, carmen-turborepo-backend-v2, carmen-turborepo-backend-bruno, micro-notification,
+  carmen-platform-support-usermanual, carmen-platform-e2e, carmen-wiki) — ยังไม่ push
+- **ค้างตัดสิน (minor):** `invitationHint1`/`signupHint1` เรียกแอปหลักว่า "Carmen Blue inventory app"; `signInSubtitle` "Carmen Blue operations console"
+- **คำถามที่ค้างอยู่:** อนุมัติ push + เปิด PR 8 repo
 - **อัปเดตล่าสุด:** 2026-10-25
 
 ## วิธีทำต่อ (สำหรับเซสชันใหม่)
@@ -50,9 +53,9 @@
 - [x] 1.1 brainstorm รายละเอียด (2026-10-25)
 - [x] 1.2 เขียน spec `docs/superpowers/specs/2026-10-25-carmen-blue-backstage-rename-p1-design.md` + builder check (2026-10-25)
 - [x] 1.3 Owner/ผู้ใช้อนุมัติ spec (2026-10-25, commit 256a12d1)
-- [x] 1.4 เขียน plan `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` (2026-10-25) — รอผู้ใช้ตรวจ ← **อยู่ตรงนี้**
-- [ ] 1.5 ลงมือ (ทุก repo ใน worktree แยกจาก `origin/main`) — typecheck + lint
-- [ ] 1.6 PR แต่ละ repo + merge
+- [x] 1.4 เขียน plan `docs/superpowers/plans/2026-10-25-carmen-blue-backstage-rename-p1.md` (2026-10-25)
+- [x] 1.5 ลงมือ Task 1–8 + final review + แก้ 2 ข้อ Important (2026-10-25) — console 1393/1393 tests, typecheck/lint ผ่านทุก repo
+- [ ] 1.6 PR แต่ละ repo + merge ← **อยู่ตรงนี้** (รออนุมัติ push)
 - [ ] 1.7 deploy DEV + ตรวจเบราว์เซอร์
 - [ ] 1.8 ขึ้น production (`git push origin main:vercel` — ต้องได้รับอนุมัติ)
 
