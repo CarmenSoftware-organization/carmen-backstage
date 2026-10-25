@@ -674,7 +674,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
       {process.env.NODE_ENV === 'development' && (
         <DevDebugSheet
           title={t('pages.licenseFeatureGroups.editGroup')}
-          endpoint={`/api-system/platform/license-feature-groups${id ? `/${id}` : ''}`}
+          endpoint={`/api-system/backstage/license-feature-groups${id ? `/${id}` : ''}`}
           tabs={[
             { key: 'response', label: 'response', data: rawResponse },
             { key: 'form', label: 'form', data: { formData, featureKeys, docVersion } },

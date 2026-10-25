@@ -101,7 +101,7 @@ const UserPlatformEdit: React.FC = () => {
 
   /**
    * Grant actor + timestamp per assignment. The per-user roles endpoint
-   * (`/platform/users/:id/roles`) returns none, so this comes from the registry list
+   * (`/backstage/users/:id/roles`) returns none, so this comes from the registry list
    * endpoint, which the gateway enriches with `audit.created`. Best-effort and strictly
    * additive: a failure leaves every row reading "no provenance available" rather than
    * silently attributing grants to nobody. The row is matched on `user_id`, never on

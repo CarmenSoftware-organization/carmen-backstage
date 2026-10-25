@@ -2,7 +2,7 @@ import api from './api';
 import type { FeatureState } from '../constants/featureFlags';
 import type { LicenseFeatureAdminRow } from '../types';
 
-const BASE = '/api-system/platform/license-features';
+const BASE = '/api-system/backstage/license-features';
 
 /**
  * แค็ตตาล็อก license feature — แถวสร้างโดย generator ฝั่ง backend เท่านั้น

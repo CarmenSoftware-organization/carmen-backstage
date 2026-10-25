@@ -45,7 +45,7 @@ All six now read a dedicated, unfiltered endpoint the backend computes without t
 | `/applications` | `applicationService.getRegistrySummary()` | `GET /api-system/applications/summary` |
 | `/business-units` | `businessUnitService.getSummary()` | `GET /api-system/business-units/summary` |
 | `/news` | `newsService.getNewsroomSummary()` | `GET /api/news/summary` |
-| `/platform-roles` | `roleService.getAccessSummary()` | `GET /api-system/platform/roles/summary` |
+| `/platform-roles` | `roleService.getAccessSummary()` | `GET /api-system/backstage/roles/summary` |
 | `/users` | `userService.getDirectorySummary()` | `GET /api-system/user/summary` |
 | `/clusters` | `clusterService.getFleetSummary()` | `GET /api-system/clusters/summary` |
 

@@ -8,7 +8,7 @@ import type { PlatformSeedOp, SeedRunEvent } from '../types';
 // บวกสวิตช์ `platform_migration.api_enabled` ใน tb_platform_config — สวิตช์เดียวคุมทั้งคอนโซล
 const platformSeedService = {
   getCatalog: async (): Promise<PlatformSeedOp[]> => {
-    const res = await api.get('/api-system/platform/seeds/catalog');
+    const res = await api.get('/api-system/backstage/seeds/catalog');
     return res.data.data ?? res.data;
   },
 
@@ -32,7 +32,7 @@ const platformSeedService = {
     await refreshAccessToken().catch(() => {});
     const base = api.defaults.baseURL ?? '';
     const res = await fetch(
-      `${base}/api-system/platform/seeds/${encodeURIComponent(opId)}/run/stream`,
+      `${base}/api-system/backstage/seeds/${encodeURIComponent(opId)}/run/stream`,
       {
         method: 'POST',
         headers: {

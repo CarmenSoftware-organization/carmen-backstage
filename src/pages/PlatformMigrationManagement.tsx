@@ -183,7 +183,7 @@ export const PlatformMigrationManagement: React.FC = () => {
       }
     } catch (err) {
       // นำหน้าด้วยข้อความที่แปลแล้ว แต่คงรายละเอียดดิบไว้ — ผู้อ่านหน้านี้คือ super-admin ที่
-      // "Cannot GET /api-system/platform/seeds/catalog" บอกได้ทันทีว่า backend ยังไม่ deploy
+      // "Cannot GET /api-system/backstage/seeds/catalog" บอกได้ทันทีว่า backend ยังไม่ deploy
       // Localized prefix, raw detail kept: the reader is a super-admin for whom the raw 404
       // immediately says "the backend has not shipped yet".
       setCatalogError(
@@ -694,7 +694,7 @@ export const PlatformMigrationManagement: React.FC = () => {
 
       <DevDebugSheet
         title="Platform Migrations — raw"
-        endpoint="/api-system/platform/migrations/status"
+        endpoint="/api-system/backstage/migrations/status"
         data={status}
       />
     </Layout>

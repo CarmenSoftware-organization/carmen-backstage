@@ -821,7 +821,7 @@ const ClusterEdit: React.FC = () => {
             { key: 'cluster', label: 'Cluster', data: rawResponse, endpoint: `GET /api-system/clusters/${id}` },
             { key: 'bu', label: 'Business Units', data: rawBuResponse, endpoint: 'GET /api-system/business-units' },
             { key: 'users', label: 'Users', data: users.rawUsersResponse, endpoint: `GET /api-system/user/clusters/${id}` },
-            { key: 'history', label: 'Change History', data: rawHistoryResponse, endpoint: `GET /api-system/platform/activity-logs/record/${id}?entity_type=cluster` },
+            { key: 'history', label: 'Change History', data: rawHistoryResponse, endpoint: `GET /api-system/backstage/activity-logs/record/${id}?entity_type=cluster` },
           ]}
         />
       )}

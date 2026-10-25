@@ -3,7 +3,7 @@ import type { UserRoleAssignment, Scope } from '../types';
 
 const userRoleService = {
   list: async (userId: string): Promise<UserRoleAssignment[]> => {
-    const response = await api.get(`/api-system/platform/users/${userId}/roles`);
+    const response = await api.get(`/api-system/backstage/users/${userId}/roles`);
     // Descend nested `{ data: ... }` envelopes until the array (the endpoint
     // may nest deeper than the usual one-level convention).
     let cur: unknown = response.data;
@@ -13,11 +13,11 @@ const userRoleService = {
     return Array.isArray(cur) ? (cur as UserRoleAssignment[]) : [];
   },
   add: async (userId: string, payload: { role_id: string; scope: Scope }) => {
-    const response = await api.post(`/api-system/platform/users/${userId}/roles`, payload);
+    const response = await api.post(`/api-system/backstage/users/${userId}/roles`, payload);
     return response.data;
   },
   remove: async (userId: string, assignmentId: string) => {
-    const response = await api.delete(`/api-system/platform/users/${userId}/roles/${assignmentId}`);
+    const response = await api.delete(`/api-system/backstage/users/${userId}/roles/${assignmentId}`);
     return response.data;
   },
 };

@@ -9,7 +9,7 @@ export interface InterfaceRow {
 
 /**
  * ใบสิทธิ์ interface ของทุก BU ใน cluster — รูปเดียวกับ `useClusterSeatLicenses`: ไม่มี endpoint
- * ราย cluster ที่ cluster admin ยิงได้ (`/platform/interface-licenses` ก็อ่านได้ผ่าน
+ * ราย cluster ที่ cluster admin ยิงได้ (`/backstage/interface-licenses` ก็อ่านได้ผ่าน
  * `readableClusterScope()` แต่หน้านี้ยิงราย BU ให้ตรงกับที่ตารางที่นั่งทำ จะได้ล้มพร้อมกันเป็นราย BU)
  *
  * `allSettled` ไม่ใช่ `all` และ **แยก "โหลดไม่สำเร็จ" ออกจาก "ไม่มีใบ"**: `failedBus` คือรายชื่อ

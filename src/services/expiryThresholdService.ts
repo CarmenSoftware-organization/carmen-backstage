@@ -1,7 +1,7 @@
 import api from './api';
 import type { ExpiryThresholdsConfig } from '../types';
 
-const BASE = '/api-system/platform/expiry-thresholds';
+const BASE = '/api-system/backstage/expiry-thresholds';
 
 const expiryThresholdService = {
   /**

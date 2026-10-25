@@ -44,7 +44,7 @@ const toForm = (config: PlatformConfig | null): PlatformMigrationConfig => {
  * super-admin (ทั้งที่นี่และที่ backend) และขาเปิดมี ConfirmDialog ส่วนขาปิดไม่มี เพราะการปิดคือ
  * ทางกลับที่ปลอดภัยเสมอและเป็นสิ่งที่คนจะรีบทำตอนมีอะไรพัง
  *
- * สิ่งที่อยู่หลังสวิตช์คือ `/api-system/platform/migrations/*` ซึ่งรัน `prisma migrate deploy`
+ * สิ่งที่อยู่หลังสวิตช์คือ `/api-system/backstage/migrations/*` ซึ่งรัน `prisma migrate deploy`
  * บนฐานข้อมูลกลางของทุก cluster ไม่ใช่ของ BU ใด BU หนึ่ง
  *
  * guard ฝั่ง backend cache ค่าไว้ 60 วินาที การสลับสวิตช์จึงมีผลภายในหนึ่งนาที ไม่ใช่ทันที
@@ -109,7 +109,7 @@ export const PlatformMigrationConfigCard: React.FC<PlatformMigrationConfigCardPr
         description={
           <>
             {t('pages.platformConfig.migrationDesc1')}{' '}
-            <code className="font-mono">/api-system/platform/migrations</code>
+            <code className="font-mono">/api-system/backstage/migrations</code>
             {t('pages.platformConfig.migrationDesc2')}
           </>
         }

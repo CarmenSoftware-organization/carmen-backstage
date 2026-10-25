@@ -10,7 +10,7 @@ import type {
 // ตรงกับ defaultSearchFields ฝั่ง backend (license-feature-group.service.ts)
 const defaultSearchFields = ['code', 'name'];
 
-const BASE = '/api-system/platform/license-feature-groups';
+const BASE = '/api-system/backstage/license-feature-groups';
 
 /**
  * กลุ่ม feature ของ license — catalog ระดับแพลตฟอร์ม ไม่ใช่ของ cluster ใด cluster หนึ่ง

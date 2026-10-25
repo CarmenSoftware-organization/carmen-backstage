@@ -15,7 +15,7 @@ import type {
 // กลับเข้าไปจนกว่า backend จะแก้ตัวแปรให้ตรงกัน
 const defaultSearchFields = ['subscription_number'];
 
-const BASE = '/api-system/platform/subscriptions';
+const BASE = '/api-system/backstage/subscriptions';
 
 const subscriptionService = {
   getAll: async (paginate: PaginateParams = {}): Promise<SubscriptionsResponse> => {
@@ -25,7 +25,7 @@ const subscriptionService = {
 
   /**
    * สัญญาของ cluster เดียว ผ่าน route ที่ตรวจสิทธิ์ด้วย**สมาชิกภาพผู้ดูแลคลัสเตอร์** ไม่ใช่ `subscription.read`
-   * — ทางเดียวที่ shell ของ cluster admin ยิงได้ (`/platform/subscriptions` ตอบ 403 เสมอสำหรับเขา)
+   * — ทางเดียวที่ shell ของ cluster admin ยิงได้ (`/backstage/subscriptions` ตอบ 403 เสมอสำหรับเขา)
    * backend บังคับตัวกรอง `cluster_id` เอง `advance.where` ที่ส่งไปถูก AND ไว้ใต้มัน แถวและ summary
    * รูปเดียวกับ `getAll` ทุกประการ
    */
@@ -111,7 +111,7 @@ const subscriptionService = {
   },
 
   getFeatureCatalog: async (): Promise<{ data: LicenseFeature[] }> => {
-    const response = await api.get('/api-system/platform/license-features');
+    const response = await api.get('/api-system/backstage/license-features');
     return response.data;
   },
 

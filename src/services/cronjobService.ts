@@ -6,7 +6,7 @@ import type { CronJob, CronJobsResponse, CronJobWriteInput, PaginateParams } fro
 // คีย์บนสาย wire เป็นตัวเล็กล้วนเสมอ — เขียน camelCase แล้วคำค้นหายเงียบ
 const defaultSearchFields = ['name', 'description', 'job_type', 'cron_expression', 'source_service'];
 
-const BASE = '/api-system/platform/cronjobs';
+const BASE = '/api-system/backstage/cronjobs';
 
 /**
  * Encode a filter object as the gateway's "key:value;key:value" grammar

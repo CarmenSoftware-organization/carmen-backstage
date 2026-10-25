@@ -27,7 +27,7 @@ const analyticsService = {
     // ทุกคนแม้แต่ super-admin จะโดน 401 ถ้า code ที่กรองไม่ตรงกับ BU จริงสักตัว
     const { bu_code, ...rest } = params;
     const response = await api.get(
-      `/api-system/platform/analytics/overview?${toQuery({
+      `/api-system/backstage/analytics/overview?${toQuery({
         ...rest,
         ...(bu_code ? { filter_bu_code: bu_code } : {}),
       })}`,
@@ -50,7 +50,7 @@ const analyticsService = {
       // `analytics/event` ทิ้ง **ก่อน request ออกจากเครื่องผู้ใช้** ผลคือหน้านี้ขึ้น "Network Error"
       // ถาวรสำหรับคนที่ติดตั้งตัวบล็อก ขณะที่ `curl` ผ่านปกติและ log ฝั่ง backend ว่างเปล่า
       // วัดแล้ว: `analytics/event*` ถูกบล็อก · `analytics/records`, `analytics/overview` ผ่าน
-      `/api-system/platform/analytics/records?${toQuery({
+      `/api-system/backstage/analytics/records?${toQuery({
         ...filters,
         ...(bu_code ? { filter_bu_code: bu_code } : {}),
         page: page ?? 1,

@@ -18,12 +18,12 @@ import type {
 // backend serialize งานที่เขียนด้วย in-process lock ตัวเดียว ยิงซ้อนจะได้ 409 กลับมา
 const platformMigrationService = {
   getStatus: async (): Promise<PlatformMigrationStatus> => {
-    const res = await api.get('/api-system/platform/migrations/status');
+    const res = await api.get('/api-system/backstage/migrations/status');
     return res.data.data ?? res.data;
   },
 
   deploy: async (): Promise<PlatformMigrationDeployResult> => {
-    const res = await api.post('/api-system/platform/migrations/deploy');
+    const res = await api.post('/api-system/backstage/migrations/deploy');
     return res.data.data ?? res.data;
   },
 
@@ -35,7 +35,7 @@ const platformMigrationService = {
     migrationName: string,
     action: PlatformMigrationResolveAction,
   ): Promise<PlatformMigrationResolveResult> => {
-    const res = await api.post('/api-system/platform/migrations/resolve', {
+    const res = await api.post('/api-system/backstage/migrations/resolve', {
       migration_name: migrationName,
       action,
     });

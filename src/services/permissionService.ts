@@ -3,7 +3,7 @@ import type { PermissionCatalogItem, EffectivePermissions } from '../types';
 
 const permissionService = {
   getCatalog: async (): Promise<PermissionCatalogItem[]> => {
-    const response = await api.get('/api-system/platform/permissions');
+    const response = await api.get('/api-system/backstage/permissions');
     const body = response.data?.data ?? response.data;
     const items = Array.isArray(body) ? body : body?.data ?? [];
     return (items as Array<Partial<PermissionCatalogItem>>).map((p) => ({

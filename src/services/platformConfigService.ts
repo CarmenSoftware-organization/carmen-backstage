@@ -1,7 +1,7 @@
 import api from './api';
 import type { ApiListResponse, PlatformConfig } from '../types';
 
-const BASE = '/api-system/platform/configs';
+const BASE = '/api-system/backstage/configs';
 
 const platformConfigService = {
   /**

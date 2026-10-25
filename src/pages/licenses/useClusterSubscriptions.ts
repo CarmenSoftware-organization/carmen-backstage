@@ -18,7 +18,7 @@ import { fetchAllPages, type PagedResponse } from '../../utils/fetchAllPages';
  * `failed` แยกจาก `items.length === 0` โดยตั้งใจ ตามเหตุผลเดียวกับ `useLicenseLedger.loadFailed`
  * — "ไม่มีสัญญา" กับ "ดูไม่ได้ว่ามีสัญญาไหม" นำไปสู่การตัดสินใจคนละอย่าง
  *
- * `scope` เลือก route ตามสิทธิ์ของ shell ที่เรียก: `'platform'` (ค่าตั้งต้น) ยิง `/platform/subscriptions`
+ * `scope` เลือก route ตามสิทธิ์ของ shell ที่เรียก: `'platform'` (ค่าตั้งต้น) ยิง `/backstage/subscriptions`
  * ซึ่งบังคับ `subscription.read` · `'cluster'` ยิง `/clusters/:id/subscriptions` ที่ตรวจด้วยสมาชิกภาพ
  * ผู้ดูแลคลัสเตอร์แทน — shell ของ cluster admin **ต้อง**ใช้ตัวนี้ เพราะ 401/403 จาก route แรกจะ
  * เตะเขาออกจากระบบ (`tokenRefresh.ts` แยกจาก token หมดอายุไม่ออก) ทั้งสองคืนแถวและ summary รูปเดียวกัน

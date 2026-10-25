@@ -420,7 +420,7 @@ export const GroupCatalogPanel: React.FC = () => {
       {process.env.NODE_ENV === 'development' && (
         <DevDebugSheet
           title={t('pages.licenseFeatureGroups.title')}
-          endpoint="/api-system/platform/license-feature-groups"
+          endpoint="/api-system/backstage/license-feature-groups"
           tabs={[
             { key: 'response', label: 'response', data: rawResponse },
             { key: 'filtered', label: 'filtered', data: filtered },

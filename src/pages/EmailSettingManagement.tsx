@@ -260,7 +260,7 @@ const EmailSettingManagement: React.FC = () => {
 
       <DevDebugSheet
         title="Email Settings — raw"
-        endpoint="/api-system/platform/email-settings"
+        endpoint="/api-system/backstage/email-settings"
         data={rawResponse}
       />
     </Layout>

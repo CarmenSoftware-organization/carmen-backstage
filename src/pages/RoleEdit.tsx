@@ -64,7 +64,7 @@ const RoleEdit: React.FC = () => {
   // (the useUnsavedChanges diff target) purely so `normalizeAudit()` gets the real record.
   // `rawResponse` above can be the `{ data }` envelope, not the record itself.
   const [roleRecord, setRoleRecord] = useState<unknown>(null);
-  // `GET /platform/roles/:id` returns no audit block at all (id, doc_version, name,
+  // `GET /backstage/roles/:id` returns no audit block at all (id, doc_version, name,
   // description, is_active, permissions — that is the whole payload), so this page knew
   // strictly less about the role than the list that linked to it: the list shows created and
   // updated, and clicking through made them vanish. The list endpoint is asked for this one
@@ -174,7 +174,7 @@ const RoleEdit: React.FC = () => {
       .catch((err: unknown) => {
         setCatalogFailed(true);
         devLog('Failed to load permission catalog:', err);
-        // 403 ที่นี่แปลว่าบัญชีนี้ไม่มี platform_role.read — คีย์ที่ GET /api-system/platform/permissions
+        // 403 ที่นี่แปลว่าบัญชีนี้ไม่มี platform_role.read — คีย์ที่ GET /api-system/backstage/permissions
         // บังคับจริง (platform-permissions.controller.ts). เคยเขียนว่า rbac.read ซึ่งผิด
         // แยกออกมาเพราะผู้ใช้แก้ชื่อ/สถานะ role ต่อได้ ต่างจาก error อื่นที่เป็นความผิดพลาดชั่วคราว
         const status = (err as { response?: { status?: number } })?.response?.status;
@@ -706,8 +706,8 @@ const RoleEdit: React.FC = () => {
         title="Role Debug"
         fabClassName={editing ? 'bottom-20' : undefined}
         tabs={[
-          { key: 'role', label: 'Role', data: isNew ? null : rawResponse, endpoint: isNew ? 'New role (not yet saved)' : `GET /api-system/platform/roles/${id}` },
-          { key: 'catalog', label: 'Catalog', data: catalog.length > 0 ? catalog : null, endpoint: 'GET /api-system/platform/permissions' },
+          { key: 'role', label: 'Role', data: isNew ? null : rawResponse, endpoint: isNew ? 'New role (not yet saved)' : `GET /api-system/backstage/roles/${id}` },
+          { key: 'catalog', label: 'Catalog', data: catalog.length > 0 ? catalog : null, endpoint: 'GET /api-system/backstage/permissions' },
         ]}
       />
     </Layout>

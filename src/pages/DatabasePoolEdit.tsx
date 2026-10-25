@@ -661,7 +661,7 @@ const DatabasePoolEdit: React.FC = () => {
             key: 'pool',
             label: 'Pool',
             data: isNew ? null : rawResponse,
-            endpoint: isNew ? 'New database pool (not yet saved)' : `GET /api-system/platform/database-pools/${id}`,
+            endpoint: isNew ? 'New database pool (not yet saved)' : `GET /api-system/backstage/database-pools/${id}`,
           },
         ]}
       />

@@ -245,8 +245,8 @@ All endpoints are on the `/api-system` backend.
 | PUT | `/api-system/user/clusters/{cuId}` | Change member role (`{role}`) |
 | DELETE | `/api-system/user/clusters/{cuId}` | Remove member |
 | GET | `/api-system/business-units?perpage=-1` | All BUs (filtered on the client) |
-| GET | `/api-system/platform/subscriptions?advance=…cluster_id…` | Latest 5 subscriptions |
-| GET | `/api-system/platform/activity-logs/record/{id}?entity_type=cluster` | Change history |
+| GET | `/api-system/backstage/subscriptions?advance=…cluster_id…` | Latest 5 subscriptions |
+| GET | `/api-system/backstage/activity-logs/record/{id}?entity_type=cluster` | Change history |
 
 > `{cuId}` in the member endpoints is `tb_cluster_user.id` (the membership row), not the
 > user id. Two rows share `PUT`/`DELETE` on `/user/clusters/{…}` with the list GET only in

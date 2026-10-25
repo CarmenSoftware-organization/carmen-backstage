@@ -4,7 +4,7 @@ import type { ClusterLicense, PaginateParams, BuQuotaLicensesResponse, LicenseFl
 
 const BASE = (clusterId: string) => `/api-system/clusters/${clusterId}/licenses`;
 
-const PLATFORM_BASE = '/api-system/platform/cluster-licenses';
+const PLATFORM_BASE = '/api-system/backstage/cluster-licenses';
 
 /** ค้นได้ที่เลขที่ใบและเลขอ้างอิงเท่านั้น — backend ตั้ง default นี้ไว้ ส่งฟิลด์อื่นไปก็ถูกเมิน */
 const defaultSearchFields = ['license_number', 'reference_no'];

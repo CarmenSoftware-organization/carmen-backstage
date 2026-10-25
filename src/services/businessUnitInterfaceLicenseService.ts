@@ -4,7 +4,7 @@ import type { InterfaceLicense, InterfaceLicensesResponse, PaginateParams, Licen
 
 const BASE = (buId: string) => `/api-system/business-units/${buId}/interface-licenses`;
 
-const PLATFORM_BASE = '/api-system/platform/interface-licenses';
+const PLATFORM_BASE = '/api-system/backstage/interface-licenses';
 
 /** ค้นได้ที่เลขที่ใบและเลขอ้างอิงเท่านั้น — backend ตั้ง default นี้ไว้ ส่งฟิลด์อื่นไปก็ถูกเมิน */
 const defaultSearchFields = ['license_number', 'reference_no'];

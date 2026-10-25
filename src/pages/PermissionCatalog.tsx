@@ -127,7 +127,7 @@ const PermissionCatalog: React.FC = () => {
         )}
       </div>
 
-      <DevDebugSheet title="API Response" endpoint="GET /api-system/platform/permissions" data={rawResponse} />
+      <DevDebugSheet title="API Response" endpoint="GET /api-system/backstage/permissions" data={rawResponse} />
     </Layout>
   );
 };

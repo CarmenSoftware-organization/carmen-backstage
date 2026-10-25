@@ -374,7 +374,7 @@ const SuperAdminManagement: React.FC = () => {
         onConfirm={handleConfirmRemove}
       />
 
-      <DevDebugSheet title="API Response" endpoint="GET /api-system/platform/super-admins" data={rawResponse} />
+      <DevDebugSheet title="API Response" endpoint="GET /api-system/backstage/super-admins" data={rawResponse} />
     </Layout>
   );
 };

@@ -171,7 +171,7 @@ const FeatureFlagManagement: React.FC = () => {
 
         <DevDebugSheet
           title={t('pages.featureFlags.title')}
-          endpoint="/api-system/platform/feature-flags"
+          endpoint="/api-system/backstage/feature-flags"
           tabs={[
             { key: 'draft', label: 'draft', data: draft },
             { key: 'effective', label: 'effective', data: states },

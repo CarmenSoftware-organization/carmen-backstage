@@ -17,7 +17,7 @@ const userPlatformService = {
    */
   getAll: async (paginate: PaginateParams = {}): Promise<PlatformUsersResponse> => {
     const response = await api.get(
-      `/api-system/platform/users?${buildQuery(paginate, defaultSearchFields)}`,
+      `/api-system/backstage/users?${buildQuery(paginate, defaultSearchFields)}`,
     );
     return response.data;
   },
@@ -28,7 +28,7 @@ const userPlatformService = {
     payload: { role_ids: string[]; scope: PlatformUserScope },
   ) => {
     const response = await api.post(
-      `/api-system/platform/users/${userId}/roles/bulk`,
+      `/api-system/backstage/users/${userId}/roles/bulk`,
       payload,
     );
     return response.data;

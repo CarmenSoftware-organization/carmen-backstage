@@ -330,8 +330,8 @@ All calls go to the `/api-system` backend.
 | POST | `/api-system/user/clusters` | Add member (CP-MODAL-008) |
 | PUT | `/api-system/user/clusters/{cuId}` | Inline role change. Body `{role}` |
 | DELETE | `/api-system/user/clusters/{cuId}` | Remove member (single and bulk) |
-| GET | `/api-system/platform/subscriptions?perpage=5&sort=end_date:desc&advance={"where":{"cluster_id":"{id}"}}` | Licensing tab |
-| GET | `/api-system/platform/activity-logs/record/{id}?entity_type=cluster` | Change history |
+| GET | `/api-system/backstage/subscriptions?perpage=5&sort=end_date:desc&advance={"where":{"cluster_id":"{id}"}}` | Licensing tab |
+| GET | `/api-system/backstage/activity-logs/record/{id}?entity_type=cluster` | Change history |
 
 > **Remarks**
 > - Update is **PUT**, not the PATCH that the template assumes.

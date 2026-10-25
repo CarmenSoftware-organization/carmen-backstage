@@ -87,7 +87,7 @@ version conflict. To see the current set, search for `isVersionConflict` under
 `src/pages`. Services that build their own write payload carry `doc_version` (search
 `src/services`). The rule list is in `agent-os/standards/api/doc-version-locking.md`.
 
-**Gotcha — two role systems:** the admin "Role" page edits **platform roles** (`/api-system/platform/roles` → `platform_role` service, returns `permission_count`/`audit`), **not** application-roles (`/api-system/roles` → `role.service`/`ApplicationRoleService`). Guard/read changes for the admin role page go in `platform_role.service`. (application-roles also has the guard, as a consistent bonus.)
+**Gotcha — two role systems:** the admin "Role" page edits **platform roles** (`/api-system/backstage/roles` → `platform_role` service, returns `permission_count`/`audit`), **not** application-roles (`/api-system/roles` → `role.service`/`ApplicationRoleService`). Guard/read changes for the admin role page go in `platform_role.service`. (application-roles also has the guard, as a consistent bonus.)
 
 ## E2E (`carmen-backstage-e2e`)
 

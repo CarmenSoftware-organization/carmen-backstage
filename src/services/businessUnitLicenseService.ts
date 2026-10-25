@@ -4,7 +4,7 @@ import type { BusinessUnitLicense, PaginateParams, SeatLicensesResponse, License
 
 const BASE = (buId: string) => `/api-system/business-units/${buId}/licenses`;
 
-const PLATFORM_BASE = '/api-system/platform/business-unit-licenses';
+const PLATFORM_BASE = '/api-system/backstage/business-unit-licenses';
 
 /** ค้นได้ที่เลขที่ใบและเลขอ้างอิงเท่านั้น — backend ตั้ง default นี้ไว้ ส่งฟิลด์อื่นไปก็ถูกเมิน */
 const defaultSearchFields = ['license_number', 'reference_no'];

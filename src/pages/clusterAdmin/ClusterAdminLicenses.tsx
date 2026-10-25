@@ -33,7 +33,7 @@ import type { BusinessUnit, Cluster, ClusterLicense } from '../../types';
  * ไม่มีทางเขียนใด ๆ ที่นี่ และไม่ใช่เพราะซ่อนปุ่ม: cluster admin ไม่มีสิทธิ์ใดใน
  * EffectivePermissions เลย (สมาชิกภาพมาจากตารางคลัสเตอร์ ไม่ใช่ `tb_user_tb_platform_role`)
  * ทุก endpoint เขียนของ license บังคับ `subscription.manage` จึงตอบ 403 เสมอ — และหน้านี้
- * ไม่ยิง `GET /platform/subscriptions` เลยด้วยเหตุผลเดียวกัน (403 ทุกครั้ง ไม่ใช่ edge case)
+ * ไม่ยิง `GET /backstage/subscriptions` เลยด้วยเหตุผลเดียวกัน (403 ทุกครั้ง ไม่ใช่ edge case)
  */
 export default function ClusterAdminLicenses() {
   const { clusterId } = useParams<{ clusterId: string }>();
@@ -48,7 +48,7 @@ export default function ClusterAdminLicenses() {
   const quota = useLicenseLedger<ClusterLicense>(clusterId, clusterLicenseService);
   const seats = useClusterSeatLicenses(clusterId, bus);
   // ยิง `/clusters/:id/subscriptions` ซึ่งตรวจด้วยสมาชิกภาพผู้ดูแลคลัสเตอร์ (ด่านเดียวกับ
-  // ClusterAdminRoute) ไม่ใช่ `/platform/subscriptions` ที่ 403 ใส่ cluster admin ทุกคน
+  // ClusterAdminRoute) ไม่ใช่ `/backstage/subscriptions` ที่ 403 ใส่ cluster admin ทุกคน
   const subscriptions = useClusterSubscriptions(clusterId, 'cluster');
   const interfaces = useClusterInterfaceLicenses(clusterId, bus);
 
