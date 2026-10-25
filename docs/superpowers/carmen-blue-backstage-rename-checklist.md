@@ -5,7 +5,7 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 3 เสร็จ (2026-10-26, ยกเว้น GCP ตามคำสั่งผู้ใช้) → ถัดไป **โปรเจกต์ 4 ขั้น 4.1** · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
+- **อยู่ที่:** โปรเจกต์ 4 เสร็จ + ขึ้น DEV (2026-10-26) → ถัดไป **โปรเจกต์ 5 ขั้น 5.1** (brainstorm — ขอบเขตรวมงานที่โปรเจกต์ 4 ส่งต่อ ดูหัวข้อโปรเจกต์ 5) · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
 - **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
   1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-backstage (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
@@ -92,13 +92,26 @@
 - **ไม่ได้ทำ (ผู้ใช้สั่ง):** GCP ทั้งหมด — `infra/gcp` (bucket `carmen-platform-web`, WIF `github_repo` — deploy-gcs.yml จะล้มที่ auth จนกว่าจะ apply), `.cloudbuild` trigger `carmen-platform-*`
 - **ข้อยกเว้นอื่น:** `CARMEN_PLATFORM_WEB_URL` (ชื่อ env var) → โปรเจกต์ 4; บน DEV ไม่ได้ตั้งค่านี้ใน gateway `.env`
 
-## โปรเจกต์ 4 — ตัวระบุในโค้ด backend
+## โปรเจกต์ 4 — ตัวระบุในโค้ด
 
-- [ ] 4.1 brainstorm · [ ] 4.2 spec · [ ] 4.3 อนุมัติ · [ ] 4.4 plan · [ ] 4.5 ลงมือ · [ ] 4.6 PR/merge · [ ] 4.7 deploy + ตรวจ
-- **รับงานต่อจากโปรเจกต์ 1:** คำว่า "Platform" เดี่ยว ๆ ใน UI คอนโซล ~90 EN / ~86 TH (เมนู "Platform Config/Users/Roles/Migrations", "platform administrator", "admin platform" ใน heroBody, "actor: Platform user" ใน `docs/ui/**`) + คู่มือที่ quote ข้อความเหล่านี้
-- ประเด็นที่รู้แล้ว: env var, route `/platform/*`, package/service name; ช่วงเปลี่ยนผ่านรับทั้งชื่อเก่า+ใหม่ เพื่อให้ FE/BE deploy ไม่พร้อมกันได้
+- [x] 4.1 brainstorm — ผู้ใช้: "ทำโปรเจกต์ 4 ต่อเลย"; ตัดสิน: ค่าที่เก็บใน DB ย้ายไปโปรเจกต์ 5 · ตัดเปลี่ยนตรง ไม่มี route คู่ · ข้าม spec/plan · แบ่ง 4 slice · [x] 4.5 ลงมือ · [x] 4.6 PR/merge · [x] 4.7 deploy DEV + ตรวจ (2026-10-26)
+- **4a ข้อความ UI** — backstage #366: ค่า i18n en/th "Platform" → "Backstage" (ความหมายผลิตภัณฑ์ทั้งตระกูล → "Carmen Blue"), docs/ui
+- **4b route** `api-system/platform/*` → `api-system/backstage/*` (20 controller) — backend #917, backstage #367, bruno #40, backstage-e2e #18; deploy backend DEV มือผ่าน SSH (Actions ติด billing) ก่อน merge คอนโซล; ตรวจ: route ใหม่ 401 / เก่า 404
+- **4c env var** `PLATFORM_*` → `BACKSTAGE_*` (`CARMEN_BACKSTAGE_WEB_URL`, `BACKSTAGE_DEPLOY_TOKEN`, `BACKSTAGE_PERMISSION_MODE`, `BACKSTAGE_PRISMA_*`, `BACKSTAGE_*_TIMEOUT_MS`, `BACKSTAGE_DATABASE_URL`, `BACKSTAGE_SCHEMA`, `BACKSTAGE_PACKAGE_DIR`) — backend #918, micro-data #28, micro-report #68, micro-cronjobs #16, god-mode #32; DEV `.env`: micro-data/micro-report เหลือแต่คีย์ใหม่ (ตรวจแล้วต่อ DB ได้), backup `.env.bak.p4c`
+  - ⚠️ **micro-cronjobs ยังไม่ deploy** — main มีงาน POS Simphony ของคนอื่นที่ยังไม่ขึ้น DEV; `.env` มีทั้ง `PLATFORM_SCHEMA` และ `BACKSTAGE_SCHEMA` → ลบคีย์เก่าหลัง deploy รอบถัดไป
+- **4d ชื่อภายใน** — backend #919 (320 git mv, RPC pattern 36, error code wire 5 ตัว `PLATFORM_*`/`USER_PLATFORM_*` → `BACKSTAGE_*`, swagger tag), micro-data #29, micro-report #69 (identifier Go), backstage #368 (37 ไฟล์, i18n key, SPA route `/platform/*` → `/backstage/*` + redirect จาก path เก่า, OTel `carmen-backstage`, localStorage `*_user_backstage` — ค่าที่จำไว้รีเซ็ต), frontend #443 (message key error code)
+  - ตรวจ: tsc ไม่มี error ใหม่; jest gateway 475/475, cluster 43/43, business 448/451 (3 suite แดงเหมือน main); audit เท่ากับ main ทุกตัว (แก้ชื่อ guard ใน `check.api-system-permission-coverage.ts`); DEV: gateway map 176 route `backstage` / 0 `platform`, micro-data/report "connected to backstage database"
+  - SigNoz: service name คอนโซลแยกเป็น `carmen-backstage` นับจาก 2026-10-26 (ประวัติเก่าอยู่ใต้ `carmen-platform`)
+- **ไม่ได้ทำ (ตั้งใจ):** Expo slug `carmen-inventory-mobile` (ผูก EAS, ไม่เกี่ยวกับ platform); RPC `notifications.platform-email-*` + `PlatformEmail*` ใน notification-contract (เจ้าของคือ repo micro-notification — ต้องเปลี่ยนคู่กัน); เอกสารนอกโฟลเดอร์ที่สแกน (root `CLAUDE.md`/`AGENTS.md`/skills ของ backend, `docs/*.md`) ยังอ้างชื่อเก่าบางจุด; route `/api/user/permission/platform` (คนละ backend `/api` — ให้ผู้ใช้ตัดสิน)
 
 ## โปรเจกต์ 5 — ฐานข้อมูล
 
 - [ ] 5.1 brainstorm · [ ] 5.2 spec · [ ] 5.3 อนุมัติ · [ ] 5.4 plan · [ ] 5.5 ลงมือ · [ ] 5.6 PR/merge · [ ] 5.7 apply DEV → UAT → production
+- **รับงานต่อจากโปรเจกต์ 4 (ค่าที่เก็บใน DB / ผูกกับ schema):**
+  - permission key `platform_role.*`, `platform_config.*`, `user_platform.*`, `platform_migration` (seed + ข้อมูลใน DB + `<Can>` ฝั่ง FE)
+  - `api_name` เช่น `platform-config.get`, `platform-role.findAll` (เก็บต่อ application ใน DB + `app-api-catalog.generated.ts`)
+  - config key ใน DB (`platform_migration.api_enabled`, `google_sign_in` JSON key `platform`), feature-flag key (`platform_config`, `platform_roles`, `user_platform`, `platform_migrations`)
+  - literal `'platform'` บนสาย: OAuth `target=platform` + state `${nonce}.platform.`, body `{ type: 'platform' }`, `EntityOwnership.kind`, `AuditScope`, `summary.platform_wide`, `tenant_id: 'platform'`, seed script id `seed-platform-*`
+  - package `@repo/prisma-shared-schema-platform` (ชื่อ + โฟลเดอร์ — ใช้ใน micro-notification 20 ไฟล์, god-mode 7 ไฟล์ผ่าน `BACKSTAGE_PACKAGE_DIR`, คอนโซล 1, แอปหลัก 2)
+  - Prisma model `tb_platform_*` + คอลัมน์ `platform_*_id` + DB `carmen_platform`
 - ประเด็นที่รู้แล้ว: แยกจากโปรเจกต์ 4 เพื่อให้ย้อนกลับได้; ต้องมีหน้าต่าง downtime; push กิ่งที่มี migration = apply DEV อัตโนมัติภายใน ~2 นาที (ระวัง)
