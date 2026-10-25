@@ -5,7 +5,7 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 3–5 เสร็จ + ขึ้น DEV ครบ (2026-10-26) · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง) · UAT/production จะได้ migration ของโปรเจกต์ 5 ตอน deploy backend รอบถัดไป (ต้อง deploy micro-notification คู่กัน)
+- **อยู่ที่:** **ปิดงาน rename แล้ว (2026-10-26)** — โปรเจกต์ 1–5 เสร็จบน DEV + คอนโซลขึ้น production; เหลืออย่างเดียวคือแอปหลักขึ้น production พร้อมรอบ deploy ปกติของ inventory · UAT/production backend จะได้ migration ของโปรเจกต์ 5 ตอน deploy รอบถัดไป (copy `.env` ของ package + deploy micro-notification คู่กัน + รัน `db:seed.backstage-role`/`db:seed.backstage-permission`)
 - **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
   1. ~~production คอนโซล: push `vercel`~~ — ผู้ใช้ push แล้ว 2026-10-26 (`5b8c3b28..a30400b3`); bundle production เรียก `/backstage` 16 จุด ไม่เหลือ `/platform`, title "Carmen Blue Backstage" (ก่อน push production พังตั้งแต่ BE ขึ้นโปรเจกต์ 4b เพราะ `.env.prod` ชี้ DEV)
@@ -13,7 +13,7 @@
   3. ~~backend-v2 (#914) และ micro-notification (#16) ยังไม่ขึ้น DEV~~ — ขึ้น DEV แล้วด้วยการ deploy มือ (2026-10-26, รวมอยู่ใน backend #921+ / micro-notification #18)
   4. ตรวจหน้าจอจริง: Login จอใหญ่ (แผงโลโก้ CARMEN BLUE / BACKSTAGE), Landing, Platform Config → การ์ด Google sign-in (TH/EN) — Claude ตรวจในเบราว์เซอร์ไม่ได้ (นโยบายบล็อกโฮสต์ dev.blueledgers.com) ตรวจได้แค่ด้วย curl
      - **ตรวจแล้วบางส่วน (Claude, 2026-10-26, production ผ่าน read_page — screenshot/คลิก/JS ยังโดน policy บล็อก):** Dashboard + เมนู Backstage ครบ, Backstage Config → การ์ด Google sign-in (EN) อ่าน "Carmen Blue Backstage / Carmen Blue Platform" ถูก, Backstage Roles (Backstage Admin 64/64), Backstage Users 4 คน · **รอบ 2:** redirect `/platform/configs` → `/backstage/configs` ✅ (production) · Login จอใหญ่ (แผง CARMEN BLUE / Backstage, "Sign in", ปุ่ม Google) ✅ + Landing (หมวด BACKSTAGE, "Permissions & Backstage RBAC") ✅ — ตรวจที่ `http://127.0.0.1:3304` (คนละ origin กับ localhost จึงไม่มี session) · การ์ดภาษาไทย: ตรวจจาก `src/i18n/th.ts` เท่านั้น (คลิก/JS ถูก policy บล็อกทุกโฮสต์รวม localhost) · **เหลือข้อ 5 อย่างเดียว** — endpoint test ต้อง login + `email_setting.manage` (DEV มี sender profile active 3 ตัว)
-  5. ส่งอีเมลทดสอบจากหน้า Email Settings (หลัง micro-notification ขึ้น DEV) → หัวเรื่อง "Carmen Blue Backstage email test"
+  5. ~~ส่งอีเมลทดสอบ~~ ✅ ได้รับแล้ว 2026-10-26 — เดิม: ส่งอีเมลทดสอบจากหน้า Email Settings (หลัง micro-notification ขึ้น DEV) → หัวเรื่อง "Carmen Blue Backstage email test"
      - **ผลลองส่ง 2026-10-26 04:31–04:32:** request ถึง micro-notification บน DEV จริง (ไม่เกี่ยวกับ Vercel — คอนโซลเป็น static SPA, อีเมลส่งจากเครื่อง DEV) แต่ Gmail ตอบ `535-5.7.8 Username and Password not accepted` → **ต้องใส่ Gmail App Password** (เปิด 2-Step Verification → myaccount.google.com/apppasswords) แทนรหัสผ่านปกติใน profile แล้วกดทดสอบใหม่ · ถอดรหัสถูกต้อง (AES-GCM ไม่มี error, key ตรงกับ micro-business) · error `wrong version number` 04:32:09 มาจาก profile No-reply ที่ตั้ง secure ผิดชั่วคราว แก้แล้ว (ทั้ง 3 profile = 587 + secure=false) · ลบ `SECRET_ENCRYPTION_KEY` ที่ซ้ำ (ค่าไม่ตรง) ใน `.env` micro-notification บน DEV แล้ว (สำรอง `.env.bak.dupkey`)
 - **คำถามที่ค้างอยู่:** ไม่มี
 - **อัปเดตล่าสุด:** 2026-10-26
@@ -68,8 +68,8 @@
   - [x] carmen-platform-support-usermanual #4
   - [x] carmen-platform-e2e #16
   - [x] carmen-wiki #21
-- [ ] 1.7 deploy DEV + ตรวจ — คอนโซล, backend, micro-notification ขึ้น DEV ครบแล้ว (2026-10-26); เหลือตรวจหน้าจอจริง + ส่งอีเมลทดสอบ (ผู้ใช้)
-- [ ] 1.8 ขึ้น production — คอนโซลขึ้นแล้ว (2026-10-26); แอปหลักยังไม่ควร push (ดู "สถานะปัจจุบัน" ข้อ 2)
+- [x] 1.7 deploy DEV + ตรวจ (2026-10-26) — ขึ้น DEV ครบ, ตรวจหน้าจอแล้ว, อีเมลทดสอบส่งสำเร็จ 04:41 หลังผู้ใช้ใส่ Gmail App Password (ผู้ใช้ยืนยันว่าได้รับ + log `Email sent (attempt 1)`)
+- [ ] 1.8 ขึ้น production — คอนโซลขึ้นแล้ว (2026-10-26); **แอปหลักรอรอบ deploy ปกติของ inventory** (ไม่ต้องทำแยกสำหรับงานนี้ — ดู "สถานะปัจจุบัน" ข้อ 2)
 
 ## โปรเจกต์ 2 — ชื่อ repo, package, deploy path
 
