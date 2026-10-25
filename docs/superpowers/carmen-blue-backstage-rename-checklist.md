@@ -40,6 +40,16 @@
 5. ตรวจ `db:check.application-api` (หา grant ที่เพิ่มมือ แบบที่เจอบน DEV) + `db:check.backstage-permission` / `db:check.backstage-role-permission`
 6. คอนโซล production (Vercel) ชี้ DEV อยู่ — ไม่ต้องทำอะไรเพิ่ม
 
+## งานหลังปิด checklist (2026-10-26)
+
+- **ตัวระบุ platform ที่เหลือ** — backend #926: `makePlatformClient`→`makeBackstageClient`, `prisma_platform`→`prisma_backstage`, `PLATFORM_PERMISSION_SEED`/`PLATFORM_ROLES`→`BACKSTAGE_*`, `TenantConnection.platform`→`.backstage` (41 ไฟล์, ไม่มี migration) · ตั้งใจเก็บ: api_name `listPlatform`/`findOnePlatform` (ค่าใน DB), RPC `notifications.platform-email-*` (contract ของ micro-notification), "ERP platform"
+- **log/activity** — backend #928: `{ source: 'platform-handler' }` → `'backstage-handler'` (แถวเดิมใน `tb_activity` 1,600 แถวบน DEV ไม่แก้), หัวข้อ audit coverage
+- **ลบ script ที่ใช้ไม่ได้** — backend #927 + god-mode #36: `seed.report-template-upload.ts` (คอลัมน์ปลายทางไม่มี แต่อยู่ใน seed console), `backfill.cluster-license.ts`, `maintenance/2026-08-19-backfill-bu-license.ts` (คอลัมน์ต้นทาง DROP แล้ว) + dependency `minio` · ⚠️ ถ้า production ยังไม่ผ่าน migration ที่ DROP `max_license_bu`/`max_license_users` จะไม่มี backfill — กู้จาก git history ได้
+- **god-mode catalog drift** — god-mode #37: เพิ่ม `seed-application-api` / `check-application-api`, ซ่อน 4 script พร้อมเหตุผล, ลบ `db:backfill.subscription` ที่ค้าง → drift test 23/23
+- **grant ส่วนเกิน** — ถอน `mobile-app → my-pending.unified.findAll` บน DEV (soft-delete; mobile ไม่ได้เรียก unified endpoint) → `db:check.application-api` OK · UAT/production อาจมีแบบเดียวกัน ตรวจด้วย check ตัวนี้
+- **dependency advisory** — backend #929: ยก floor body-parser, follow-redirects, handlebars, multer, proxy-addr, source-map-js, undici, vite → `audit:dependencies` OK; **zod อยู่ใน allowlist ถึง 2026-12-31** (แพตช์มีแค่ ≥4.6.6, ทั้ง 3 app ใช้ zod 3) — ทางออกจริง: ย้าย zod 4 หรือ `.max()` ให้ array schema
+- **อื่น ๆ** — คอนโซล #378/#379 ถอด target UAT + กิ่ง DEV ใน verify.yml · frontend #445 comment "Backstage config" · backend #922–#925 ชื่อ audit, bun.lock, คำอธิบาย role/permission, log ของ seed · god-mode #35 health check · ลบ `SECRET_ENCRYPTION_KEY` ซ้ำใน `.env` micro-notification + `PLATFORM_SCHEMA` micro-cronjobs บน DEV · ลบกิ่งที่ merge แล้ว 49 กิ่ง (เก็บกิ่งของเพื่อนร่วมทีม)
+
 ## วิธีทำต่อ (สำหรับเซสชันใหม่)
 
 1. อ่าน "สถานะปัจจุบัน" และ "การตัดสินใจ" ด้านล่าง — ห้ามถามซ้ำเรื่องที่ตัดสินแล้ว
