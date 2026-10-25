@@ -18,7 +18,7 @@ describe('PlatformAccessSummary', () => {
     render(<PlatformAccessSummary summary={summary()} loading={false} />);
     expect(screen.getByText('137')).toBeInTheDocument();
     expect(screen.getByText('holders')).toBeInTheDocument();
-    expect(screen.getByText('Platform-wide')).toBeInTheDocument();
+    expect(screen.getByText('Backstage-wide')).toBeInTheDocument();
     expect(screen.getByText('6')).toBeInTheDocument();
     expect(screen.getByText('Cluster-scoped')).toBeInTheDocument();
     expect(screen.getByText('14')).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe('PlatformAccessSummary', () => {
     // either) — e.g. before the first successful fetch resolves.
     render(<PlatformAccessSummary summary={null} loading={false} />);
     expect(screen.getByText(/registry summary isn.t available yet/i)).toBeInTheDocument();
-    expect(screen.queryByText('Platform-wide')).not.toBeInTheDocument();
+    expect(screen.queryByText('Backstage-wide')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /inactive/ })).not.toBeInTheDocument();
   });
 
@@ -111,7 +111,7 @@ describe('PlatformAccessSummary', () => {
 
     // The breakdown itself must not appear — there is no `summary.platform_wide` /
     // `cluster_only` / `assignments` to source it from.
-    expect(screen.queryByText('Platform-wide')).not.toBeInTheDocument();
+    expect(screen.queryByText('Backstage-wide')).not.toBeInTheDocument();
     expect(screen.queryByText('Cluster-scoped')).not.toBeInTheDocument();
     expect(screen.queryByText('Assignments')).not.toBeInTheDocument();
 

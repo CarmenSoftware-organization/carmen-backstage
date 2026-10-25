@@ -243,7 +243,7 @@ describe('UserPlatformManagement — registry list', () => {
     );
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
-        'Failed to load platform users',
+        'Failed to load Backstage users',
         expect.objectContaining({ description: 'down' }),
       ),
     );
@@ -296,7 +296,7 @@ describe('UserPlatformManagement — registry-wide summary band', () => {
     expect(band).not.toBeNull();
     expect(within(band).getByText('1')).toBeInTheDocument();
     expect(within(band).getByText(/scope breakdown isn.t available yet/i)).toBeInTheDocument();
-    expect(within(band).queryByText('Platform-wide')).not.toBeInTheDocument();
+    expect(within(band).queryByText('Backstage-wide')).not.toBeInTheDocument();
     expect(within(band).queryByRole('button', { name: /inactive/ })).not.toBeInTheDocument();
   });
 
@@ -447,7 +447,7 @@ describe('UserPlatformManagement — empty state', () => {
     });
     renderPage();
 
-    expect(await screen.findByText('No one holds platform roles yet')).toBeInTheDocument();
+    expect(await screen.findByText('No one holds Backstage roles yet')).toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.type(screen.getByPlaceholderText('Search users...'), 'zzz');
@@ -464,7 +464,7 @@ describe('UserPlatformManagement — CSV export', () => {
     });
     renderPage();
 
-    await screen.findByText('No one holds platform roles yet');
+    await screen.findByText('No one holds Backstage roles yet');
     expect(screen.getByRole('button', { name: /export/i })).toBeDisabled();
   });
 
@@ -481,7 +481,7 @@ describe('UserPlatformManagement — CSV export', () => {
 
     expect(csv.generateCSV).toHaveBeenCalledWith(
       [
-        expect.objectContaining({ username: 'jane', role: 'Support Admin', scope: 'Platform' }),
+        expect.objectContaining({ username: 'jane', role: 'Support Admin', scope: 'Backstage' }),
         expect.objectContaining({ username: 'jane', role: 'Cluster Admin', scope: 'Acme' }),
       ],
       expect.arrayContaining([expect.objectContaining({ key: 'role' })]),

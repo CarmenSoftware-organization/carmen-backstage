@@ -1,7 +1,7 @@
 ---
 **Doc ID:** CP-PAGE-007
 **Title:** Cluster Edit (create / edit / read-only)
-**Domain:** Carmen Blue Backstage — actor: Platform user
+**Domain:** Carmen Blue Backstage — actor: Backstage user
 **Route:** `/clusters/new`, `/clusters/:id/edit` (`?tab=business-units|users`)
 **Component:** `src/pages/ClusterEdit.tsx` + `src/pages/clusterManagement/ClusterCreateForm.tsx` + `src/pages/clusterEdit/*` (`ClusterDraftPlate`, `ClusterPlate`, `PlateField`, `InlineCell`, `BulkActionBar`, `TableToolbar`, `useClusterUsers`, `sections/BusinessUnitsSection`, `sections/UsersSection`, `sections/SubscriptionCard`)
 **Status:** Draft
@@ -47,8 +47,8 @@ after creation (done in CP-PAGE-016, License Center → cluster).
 
 | Role | Permission | Scope | Notes |
 |------|-----------|-------|-------|
-| Platform user | `cluster.create` | Platform | Route guard for `/clusters/new` |
-| Platform user | `cluster.update` | Platform (route) / Cluster (`canEdit`) | Route guard for `/edit`. The route check is unscoped but `canEdit` is scoped, so a user whose `cluster.update` covers only *other* clusters opens this one **read-only**. |
+| Backstage user | `cluster.create` | Platform | Route guard for `/clusters/new` |
+| Backstage user | `cluster.update` | Platform (route) / Cluster (`canEdit`) | Route guard for `/edit`. The route check is unscoped but `canEdit` is scoped, so a user whose `cluster.update` covers only *other* clusters opens this one **read-only**. |
 | — | `activity_log.read` | Cluster | **Change history** button |
 | — | `cluster.create` | Platform | BU tab **Add** button. It checks `cluster.create`, **not** a business-unit permission. |
 | — | `subscription.read` | Platform | Licensing tab content. Without it the tab body is empty and no fetch is made. |
@@ -335,7 +335,7 @@ All calls go to the `/api-system` backend.
 
 > **Remarks**
 > - Update is **PUT**, not the PATCH that the template assumes.
-> - `GET /business-units?perpage=-1` pulls **every** BU in the platform to show one cluster's
+> - `GET /business-units?perpage=-1` pulls **every** BU in Carmen Blue to show one cluster's
 >   list. It works at today's fleet size (10 BUs) but will not scale. Consider a
 >   `cluster_id` filter on the server.
 

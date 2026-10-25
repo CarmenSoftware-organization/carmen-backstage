@@ -693,7 +693,7 @@ export const PlatformMigrationManagement: React.FC = () => {
       />
 
       <DevDebugSheet
-        title="Platform Migrations — raw"
+        title="Backstage Migrations — raw"
         endpoint="/api-system/backstage/migrations/status"
         data={status}
       />

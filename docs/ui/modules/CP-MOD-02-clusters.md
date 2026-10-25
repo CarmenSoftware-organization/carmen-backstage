@@ -16,7 +16,7 @@
 ### 2.1 Purpose
 
 A **cluster** is the top-level tenant in Carmen Blue: a hotel group that owns business units
-(BUs, one per property) and a pool of member users. This module is where platform staff
+(BUs, one per property) and a pool of member users. This module is where Backstage staff
 register clusters, keep their identity up to date, and see at a glance how much of each
 cluster's licence is in use.
 

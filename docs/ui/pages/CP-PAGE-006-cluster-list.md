@@ -1,7 +1,7 @@
 ---
 **Doc ID:** CP-PAGE-006
 **Title:** Cluster List (Cluster Management)
-**Domain:** Carmen Blue Backstage — actor: Platform user
+**Domain:** Carmen Blue Backstage — actor: Backstage user
 **Route:** `/clusters`
 **Component:** `src/pages/ClusterManagement.tsx` (+ `src/pages/clusterManagement/FleetCapacity.tsx`, `CapacityGauge.tsx`, `CapacityMeter.tsx`)
 **Status:** Draft
@@ -14,7 +14,7 @@
 ## 2.2 Cluster List
 
 > The fleet-wide list of clusters: capacity at a glance, then a server-side table where a
-> platform user finds a cluster and opens, audits or soft-deletes it.
+> Backstage user finds a cluster and opens, audits or soft-deletes it.
 
 ![Cluster list, populated](../screenshots/CP-PAGE-006/01-list-populated.jpg)
 
@@ -38,7 +38,7 @@ a cluster, opens its change history, or soft-deletes an empty cluster.
 **Route guard** (`src/App.tsx:112`): `PrivateRoute requiredPermission="cluster.read" feature="clusters"`.
 Checks run in this order:
 1. Unauthenticated → `/login`.
-2. No platform authority but cluster-admin scope → `/cluster-admin` (CP-PAGE-048).
+2. No Backstage authority but cluster-admin scope → `/cluster-admin` (CP-PAGE-048).
 3. Missing `cluster.read` → CP-PAGE-ERR-001 (Forbidden) rendered **in place** (the URL stays the same).
 4. Feature flag `clusters`: `hide` → CP-PAGE-ERR-002 (Not Found), `inactive` → Coming Soon.
 
@@ -48,7 +48,7 @@ Permission is checked before the flag, so a user without access sees 403, not 40
 
 | Role | Permission | Scope | Notes |
 |------|-----------|-------|-------|
-| Any platform role | `cluster.read` | Platform | Required to open the page |
+| Any Backstage role | `cluster.read` | Platform | Required to open the page |
 | — | `cluster.create` | Platform | Shows **Add Cluster** (header and empty state) |
 | — | `cluster.update` | Cluster (`clusterId=row.id`) | Shows row menu → **Edit** |
 | — | `activity_log.read` | Cluster | Shows row menu → **Change history** |

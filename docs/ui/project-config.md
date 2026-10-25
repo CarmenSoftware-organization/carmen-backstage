@@ -13,7 +13,7 @@ doc prefix — record the actor in each doc's frontmatter instead.
 
 | Actor | Where they work | Gate |
 |-------|-----------------|------|
-| Platform user | `Layout` + `Sidebar` (`src/components/nav/platformNav.ts`) | `PrivateRoute requiredPermission="<module>.<action>"` |
+| Backstage user | `Layout` + `Sidebar` (`src/components/nav/platformNav.ts`) | `PrivateRoute requiredPermission="<module>.<action>"` |
 | Super admin | Same shell; also sees `superAdminOnly` nav items | `requireSuperAdmin` |
 | Cluster admin | `ClusterAdminLayout` under `/cluster-admin/:clusterId/*` (`src/components/nav/clusterAdminNav.ts`) | `ClusterAdminRoute` — `tb_cluster_user.role = 'admin'`, **not** a platform RBAC permission |
 | Anonymous | `/`, `/login`, `/changelog` | none |
@@ -64,7 +64,7 @@ carmen-backstage at all — check that before assuming a login failure is a bug.
 | Role | Account | Notes |
 |------|---------|-------|
 | Super admin | TBD | Sees every nav item |
-| Platform role (limited) | TBD | For permission-visibility edge cases |
+| Backstage role (limited) | TBD | For permission-visibility edge cases |
 | Cluster admin | TBD | Lands on `/cluster-admin` |
 
 ## Templates
@@ -129,7 +129,7 @@ docs/ui/
 | 8 | News & Broadcasts | Planned | — |
 | 9 | Analytics | Planned | — |
 | 10 | Scheduling (Cron Jobs) | Planned | — |
-| 11 | Platform Settings | Planned | — |
+| 11 | Backstage Settings | Planned | — |
 | 12 | Access Control (RBAC) | Planned | — |
 | 13 | Database Operations | Planned | — |
 | 14 | Cluster Admin Portal | Planned | — |

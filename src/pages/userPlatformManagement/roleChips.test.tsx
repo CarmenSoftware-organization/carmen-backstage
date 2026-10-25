@@ -76,7 +76,7 @@ describe('RoleChips', () => {
     expect(screen.getByText('Editor')).toBeInTheDocument();
   });
 
-  it('orders Platform first and remaining clusters alphabetically, regardless of input order', () => {
+  it('orders Backstage first and remaining clusters alphabetically, regardless of input order', () => {
     render(
       <RoleChips
         roles={[
@@ -87,9 +87,9 @@ describe('RoleChips', () => {
       />,
     );
     const scopeLabels = screen
-      .getAllByText(/^(Platform|Alpha Cluster|Zeta Cluster)$/)
+      .getAllByText(/^(Backstage|Alpha Cluster|Zeta Cluster)$/)
       .map((el) => el.textContent);
-    expect(scopeLabels).toEqual(['Platform', 'Alpha Cluster', 'Zeta Cluster']);
+    expect(scopeLabels).toEqual(['Backstage', 'Alpha Cluster', 'Zeta Cluster']);
   });
 
   it('falls back to cluster_id, never a blank label, when cluster_name did not resolve', () => {
