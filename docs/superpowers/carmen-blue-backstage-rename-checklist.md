@@ -8,7 +8,7 @@
 - **อยู่ที่:** โปรเจกต์ 3–5 เสร็จ + ขึ้น DEV ครบ (2026-10-26) · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง) · UAT/production จะได้ migration ของโปรเจกต์ 5 ตอน deploy backend รอบถัดไป (ต้อง deploy micro-notification คู่กัน)
 - **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
-  1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-backstage (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
+  1. ~~production คอนโซล: push `vercel`~~ — ผู้ใช้ push แล้ว 2026-10-26 (`5b8c3b28..a30400b3`); bundle production เรียก `/backstage` 16 จุด ไม่เหลือ `/platform`, title "Carmen Blue Backstage" (ก่อน push production พังตั้งแต่ BE ขึ้นโปรเจกต์ 4b เพราะ `.env.prod` ชี้ DEV)
   2. production แอปหลัก: **ยังไม่ควร push** — vercel ตามหลัง main 640 commit รวมงาน POS ที่มีลำดับ deploy บังคับ; `<title>` ใหม่จะขึ้นพร้อมรอบ deploy ปกติของ inventory
   3. ~~backend-v2 (#914) และ micro-notification (#16) ยังไม่ขึ้น DEV~~ — ขึ้น DEV แล้วด้วยการ deploy มือ (2026-10-26, รวมอยู่ใน backend #921+ / micro-notification #18)
   4. ตรวจหน้าจอจริง: Login จอใหญ่ (แผงโลโก้ CARMEN BLUE / BACKSTAGE), Landing, Platform Config → การ์ด Google sign-in (TH/EN) — Claude ตรวจในเบราว์เซอร์ไม่ได้ (นโยบายบล็อกโฮสต์ dev.blueledgers.com) ตรวจได้แค่ด้วย curl
@@ -67,7 +67,7 @@
   - [x] carmen-platform-e2e #16
   - [x] carmen-wiki #21
 - [ ] 1.7 deploy DEV + ตรวจ — คอนโซล, backend, micro-notification ขึ้น DEV ครบแล้ว (2026-10-26); เหลือตรวจหน้าจอจริง + ส่งอีเมลทดสอบ (ผู้ใช้)
-- [ ] 1.8 ขึ้น production — ค้าง (ผู้ใช้ push เอง ดู "สถานะปัจจุบัน")
+- [ ] 1.8 ขึ้น production — คอนโซลขึ้นแล้ว (2026-10-26); แอปหลักยังไม่ควร push (ดู "สถานะปัจจุบัน" ข้อ 2)
 
 ## โปรเจกต์ 2 — ชื่อ repo, package, deploy path
 
