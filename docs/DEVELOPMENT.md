@@ -248,7 +248,7 @@ optional `REACT_APP_OTEL_ENABLED` (default `true`) / `REACT_APP_OTEL_ENVIRONMENT
 |---|---|---|
 | `deploy-dev.yml` | push to `main` (automatic) + `workflow_dispatch` | builds `--mode dev`, ships over SSH to the DEV host (`dev.blueledgers.com:9902`). Secrets `DEV_SSH_HOST/USER/KEY/PORT`, variable `DEV_API_APP_ID` |
 | `deploy-gcs.yml` | `workflow_dispatch` only | the GCS + CDN pipeline above |
-| `verify.yml` | PRs to `main`/`DEV`; pushes to every branch except `main`/`DEV`/`vercel` | `bun run test` then `bun run build`; a second job repeats the build under `npm ci` to mirror Vercel |
+| `verify.yml` | PRs to `main`; pushes to every branch except `main`/`vercel` | `bun run test` then `bun run build`; a second job repeats the build under `npm ci` to mirror Vercel |
 
 **Vercel** (`carmen-backstage.vercel.app`, the production users see)
 tracks the **`vercel`** branch, not `main` — ship with `git push origin main:vercel`.
