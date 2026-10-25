@@ -5,7 +5,7 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 4 เสร็จ + ขึ้น DEV (2026-10-26) → ถัดไป **โปรเจกต์ 5 ขั้น 5.1** (brainstorm — ขอบเขตรวมงานที่โปรเจกต์ 4 ส่งต่อ ดูหัวข้อโปรเจกต์ 5) · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
+- **อยู่ที่:** โปรเจกต์ 4 เสร็จ + ขึ้น DEV (2026-10-26) → กำลังทำ **โปรเจกต์ 5** (slice 5a ค่าในข้อมูล/ค่าบนสาย → 5b ตาราง+package) ตาม spec `docs/superpowers/specs/2026-10-26-carmen-blue-backstage-rename-p5-design.md` · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
 - **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
   1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-backstage (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
@@ -106,7 +106,8 @@
 
 ## โปรเจกต์ 5 — ฐานข้อมูล
 
-- [ ] 5.1 brainstorm · [ ] 5.2 spec · [ ] 5.3 อนุมัติ · [ ] 5.4 plan · [ ] 5.5 ลงมือ · [ ] 5.6 PR/merge · [ ] 5.7 apply DEV → UAT → production
+- [x] 5.1 brainstorm — ผู้ใช้: "DEV อย่างเดียว ยังไม่มีใครใช้จริง ทำได้เลย" · [x] 5.2 spec `docs/superpowers/specs/2026-10-26-carmen-blue-backstage-rename-p5-design.md` (2026-10-26) · ข้ามอนุมัติ/plan ตามคำสั่ง · [ ] 5.5 ลงมือ 5a · [ ] 5.5 ลงมือ 5b · [ ] 5.6 PR/merge · [ ] 5.7 apply **DEV เท่านั้น** (UAT/production จะได้ migration ตอน deploy backend รอบถัดไป — ผู้ใช้รับทราบ)
+- ผลสำรวจ DEV: ไม่มี DB `carmen_platform` (ตารางอยู่ใน schema `CARMEN_SYSTEM` ของ DB `postgres`) → ไม่ต้องเปลี่ยนชื่อฐานข้อมูล; `api_name` ไม่มีในแถวข้อมูล
 - **รับงานต่อจากโปรเจกต์ 4 (ค่าที่เก็บใน DB / ผูกกับ schema):**
   - permission key `platform_role.*`, `platform_config.*`, `user_platform.*`, `platform_migration` (seed + ข้อมูลใน DB + `<Can>` ฝั่ง FE)
   - `api_name` เช่น `platform-config.get`, `platform-role.findAll` (เก็บต่อ application ใน DB + `app-api-catalog.generated.ts`)
