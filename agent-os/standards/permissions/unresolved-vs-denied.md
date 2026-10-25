@@ -26,13 +26,13 @@ network failure must not push a platform admin into the cluster-admin space with
 
 ## The bootstrap escape hatch
 
-`userCount <= 1` ⇒ `hasPermission` returns `true` for everything, and `hasPlatformAuthority`
-reads true. It lives in `AuthContext`, **not** in `checkPermission` / `checkPlatformAuthority`
+`userCount <= 1` ⇒ `hasPermission` returns `true` for everything, and `hasBackstageAuthority`
+reads true. It lives in `AuthContext`, **not** in `checkPermission` / `checkBackstageAuthority`
 — those stay pure functions of the payload. The two must agree, or the first administrator of a
 fresh install is bounced out of the view they exist to set up.
 
 `userCount` is **never cached**, so on every cold reload it starts `null` and
-`hasPlatformAuthority` reads false until the request lands. Any new check built on it must
+`hasBackstageAuthority` reads false until the request lands. Any new check built on it must
 tolerate that window rather than deciding inside it.
 
 ## In a component

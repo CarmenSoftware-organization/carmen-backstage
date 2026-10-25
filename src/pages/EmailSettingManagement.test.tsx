@@ -29,7 +29,7 @@ vi.mock('../services/emailSettingService', () => ({
 
 // การ์ด mapping อ่าน platform config ตอน mount — mock ไว้ให้คืน routing ที่ชี้โปรไฟล์แรก
 // The routing card reads platform config on mount.
-vi.mock('../services/platformConfigService', () => ({
+vi.mock('../services/backstageConfigService', () => ({
   default: {
     getByKey: vi.fn().mockResolvedValue({ key: 'email_routing', value: { default: 's1' } }),
     update: vi.fn().mockResolvedValue({}),

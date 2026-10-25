@@ -271,7 +271,7 @@ const DatabasePoolEdit: React.FC = () => {
         });
         const row = created?.data ?? created;
         toast.success(t('pages.databasePools.createdToast'));
-        navigate(`/platform/database-pools/${row.id}/edit`, { replace: true });
+        navigate(`/backstage/database-pools/${row.id}/edit`, { replace: true });
       } else {
         // doc_version is required by the backend on update, so it's sent every time —
         // unlike other entities in this repo where it's only sent when present. The 0
@@ -366,7 +366,7 @@ const DatabasePoolEdit: React.FC = () => {
     return (
       <Layout>
         <div className="space-y-4 sm:space-y-6">
-          <PageHeader backTo="/platform/database-pools" title={t('pages.databasePools.singularTitle')} />
+          <PageHeader backTo="/backstage/database-pools" title={t('pages.databasePools.singularTitle')} />
           <Card>
             <CardContent className="p-0">
               <EmptyState
@@ -374,7 +374,7 @@ const DatabasePoolEdit: React.FC = () => {
                 title={t('pages.databasePools.notFoundTitle')}
                 description={t('pages.databasePools.notFoundDescription')}
                 action={
-                  <Button size="sm" onClick={() => navigate('/platform/database-pools')}>
+                  <Button size="sm" onClick={() => navigate('/backstage/database-pools')}>
                     {t('pages.databasePools.backToList')}
                   </Button>
                 }
@@ -390,7 +390,7 @@ const DatabasePoolEdit: React.FC = () => {
     <Layout>
       <div className="space-y-4 sm:space-y-6 pb-24">
         <PageHeader
-          backTo="/platform/database-pools"
+          backTo="/backstage/database-pools"
           title={headerTitle}
           subtitle={isNew ? t('pages.databasePools.newSubtitle') : undefined}
           audit={normalizeAudit(poolRecord)}
@@ -636,7 +636,7 @@ const DatabasePoolEdit: React.FC = () => {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={isNew ? () => navigate('/platform/database-pools') : handleCancelEdit}
+                onClick={isNew ? () => navigate('/backstage/database-pools') : handleCancelEdit}
                 disabled={saving}
               >
                 <X className="mr-2 h-4 w-4" />

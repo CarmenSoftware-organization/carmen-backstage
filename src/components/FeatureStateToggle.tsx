@@ -37,7 +37,7 @@ interface FeatureStateToggleProps {
  * กลุ่มปุ่มสามค่าแบบเลือกได้ค่าเดียว ประกอบจาก `Button` ที่มีอยู่ เพราะรีโปนี้ยังไม่มี primitive
  * ToggleGroup และกฎห้ามเพิ่ม/แก้ไฟล์ใน `src/components/ui/` โดยไม่ได้ขอ
  *
- * ใช้ร่วมกันสองหน้า: /platform/features (สวิตช์ฟีเจอร์ฝั่งหน้าจอ) และ /license-features
+ * ใช้ร่วมกันสองหน้า: /backstage/features (สวิตช์ฟีเจอร์ฝั่งหน้าจอ) และ /license-features
  * (สถานะการขายของ license feature) — คำอธิบายของสองหน้าคนละเรื่องกันสิ้นเชิง จึงส่งคีย์เข้ามาได้
  * Built from the existing Button: this repo has no ToggleGroup primitive and ui/ is off limits.
  */

@@ -13,7 +13,7 @@ doc prefix — record the actor in each doc's frontmatter instead.
 
 | Actor | Where they work | Gate |
 |-------|-----------------|------|
-| Backstage user | `Layout` + `Sidebar` (`src/components/nav/platformNav.ts`) | `PrivateRoute requiredPermission="<module>.<action>"` |
+| Backstage user | `Layout` + `Sidebar` (`src/components/nav/backstageNav.ts`) | `PrivateRoute requiredPermission="<module>.<action>"` |
 | Super admin | Same shell; also sees `superAdminOnly` nav items | `requireSuperAdmin` |
 | Cluster admin | `ClusterAdminLayout` under `/cluster-admin/:clusterId/*` (`src/components/nav/clusterAdminNav.ts`) | `ClusterAdminRoute` — `tb_cluster_user.role = 'admin'`, **not** a platform RBAC permission |
 | Anonymous | `/`, `/login`, `/changelog` | none |
@@ -37,12 +37,12 @@ property, not a data value.
 | Question | Read |
 |----------|------|
 | Which routes exist, their guard and permission | `src/App.tsx` |
-| Sidebar order and grouping | `src/components/nav/platformNav.ts`, `clusterAdminNav.ts` |
+| Sidebar order and grouping | `src/components/nav/backstageNav.ts`, `clusterAdminNav.ts` |
 | Endpoint paths and DTO shapes | Backend Scalar at `/swagger` (two backends: `/api` and `/api-system`) |
 | UI copy (th/en) | `src/i18n/` catalogs |
 
 > `SITEMAP.md` at the repo root is **stale** (still lists `/print-template-mapping` and
-> `/platform/permissions`; missing licenses, cronjobs, database pools, analytics, tenant
+> `/backstage/permissions`; missing licenses, cronjobs, database pools, analytics, tenant
 > imports and the cluster-admin portal). Do not build docs from it.
 
 ## Test Environment

@@ -109,10 +109,10 @@ describe('EmailSettingCard', () => {
     const onSaved = vi.fn();
     render(<EmailSettingCard {...baseProps} isEditing setting={setting} onSaved={onSaved} />);
     await user.clear(screen.getByLabelText('From name'));
-    await user.type(screen.getByLabelText('From name'), 'Carmen Platform');
+    await user.type(screen.getByLabelText('From name'), 'Carmen Backstage');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(svc.update).toHaveBeenCalled());
-    expect(svc.update.mock.calls[0][1]).toMatchObject({ doc_version: 3, from_name: 'Carmen Platform' });
+    expect(svc.update.mock.calls[0][1]).toMatchObject({ doc_version: 3, from_name: 'Carmen Backstage' });
     expect(onSaved).toHaveBeenCalled();
   });
 

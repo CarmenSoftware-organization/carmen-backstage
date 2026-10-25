@@ -37,8 +37,8 @@ import {
   ATTR_URL_FULL,
 } from '@opentelemetry/semantic-conventions';
 
-const LOGGER_NAME = 'carmen.platform';
-const SERVICE_NAME = 'carmen-platform';
+const LOGGER_NAME = 'carmen.backstage';
+const SERVICE_NAME = 'carmen-backstage';
 
 /**
  * ตัด `#fragment` ออกจาก URL — Google sign-in ส่ง access/refresh token กลับมาใน fragment ของ `/login/callback`

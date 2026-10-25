@@ -215,7 +215,7 @@ describe('Login — Google sign-in', () => {
     Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
   });
 
-  it('sends the browser to the gateway authorize endpoint for Platform', async () => {
+  it('sends the browser to the gateway authorize endpoint for Backstage', async () => {
     const user = userEvent.setup();
     renderLogin();
 
@@ -245,7 +245,7 @@ describe('Login — Google sign-in', () => {
     ['google_too_many_attempts', /too many sign-in attempts/i],
     ['google_failed', /google sign-in failed/i],
     ['google_disabled', /google sign-in is turned off/i],
-    ['access_denied_platform', /not authorized to access Backstage/i],
+    ['access_denied_backstage', /not authorized to access Backstage/i],
   ])('translates the error code %s into a banner', (code, text) => {
     renderLogin(`/login?error=${code}`);
 
@@ -303,7 +303,7 @@ describe('Login — hardening of URL-supplied values', () => {
 
   it('drops the bold Access Denied heading once the user starts typing again', async () => {
     const user = userEvent.setup();
-    renderLogin('/login?error=access_denied_platform');
+    renderLogin('/login?error=access_denied_backstage');
     expect(screen.getByRole('alert')).toHaveTextContent(/access denied/i);
 
     await user.type(screen.getByLabelText(/username|email/i), 'a');

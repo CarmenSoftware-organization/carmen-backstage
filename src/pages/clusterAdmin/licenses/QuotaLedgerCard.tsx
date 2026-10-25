@@ -79,7 +79,7 @@ export function QuotaLedgerCard({ licenses, loading, loadFailed, onRetry }: Quot
         </div>
       ) : licenses.length === 0 ? (
         <p className="text-muted-foreground text-sm">
-          {t('pages.clusterAdmin.quotaLicencesIssuedByPlatformTeam')}
+          {t('pages.clusterAdmin.quotaLicencesIssuedByBackstageTeam')}
         </p>
       ) : (
         <div className="overflow-x-auto">

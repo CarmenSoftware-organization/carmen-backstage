@@ -50,7 +50,7 @@ const AuthCallback: React.FC = () => {
       if (result.success) {
         navigate(resolveNextPath(next), { replace: true });
       } else {
-        backToLogin(result.code === 'access_denied_platform' ? 'access_denied_platform' : 'google_failed');
+        backToLogin(result.code === 'access_denied_backstage' ? 'access_denied_backstage' : 'google_failed');
       }
     });
   }, [loginWithTokens, navigate]);

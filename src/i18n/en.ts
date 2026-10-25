@@ -32,11 +32,11 @@ export const en = {
     activityEvents: 'Activity Events',
     applications: 'Applications',
     emailSettings: 'Email Settings',
-    platformConfig: 'Backstage Config',
-    platformRoles: 'Backstage Roles',
+    backstageConfig: 'Backstage Config',
+    backstageRoles: 'Backstage Roles',
     superAdmins: 'Super Admins',
-    userPlatform: 'Backstage Users',
-    platformMigrations: 'Backstage Migrations',
+    userBackstage: 'Backstage Users',
+    backstageMigrations: 'Backstage Migrations',
     sqlWorkbench: 'SQL Workbench',
     databasePools: 'Database Pools',
     cluster: 'Cluster',
@@ -50,7 +50,7 @@ export const en = {
     content: 'Content',
     analytics: 'Analytics',
     scheduling: 'Scheduling',
-    platform: 'Backstage',
+    backstage: 'Backstage',
     database: 'Database',
     // กลุ่มของเมนูฝั่งดูแลคลัสเตอร์ ใช้โดยหน้าสวิตช์ฟีเจอร์เพื่อจัดกลุ่มคีย์ cluster_admin_*
     // ตัว Sidebar ของ ClusterAdminLayout เองไม่ได้ตั้ง groupKey จึงไม่แสดงหัวข้อนี้
@@ -67,7 +67,7 @@ export const en = {
   },
   header: {
     userMenu: 'User menu',
-    platformAdminView: 'Backstage Admin view',
+    backstageAdminView: 'Backstage Admin view',
     clusterAdminView: 'Cluster Admin view',
     profile: 'Profile',
     logOut: 'Log out',
@@ -107,15 +107,15 @@ export const en = {
     usageAnalytics: 'Usage Analytics',
     activityEvents: 'Activity Events',
     applications: 'Applications',
-    platform: 'Backstage',
+    backstage: 'Backstage',
     roles: 'Roles',
     superAdmins: 'Super Admins',
-    userPlatform: 'Backstage Users',
+    userBackstage: 'Backstage Users',
     sqlWorkbench: 'SQL Workbench',
     // เติมตอนตรวจเบราว์เซอร์ slice 9b — route /platform/database-pools ไม่เคยอยู่ใน
     // SEGMENT_KEYS ป้ายจึงมาจาก titleCase() เป็นอังกฤษทุกภาษา (ช่องว่างแบบเดียวกับ analytics)
     databasePools: 'Database Pools',
-    platformConfig: 'Backstage Config',
+    backstageConfig: 'Backstage Config',
     emailSettings: 'Email Settings',
     clusterAdmin: 'Cluster Admin',
     profile: 'Profile',
@@ -461,7 +461,7 @@ export const en = {
     // same reason — a noun, not a verb or a lifecycle state.
     label: {
       cluster: 'Cluster',
-      platform: 'Backstage',
+      backstage: 'Backstage',
       application: 'Application',
       clusterRole: 'Cluster Role',
       buRole: 'BU Role',
@@ -1026,7 +1026,7 @@ export const en = {
       insideConsole: 'Inside the console',
       captionOrganization: 'Who and what you operate.',
       captionContent: 'The documents and messages that run the day.',
-      captionPlatform: 'Access, clients, and administration.',
+      captionBackstage: 'Access, clients, and administration.',
       itemRolesAccess: 'Roles & Access',
       descClusters: 'Tenant groups & license limits',
       descBusinessUnits: 'Properties, formats, connections',
@@ -2605,7 +2605,7 @@ export const en = {
       // already flagged in Task 1's report as the sharpest spelling-drift find. Thai is
       // identical to buQuotaDataUnavailable's, reused verbatim.
       licenceDataUnavailable: 'Licence data for this cluster could not be loaded — it is unknown, not empty.',
-      quotaLicencesIssuedByPlatformTeam: 'The Backstage team issues quota licences. Ask them to add one before this cluster needs another business unit.',
+      quotaLicencesIssuedByBackstageTeam: 'The Backstage team issues quota licences. Ask them to add one before this cluster needs another business unit.',
       inForceBadge: 'In force',
 
       // --- Task 5: ClusterAdminEntry.tsx ---
@@ -2624,7 +2624,7 @@ export const en = {
       // NOT a byte match for this object's own clusterHasNoBusinessUnitsYet ('This cluster has
       // no business units yet.', no second sentence) — this card's EmptyState description adds
       // "A platform administrator creates them."
-      noBusinessUnitsCreatedByPlatformAdmin: 'This cluster has no business units yet. A Backstage administrator creates them.',
+      noBusinessUnitsCreatedByBackstageAdmin: 'This cluster has no business units yet. A Backstage administrator creates them.',
       moreOnBusinessUnitsPage: '{{count}} more on the Business Units page',
 
       // --- Task 5: SummaryCardHeader.tsx ---
@@ -3601,7 +3601,7 @@ export const en = {
       cpMismatch5: 'rename anything — the BU code is never written back — but every other field below would still be written onto',
       cpMismatch6: ', not the property the workbook describes. Double-check before continuing.',
     },
-    platformMigration: {
+    backstageMigration: {
       title: 'Backstage Database Migrations',
       subtitle: 'Prisma migrations for the shared Backstage database every cluster reads',
       refresh: 'Check status',
@@ -3637,16 +3637,16 @@ export const en = {
       ops: {
         seedCurrencyIso: { label: 'ISO currencies', desc: 'The standard ISO 4217 currency code list' },
         seedPermission: { label: 'App permissions', desc: 'Every permission the application code declares' },
-        seedPlatformPermission: { label: 'Backstage permissions', desc: 'The Backstage-level permission catalog' },
+        seedBackstagePermission: { label: 'Backstage permissions', desc: 'The Backstage-level permission catalog' },
         seedRolePermission: { label: 'Role permissions', desc: 'Bindings between app roles and permissions' },
-        seedPlatformRole: { label: 'Backstage roles', desc: 'The default Backstage-level roles' },
-        seedPlatformRolePermission: { label: 'Backstage role permissions', desc: 'Bindings between Backstage roles and permissions' },
+        seedBackstageRole: { label: 'Backstage roles', desc: 'The default Backstage-level roles' },
+        seedBackstageRolePermission: { label: 'Backstage role permissions', desc: 'Bindings between Backstage roles and permissions' },
         seedReportTemplateUpload: { label: 'Report templates', desc: 'Uploads the default report templates' },
         seedLicenseFeature: { label: 'Licensable features', desc: 'The licensing feature catalog' },
         seedApplicationApi: { label: 'App API allowlist', desc: 'Which x-app-id may call which API' },
         checkPermission: { label: 'Check app permissions', desc: 'Finds permissions the code declares but the database lacks, and the reverse' },
-        checkPlatformPermission: { label: 'Check Backstage permissions', desc: 'The same, for Backstage-level permissions' },
-        checkPlatformRolePermission: { label: 'Check Backstage role permissions', desc: 'Finds role-permission bindings that drifted from what is declared' },
+        checkBackstagePermission: { label: 'Check Backstage permissions', desc: 'The same, for Backstage-level permissions' },
+        checkBackstageRolePermission: { label: 'Check Backstage role permissions', desc: 'Finds role-permission bindings that drifted from what is declared' },
         checkEndpointPermission: { label: 'Check endpoint coverage', desc: 'Finds endpoints with no permission guarding them' },
         checkApiSystemPermission: { label: 'Check api-system coverage', desc: 'The same, limited to api-system routes' },
         checkApplicationApi: { label: 'Check app API allowlist', desc: 'Finds allowlist entries the seed file declares but the database lacks, and the reverse' },
@@ -3812,14 +3812,14 @@ export const en = {
     // หน้านี้และการ์ดทั้งหมดเป็น "ไทยล้วน" มาก่อน — ผู้ใช้อังกฤษอ่านไทยมาตลอด
     // อังกฤษทุกบรรทัดในบล็อกนี้จึงเป็นคำที่เขียนขึ้นใหม่ ไม่ใช่การรักษา byte เดิม
     // ส่วนภาษาไทยคือถ้อยคำเดิมย้ายมาทั้งดุ้น ไม่ได้เรียบเรียงใหม่
-    platformConfig: {
+    backstageConfig: {
       title: 'Backstage Config',
       subtitle: 'Backstage-level settings that can be changed without a redeploy',
       sectionEmailLinks: 'Email links & lifetimes',
       sectionInvitationLimits: 'Invitation limits',
       sectionNotifications: 'Notifications',
       sectionLicensing: 'Licensing',
-      sectionPlatformMigration: 'Backstage Database',
+      sectionBackstageMigration: 'Backstage Database',
       migrationTitle: 'Backstage migration API',
       migrationDesc1: 'Opens or closes the whole',
       migrationDesc2: ' route. It used to be a backend-gateway env var, and only super-admins may change it — not holders of platform_config.manage.',
@@ -3841,8 +3841,8 @@ export const en = {
       googleSignInTitle: 'Google sign-in',
       googleSignInDesc:
         'Turns the "Continue with Google" button on or off per app. When off, the button is shown disabled and the gateway also blocks the Google flow. The button is only clickable when the gateway has Google OAuth configured.',
-      googleSignInPlatform: 'Carmen Blue Backstage',
-      googleSignInPlatformHint: 'The login page of this admin app.',
+      googleSignInBackstage: 'Carmen Blue Backstage',
+      googleSignInBackstageHint: 'The login page of this admin app.',
       googleSignInApp: 'Carmen Blue Platform',
       googleSignInAppHint: 'The main Carmen Blue Platform web app and every other client that is not Backstage.',
       googleSignInCheckbox: 'Allow Google sign-in',
@@ -4052,11 +4052,11 @@ export const en = {
       rosterAria: 'Super admin roster',
     },
     // ── slice 9a: User Platform ──
-    userPlatform: {
+    userBackstage: {
       filterDescription: 'Filter holders by role, scope and status',
       // roleChips.tsx — ป้ายขอบเขต 'Platform' ใช้ทั้งเป็นค่าที่แสดงและเป็นคีย์เรียงลำดับ
       // ตัวเรียงเทียบกับ 'Platform' ตรง ๆ จึงต้องเทียบกับค่าที่แปลแล้วด้วย ไม่ใช่ literal
-      scopePlatform: 'Backstage',
+      scopeBackstage: 'Backstage',
       // ── UserPlatformManagement ──
       title: 'Backstage Users',
       subtitle: 'Users holding Backstage roles',
@@ -4087,8 +4087,8 @@ export const en = {
       // ── UserPlatformEdit ──
       editSubtitle: 'Manage roles and scope',
       // ── UserPlatformEdit — the per-holder access dossier ──
-      reachPlatformWide: 'Reaches all of Backstage',
-      reachPlatformWideNote: 'Every cluster and every business unit',
+      reachBackstageWide: 'Reaches all of Backstage',
+      reachBackstageWideNote: 'Every cluster and every business unit',
       reachClusters: 'Reaches {{count}} cluster(s)',
       reachNone: 'No Backstage privilege',
       reachNoneNote: 'This user holds no Backstage role and will not appear in the registry',
@@ -4105,7 +4105,7 @@ export const en = {
       membershipBusinessUnits: 'Business units',
       membershipNone: 'None',
       addRoleDescription: 'Grant one Backstage role at one scope',
-      scopePlatformHint: 'The role applies across every cluster',
+      scopeBackstageHint: 'The role applies across every cluster',
       scopeClusterHint: 'The role applies only inside the chosen cluster',
       loadUserFailed: 'Failed to load user: {{detail}}',
       loadingRolesAria: 'Loading user roles',
@@ -4132,7 +4132,7 @@ export const en = {
       holders: 'holders',
       scopeBreakdownUnavailable: "Scope breakdown isn't available yet.",
       registrySummaryUnavailable: "Registry summary isn't available yet.",
-      platformWide: 'Backstage-wide',
+      backstageWide: 'Backstage-wide',
       clusterScoped: 'Cluster-scoped',
       assignments: 'Assignments',
       inactiveHoldersWarning: '{{count}} inactive holder still hold access',
@@ -4143,7 +4143,7 @@ export const en = {
       userLabel: 'User',
       userPickerAria: 'User to grant access to',
       rolesLabel: 'Roles',
-      noPlatformRoles: 'No Backstage roles available.',
+      noBackstageRoles: 'No Backstage roles available.',
       alreadyGranted: 'Already granted',
       scopeLabel: 'Scope',
       scopeCluster: 'A specific cluster',
@@ -4975,7 +4975,7 @@ export const en = {
       stopped: 'Stopped',
     },
     owner: {
-      platform: 'Backstage',
+      backstage: 'Backstage',
     },
     action: {
       start: 'Start',
@@ -5018,7 +5018,7 @@ export const en = {
     appSecretInvalidBody: 'The server refused the app secret this build sends \u2014 it is missing, wrong or out of date. Signing in again will not help; the site needs to be redeployed with the current secret.',
   },
   login: {
-    accessDeniedPlatform: 'Access Denied. You are not authorized to access Backstage.',
+    accessDeniedBackstage: 'Access Denied. You are not authorized to access Backstage.',
     unableToLogin: 'Unable to login. Please try again later.',
     invalidCredentials: 'Invalid email/username or password.',
     tooManyAttempts: 'Too many login attempts. Please try again later.',

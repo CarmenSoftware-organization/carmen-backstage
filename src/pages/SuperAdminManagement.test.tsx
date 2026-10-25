@@ -31,7 +31,7 @@ vi.mock('../components/Layout', () => ({
 // Mutable auth. Unlike UserManagement/ClusterEdit etc., `SuperAdminManagement` itself never
 // reads `useAuth()` — there is no `<Can>` and no `isSuperAdmin` check anywhere in the page
 // source (verified by reading the file). `isSuperAdmin`/`isAuthenticated`/`loading` here exist
-// only to drive `PrivateRoute`, which is what this test actually exercises. `hasPlatformAuthority`
+// only to drive `PrivateRoute`, which is what this test actually exercises. `hasBackstageAuthority`
 // is fixed `true` (never toggled) so PrivateRoute's platform-authority boundary is a no-op here —
 // this suite is about the `requireSuperAdmin` branch below it, not the boundary above it.
 const auth = vi.hoisted(() => ({
@@ -39,7 +39,7 @@ const auth = vi.hoisted(() => ({
   loading: false,
   isSuperAdmin: false,
   hasPermission: (() => true) as (perm: string, ctx?: { clusterId?: string }) => boolean,
-  hasPlatformAuthority: true,
+  hasBackstageAuthority: true,
   hasClusterAdminScope: false,
   adminScope: { all: false, clusters: [] as { id: string }[] },
   effectivePermissions: { is_super_admin: false, platform: [] as string[], clusters: {} as Record<string, string[]> },
@@ -82,16 +82,16 @@ const sampleUser = { id: 'u1', email: 'jane@example.com', firstname: 'Jane', las
 const superAdminListResponse = { data: [sampleSuperAdminRow] };
 const usersListResponse = { data: [sampleUser] };
 
-// Mirrors the real route registration in App.tsx (`/platform/super-admins`, guarded by
+// Mirrors the real route registration in App.tsx (`/backstage/super-admins`, guarded by
 // `<PrivateRoute requireSuperAdmin>`), not a bespoke wrapper — the whole point of this test is
 // to prove the actual route configuration blocks/admits correctly.
 const renderRoute = () =>
   render(
     <FeatureFlagProvider>
-      <MemoryRouter initialEntries={['/platform/super-admins']}>
+      <MemoryRouter initialEntries={['/backstage/super-admins']}>
         <Routes>
           <Route
-            path="/platform/super-admins"
+            path="/backstage/super-admins"
             element={
               <PrivateRoute requireSuperAdmin feature="super_admins">
                 <SuperAdminManagement />
@@ -127,7 +127,7 @@ beforeEach(() => {
 // page, adding a checked box with no actual discrimination.
 //
 // Protection is therefore entirely at the ROUTE level: `App.tsx` registers
-// `/platform/super-admins` as `<PrivateRoute requireSuperAdmin><SuperAdminManagement /></PrivateRoute>`
+// `/backstage/super-admins` as `<PrivateRoute requireSuperAdmin><SuperAdminManagement /></PrivateRoute>`
 // (the only place `SuperAdminManagement` is ever rendered — verified by grep), and
 // `PrivateRoute` (`src/components/PrivateRoute.tsx:33-35`) renders `<Forbidden>` instead of
 // `children` whenever `requireSuperAdmin && !isSuperAdmin`, so the page component never mounts

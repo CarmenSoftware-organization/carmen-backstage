@@ -17,7 +17,7 @@ Required state shape: `items`, `totalRows`, `loading`, `error`, `summary`/`summa
 Levels, summary-band contract, and the soft-delete toggle: `agent-os/standards/pages/` (`management-page.md`, `summary-band.md`).
 
 ### Edit page (`<Entity>Edit.tsx`)
-**Three modes, not one** — Toggle (`RoleEdit`, `UserEdit`, `NewsEdit`, `ApplicationEdit`, `ReportTemplateEdit`), Edit-in-place (`ClusterEdit`, `BusinessUnitEdit`), Relationship (`UserPlatformEdit`, no `formData` at all). Pick by counting sections + related tables. Decision rule and per-mode state shape: **`agent-os/standards/pages/edit-page-modes.md`**.
+**Three modes, not one** — Toggle (`RoleEdit`, `UserEdit`, `NewsEdit`, `ApplicationEdit`, `ReportTemplateEdit`), Edit-in-place (`ClusterEdit`, `BusinessUnitEdit`), Relationship (`UserBackstageEdit`, no `formData` at all). Pick by counting sections + related tables. Decision rule and per-mode state shape: **`agent-os/standards/pages/edit-page-modes.md`**.
 
 Canonical examples: **`src/pages/RoleEdit.tsx`** (Toggle, simple), **`src/pages/ReportTemplateEdit.tsx`** (tabbed XML + sticky bottom bar), **`src/pages/ClusterEdit.tsx`** (Edit-in-place with scrollspy + inline row editing).
 

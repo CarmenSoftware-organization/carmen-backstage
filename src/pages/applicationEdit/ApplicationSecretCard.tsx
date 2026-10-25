@@ -12,7 +12,7 @@ import { APP_SECRET_ERROR, REMASK_MS, maskedSecret, secretErrorCode } from '../.
 import { formatStatusTime, isOwnApp, isPastUntil } from '../../utils/applicationStatus';
 import { isVersionConflict, notifyVersionConflict } from '../../utils/docVersion';
 import { getErrorDetail, isNotFoundError } from '../../utils/errorParser';
-import { PLATFORM_SCOPED_RECORD } from '../../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../../utils/permissions';
 import { HIT_SLOP_44 } from '../../lib/hitSlop';
 import { cn } from '../../lib/utils';
 import { useI18n } from '../../hooks/useI18n';
@@ -58,7 +58,7 @@ export function ApplicationSecretCard({
   const { t } = useI18n();
   const { hasPermission } = useAuth();
   // Applications are platform records — only a platform-wide grant may act on one.
-  const scope = { clusterId: PLATFORM_SCOPED_RECORD };
+  const scope = { clusterId: BACKSTAGE_SCOPED_RECORD };
   const canManage = hasPermission('application.secret.manage', scope);
   const canReveal = hasPermission('application.secret.reveal', scope);
   // Requiring a secret on the app this page itself runs as, from a build that sends none, would

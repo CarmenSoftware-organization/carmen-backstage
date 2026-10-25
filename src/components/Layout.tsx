@@ -15,7 +15,7 @@ import HeaderUserMenu from './HeaderUserMenu';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import VersionStamp from './VersionStamp';
-import { buildPlatformNav } from './nav/platformNav';
+import { buildBackstageNav } from './nav/backstageNav';
 import { useFeatureFlags } from '../context/FeatureFlagContext';
 import { Skeleton } from './ui/skeleton';
 
@@ -57,7 +57,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, navItems: navItemsProp, headerSlot, brandTo, brand = PRODUCT_BRAND, hideBreadcrumbs = false }) => {
-  const { user, logout, hasPermission, isSuperAdmin, hasPlatformAuthority } = useAuth();
+  const { user, logout, hasPermission, isSuperAdmin, hasBackstageAuthority } = useAuth();
   const { flagOf, isReady: flagsReady } = useFeatureFlags();
   const navigate = useNavigate();
   const location = useLocation();
@@ -98,15 +98,15 @@ const Layout: React.FC<LayoutProps> = ({ children, navItems: navItemsProp, heade
     });
   };
 
-  // `platformNav`'s Dashboard entry carries no `permission`, so it renders for everyone —
+  // `backstageNav`'s Dashboard entry carries no `permission`, so it renders for everyone —
   // including a membership-only cluster admin, whose sidebar would be a single link to a page
   // PrivateRoute bounces them out of. Deciding here rather than in each page means no future
   // page can forget. An explicit navItems prop still wins, so ClusterAdminLayout is unaffected.
-  const navItems = navItemsProp ?? (hasPlatformAuthority ? buildPlatformNav({ hasPermission, isSuperAdmin, flagOf }) : []);
+  const navItems = navItemsProp ?? (hasBackstageAuthority ? buildBackstageNav({ hasPermission, isSuperAdmin, flagOf }) : []);
 
   // Same reasoning as the nav fallback: the brand mark is the most prominent element in the
   // chrome, and /dashboard is a page PrivateRoute bounces a membership-only cluster admin out of.
-  const brandDestination = brandTo ?? (hasPlatformAuthority ? '/dashboard' : '/cluster-admin');
+  const brandDestination = brandTo ?? (hasBackstageAuthority ? '/dashboard' : '/cluster-admin');
 
   const getFullName = (): string => {
     const info = user?.user_info;

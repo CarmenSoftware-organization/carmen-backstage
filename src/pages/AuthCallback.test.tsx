@@ -65,17 +65,17 @@ describe('AuthCallback', () => {
     expect(await findByTestId('where')).toHaveTextContent('/dashboard');
   });
 
-  it('goes back to /login with the access-denied code when the user has no Platform authority', async () => {
+  it('goes back to /login with the access-denied code when the user has no Backstage authority', async () => {
     window.location.hash = '#access_token=acc&refresh_token=rfr';
     auth.loginWithTokens.mockResolvedValue({
       success: false,
-      code: 'access_denied_platform',
+      code: 'access_denied_backstage',
       error: 'Access Denied. You are not authorized to access Backstage.',
     });
 
     const { findByTestId } = renderCallback();
 
-    expect(await findByTestId('where')).toHaveTextContent('/login?error=access_denied_platform');
+    expect(await findByTestId('where')).toHaveTextContent('/login?error=access_denied_backstage');
   });
 
   it('goes back to /login with the generic Google error code on any other failure', async () => {

@@ -8,7 +8,7 @@ const auth = vi.hoisted(() => ({
   loading: false,
   isSuperAdmin: false,
   hasPermission: vi.fn((_perm: string) => true),
-  hasPlatformAuthority: true,
+  hasBackstageAuthority: true,
   hasClusterAdminScope: false,
   adminScope: { all: false, clusters: [] },
   effectivePermissions: { is_super_admin: false, platform: [], clusters: {} },
@@ -55,7 +55,7 @@ beforeEach(() => {
   auth.loading = false;
   auth.isSuperAdmin = false;
   auth.hasPermission = vi.fn(() => true);
-  auth.hasPlatformAuthority = true;
+  auth.hasBackstageAuthority = true;
   auth.hasClusterAdminScope = false;
   auth.adminScope = { all: false, clusters: [] };
   auth.effectivePermissions = { is_super_admin: false, platform: [], clusters: {} };

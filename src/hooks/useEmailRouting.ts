@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import platformConfigService from '../services/platformConfigService';
+import backstageConfigService from '../services/backstageConfigService';
 import { parseApiError } from '../utils/errorParser';
 import type { EmailRoutingConfig } from '../types';
 
@@ -26,7 +26,7 @@ export interface UseEmailRoutingResult {
  * การยิง request และ `cancelled` คุมผลลัพธ์ค้างได้ครบทุกรอบ ไม่ใช่เฉพาะรอบแรก
  *
  * `apply` มีไว้ให้ผู้บันทึกเขียนค่าที่ยิง PUT สำเร็จแล้วทับลงมาตรง ๆ — payload ที่ส่งไปคือค่าที่
- * backend เก็บทั้งใบอยู่แล้ว (ดู `platformConfigService.update`) การอ่านซ้ำจึงได้ค่าเดิมเป๊ะ
+ * backend เก็บทั้งใบอยู่แล้ว (ดู `backstageConfigService.update`) การอ่านซ้ำจึงได้ค่าเดิมเป๊ะ
  */
 export function useEmailRouting(): UseEmailRoutingResult {
   const [routing, setRouting] = useState<EmailRoutingConfig | null>(null);
@@ -41,7 +41,7 @@ export function useEmailRouting(): UseEmailRoutingResult {
     let cancelled = false;
     setLoading(true);
     setError('');
-    platformConfigService
+    backstageConfigService
       .getByKey('email_routing')
       .then((row) => {
         if (cancelled) return;

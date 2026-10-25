@@ -11,7 +11,7 @@ vi.mock('../services/api', () => ({
   },
 }));
 vi.mock('../services/permissionService', () => ({
-  default: { getMyPlatformPermissions: vi.fn() },
+  default: { getMyBackstagePermissions: vi.fn() },
 }));
 vi.mock('../services/userService', () => ({
   default: { getAll: vi.fn() },
@@ -27,7 +27,7 @@ const mockApi = api as unknown as {
   get: ReturnType<typeof vi.fn>;
   defaults: { headers: { common: Record<string, string> } };
 };
-const mockPerm = permissionService as unknown as { getMyPlatformPermissions: ReturnType<typeof vi.fn> };
+const mockPerm = permissionService as unknown as { getMyBackstagePermissions: ReturnType<typeof vi.fn> };
 const mockUser = userService as unknown as { getAll: ReturnType<typeof vi.fn> };
 
 const makeLocalStorage = () => {
@@ -59,7 +59,7 @@ describe('AuthContext refresh_token handling', () => {
     // pathname '/login' is public → the no-token mount effect won't navigate.
     vi.stubGlobal('location', { href: '', pathname: '/login' });
     mockApi.get.mockResolvedValue({ data: { data: {} } });
-    mockPerm.getMyPlatformPermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
+    mockPerm.getMyBackstagePermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
     mockUser.getAll.mockResolvedValue({ paginate: { total: 5 } });
   });
   afterEach(() => {
@@ -115,7 +115,7 @@ describe('AuthContext loginWithTokens (Google sign-in)', () => {
   });
 
   it('keeps /login/callback public: with no token yet it must not bounce to /login and lose the fragment', () => {
-    mockPerm.getMyPlatformPermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
+    mockPerm.getMyBackstagePermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
 
     render(<AuthProvider><TokenProbe onResult={() => undefined} /></AuthProvider>);
 
@@ -123,7 +123,7 @@ describe('AuthContext loginWithTokens (Google sign-in)', () => {
   });
 
   it('stores both tokens and labels the user from the token email when authority is present', async () => {
-    mockPerm.getMyPlatformPermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
+    mockPerm.getMyBackstagePermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
     // The background profile fetch would overwrite the stored user with the server profile; let it fail
     // so the assertion sees the label built from the token (the fetch failing is silent by design).
     mockApi.get.mockRejectedValue(new Error('profile unavailable'));
@@ -139,8 +139,8 @@ describe('AuthContext loginWithTokens (Google sign-in)', () => {
     expect(JSON.parse(localStorage.getItem('user') ?? '{}')).toMatchObject({ email: 'jane@example.com' });
   });
 
-  it('refuses a Google user with no Platform authority and leaves no session behind', async () => {
-    mockPerm.getMyPlatformPermissions.mockResolvedValue({ is_super_admin: false, platform: [], clusters: {} });
+  it('refuses a Google user with no Backstage authority and leaves no session behind', async () => {
+    mockPerm.getMyBackstagePermissions.mockResolvedValue({ is_super_admin: false, platform: [], clusters: {} });
     vi.spyOn(clusterAdminService, 'getMyAdminClusters').mockResolvedValue({ all: false, clusters: [] });
     const results: Array<{ success: boolean; code?: string }> = [];
 
@@ -148,7 +148,7 @@ describe('AuthContext loginWithTokens (Google sign-in)', () => {
     await userEvent.click(screen.getByText('google'));
 
     await waitFor(() => expect(results).toHaveLength(1));
-    expect(results[0]).toMatchObject({ success: false, code: 'access_denied_platform' });
+    expect(results[0]).toMatchObject({ success: false, code: 'access_denied_backstage' });
     expect(localStorage.getItem('token')).toBeNull();
     expect(localStorage.getItem('refresh_token')).toBeNull();
     expect(localStorage.getItem('user')).toBeNull();
@@ -185,7 +185,7 @@ describe('AuthContext loginWithTokens — an earlier session is still stored', (
   });
 
   it('a refused Google user does not end up signed in as the previous user', async () => {
-    mockPerm.getMyPlatformPermissions.mockResolvedValue({ is_super_admin: false, platform: [], clusters: {} });
+    mockPerm.getMyBackstagePermissions.mockResolvedValue({ is_super_admin: false, platform: [], clusters: {} });
     vi.spyOn(clusterAdminService, 'getMyAdminClusters').mockResolvedValue({ all: false, clusters: [] });
     const results: Array<{ success: boolean }> = [];
 
@@ -201,7 +201,7 @@ describe('AuthContext loginWithTokens — an earlier session is still stored', (
   });
 
   it('an accepted Google user replaces the previous identity instead of inheriting it', async () => {
-    mockPerm.getMyPlatformPermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
+    mockPerm.getMyBackstagePermissions.mockResolvedValue({ is_super_admin: true, platform: [], clusters: {} });
     const results: unknown[] = [];
 
     render(<AuthProvider><Probe2 onResult={(r) => results.push(r)} /></AuthProvider>);

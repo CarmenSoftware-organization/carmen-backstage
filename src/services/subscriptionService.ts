@@ -117,10 +117,10 @@ const subscriptionService = {
 
   /**
    * รายการสัญญาที่ถูกลบแบบซ่อน (deleted_at ไม่ว่าง) — เฉพาะ platform superadmin
-   * envelope เดียวกับ listPlatform; แถวมี `deleted_at` / `deleted_by_id` และชื่อผู้ลบที่ `audit.deleted`
+   * envelope เดียวกับ listBackstage; แถวมี `deleted_at` / `deleted_by_id` และชื่อผู้ลบที่ `audit.deleted`
    *
    * หมายเหตุ: ของ subscription ห้ามเรียงด้วย `bu_code` / `bu_name` / `state` / `feature_count` — backend ตอบ 422
-   * (แถวแคบกว่า listPlatform: ไม่มี feature_count / seat_used / seat_cap)
+   * (แถวแคบกว่า listBackstage: ไม่มี feature_count / seat_used / seat_cap)
    */
   listDeleted: async (paginate: PaginateParams = {}): Promise<SubscriptionsResponse> => {
     const response = await api.get(`${BASE}/deleted?${buildQuery(paginate, defaultSearchFields)}`);

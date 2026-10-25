@@ -36,7 +36,7 @@ export interface CronJobFilterSheetProps {
  * the literal string `'all'` in the UI and converted back to an absent key when writing the
  * filter object the service forwards.
  *
- * There used to be a third Select here (Owner: All / Platform), sending
+ * There used to be a third Select here (Owner: All / Backstage), sending
  * `source_service: ''` to mean "platform-owned only". It was removed: the gateway's shared
  * `parseFilterString` (apps/backend-gateway/src/shared-dto/paginate.dto.ts) guards with
  * `if (key && value)`, so a pair whose value is an empty string is dropped before it ever

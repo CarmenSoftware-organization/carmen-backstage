@@ -1,5 +1,5 @@
 /**
- * Platform permission keys that let a holder raise their own access.
+ * Backstage permission keys that let a holder raise their own access.
  *
  * `platform_role.create` / `.update` can write any key into a role — including a role the
  * holder already has — and `user_platform.manage` can bind any role to any user, the holder

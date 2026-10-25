@@ -47,12 +47,12 @@ after creation (done in CP-PAGE-016, License Center → cluster).
 
 | Role | Permission | Scope | Notes |
 |------|-----------|-------|-------|
-| Backstage user | `cluster.create` | Platform | Route guard for `/clusters/new` |
-| Backstage user | `cluster.update` | Platform (route) / Cluster (`canEdit`) | Route guard for `/edit`. The route check is unscoped but `canEdit` is scoped, so a user whose `cluster.update` covers only *other* clusters opens this one **read-only**. |
+| Backstage user | `cluster.create` | Backstage | Route guard for `/clusters/new` |
+| Backstage user | `cluster.update` | Backstage (route) / Cluster (`canEdit`) | Route guard for `/edit`. The route check is unscoped but `canEdit` is scoped, so a user whose `cluster.update` covers only *other* clusters opens this one **read-only**. |
 | — | `activity_log.read` | Cluster | **Change history** button |
-| — | `cluster.create` | Platform | BU tab **Add** button. It checks `cluster.create`, **not** a business-unit permission. |
-| — | `subscription.read` | Platform | Licensing tab content. Without it the tab body is empty and no fetch is made. |
-| — | `subscription.manage` | Platform | "Create subscription" button in the empty Licensing tab |
+| — | `cluster.create` | Backstage | BU tab **Add** button. It checks `cluster.create`, **not** a business-unit permission. |
+| — | `subscription.read` | Backstage | Licensing tab content. Without it the tab body is empty and no fetch is made. |
+| — | `subscription.manage` | Backstage | "Create subscription" button in the empty Licensing tab |
 
 **Field-level permission (edit mode):**
 

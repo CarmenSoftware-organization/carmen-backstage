@@ -52,7 +52,7 @@ export interface SubscriptionFilters {
  *
  * `expiringSoonDays` ก็รับเข้ามาเช่นกัน ไม่ใช่ import constant มาใช้เอง เพราะไฟล์นี้เป็นฟังก์ชัน
  * บริสุทธิ์ เรียก hook ไม่ได้ และค่าจริงมาจาก `useExpiryThresholds().thresholds.subscription_days`
- * ซึ่งผู้ดูแลแก้ได้จากหน้า Platform Config — ถ้าที่นี่ใช้ค่าตายตัว ตัวกรอง "ใกล้หมดอายุ" จะไม่ตรงกับ
+ * ซึ่งผู้ดูแลแก้ได้จากหน้า Backstage Config — ถ้าที่นี่ใช้ค่าตายตัว ตัวกรอง "ใกล้หมดอายุ" จะไม่ตรงกับ
  * ป้ายในตารางทันทีที่ผู้ดูแลเปลี่ยนเกณฑ์
  * Passed in, not imported: this is a pure function and the real value is operator-configurable.
  * @param filters - ตัวกรองที่ผู้ใช้เลือก / The user's filter selection

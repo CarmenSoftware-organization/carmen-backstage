@@ -4,9 +4,9 @@ Three shapes. **Pick by where the filtering happens**, which follows from how bi
 
 | Shape | Pages | Filtering | Has |
 |---|---|---|---|
-| **Server-side list** | ActivityEvent, Application, BusinessUnit, Cluster, News, ReportTemplate, Role, User, UserPlatform | backend, via `paginate` | `DataTable serverSide`, debounced search, filter Sheet or filter bar, CSV, skeleton, summary band, debug Sheet |
+| **Server-side list** | ActivityEvent, Application, BusinessUnit, Cluster, News, ReportTemplate, Role, User, UserBackstage | backend, via `paginate` | `DataTable serverSide`, debounced search, filter Sheet or filter bar, CSV, skeleton, summary band, debug Sheet |
 | **Client-filtered list** | SuperAdmin, TenantMigration | in memory | one fetch, `useMemo` filter or `DataTable globalFilter`, CSV, skeleton |
-| **Config** | EmailSetting, PlatformConfig, ReportFormGroup | none | cards; no table, no pagination, no CSV |
+| **Config** | EmailSetting, BackstageConfig, ReportFormGroup | none | cards; no table, no pagination, no CSV |
 
 **Choosing:** can the set grow without bound? → server-side. Is it capped by something structural — an enum, one row per BU, a hand-curated list? → client-filtered, or Config when a table is the wrong shape entirely (see `EmailSettingManagement`, capped at 3).
 

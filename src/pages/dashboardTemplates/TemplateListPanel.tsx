@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Languages, LayoutDashboard, Pencil, Plus, Trash2 } 
 import dashboardTemplateService from '../../services/dashboardTemplateService';
 import { getErrorDetail } from '../../utils/errorParser';
 import { useI18n } from '../../hooks/useI18n';
-import { PLATFORM_SCOPED_RECORD } from '../../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../../utils/permissions';
 import Can from '../../components/Can';
 import { ListEmptyState } from '../../components/ListEmptyState';
 import { TableSkeleton } from '../../components/TableSkeleton';
@@ -131,7 +131,7 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
                 </Badge>
               )}
             </div>
-            <Can permission="dashboard_template.create" clusterId={PLATFORM_SCOPED_RECORD}>
+            <Can permission="dashboard_template.create" clusterId={BACKSTAGE_SCOPED_RECORD}>
               <Button onClick={() => setEditing('new')}>
                 <Plus className="mr-2 h-4 w-4" />
                 {t('pages.dashboardTemplates.addWidget')}
@@ -232,7 +232,7 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
                         </td>
                         <td className="px-3 py-1.5">
                           <div className="flex justify-end gap-1">
-                            <Can permission="dashboard_template.update" clusterId={PLATFORM_SCOPED_RECORD}>
+                            <Can permission="dashboard_template.update" clusterId={BACKSTAGE_SCOPED_RECORD}>
                               <Button
                                 variant="ghost" size="icon" disabled={busy || loading || i === 0}
                                 aria-label={t('pages.dashboardTemplates.moveUp')}
@@ -255,7 +255,7 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             </Can>
-                            <Can permission="dashboard_template.delete" clusterId={PLATFORM_SCOPED_RECORD}>
+                            <Can permission="dashboard_template.delete" clusterId={BACKSTAGE_SCOPED_RECORD}>
                               <Button
                                 variant="ghost" size="icon" disabled={loading}
                                 aria-label={t('common.action.delete')}

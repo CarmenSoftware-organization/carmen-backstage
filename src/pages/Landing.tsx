@@ -44,8 +44,8 @@ const groups: OpsGroup[] = [
     ],
   },
   {
-    labelKey: 'navGroup.platform',
-    captionKey: 'pages.landing.captionPlatform',
+    labelKey: 'navGroup.backstage',
+    captionKey: 'pages.landing.captionBackstage',
     items: [
       { nameKey: 'nav.applications', descKey: 'pages.landing.descApplications' },
       { nameKey: 'pages.landing.itemRolesAccess', descKey: 'pages.landing.descRolesAccess' },

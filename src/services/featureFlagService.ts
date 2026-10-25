@@ -12,7 +12,7 @@ export type FeatureStateMap = Record<string, FeatureState>;
 const featureFlagService = {
   /**
    * อ่านสถานะฟีเจอร์ทั้งหมด เปิดให้ทุกคนที่ล็อกอิน ไม่ต้องมี permission ใด
-   * ต่างจาก platformConfigService ที่ต้องมี platform_config.read — นั่นคือเหตุผลที่มี endpoint นี้
+   * ต่างจาก backstageConfigService ที่ต้องมี platform_config.read — นั่นคือเหตุผลที่มี endpoint นี้
    */
   getAll: async (): Promise<FeatureStateMap> => {
     const response = await api.get(BASE);

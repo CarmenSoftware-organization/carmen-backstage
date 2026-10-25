@@ -69,21 +69,21 @@ CP-MODAL-003 (Activity Trail Sheet).
 | CP-PAGE-030 | Activity Events | `/activity-events` | `ActivityEventManagement` | `activity_event.detail` | Planned | — |
 | CP-PAGE-031 | Cron Job List | `/cronjobs` | `CronJobManagement` | `cronjob.read` | Planned | — |
 | CP-PAGE-032 | Cron Job Edit | `/cronjobs/new`, `/cronjobs/:id/edit` | `CronJobEdit` | `cronjob.read` | Planned | — |
-| CP-PAGE-033 | Backstage Config | `/platform/configs` | `PlatformConfigManagement` | `platform_config.read` | Planned | — |
-| CP-PAGE-034 | Email Settings | `/platform/email-settings` | `EmailSettingManagement` | `email_setting.read` | Planned | — |
+| CP-PAGE-033 | Backstage Config | `/backstage/configs` | `BackstageConfigManagement` | `platform_config.read` | Planned | — |
+| CP-PAGE-034 | Email Settings | `/backstage/email-settings` | `EmailSettingManagement` | `email_setting.read` | Planned | — |
 | CP-PAGE-035 | Application List | `/applications` | `ApplicationManagement` | `application.read` | Planned | — |
 | CP-PAGE-036 | Application Edit | `/applications/new`, `…/:id/edit` | `ApplicationEdit` | `application.create` / `.update` | Planned | — |
-| CP-PAGE-037 | Feature Flags | `/platform/features` | `FeatureFlagManagement` | `feature_flag.manage` | Planned | — |
-| CP-PAGE-038 | Role List | `/platform/roles` | `RoleManagement` | `platform_role.read` | Planned | — |
-| CP-PAGE-039 | Role Edit | `/platform/roles/new`, `…/:id/edit` | `RoleEdit` | `platform_role.create` / `.update` | Planned | — |
-| CP-PAGE-040 | Permission Catalog | `/platform/category-permissions` | `PermissionCatalog` | Authenticated | Planned | — |
-| CP-PAGE-041 | Backstage Users List | `/platform/user-platform` | `UserPlatformManagement` | `user_platform.read` | Planned | — |
-| CP-PAGE-042 | Backstage Users Edit | `/platform/user-platform/:userId` | `UserPlatformEdit` | `user_platform.read` | Planned | — |
-| CP-PAGE-043 | Super Admins | `/platform/super-admins` | `SuperAdminManagement` | Super admin | Planned | — |
-| CP-PAGE-044 | Backstage Migrations | `/platform/migrations` | `PlatformMigrationManagement` | Super admin | Planned | — |
+| CP-PAGE-037 | Feature Flags | `/backstage/features` | `FeatureFlagManagement` | `feature_flag.manage` | Planned | — |
+| CP-PAGE-038 | Role List | `/backstage/roles` | `RoleManagement` | `platform_role.read` | Planned | — |
+| CP-PAGE-039 | Role Edit | `/backstage/roles/new`, `…/:id/edit` | `RoleEdit` | `platform_role.create` / `.update` | Planned | — |
+| CP-PAGE-040 | Permission Catalog | `/backstage/category-permissions` | `PermissionCatalog` | Authenticated | Planned | — |
+| CP-PAGE-041 | Backstage Users List | `/backstage/user-backstage` | `UserBackstageManagement` | `user_platform.read` | Planned | — |
+| CP-PAGE-042 | Backstage Users Edit | `/backstage/user-backstage/:userId` | `UserBackstageEdit` | `user_platform.read` | Planned | — |
+| CP-PAGE-043 | Super Admins | `/backstage/super-admins` | `SuperAdminManagement` | Super admin | Planned | — |
+| CP-PAGE-044 | Backstage Migrations | `/backstage/migrations` | `BackstageMigrationManagement` | Super admin | Planned | — |
 | CP-PAGE-045 | SQL Workbench | `/sql-workbench` | `SqlWorkbench` | `sql_workbench.read` | Planned | — |
-| CP-PAGE-046 | Database Pool List | `/platform/database-pools` | `DatabasePoolManagement` | `database_pool.read` | Planned | — |
-| CP-PAGE-047 | Database Pool Edit | `/platform/database-pools/new`, `…/:id/edit` | `DatabasePoolEdit` | `database_pool.read` | Planned | — |
+| CP-PAGE-046 | Database Pool List | `/backstage/database-pools` | `DatabasePoolManagement` | `database_pool.read` | Planned | — |
+| CP-PAGE-047 | Database Pool Edit | `/backstage/database-pools/new`, `…/:id/edit` | `DatabasePoolEdit` | `database_pool.read` | Planned | — |
 | CP-PAGE-048 | Cluster Admin Entry | `/cluster-admin` | `ClusterAdminEntry` | Authenticated | Planned | — |
 | CP-PAGE-049 | Cluster Profile (CA) | `/cluster-admin/:clusterId/cluster` | `ClusterProfile` | Cluster admin | Planned | — |
 | CP-PAGE-050 | BU List (CA) | `/cluster-admin/:clusterId/business-units` | `ClusterAdminBusinessUnitList` | Cluster admin | Planned | — |
@@ -122,8 +122,8 @@ Redirect-only routes (no doc): `/subscriptions` → `/licenses`; `/subscriptions
 | CP-MODAL-013 | Invite User (CA) | Dialog | `clusterAdmin/InviteUserDialog` | 052 | Planned | — |
 | CP-MODAL-014 | Send Test Email | Dialog | `emailSettings/TestEmailDialog` | 034 | Planned | — |
 | CP-MODAL-015 | Seed Set Picker | Dialog | `tenantSeed/SeedSetPickerDialog` | 013 | Planned | — |
-| CP-MODAL-016 | Add Role | Sheet | `userPlatformEdit/AddRoleSheet` | 042 | Planned | — |
-| CP-MODAL-017 | Grant Backstage access | Dialog | `userPlatformManagement/GrantAccessDialog` | 041 | Planned | — |
+| CP-MODAL-016 | Add Role | Sheet | `userBackstageEdit/AddRoleSheet` | 042 | Planned | — |
+| CP-MODAL-017 | Grant Backstage access | Dialog | `userBackstageManagement/GrantAccessDialog` | 041 | Planned | — |
 | CP-MODAL-018 | Activity Event Detail | Sheet | `activityEvents/EventDetailSheet` | 030 | Planned | — |
 | CP-MODAL-019 | Soft-Delete Confirm (Import) | Dialog | `tenantImport/StepPanel` | 014 | Planned | — |
 

@@ -4,7 +4,7 @@ All routes in the Carmen Blue Backstage SPA. Source: `src/App.tsx`.
 
 ## Route table
 
-Route guards are **permission-based**: `PrivateRoute` takes `requiredPermission="<module>.<action>"` (checked via `hasPermission()`) or `requireSuperAdmin`. Role names are no longer hard-coded on routes (Platform RBAC).
+Route guards are **permission-based**: `PrivateRoute` takes `requiredPermission="<module>.<action>"` (checked via `hasPermission()`) or `requireSuperAdmin`. Role names are no longer hard-coded on routes (Backstage RBAC).
 
 | Path | Component | Access | Purpose |
 |---|---|---|---|
@@ -36,13 +36,13 @@ Route guards are **permission-based**: `PrivateRoute` takes `requiredPermission=
 | `/news/new` | `NewsEdit` | `news.create` | Create news (image upload) |
 | `/news/:id/edit` | `NewsEdit` | `news.update` | View/edit news |
 | `/broadcasts/new` | `BroadcastCompose` | `broadcast.send` | Compose broadcast (system / BU targets) |
-| `/platform/roles` | `RoleManagement` | `role.read` | Platform role list |
-| `/platform/roles/new` | `RoleEdit` | `role.create` | Create platform role |
-| `/platform/roles/:id/edit` | `RoleEdit` | `role.update` | View/edit platform role + permissions |
-| `/platform/permissions` | `PermissionCatalog` | `role.read` | Read-only permission catalog |
-| `/platform/super-admins` | `SuperAdminManagement` | Super admin only | Super admin management |
-| `/platform/user-platform` | `UserPlatformManagement` | `user_platform.read` | User ↔ platform-role assignments |
-| `/platform/user-platform/:userId` | `UserPlatformEdit` | `user_platform.read` | Edit a user's platform-role scope |
+| `/backstage/roles` | `RoleManagement` | `role.read` | Backstage role list |
+| `/backstage/roles/new` | `RoleEdit` | `role.create` | Create platform role |
+| `/backstage/roles/:id/edit` | `RoleEdit` | `role.update` | View/edit platform role + permissions |
+| `/backstage/permissions` | `PermissionCatalog` | `role.read` | Read-only permission catalog |
+| `/backstage/super-admins` | `SuperAdminManagement` | Super admin only | Super admin management |
+| `/backstage/user-backstage` | `UserBackstageManagement` | `user_platform.read` | User ↔ platform-role assignments |
+| `/backstage/user-backstage/:userId` | `UserBackstageEdit` | `user_platform.read` | Edit a user's platform-role scope |
 | `/profile` | `Profile` | Authenticated | View/edit own profile, change password |
 | `*` | `<Navigate to="/" />` | — | Catch-all redirect to Landing |
 
@@ -64,13 +64,13 @@ Defined in `allNavItems` in `src/components/Layout.tsx`. Items carry a `group` a
   7. Print Mapping — `/print-template-mapping` — `print_template_mapping.read`
   8. News — `/news` — `news.read`
   9. Send Broadcast — `/broadcasts/new` — `broadcast.send`
-- **Platform**
+- **Backstage**
   10. Applications — `/applications` — `application.read`
-  11. Roles — `/platform/roles` — `role.read`
-  12. Super Admins — `/platform/super-admins` — super admin only
-  13. User Platform — `/platform/user-platform` — `user_platform.read`
+  11. Roles — `/backstage/roles` — `role.read`
+  12. Super Admins — `/backstage/super-admins` — super admin only
+  13. User Backstage — `/backstage/user-backstage` — `user_platform.read`
 
-Not in the sidebar (reached from within other pages): `/platform/permissions` (from Role pages), `/changelog` (footer/version badge), `/profile` (avatar menu at the sidebar bottom).
+Not in the sidebar (reached from within other pages): `/backstage/permissions` (from Role pages), `/changelog` (footer/version badge), `/profile` (avatar menu at the sidebar bottom).
 
 ## Route conventions
 

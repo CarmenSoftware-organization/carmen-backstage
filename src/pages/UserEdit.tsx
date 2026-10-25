@@ -29,7 +29,7 @@ import { validateField } from '../utils/validation';
 import { getErrorDetail, isNotFoundError } from '../utils/errorParser';
 import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../utils/docVersion';
 import { normalizeAudit } from '../utils/audit';
-import { UNRESOLVED_CLUSTER_ID, PLATFORM_SCOPED_RECORD } from '../utils/permissions';
+import { UNRESOLVED_CLUSTER_ID, BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 import { Skeleton } from '../components/ui/skeleton';
 import { ReadOnlyField } from '../components/ReadOnlyField';
@@ -565,9 +565,9 @@ const UserEdit: React.FC = () => {
               actions={
                 <div className="flex items-center gap-3">
                   {/* ปุ่มอ่านประวัติแสดงเสมอ ไม่ผูกกับโหมดแก้ไข — user ไม่สังกัด cluster เดียว
-                      (อยู่ได้หลาย cluster ผ่าน tb_cluster_user) จึงใช้ PLATFORM_SCOPED_RECORD
+                      (อยู่ได้หลาย cluster ผ่าน tb_cluster_user) จึงใช้ BACKSTAGE_SCOPED_RECORD
                       ให้เหลือทางเดียวคือสิทธิ์ระดับ platform ตรงกับที่ backend บังคับ */}
-                  <Can permission="activity_log.read" clusterId={PLATFORM_SCOPED_RECORD}>
+                  <Can permission="activity_log.read" clusterId={BACKSTAGE_SCOPED_RECORD}>
                     <ActivityTrailSheet
                       entityType="user"
                       entityId={id}

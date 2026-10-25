@@ -29,13 +29,13 @@ const SEGMENT_KEYS: Record<string, TKey> = {
   analytics: 'breadcrumb.usageAnalytics',
   'activity-events': 'breadcrumb.activityEvents',
   applications: 'breadcrumb.applications',
-  platform: 'breadcrumb.platform',
+  backstage: 'breadcrumb.backstage',
   roles: 'breadcrumb.roles',
   'super-admins': 'breadcrumb.superAdmins',
-  'user-platform': 'breadcrumb.userPlatform',
+  'user-backstage': 'breadcrumb.userBackstage',
   'sql-workbench': 'breadcrumb.sqlWorkbench',
   'database-pools': 'breadcrumb.databasePools',
-  configs: 'breadcrumb.platformConfig',
+  configs: 'breadcrumb.backstageConfig',
   'email-settings': 'breadcrumb.emailSettings',
   'cluster-admin': 'breadcrumb.clusterAdmin',
   profile: 'breadcrumb.profile',
@@ -48,13 +48,13 @@ const titleCase = (seg: string): string =>
   seg.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 // Section paths with no index route of their own — only child routes exist (e.g.
-// /platform/roles, /licenses/bu-quota/new). Keyed by full path, not segment name: the
+// /backstage/roles, /licenses/bu-quota/new). Keyed by full path, not segment name: the
 // same segment can be a real page elsewhere (/subscriptions vs /licenses/subscriptions).
 // Linking to one of these hits the catch-all 404, or worse a param route —
 // /licenses/bu-quota matches /licenses/:clusterId and fires requests with clusterId
 // "bu-quota". Keep in sync with the routes in App.tsx.
 const NON_NAVIGABLE = new Set([
-  '/platform',
+  '/backstage',
   '/licenses/bu-quota',
   '/licenses/interface',
   '/licenses/seats',

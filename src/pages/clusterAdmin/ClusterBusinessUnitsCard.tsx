@@ -48,7 +48,7 @@ export function ClusterBusinessUnitsCard({ clusterId, units }: ClusterBusinessUn
         <EmptyState
           icon={Building2}
           title={t('common.state.noBusinessUnits')}
-          description={t('pages.clusterAdmin.noBusinessUnitsCreatedByPlatformAdmin')}
+          description={t('pages.clusterAdmin.noBusinessUnitsCreatedByBackstageAdmin')}
         />
       ) : (
         <ul className="divide-y">

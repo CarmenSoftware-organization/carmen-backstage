@@ -24,7 +24,7 @@ import { useI18n } from '../hooks/useI18n';
 import { Skeleton } from '../components/ui/skeleton';
 import type { Cluster, BusinessUnitConfig, TenantCurrency, BusinessUnitLicense, InterfaceLicense } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { UNRESOLVED_CLUSTER_ID, PLATFORM_SCOPED_RECORD } from '../utils/permissions';
+import { UNRESOLVED_CLUSTER_ID, BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import TenantMigrationCard from '../components/TenantMigrationCard';
 import TenantSeedCard from '../components/TenantSeedCard';
 import { initialFormData, aliasBound } from './businessUnitEdit/types';
@@ -455,7 +455,7 @@ const BusinessUnitEdit: React.FC = () => {
     delete payload.code;
 
     // ส่งฟิลด์ pool เฉพาะเมื่อค่าต่างจากที่โหลดมา — backend ตรวจ `!== undefined` แล้วบังคับ
-    // ด่าน canWriteClusterViaPlatformRole ส่งค่าเดิมซ้ำไปจะทำให้คนที่ไม่มีสิทธิ์ระดับ
+    // ด่าน canWriteClusterViaBackstageRole ส่งค่าเดิมซ้ำไปจะทำให้คนที่ไม่มีสิทธิ์ระดับ
     // แพลตฟอร์มโดน 403 ทั้งที่ไม่ได้แตะฟิลด์นี้
     if (data.database_pool_id !== savedFormData.database_pool_id) {
       payload.database_pool_id = data.database_pool_id || null;
@@ -789,24 +789,24 @@ const BusinessUnitEdit: React.FC = () => {
           advancedExtraSlot={
             !isNew ? (
               <>
-                {hasPermission('tenant_migration.read', { clusterId: PLATFORM_SCOPED_RECORD }) && (
+                {hasPermission('tenant_migration.read', { clusterId: BACKSTAGE_SCOPED_RECORD }) && (
                   <TenantMigrationCard
                     key={id}
                     buId={id!}
                     buCode={formData.code}
                     buName={formData.name}
                     hasDbConnection={!!(formData.database_pool_id && formData.db_schema)}
-                    canApply={hasPermission('tenant_migration.apply', { clusterId: PLATFORM_SCOPED_RECORD })}
+                    canApply={hasPermission('tenant_migration.apply', { clusterId: BACKSTAGE_SCOPED_RECORD })}
                   />
                 )}
-                {hasPermission('tenant_seed.read', { clusterId: PLATFORM_SCOPED_RECORD }) && (
+                {hasPermission('tenant_seed.read', { clusterId: BACKSTAGE_SCOPED_RECORD }) && (
                   <TenantSeedCard
                     key={`seed-${id}`}
                     buId={id!}
                     buCode={formData.code}
                     buName={formData.name}
                     hasDbConnection={!!(formData.database_pool_id && formData.db_schema)}
-                    canApply={hasPermission('tenant_seed.apply', { clusterId: PLATFORM_SCOPED_RECORD })}
+                    canApply={hasPermission('tenant_seed.apply', { clusterId: BACKSTAGE_SCOPED_RECORD })}
                   />
                 )}
               </>

@@ -1,12 +1,12 @@
 import { History, BadgeCheck } from 'lucide-react';
-import { resourceNavMeta, type ResourceNavMeta } from '../../components/nav/platformNav';
+import { resourceNavMeta, type ResourceNavMeta } from '../../components/nav/backstageNav';
 import type { TKey } from '../../i18n/types';
 import type { PermissionGridRow } from './PermissionGrid';
 
 /**
  * Names for resources the sidebar has no entry for, so they would otherwise read as a bare key.
  * Each is named for the feature it gates rather than for a page: `activity_log` is the history
- * sheet on 12 list/edit pages, and `license` is the second gate on Platform Config's `license`
+ * sheet on 12 list/edit pages, and `license` is the second gate on Backstage Config's `license`
  * key — not the Licenses menu, which runs on `subscription.*`. No `groupKey`: they stay under
  * "Other", since neither belongs to one menu section.
  */

@@ -1,0 +1,655 @@
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useGlobalShortcuts } from '../components/KeyboardShortcuts';
+import { Link, useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
+import { PageHeader } from "../components/PageHeader";
+import { BackstageAccessSummary } from "./userBackstageManagement/BackstageAccessSummary";
+import { ScopeRail, RoleChips, hasBackstageWide } from "./userBackstageManagement/roleChips";
+import { GrantAccessDialog } from "./userBackstageManagement/GrantAccessDialog";
+import userBackstageService from "../services/userBackstageService";
+import userRoleService from "../services/userRoleService";
+import roleService from "../services/roleService";
+import { fetchAllPages, type PagedResponse } from "../utils/fetchAllPages";
+import { fetchAllClusters } from "../hooks/useAllClusters";
+import { parseApiError } from '../utils/errorParser';
+
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Label } from "../components/ui/label";
+import { Card, CardContent, CardHeader } from "../components/ui/card";
+import { DataTable } from "../components/ui/data-table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "../components/ui/sheet";
+import { ConfirmDialog } from "../components/ui/confirm-dialog";
+import { Filter, X, Users, Download, Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { toast } from 'sonner';
+import { SearchInput } from '../components/SearchInput';
+import { ListEmptyState } from '../components/ListEmptyState';
+import { generateCSV, downloadCSV } from '../utils/csvExport';
+import { TableSkeleton } from '../components/TableSkeleton';
+import { DevDebugSheet } from '../components/ui/dev-debug-sheet';
+import Can from '../components/Can';
+import { normalizeAudit } from '../utils/audit';
+import { relativeTime } from '../utils/relativeTime';
+import type { PaginateParams, BackstageUserRow, BackstageUserRegistrySummary } from "../types";
+import type { ColumnDef } from "@tanstack/react-table";
+import { useI18n } from '../hooks/useI18n';
+import { readStoredPerpage } from '../utils/pageRange';
+
+const selectClassName =
+  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring';
+
+const fmtDateTime = (v?: string) => {
+  if (!v) return '-';
+  const d = new Date(v);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+
+const getStoredJSON = <T,>(key: string, fallback: T): T => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const UserBackstageManagement: React.FC = () => {
+  const navigate = useNavigate();
+  const { t } = useI18n();
+
+  const [rows, setRows] = useState<BackstageUserRow[]>([]);
+  const [totalRows, setTotalRows] = useState(0);
+  // Filter-consistent aggregate from the endpoint's `summary` block — it counts every row
+  // matching the active `advance`/`search`, NOT the whole registry, so it changes when a
+  // filter changes. Stays `null` until the
+  // backend for this change deploys — see BackstageAccessSummary for why the breakdown and
+  // inactive warning render an explicit "unavailable" state (never a page-derived guess)
+  // in that case. `totalRows` is passed alongside as `fallbackHolderTotal` so the headline
+  // count still renders — `paginate.total` and `summary.holders` are the same number by
+  // contract, so that's not a page-derived stitch, just a second source for one field.
+  const [summary, setSummary] = useState<BackstageUserRegistrySummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [rawResponse, setRawResponse] = useState<unknown>(null);
+  const [showGrant, setShowGrant] = useState(false);
+  const [revokeTarget, setRevokeTarget] = useState<BackstageUserRow | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState(() => localStorage.getItem('search_user_backstage') || '');
+  const [roleFilter, setRoleFilter] = useState<string[]>(() => getStoredJSON<string[]>('role_filters_user_backstage', []));
+  const [scopeFilter, setScopeFilter] = useState<string>(() => localStorage.getItem('scope_filter_user_backstage') || '');
+  const [statusFilter, setStatusFilter] = useState<string[]>(() => getStoredJSON<string[]>('status_filters_user_backstage', []));
+  const [showFilters, setShowFilters] = useState(false);
+
+  const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
+  const [clusterOptions, setClusterOptions] = useState<{ id: string; name: string }[]>([]);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useGlobalShortcuts({
+    onSearch: () => searchInputRef.current?.focus(),
+  });
+
+  // `cluster_id: null` is deliberate — it is how the endpoint selects platform-wide
+  // assignments. Do not let an `if (scope)` truthiness guard drop it.
+  const buildAdvance = (roles: string[], scope: string, statuses: string[]) => {
+    const where: Record<string, unknown> = {};
+    if (roles.length > 0) where.platform_role_id = { in: roles };
+    if (scope === 'platform') where.cluster_id = null;
+    else if (scope) where.cluster_id = { in: [scope] };
+    if (statuses.length === 1) where.is_active = statuses[0] === 'true';
+    return Object.keys(where).length > 0 ? JSON.stringify({ where }) : '';
+  };
+
+  const storedPage = Number(localStorage.getItem('page_user_backstage')) || 1;
+  const storedSort = localStorage.getItem('sort_user_backstage') || '';
+
+  const [paginate, setPaginate] = useState<PaginateParams>({
+    page: storedPage,
+    perpage: readStoredPerpage('perpage_user_backstage', 10),
+    search: searchTerm,
+    sort: storedSort,
+    advance: buildAdvance(roleFilter, scopeFilter, statusFilter),
+    filter: {},
+  });
+
+  // Registry endpoint returns roles inline and `paginate.total` for the headline —
+  // exactly one request per load. No per-row role-count loop, no perpage:-1 sweep.
+  const fetchRows = useCallback(async (params: PaginateParams) => {
+    try {
+      setLoading(true);
+      const data = await userBackstageService.getAll(params);
+      setRawResponse(data);
+      const items = Array.isArray(data?.data) ? data.data : [];
+      setRows(items);
+      setTotalRows(data?.paginate?.total ?? items.length);
+      setSummary(data?.summary ?? null);
+      setError('');
+    } catch (err: unknown) {
+      const { message } = parseApiError(err);
+      setError(message);
+      setRows([]);
+      setTotalRows(0);
+      setSummary(null);
+      toast.error(t('pages.userBackstage.loadFailed'), { description: message });
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    fetchRows(paginate);
+  }, [fetchRows, paginate]);
+
+  // Role/cluster names for the filter Sheet and the active-filter chips. Best-effort:
+  // if either fails, filtering still works by id — only the display name is missing.
+  useEffect(() => {
+    (async () => {
+      try {
+        const roles = await fetchAllPages<{ id: string; name: string }>(
+          (page, perpage) =>
+            roleService.getAll({ page, perpage, sort: 'name:asc' }) as Promise<PagedResponse<{ id: string; name: string }>>,
+          { label: 'UserBackstageManagement.roles' },
+        );
+        setRoleOptions(roles.map((x) => ({ id: x.id, name: x.name })));
+      } catch { /* filter buttons fall back to raw ids */ }
+      try {
+        const clusters = await fetchAllClusters();
+        setClusterOptions(clusters.map((x) => ({ id: x.id, name: x.name })));
+      } catch { /* same */ }
+    })();
+  }, []);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    localStorage.setItem('search_user_backstage', value);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      localStorage.setItem('page_user_backstage', '1');
+      setPaginate((prev) => ({ ...prev, page: 1, search: value }));
+    }, 400);
+  };
+
+  const handlePaginateChange = ({ page, perpage }: { page: number; perpage: number }) => {
+    localStorage.setItem('perpage_user_backstage', String(perpage));
+    localStorage.setItem('page_user_backstage', String(page));
+    setPaginate((prev) => ({ ...prev, page, perpage }));
+  };
+
+  const handleSortChange = (sort: string) => {
+    localStorage.setItem('sort_user_backstage', sort);
+    localStorage.setItem('page_user_backstage', '1');
+    setPaginate((prev) => ({ ...prev, sort, page: 1 }));
+  };
+
+  const handleRoleFilter = (roleId: string) => {
+    const next = roleFilter.includes(roleId)
+      ? roleFilter.filter((r) => r !== roleId)
+      : [...roleFilter, roleId];
+    setRoleFilter(next);
+    localStorage.setItem('role_filters_user_backstage', JSON.stringify(next));
+    localStorage.setItem('page_user_backstage', '1');
+    setPaginate((prev) => ({ ...prev, page: 1, advance: buildAdvance(next, scopeFilter, statusFilter), filter: {} }));
+  };
+
+  const handleScopeFilter = (scope: string) => {
+    setScopeFilter(scope);
+    localStorage.setItem('scope_filter_user_backstage', scope);
+    localStorage.setItem('page_user_backstage', '1');
+    setPaginate((prev) => ({ ...prev, page: 1, advance: buildAdvance(roleFilter, scope, statusFilter), filter: {} }));
+  };
+
+  const handleStatusFilter = (status: string) => {
+    const next = statusFilter.includes(status)
+      ? statusFilter.filter((s) => s !== status)
+      : [...statusFilter, status];
+    setStatusFilter(next);
+    localStorage.setItem('status_filters_user_backstage', JSON.stringify(next));
+    localStorage.setItem('page_user_backstage', '1');
+    setPaginate((prev) => ({ ...prev, page: 1, advance: buildAdvance(roleFilter, scopeFilter, next), filter: {} }));
+  };
+
+  const handleClearRoleFilter = () => {
+    setRoleFilter([]);
+    localStorage.setItem('role_filters_user_backstage', JSON.stringify([]));
+    localStorage.setItem('page_user_backstage', '1');
+    setPaginate((prev) => ({ ...prev, page: 1, advance: buildAdvance([], scopeFilter, statusFilter), filter: {} }));
+  };
+
+  const handleClearStatusFilter = () => {
+    setStatusFilter([]);
+    localStorage.setItem('status_filters_user_backstage', JSON.stringify([]));
+    localStorage.setItem('page_user_backstage', '1');
+    setPaginate((prev) => ({ ...prev, page: 1, advance: buildAdvance(roleFilter, scopeFilter, []), filter: {} }));
+  };
+
+  const handleClearAllFilters = () => {
+    setRoleFilter([]);
+    setScopeFilter('');
+    setStatusFilter([]);
+    localStorage.setItem('role_filters_user_backstage', JSON.stringify([]));
+    localStorage.setItem('scope_filter_user_backstage', '');
+    localStorage.setItem('status_filters_user_backstage', JSON.stringify([]));
+    localStorage.setItem('page_user_backstage', '1');
+    setPaginate((prev) => ({ ...prev, page: 1, advance: buildAdvance([], '', []), filter: {} }));
+  };
+
+  const activeFilterCount =
+    (roleFilter.length > 0 ? 1 : 0) + (scopeFilter ? 1 : 0) + (statusFilter.length > 0 ? 1 : 0);
+
+  // No bulk-revoke route on the backend — a sequential loop over userRoleService.remove
+  // that reports honestly which roles failed rather than claiming a blanket success.
+  const handleRevokeAll = async () => {
+    if (!revokeTarget) return;
+    const failed: string[] = [];
+    for (const role of revokeTarget.roles) {
+      try {
+        await userRoleService.remove(revokeTarget.user_id, role.id);
+      } catch {
+        failed.push(role.role_name || role.role_id);
+      }
+    }
+    if (failed.length === 0) toast.success(t('pages.userBackstage.accessRevoked'));
+    else toast.error(t('pages.userBackstage.revokeFailed', { roles: failed.join(', ') }));
+    setRevokeTarget(null);
+    fetchRows(paginate);
+  };
+
+  // One row per assignment — a spreadsheet cell can't filter on several roles at once.
+  const handleExport = () => {
+    const flat = rows.flatMap((r) =>
+      r.roles.map((role) => ({
+        username: r.username ?? '',
+        email: r.email ?? '',
+        is_active: r.is_active ? t('common.status.active') : t('common.status.inactive'),
+        role: role.role_name ?? role.role_id,
+        scope: role.scope.type === 'platform'
+          ? t('pages.userBackstage.scopeBackstage')
+          : (role.scope.cluster_name || role.scope.cluster_id),
+        granted_at: normalizeAudit(role).created?.at ?? '',
+        granted_by: normalizeAudit(role).created?.name ?? '',
+      })),
+    );
+    const csv = generateCSV(flat, [
+      { key: 'username', label: t('common.field.username') },
+      { key: 'email', label: t('common.field.email') },
+      { key: 'is_active', label: t('common.status.label') },
+      { key: 'role', label: t('pages.userBackstage.csvRole') },
+      { key: 'scope', label: t('pages.userBackstage.csvScope') },
+      { key: 'granted_at', label: t('pages.userBackstage.csvGrantedAt') },
+      { key: 'granted_by', label: t('pages.userBackstage.csvGrantedBy') },
+    ]);
+    downloadCSV(csv, `user-backstage-${new Date().toISOString().slice(0, 10)}.csv`);
+    toast.success(t('toast.exported'));
+  };
+
+  // The scope rail only earns its column of space when it separates something. On a page
+  // where every holder is platform-wide (the common shape — platform roles are granted to
+  // a handful of people, usually all at the widest scope) it marks every row identically
+  // and becomes pure noise, while the scope name still reads on every row via RoleChips.
+  const mixedScopes = useMemo(
+    () => new Set(rows.map((r) => hasBackstageWide(r.roles))).size > 1,
+    [rows],
+  );
+
+  const columns = useMemo<ColumnDef<BackstageUserRow, unknown>[]>(() => [
+    {
+      accessorKey: 'username',
+      header: t('pages.userBackstage.columnUser'),
+      // `w-px` shrinks this column to its content under `tableLayout="auto"`, so the slack
+      // the browser used to dump here (~200px of blank space beside the emails) goes to
+      // the roles column instead — the one whose content actually varies in length.
+      meta: { card: 'title', headerClassName: 'w-px', cellClassName: 'whitespace-nowrap' },
+      cell: ({ row }) => {
+        const r = row.original;
+        const name = [r.firstname, r.lastname].filter(Boolean).join(' ');
+        return (
+          <div className={mixedScopes ? 'flex items-stretch gap-3' : 'flex items-stretch'}>
+            {mixedScopes && <ScopeRail backstageWide={hasBackstageWide(r.roles)} />}
+            <div className="min-w-0">
+              <Link
+                to={`/backstage/user-backstage/${r.user_id}`}
+                className="font-medium text-primary hover:underline"
+              >
+                {name || r.username || '-'}
+              </Link>
+              {!r.is_active && (
+                <Badge variant="warning" className="ml-2 text-xs">{t('common.status.inactive')}</Badge>
+              )}
+              <div className="text-muted-foreground truncate text-xs">{r.email || '-'}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'role_count',
+      header: t('pages.userBackstage.columnRolesScope'),
+      accessorFn: (row) => row.roles?.length ?? 0,
+      // The one flexible column: `w-full` under auto layout hands it every pixel the
+      // fixed-width neighbours don't claim.
+      meta: { headerClassName: 'w-full' },
+      cell: ({ row }) => <RoleChips roles={row.original.roles} />,
+    },
+    {
+      accessorKey: 'last_granted_at',
+      id: 'last_granted_at',
+      header: t('pages.userBackstage.columnGranted'),
+      // No fixed width: with the roles column claiming the slack via `w-full`, a `w-44`
+      // here was not respected and the grantor line wrapped to three lines, growing every
+      // row from 37px to 50px. `whitespace-nowrap` sizes the column to its content instead.
+      meta: { cellClassName: 'whitespace-nowrap', headerClassName: 'whitespace-nowrap' },
+      cell: ({ row }) => {
+        const roles = row.original.roles;
+        // The grantor shown belongs to the most recent grant, which is the one the
+        // "Granted" date refers to. Per-role attribution lives on the detail page.
+        const newest = roles.reduce<typeof roles[number] | undefined>((acc, r) => {
+          const at = normalizeAudit(r).created?.at;
+          if (!at) return acc;
+          const accAt = acc ? normalizeAudit(acc).created?.at : undefined;
+          return !accAt || at > accAt ? r : acc;
+        }, undefined);
+        const by = newest ? normalizeAudit(newest).created?.name : undefined;
+        // Age is the scannable quantity in an access review ("what was granted recently,
+        // what has sat unreviewed for a year"), so it leads; the exact timestamp stays
+        // one hover away rather than being dropped.
+        const at = row.original.last_granted_at ?? undefined;
+        const absolute = fmtDateTime(at);
+        const ago = relativeTime(at, new Date(), t);
+        return (
+          <div className="text-muted-foreground space-y-0.5 text-[11px] leading-tight" title={absolute}>
+            <div className="text-foreground text-xs">{ago || absolute}</div>
+            <div>{by ? t('pages.userBackstage.grantedBy', { name: by }) : t('pages.userBackstage.grantedByUnknown')}</div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: '',
+      enableSorting: false,
+      meta: { headerClassName: 'w-10', cellClassName: 'text-center p-0', card: 'actions' },
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8"
+              aria-label={t('common.action.rowActions', { name: row.original.username || t('entity.user.lower') })}>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => navigate(`/backstage/user-backstage/${row.original.user_id}`)}
+              className="cursor-pointer"
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              {t('pages.userBackstage.manageRoles')}
+            </DropdownMenuItem>
+            <Can permission="user_platform.manage">
+              <DropdownMenuItem
+                onClick={() => setRevokeTarget(row.original)}
+                className="cursor-pointer text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {t('pages.userBackstage.revokeAllAccess')}
+              </DropdownMenuItem>
+            </Can>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ], [navigate, t, mixedScopes]);
+
+  return (
+    <Layout>
+      <div className="space-y-4 sm:space-y-6">
+        <PageHeader
+          title={t('pages.userBackstage.title')}
+          subtitle={t('pages.userBackstage.subtitle')}
+          actions={
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || rows.length === 0}>
+                <Download className="mr-2 h-4 w-4" />
+                {t('common.action.export')}
+              </Button>
+              <Can permission="user_platform.manage">
+                <Button size="sm" onClick={() => setShowGrant(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('pages.userBackstage.grantAccess')}
+                </Button>
+              </Can>
+            </div>
+          }
+        />
+
+        <BackstageAccessSummary
+          summary={summary}
+          fallbackHolderTotal={totalRows}
+          loading={loading}
+          error={!!error}
+          onRetry={() => fetchRows(paginate)}
+          onShowInactive={() => handleStatusFilter('false')}
+          onShowBackstageWide={() => handleScopeFilter(scopeFilter === 'platform' ? '' : 'platform')}
+        />
+
+        <Card>
+          <CardHeader className="space-y-3">
+            <div className="flex items-center gap-2">
+              <SearchInput
+                ref={searchInputRef}
+                value={searchTerm}
+                onValueChange={handleSearchChange}
+                placeholder={t('pages.userBackstage.searchPlaceholder')}
+                className="flex-1 sm:max-w-sm"
+              />
+              <Sheet open={showFilters} onOpenChange={setShowFilters}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="shrink-0">
+                    <Filter className="mr-2 h-4 w-4" />
+                    {t('common.label.filters')}
+                    {activeFilterCount > 0 && (
+                      <Badge className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                        {activeFilterCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-sm p-4 sm:p-6">
+                  <SheetHeader>
+                    <SheetTitle>{t('common.label.filters')}</SheetTitle>
+                    <SheetDescription>{t('pages.userBackstage.filterDescription')}</SheetDescription>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-6 px-1">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{t('common.status.label')}</span>
+                        {statusFilter.length > 0 && (
+                          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={handleClearStatusFilter}>{t('common.action.clear')}</Button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        <Button
+                          variant={statusFilter.includes("true") ? "default" : "outline"}
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleStatusFilter("true")}
+                        >
+                          {t('common.status.active')}
+                        </Button>
+                        <Button
+                          variant={statusFilter.includes("false") ? "default" : "outline"}
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleStatusFilter("false")}
+                        >
+                          {t('common.status.inactive')}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{t('pages.userBackstage.roleFilterLabel')}</span>
+                        {roleFilter.length > 0 && (
+                          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={handleClearRoleFilter}>{t('common.action.clear')}</Button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {roleOptions.length === 0 ? (
+                          <p className="text-muted-foreground text-xs">{t('pages.userBackstage.noBackstageRoles')}</p>
+                        ) : roleOptions.map((role) => (
+                          <Button
+                            key={role.id}
+                            variant={roleFilter.includes(role.id) ? "default" : "outline"}
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => handleRoleFilter(role.id)}
+                          >
+                            {role.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label htmlFor="scope_filter">{t('pages.userBackstage.scopeLabel')}</Label>
+                      <select
+                        id="scope_filter"
+                        value={scopeFilter}
+                        onChange={(e) => handleScopeFilter(e.target.value)}
+                        className={selectClassName}
+                      >
+                        <option value="">{t('pages.userBackstage.anyScope')}</option>
+                        <option value="platform">{t('pages.userBackstage.backstageWide')}</option>
+                        {clusterOptions.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {activeFilterCount > 0 && (
+                      <Button variant="outline" size="sm" className="w-full" onClick={handleClearAllFilters}>
+                        {t('common.action.clearAllFilters')}
+                      </Button>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+            {activeFilterCount > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-muted-foreground">{t('common.action.filtersLabel')}</span>
+                {roleFilter.map((id) => (
+                  <Badge key={`role-${id}`} variant="secondary" className="text-xs gap-1 pr-1">
+                    {roleOptions.find((r) => r.id === id)?.name || id}
+                    <button onClick={() => handleRoleFilter(id)} className="ml-0.5 hover:text-foreground">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                {scopeFilter && (
+                  <Badge variant="secondary" className="text-xs gap-1 pr-1">
+                    {scopeFilter === 'platform'
+                      ? t('pages.userBackstage.backstageWide')
+                      : (clusterOptions.find((c) => c.id === scopeFilter)?.name || scopeFilter)}
+                    <button onClick={() => handleScopeFilter('')} className="ml-0.5 hover:text-foreground">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {statusFilter.map((s) => (
+                  <Badge key={s} variant="secondary" className="text-xs gap-1 pr-1">
+                    {s === "true" ? t('common.status.active') : t('common.status.inactive')}
+                    <button onClick={() => handleStatusFilter(s)} className="ml-0.5 hover:text-foreground">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                <button onClick={handleClearAllFilters} className="text-xs text-muted-foreground hover:text-foreground underline">
+                  {t('common.action.clearAll')}
+                </button>
+              </div>
+            )}
+          </CardHeader>
+          <CardContent>
+            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {!error && rows.length === 0 && !loading ? (
+              <ListEmptyState
+                searchTerm={searchTerm}
+                activeFilterCount={activeFilterCount}
+                icon={Users}
+                emptyTitle={t('pages.userBackstage.emptyTitle')}
+                emptyDescription={t('pages.userBackstage.emptyDescription')}
+                addAction={
+                  <Can permission="user_platform.manage">
+                    <Button size="sm" onClick={() => setShowGrant(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t('pages.userBackstage.grantAccess')}
+                    </Button>
+                  </Can>
+                }
+              />
+            ) : !error ? (
+              <div className="relative">
+                {loading && rows.length === 0 ? (
+                  // +1 accounts for the `#` row-index column DataTable always prepends,
+                  // so the skeleton matches the loaded table's actual header count.
+                  <TableSkeleton columns={columns.length + 1} rows={paginate.perpage || 5} />
+                ) : (
+                <>
+                {loading && (
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10" role="status" aria-label={t('pages.userBackstage.loadingAria')}>
+                    <div className="text-muted-foreground">{t('common.busy.loading')}</div>
+                  </div>
+                )}
+                <DataTable
+                  columns={columns}
+                  data={rows}
+                  serverSide
+                  tableLayout="auto"
+                  totalRows={totalRows}
+                  page={paginate.page}
+                  perpage={paginate.perpage}
+                  onPaginateChange={handlePaginateChange}
+                  onSortChange={handleSortChange}
+                />
+                </>
+                )}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      </div>
+
+      <GrantAccessDialog open={showGrant} onOpenChange={setShowGrant} onGranted={() => fetchRows(paginate)} />
+
+      <ConfirmDialog
+        open={!!revokeTarget}
+        onOpenChange={(open) => { if (!open) setRevokeTarget(null); }}
+        title={t('pages.userBackstage.revokeAllTitle')}
+        description={
+          revokeTarget
+            ? (revokeTarget.roles.length === 1
+                ? t('pages.userBackstage.revokeAllConfirm', {
+                    count: revokeTarget.roles.length,
+                    name: revokeTarget.username || revokeTarget.email || '',
+                  })
+                : t('pages.userBackstage.revokeAllConfirmPlural', {
+                    count: revokeTarget.roles.length,
+                    name: revokeTarget.username || revokeTarget.email || '',
+                  }))
+            : ''
+        }
+        confirmText={t('pages.userBackstage.revokeAll')}
+        confirmVariant="destructive"
+        onConfirm={handleRevokeAll}
+      />
+
+      <DevDebugSheet title="API Response" endpoint="GET /api-system/backstage/users" data={rawResponse} />
+    </Layout>
+  );
+};
+
+export default UserBackstageManagement;

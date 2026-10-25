@@ -34,8 +34,8 @@ function googleErrorKey(code: string) {
       return 'login.googleTooManyAttempts';
     case 'google_disabled':
       return 'login.googleDisabled';
-    case 'access_denied_platform':
-      return 'login.accessDeniedPlatform';
+    case 'access_denied_backstage':
+      return 'login.accessDeniedBackstage';
     default:
       return 'login.googleFailed';
   }
@@ -93,7 +93,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState(() => (errorCode ? t(googleErrorKey(errorCode)) : ''));
   // Only the access-denied banner gets the bold heading, and only while that banner is what is showing —
   // derived from the banner itself, not from the URL, so a later error is not mislabelled.
-  const [bannerIsAccessDenied, setBannerIsAccessDenied] = useState(errorCode === 'access_denied_platform');
+  const [bannerIsAccessDenied, setBannerIsAccessDenied] = useState(errorCode === 'access_denied_backstage');
   const [loading, setLoading] = useState(false);
   // Set when login() reports a rate-limit (429) response — keeps submit
   // disabled so the user can't immediately resubmit into the same window.

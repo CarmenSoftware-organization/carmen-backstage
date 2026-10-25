@@ -5,7 +5,7 @@ import { PageHeader } from '../components/PageHeader';
 import { TabStrip, type TabStripItem } from '../components/TabStrip';
 import { useI18n } from '../hooks/useI18n';
 import { useAuth } from '../context/AuthContext';
-import { PLATFORM_SCOPED_RECORD } from '../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import type { TKey } from '../i18n/types';
 import TemplateListPanel from './dashboardTemplates/TemplateListPanel';
 import DeployPanel from './dashboardTemplates/DeployPanel';
@@ -22,7 +22,7 @@ export default function DashboardTemplateManagement() {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
   const [params, setParams] = useSearchParams();
-  const canDeploy = hasPermission('dashboard_template.deploy', { clusterId: PLATFORM_SCOPED_RECORD });
+  const canDeploy = hasPermission('dashboard_template.deploy', { clusterId: BACKSTAGE_SCOPED_RECORD });
 
   const tabs = useMemo<TabStripItem<Tab>[]>(
     () => TAB_ORDER.filter((id) => id !== 'deploy' || canDeploy).map((id) => ({ id, label: t(TAB_LABEL[id]) })),

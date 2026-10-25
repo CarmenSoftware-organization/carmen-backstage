@@ -15,7 +15,7 @@ const permissionService = {
     }));
   },
 
-  getMyPlatformPermissions: async (): Promise<EffectivePermissions | null> => {
+  getMyBackstagePermissions: async (): Promise<EffectivePermissions | null> => {
     const response = await api.get('/api/user/permission/platform');
     const body = response.data?.data ?? response.data;
     if (body && typeof body === 'object' && Array.isArray(body.platform)) {

@@ -5,7 +5,7 @@ import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
 import { ActivityTrailSheet } from '../components/activityTrail/ActivityTrailSheet';
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
-import { PLATFORM_SCOPED_RECORD } from '../utils/permissions';
+import { BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import applicationService from '../services/applicationService';
 import { ApplicationIdentityHero } from './applicationEdit/ApplicationIdentityHero';
 import { Button } from '../components/ui/button';
@@ -457,9 +457,9 @@ const ApplicationEdit: React.FC = () => {
               actions={
                 <>
                   {/* ปุ่มอ่านประวัติแสดงเสมอ ไม่ผูกกับโหมดแก้ไข — application ไม่สังกัด cluster
-                      จึงส่ง PLATFORM_SCOPED_RECORD ให้เหลือทางเดียวคือสิทธิ์ระดับ platform
+                      จึงส่ง BACKSTAGE_SCOPED_RECORD ให้เหลือทางเดียวคือสิทธิ์ระดับ platform
                       ตรงกับที่ backend บังคับ */}
-                  <Can permission="activity_log.read" clusterId={PLATFORM_SCOPED_RECORD}>
+                  <Can permission="activity_log.read" clusterId={BACKSTAGE_SCOPED_RECORD}>
                     <ActivityTrailSheet
                       entityType="application"
                       entityId={id}

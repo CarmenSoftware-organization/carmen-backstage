@@ -38,7 +38,7 @@ export const UNRESOLVED_CLUSTER_ID = '__unresolved_cluster__';
  * แยกชื่อไว้เพราะเจตนาต่างกัน: UNRESOLVED_CLUSTER_ID คือ "หา cluster ไม่ได้ตอนนี้"
  * ส่วนตัวนี้คือ "เรคอร์ดชนิดนี้ไม่มี cluster" — อ่าน call site แล้วต้องรู้ว่ากำลังพูดถึงอันไหน
  */
-export const PLATFORM_SCOPED_RECORD = UNRESOLVED_CLUSTER_ID;
+export const BACKSTAGE_SCOPED_RECORD = UNRESOLVED_CLUSTER_ID;
 
 /**
  * Pure membership check (no React, no context) so it can be unit-tested when Vitest lands.
@@ -72,7 +72,7 @@ export function checkPermission(
  * The bootstrap escape hatch (userCount <= 1) is applied by the caller in AuthContext, not here,
  * so this stays a pure function of the permission payload.
  */
-export function checkPlatformAuthority(eff: EffectivePermissions | null | undefined): boolean {
+export function checkBackstageAuthority(eff: EffectivePermissions | null | undefined): boolean {
   if (!eff) return false;
   return eff.is_super_admin || (eff.platform?.length ?? 0) > 0 || Object.keys(eff.clusters ?? {}).length > 0;
 }
