@@ -66,13 +66,13 @@ Static SPA. `.github/workflows/` holds **three** workflows that ship to **three 
 
 | Workflow | Trigger | Target | Build mode |
 |---|---|---|---|
-| `deploy-dev.yml` | **push to `main` — automatic** | `/var/www/carmen-platform` on the DEV host, served at `dev.blueledgers.com:9902` | `dev` → `dev.blueledgers.com:4001` |
+| `deploy-dev.yml` | **push to `main` — automatic** | `/var/www/carmen-backstage` on the DEV host, served at `dev.blueledgers.com:9902` | `dev` → `dev.blueledgers.com:4001` |
 | `deploy-gcs.yml` | `workflow_dispatch` **only** | GCS bucket behind Cloud CDN + global HTTPS LB (Terraform in `infra/gcp/`), keyless via Workload Identity Federation (`gcloud storage rsync` + CDN invalidation) | `prod` |
 | `verify.yml` | PRs to `main`/`DEV`/`UAT`; pushes to every branch **except** `main`/`DEV`/`UAT`/`vercel` | nothing — `bun run test` then `bun run build` (ESLint + tsc + Vite); a second job repeats the build under `npm ci` to mirror Vercel's install | `prod` |
 
 **So a push to `main` DOES deploy — to DEV, automatically, since 2026-08-23 (`ae64f0c`).** It touches neither GCS nor Vercel. Before claiming anything about what deploys when, run `ls .github/workflows/` and `gh run list --branch main` — this paragraph claimed the opposite for a while after `deploy-dev.yml` landed, and a session acted on it.
 
-**Vercel (`vercel.json`) is a separate production target** at `carmen-inventory-platform.vercel.app`, and it is the one real users see. It tracks the **`vercel` branch**, not `main` — Vercel's Production environment is wired to that branch and Preview deployments are disabled, so **merging to `main` deploys nothing here**. Shipping to production is a deliberate second step:
+**Vercel (`vercel.json`) is a separate production target** at `carmen-backstage.vercel.app` (old alias `carmen-inventory-platform.vercel.app` still attached), and it is the one real users see. It tracks the **`vercel` branch**, not `main` — Vercel's Production environment is wired to that branch and Preview deployments are disabled, so **merging to `main` deploys nothing here**. Shipping to production is a deliberate second step:
 
 ```
 git push origin main:vercel      # fast-forward the deploy branch → Vercel builds

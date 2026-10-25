@@ -252,7 +252,7 @@ optional `REACT_APP_OTEL_ENABLED` (default `true`) / `REACT_APP_OTEL_ENVIRONMENT
 | `deploy-gcs.yml` | `workflow_dispatch` only | the GCS + CDN pipeline above |
 | `verify.yml` | PRs to `main`/`DEV`/`UAT`; pushes to every branch except `main`/`DEV`/`UAT`/`vercel` | `bun run test` then `bun run build`; a second job repeats the build under `npm ci` to mirror Vercel |
 
-**Vercel** (`carmen-inventory-platform.vercel.app`, the production users see)
+**Vercel** (`carmen-backstage.vercel.app`, the production users see)
 tracks the **`vercel`** branch, not `main` — ship with `git push origin main:vercel`.
 Details: `.claude/skills/deploying/SKILL.md`.
 

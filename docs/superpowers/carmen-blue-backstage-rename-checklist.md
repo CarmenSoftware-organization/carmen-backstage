@@ -5,7 +5,7 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 2 เสร็จ (2026-10-25) → ถัดไป **โปรเจกต์ 3 ขั้น 3.1** · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
+- **อยู่ที่:** โปรเจกต์ 3 เสร็จ (2026-10-26, ยกเว้น GCP ตามคำสั่งผู้ใช้) → ถัดไป **โปรเจกต์ 4 ขั้น 4.1** · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
 - **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
 - **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
   1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-backstage (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
@@ -14,7 +14,7 @@
   4. ตรวจหน้าจอจริง: Login จอใหญ่ (แผงโลโก้ CARMEN BLUE / BACKSTAGE), Landing, Platform Config → การ์ด Google sign-in (TH/EN) — Claude ตรวจในเบราว์เซอร์ไม่ได้ (นโยบายบล็อกโฮสต์ dev.blueledgers.com) ตรวจได้แค่ด้วย curl
   5. ส่งอีเมลทดสอบจากหน้า Email Settings (หลัง micro-notification ขึ้น DEV) → หัวเรื่อง "Carmen Blue Backstage email test"
 - **คำถามที่ค้างอยู่:** ไม่มี
-- **อัปเดตล่าสุด:** 2026-10-25
+- **อัปเดตล่าสุด:** 2026-10-26
 
 ## วิธีทำต่อ (สำหรับเซสชันใหม่)
 
@@ -80,8 +80,17 @@
 
 ## โปรเจกต์ 3 — โดเมนและระบบภายนอก
 
-- [ ] 3.1 brainstorm · [ ] 3.2 spec · [ ] 3.3 อนุมัติ · [ ] 3.4 plan · [ ] 3.5 ลงมือ · [ ] 3.6 PR/merge · [ ] 3.7 deploy + ตรวจ
-- ประเด็นที่รู้แล้ว: เปิดโดเมนใหม่คู่โดเมนเก่าก่อน แล้วค่อยปิด; CORS + OAuth redirect ต้องรับทั้งคู่ช่วงเปลี่ยนผ่าน
+- [x] 3.1 brainstorm — ผู้ใช้: "ไม่มีใครใช้จริง ยังอยู่ใน dev stage ทำได้เลย" + "ทำใน dev (ssh root@dev.blueledgers.com -p 2206) ได้เลย ยกเว้น GCP ไม่ต้องทำ" → ข้าม spec/plan · [x] 3.5 ลงมือ · [x] 3.6 PR/merge · [x] 3.7 ตรวจ (2026-10-26)
+- **เครื่อง DEV** (backup ก่อนแก้: `/root/rename-p3-backup-20261025-165948.tgz` — nginx sites, init.d god-mode, gateway `.env`):
+  - `/var/www/carmen-platform` → `/var/www/carmen-backstage`, `/var/www/carmen-inventory` → `/var/www/carmen-frontend`; nginx site + ชื่อไฟล์ log เปลี่ยนตาม (`sites-*/carmen-backstage`, `carmen-frontend`); log เก่า `carmen-platform.*.log` / `carmen-inventory.*.log` ยังค้างอยู่ใน `/var/log/nginx` ไม่ได้ลบ
+  - `/root/carmen-inventory-god-mode` → `/root/carmen-god-mode` (`/etc/init.d/carmen-god-mode` แก้ `directory=`)
+  - `/root/carmen-turborepo-backend-v2` → `/root/carmen-turborepo-backend`; `/root/deploy-all.sh` symlink ชี้ใหม่; restart gateway/business/cluster จากโฟลเดอร์ใหม่
+  - git remote ของ checkout บนเครื่องชี้ชื่อ repo ใหม่ (backend, god-mode)
+  - gateway `.env` `CORS_ALLOWED_ORIGINS` เติม `https://carmen-backstage.vercel.app,https://carmen-frontend.vercel.app` (ของเก่ายังอยู่)
+- **Vercel:** project → `carmen-backstage`, `carmen-frontend`, `carmen-god-mode`, `carmen-backstage-support-usermanual`; เพิ่มโดเมน `carmen-backstage.vercel.app`, `carmen-frontend.vercel.app` — โดเมนเดิม (`carmen-inventory-platform.vercel.app`, `carmen-inventory.vercel.app`) **ยังติดอยู่โดยตั้งใจ** ถอดได้เมื่อไม่มีใครใช้ลิงก์เก่า (ถอดแล้วชื่อ `*.vercel.app` อาจถูกคนอื่นจองไป)
+- **โค้ด:** workflow deploy-dev ของ backstage/frontend/god-mode + build.yml backend ชี้ path ใหม่; ชื่อ docker image `carmen-frontend` (ถ้าเคย push ไป ECR ต้องสร้าง repository ชื่อใหม่ก่อน); `nginx/carmen-backstage.conf` ใน backend; `.env.example` CORS
+- **ไม่ได้ทำ (ผู้ใช้สั่ง):** GCP ทั้งหมด — `infra/gcp` (bucket `carmen-platform-web`, WIF `github_repo` — deploy-gcs.yml จะล้มที่ auth จนกว่าจะ apply), `.cloudbuild` trigger `carmen-platform-*`
+- **ข้อยกเว้นอื่น:** `CARMEN_PLATFORM_WEB_URL` (ชื่อ env var) → โปรเจกต์ 4; บน DEV ไม่ได้ตั้งค่านี้ใน gateway `.env`
 
 ## โปรเจกต์ 4 — ตัวระบุในโค้ด backend
 
