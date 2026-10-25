@@ -127,7 +127,7 @@ describe('PermissionCatalog — loading, empty and error states', () => {
 
     expect(await screen.findByText('No permissions')).toBeInTheDocument();
     expect(
-      screen.getByText('No platform permissions are defined in the catalog yet.'),
+      screen.getByText('No Backstage permissions are defined in the catalog yet.'),
     ).toBeInTheDocument();
   });
 

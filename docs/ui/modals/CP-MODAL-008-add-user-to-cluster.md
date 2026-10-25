@@ -1,7 +1,7 @@
 ---
 **Doc ID:** CP-MODAL-008
 **Title:** Add User to Cluster
-**Domain:** Carmen Blue Backstage — actor: Platform user
+**Domain:** Carmen Blue Backstage — actor: Backstage user
 **Parent Page(s):** CP-PAGE-007 — Cluster Edit (Users tab)
 **Component:** inline `<Dialog>` in `src/pages/ClusterEdit.tsx` (~L689–816); data via `src/pages/clusterEdit/useClusterUsers.ts`
 **Status:** Draft
@@ -13,7 +13,7 @@
 
 ## 2.3.1.1 Add User to Cluster
 
-> Grants an existing platform user membership of this cluster, as `admin` or `user`. It does
+> Grants an existing Backstage user membership of this cluster, as `admin` or `user`. It does
 > not create users; that is done in CP-PAGE-011.
 
 ![Add User to Cluster — open](../screenshots/CP-MODAL-008/01-add-user-open.jpg)
@@ -123,7 +123,7 @@ can be left as is.
 
 | Option | Value | Meaning |
 |--------|-------|---------|
-| Admin | `admin` | Cluster admin: gets the Cluster Admin Portal (CP-PAGE-048–053). This is `tb_cluster_user.role`, **not** a platform RBAC role. |
+| Admin | `admin` | Cluster admin: gets the Cluster Admin Portal (CP-PAGE-048–053). This is `tb_cluster_user.role`, **not** a Backstage RBAC role. |
 | User | `user` | Ordinary member |
 
 ---

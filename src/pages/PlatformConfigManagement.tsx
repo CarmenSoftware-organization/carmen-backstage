@@ -396,7 +396,7 @@ const PlatformConfigManagement: React.FC = () => {
       </div>
 
       <DevDebugSheet
-        title="Platform Config — raw"
+        title="Backstage Config — raw"
         endpoint="/api-system/platform/configs"
         data={rawResponse}
       />

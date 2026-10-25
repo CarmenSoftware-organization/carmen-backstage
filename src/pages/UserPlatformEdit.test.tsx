@@ -81,9 +81,9 @@ describe('UserPlatformEdit (integration)', () => {
 
     expect(await screen.findByRole('heading', { name: 'Jane Doe' })).toBeInTheDocument();
     expect(screen.getByText('Platform Admin')).toBeInTheDocument();
-    // The scope is carried by the reach band, not by a per-row 'Platform' label: a lone
+    // The scope is carried by the reach band, not by a per-row 'Backstage' label: a lone
     // platform-wide group suppresses its heading because the band already says it.
-    expect(screen.getByText(/reaches the entire platform/i)).toBeInTheDocument();
+    expect(screen.getByText(/reaches all of Backstage/i)).toBeInTheDocument();
   });
 });
 

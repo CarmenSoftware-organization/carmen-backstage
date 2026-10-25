@@ -70,7 +70,7 @@ describe('AuthCallback', () => {
     auth.loginWithTokens.mockResolvedValue({
       success: false,
       code: 'access_denied_platform',
-      error: 'Access Denied. You are not authorized to access this platform.',
+      error: 'Access Denied. You are not authorized to access Backstage.',
     });
 
     const { findByTestId } = renderCallback();

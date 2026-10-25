@@ -245,7 +245,7 @@ describe('Login — Google sign-in', () => {
     ['google_too_many_attempts', /too many sign-in attempts/i],
     ['google_failed', /google sign-in failed/i],
     ['google_disabled', /google sign-in is turned off/i],
-    ['access_denied_platform', /not authorized to access this platform/i],
+    ['access_denied_platform', /not authorized to access Backstage/i],
   ])('translates the error code %s into a banner', (code, text) => {
     renderLogin(`/login?error=${code}`);
 

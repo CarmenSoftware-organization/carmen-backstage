@@ -75,7 +75,7 @@ describe('DatabaseConnectionSection', () => {
     auth.hasPermission = (perm: string) => perm !== 'database_pool.read';
     render(<DatabaseConnectionSection {...baseProps({ editing: true })} />);
     expect(screen.queryByLabelText('Database Pool')).not.toBeInTheDocument();
-    expect(screen.getByText(/platform-level permission/i)).toBeInTheDocument();
+    expect(screen.getByText(/Backstage-level permission/i)).toBeInTheDocument();
     // The fetch lives in a child only mounted inside <Can>, so a user who fails the
     // gate must never issue the request — that request would 403 and toast even
     // though the fallback view above renders correctly.

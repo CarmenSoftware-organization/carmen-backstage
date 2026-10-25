@@ -180,7 +180,7 @@ describe('GrantAccessDialog', () => {
     expect(toast.success).not.toHaveBeenCalled();
     expect(screen.getByText('Already granted')).toBeInTheDocument();
     expect(viewerCheckbox).toBeChecked();
-    expect(screen.getByText('Grant platform access')).toBeInTheDocument();
+    expect(screen.getByText('Grant Backstage access')).toBeInTheDocument();
   });
 
   // pickerOpenRef itself cannot be asserted on directly here: it is a private ref with
