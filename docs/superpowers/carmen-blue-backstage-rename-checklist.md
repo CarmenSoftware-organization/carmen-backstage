@@ -5,9 +5,10 @@
 
 ## สถานะปัจจุบัน
 
-- **อยู่ที่:** โปรเจกต์ 1 — merge ครบ 9 PR แล้ว เหลือ **งานที่ผู้ใช้ต้องทำเอง** (ดูด้านล่าง) จากนั้นเริ่มโปรเจกต์ 2 ขั้น 2.1
-- **ผู้ใช้ต้องทำเอง:**
-  1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-platform (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ #359–#361) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
+- **อยู่ที่:** โปรเจกต์ 2 เสร็จ (2026-10-25) → ถัดไป **โปรเจกต์ 3 ขั้น 3.1** · โปรเจกต์ 1 ยังมีงานค้างที่ผู้ใช้ต้องทำเอง (ด้านล่าง)
+- **repo ถูก rename แล้ว** — ชื่อใหม่: carmen-backstage, carmen-backstage-e2e, carmen-backstage-support-usermanual, carmen-frontend, carmen-frontend-e2e, carmen-mobile, carmen-god-mode, carmen-turborepo-backend (โฟลเดอร์ในเครื่องย้ายตามแล้ว — เปิด Claude ใหม่ใน `~/GitHub/carmensoftware-organize/carmen-backstage`)
+- **ผู้ใช้ต้องทำเอง (ค้างจากโปรเจกต์ 1):**
+  1. production คอนโซล: `git push origin origin/main:refs/heads/vercel` ใน carmen-backstage (fast-forward ได้ — vercel..main มีแค่งานเปลี่ยนชื่อ) — ระบบสิทธิ์ของ Claude ปฏิเสธ push production
   2. production แอปหลัก: **ยังไม่ควร push** — vercel ตามหลัง main 640 commit รวมงาน POS ที่มีลำดับ deploy บังคับ; `<title>` ใหม่จะขึ้นพร้อมรอบ deploy ปกติของ inventory
   3. backend-v2 (#914) และ micro-notification (#16) ยังไม่ขึ้น DEV — GitHub Actions ติด billing (CI ล้มใน 2 วินาที) ต้อง deploy มือหรือรอ billing
   4. ตรวจหน้าจอจริง: Login จอใหญ่ (แผงโลโก้ CARMEN BLUE / BACKSTAGE), Landing, Platform Config → การ์ด Google sign-in (TH/EN) — Claude ตรวจในเบราว์เซอร์ไม่ได้ (นโยบายบล็อกโฮสต์ dev.blueledgers.com) ตรวจได้แค่ด้วย curl
@@ -70,8 +71,12 @@
 
 ## โปรเจกต์ 2 — ชื่อ repo, package, deploy path
 
-- [ ] 2.1 brainstorm · [ ] 2.2 spec · [ ] 2.3 อนุมัติ · [ ] 2.4 plan · [ ] 2.5 ลงมือ · [ ] 2.6 PR/merge · [ ] 2.7 deploy + ตรวจ
-- ประเด็นที่รู้แล้ว: GitHub redirect ชื่อเก่าให้อัตโนมัติ; path DEV `/var/www/carmen-platform`; ย้ายโฟลเดอร์ในเครื่อง = memory ของ Claude หลุด (ต้องย้าย `~/.claude/projects/<path>` ตาม)
+- [x] 2.1 brainstorm · [x] 2.2 spec `docs/superpowers/specs/2026-10-25-carmen-blue-backstage-rename-p2-design.md` · [x] 2.3 ผู้ใช้สั่ง "ทำได้เลย" (ไม่ทำ plan แยก) · [x] 2.5 ลงมือ · [x] 2.6 PR/merge · [x] 2.7 ตรวจ (2026-10-25)
+- rename 8 repo บน GitHub; ชื่อ `carmen-mobile`/`carmen-turborepo-backend` เดิมเป็น redirect ของ repo ที่โอนไป `CarmenSoftware-dev` → ผู้ใช้สั่งเปลี่ยนตัวเก่าเป็น `carmen-mobile-app_old`, `carmen-turborepo-backend_old`
+- PR แทนชื่อในเอกสาร/package/lockfile/path พี่น้อง (merged): backstage #363, backstage-e2e #17, backstage-support-usermanual #5, frontend #441, frontend-e2e #77, mobile #5, god-mode #30, turborepo-backend #915, bruno #39, micro-file #9, micro-keycloak #9, micro-notification #17, micro-report #67, wiki #22
+- ตรวจ: bun install --frozen-lockfile + typecheck ผ่าน 6 repo FE; raw URL fixture ใหม่ของ backend ตอบ 200
+- **ส่งต่อโปรเจกต์ 3:** path บนเซิร์ฟเวอร์ (`/var/www/carmen-platform`, `/var/www/carmen-inventory`, `$HOME/carmen-turborepo-backend-v2`, `/root/carmen-inventory-god-mode`), ทั้ง `infra/` (bucket `carmen-platform-web`, **WIF `github_repo` ต้อง apply ก่อนรัน deploy-gcs.yml ครั้งถัดไป** — OIDC claim เป็นชื่อใหม่แล้ว), `.cloudbuild` trigger `carmen-platform-deploy`, ชื่อ image/registry (`docker-compose.yml`, `scripts/deploy-docker.sh`)
+- **ส่งต่อโปรเจกต์ 4:** OTel `SERVICE_NAME = 'carmen-platform'` (`src/lib/telemetry.ts`), Expo `slug: carmen-inventory-mobile` (`carmen-mobile/app.json` — ผูก EAS)
 
 ## โปรเจกต์ 3 — โดเมนและระบบภายนอก
 
