@@ -5,8 +5,8 @@
 > **`agent-os/standards/api/doc-version-locking.md`** and **`src/utils/docVersion.ts`**,
 > not here. The backend contract below still describes how the lock works.
 
-**Status:** Implemented & verified (frontend on `main` via PR #6; backend reads + guards on `main` of `carmen-turborepo-backend-v2`; e2e conflict test green).
-**Repos:** `carmen-platform` (frontend) · `carmen-turborepo-backend-v2` (backend) · `carmen-platform-e2e` (Playwright).
+**Status:** Implemented & verified (frontend on `main` via PR #6; backend reads + guards on `main` of `carmen-turborepo-backend`; e2e conflict test green).
+**Repos:** `carmen-backstage` (frontend) · `carmen-turborepo-backend` (backend) · `carmen-backstage-e2e` (Playwright).
 **Design doc:** `docs/superpowers/specs/2026-06-26-doc-version-optimistic-locking-design.md`.
 
 ## Problem
@@ -62,7 +62,7 @@ The gateway runs a global `ZodValidationPipe`. For `@Body()` typed as a `createZ
 ### HTTP error shape (how the frontend detects a conflict)
 `OptimisticLockError` → `TryCatch` maps it to `ErrorCode.ALREADY_EXISTS` → **HTTP 409**, body `{ message: "Record was modified by another request (model=…, expected doc_version=…)", … }`. The catalog-localization path is skipped (no catalog `code`), so the **English message is preserved**. Note the response has **no top-level `data.code`** (the catalog code, when present, lives under `data.error.code` and is `ALREADY_EXISTS` here — same as a name-collision 409). **Therefore conflict detection is message-based**, and the message string is load-bearing.
 
-## Frontend contract (`carmen-platform`)
+## Frontend contract (`carmen-backstage`)
 
 ### Helper — `src/utils/docVersion.ts`
 - `getDocVersion(record): number | undefined`
@@ -89,7 +89,7 @@ version conflict. To see the current set, search for `isVersionConflict` under
 
 **Gotcha — two role systems:** the admin "Role" page edits **platform roles** (`/api-system/platform/roles` → `platform_role` service, returns `permission_count`/`audit`), **not** application-roles (`/api-system/roles` → `role.service`/`ApplicationRoleService`). Guard/read changes for the admin role page go in `platform_role.service`. (application-roles also has the guard, as a consistent bonus.)
 
-## E2E (`carmen-platform-e2e`)
+## E2E (`carmen-backstage-e2e`)
 
 `tests/clusters/cluster-optimistic-lock.spec.ts` (branch `test/cluster-optimistic-lock`): two browser contexts (shared `.auth/user.json`) edit the same cluster; A saves first (200, version bumps), B's stale save → **409** → asserts the "changed by someone else" toast and that the form auto-reloads to A's value. **Verified green** end-to-end against the running stack (`1 passed`).
 

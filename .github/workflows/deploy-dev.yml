@@ -1,4 +1,4 @@
-name: Deploy carmen-platform (Dev)
+name: Deploy carmen-backstage (Dev)
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 # การ deploy สลับทั้งไดเรกทอรี ปล่อยให้สอง run ทับกันแปลว่า swap ของคนละ build
 # อาจสลับกัน — ต่อคิวแทน ไม่ยกเลิกตัวที่กำลังรัน
 concurrency:
-  group: deploy-dev-carmen-platform
+  group: deploy-dev-carmen-backstage
   cancel-in-progress: false
 
 jobs:

@@ -34,7 +34,7 @@ const tenantMigrationService = {
    *
    * backend ตรวจซ้ำอีกชั้น: รูปแบบชื่อ (400), โฟลเดอร์ migration ต้องมีอยู่จริง (400),
    * และกันชนกับ deploy/resolve ของ BU เดียวกันที่กำลังรันอยู่ (409) — ดู
-   * `tenant_migration.service.ts` `resolve` ใน ../carmen-turborepo-backend-v2
+   * `tenant_migration.service.ts` `resolve` ใน ../carmen-turborepo-backend
    */
   resolve: async (
     buId: string,
@@ -68,7 +68,7 @@ const tenantMigrationService = {
    * watch `req.on('close')` and unsubscribes its RxJS subscription on client disconnect, and
    * that propagates all the way to the micro-business HTTP RPC call being aborted. But the
    * micro-business handler that actually spawns `prisma migrate deploy`
-   * (`tenant_migration.service.ts` `deployStream`, ../carmen-turborepo-backend-v2) is explicitly
+   * (`tenant_migration.service.ts` `deployStream`, ../carmen-turborepo-backend) is explicitly
    * designed to keep running after that: "The inner runBuStream subscription is intentionally
    * NOT torn down when the outer Observable is unsubscribed ... a client disconnect must NOT
    * abort an in-flight migration: runBuStream runs to natural completion (or its spawnPrisma

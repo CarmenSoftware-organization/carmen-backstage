@@ -86,7 +86,7 @@ Vitest (jsdom) is the in-repo test runner — separate from the Playwright E2E s
 
 ## E2E Tests
 
-E2E tests live in the standalone sibling repo **`../carmen-platform-e2e`** (Playwright).
+E2E tests live in the standalone sibling repo **`../carmen-backstage-e2e`** (Playwright).
 See that repo's `CLAUDE.md`. This repo's Vite dev server (`:3304`) is the system under test.
 
 ## Reusable Components — When to Use What

@@ -11,8 +11,8 @@ Setup, commands, API, auth, testing, GCP deployment, and CI. For product overvie
 ## Setup
 
 ```bash
-git clone <repo-url> carmen-platform
-cd carmen-platform
+git clone <repo-url> carmen-backstage
+cd carmen-backstage
 cp .env.example .env.localhost   # then set REACT_APP_API_BASE_URL=http://localhost:4000
 bun install        # or: npm install
 bun start          # or: npm start
@@ -199,7 +199,7 @@ See [../CLAUDE.md](../CLAUDE.md#unit--component-tests) for full guidance.
 
 ## E2E testing
 
-E2E tests live in the standalone sibling repo **`../carmen-platform-e2e`** (Playwright).
+E2E tests live in the standalone sibling repo **`../carmen-backstage-e2e`** (Playwright).
 See that repo's `CLAUDE.md` and `README.md`. This repo's Vite dev server (`:3304`) is the system under test.
 
 ## Deployment (GCP)

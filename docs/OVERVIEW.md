@@ -72,7 +72,7 @@ Users outside this list are rejected at login with an "access denied" message. S
 - **Toasts:** Sonner
 - **Icons:** lucide-react
 - **Package manager:** Bun (primary) or npm; Node 24.x
-- **Tests:** Vitest + React Testing Library (unit/component, co-located `*.test.tsx`); E2E is a standalone Playwright suite in the sibling repo `../carmen-platform-e2e`
+- **Tests:** Vitest + React Testing Library (unit/component, co-located `*.test.tsx`); E2E is a standalone Playwright suite in the sibling repo `../carmen-backstage-e2e`
 
 ## Project structure
 
@@ -147,7 +147,7 @@ docs/
 | The auth state | `src/context/AuthContext.tsx` |
 | A route definition | `src/App.tsx` |
 | A unit/component test | co-located `*.test.tsx` beside the source |
-| An e2e test | sibling repo `../carmen-platform-e2e` (Playwright) |
+| An e2e test | sibling repo `../carmen-backstage-e2e` (Playwright) |
 
 ## Related docs
 
