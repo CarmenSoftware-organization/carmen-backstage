@@ -1014,7 +1014,7 @@ export const en = {
   /** Per-slice page vocabulary. One child object per phase-2 slice. */
   pages: {
     landing: {
-      brand: 'Carmen Blue Platform',
+      brand: 'Carmen Blue Backstage',
       console: 'Operations console',
       loading: 'Loading…',
       signIn: 'Sign in',
@@ -3841,10 +3841,10 @@ export const en = {
       googleSignInTitle: 'Google sign-in',
       googleSignInDesc:
         'Turns the "Continue with Google" button on or off per app. When off, the button is shown disabled and the gateway also blocks the Google flow. The button is only clickable when the gateway has Google OAuth configured.',
-      googleSignInPlatform: 'Carmen Blue Platform',
+      googleSignInPlatform: 'Carmen Blue Backstage',
       googleSignInPlatformHint: 'The login page of this admin app.',
-      googleSignInApp: 'App',
-      googleSignInAppHint: 'The inventory web app and every other client that is not Platform.',
+      googleSignInApp: 'Carmen Blue Platform',
+      googleSignInAppHint: 'The main Carmen Blue Platform web app and every other client that is not Backstage.',
       googleSignInCheckbox: 'Allow Google sign-in',
       googleSignInOn: 'On',
       googleSignInOff: 'Off',
@@ -5044,7 +5044,7 @@ export const en = {
     googleContinue: 'Continue with Google',
     googleFailed: 'Google sign-in failed. Please try again.',
     googleNoAccount:
-      'No Carmen Blue Platform account exists for this Google email address. Ask an administrator to add you first.',
+      'No Carmen Blue Backstage account exists for this Google email address. Ask an administrator to add you first.',
     googleAccountConflict:
       'This email address conflicts with another account. Please contact your administrator.',
     googleTooManyAttempts: 'Too many sign-in attempts. Please wait a moment and try again.',

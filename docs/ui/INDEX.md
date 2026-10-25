@@ -1,4 +1,4 @@
-# Carmen Blue Platform — UI Documentation Index
+# Carmen Blue Backstage — UI Documentation Index
 
 **Last Updated:** 2026-09-29
 **Source:** `src/App.tsx` routes (70) → 53 page components + 2 error pages. See `project-config.md`.

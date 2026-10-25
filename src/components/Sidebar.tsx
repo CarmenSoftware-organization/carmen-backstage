@@ -53,7 +53,7 @@ export interface BrandIdentity {
   logoUrl?: string;
 }
 
-export const PRODUCT_BRAND: BrandIdentity = { name: 'Carmen Blue Platform', code: 'C' };
+export const PRODUCT_BRAND: BrandIdentity = { name: 'Carmen Blue Backstage', code: 'C' };
 
 /**
  * The product wears its own logo file; every other identity wears `BrandMark`. Compared by value
@@ -73,7 +73,7 @@ interface SidebarProps {
   /**
    * Whose identity the shell wears. Defaults to the product. `ClusterAdminLayout` passes the
    * administered cluster instead: mark *and* name switch together, because a cluster logo
-   * labelled "Carmen Blue Platform" would name one thing and picture another.
+   * labelled "Carmen Blue Backstage" would name one thing and picture another.
    */
   brand?: BrandIdentity;
   /**

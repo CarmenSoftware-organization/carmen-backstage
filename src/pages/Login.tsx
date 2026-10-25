@@ -200,7 +200,7 @@ const Login: React.FC = () => {
           <div className="leading-none">
             <div className="text-lg font-extrabold tracking-tight">CARMEN BLUE</div>
             <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.3em] text-primary-foreground/60">
-              Platform
+              Backstage
             </div>
           </div>
         </div>
@@ -240,7 +240,7 @@ const Login: React.FC = () => {
                 C
               </div>
               <div className="leading-none">
-                <div className="text-base font-bold tracking-tight text-foreground">Carmen Blue Platform</div>
+                <div className="text-base font-bold tracking-tight text-foreground">Carmen Blue Backstage</div>
                 <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
                   {t('login.operationsConsole')}
                 </div>

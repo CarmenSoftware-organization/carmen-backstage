@@ -21,11 +21,11 @@ const ClusterAdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   // Inside a cluster the chrome wears that cluster, not the product: the brand link already
-  // navigates to the cluster page, so labelling it "Carmen Blue Platform" pointed one way and read
+  // navigates to the cluster page, so labelling it "Carmen Blue Backstage" pointed one way and read
   // another. `adminScope.clusters` is only a page for a super admin, so a cluster outside that
   // page leaves the product branding in place rather than triggering a lookup just for a label.
   // ในคลัสเตอร์ chrome จะแสดงตัวตนของคลัสเตอร์นั้นแทนตัวผลิตภัณฑ์ เพราะลิงก์แบรนด์พาไปหน้าคลัสเตอร์อยู่แล้ว
-  // การเขียนว่า "Carmen Blue Platform" จึงชี้ไปทางหนึ่งแต่อ่านได้อีกทาง ส่วน super admin ที่ `adminScope.clusters`
+  // การเขียนว่า "Carmen Blue Backstage" จึงชี้ไปทางหนึ่งแต่อ่านได้อีกทาง ส่วน super admin ที่ `adminScope.clusters`
   // เป็นเพียงหนึ่งหน้า คลัสเตอร์ที่อยู่นอกหน้านั้นจะคงแบรนด์ผลิตภัณฑ์ไว้ แทนที่จะยิงคำขอเพิ่มเพียงเพื่อได้ป้ายชื่อ
   const cluster = adminScope?.clusters.find((c) => c.id === clusterId);
   const brand = React.useMemo(

@@ -1,4 +1,4 @@
-# Carmen Blue Platform
+# Carmen Blue Backstage
 
 **Version 1.1.0** · React + TypeScript admin dashboard for managing clusters, business units, users, and report templates. Backed by a separate NestJS/Prisma API.
 
