@@ -183,7 +183,7 @@ export function UsersSection({
                     action, which is anchored right by `table-sticky-right` regardless. */}
                 <TableHead>{t('pages.clusters.columnSeat')}</TableHead>
                 <TableHead aria-hidden="true" />
-                <TableHead />
+                <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -226,14 +226,15 @@ export function UsersSection({
                       )}
                     </TableCell>
                     <TableCell>
-                      <SeatCell seat={u.seat} />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <SeatCell seat={u.seat} />
+                        {canEdit && (
+                          <SeatActions user={u} clusterId={clusterId} currentUserId={currentUserId} onDone={onSeatChanged} />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell aria-hidden="true" />
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-2">
-                      {canEdit && (
-                        <SeatActions user={u} clusterId={clusterId} currentUserId={currentUserId} onDone={onSeatChanged} />
-                      )}
+                    <TableCell className="text-center">
                       {canEdit && (
                         /* Muted until reached for. This column repeats once per row, so drawn
                            in the destructive colour it made a stack of eight red marks the
@@ -247,7 +248,6 @@ export function UsersSection({
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}
-                      </div>
                     </TableCell>
                   </TableRow>
                 );
