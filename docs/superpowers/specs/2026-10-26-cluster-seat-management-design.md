@@ -21,10 +21,12 @@ Two root problems found during recon:
    (`tb_user_tb_business_unit` × `tb_business_unit` × `tb_user`, all `is_active` and not deleted).
    The correct number already arrives as `users_count` and is stored in `clusterMeta`, unused.
    Consequence: deactivating a cluster member in the Users tab today **does not free a seat**.
-2. **Re-activating a BU link skips the seat check.** `assertSeatAvailable` is only called from the
-   invitation-accept path. `userBusinessUnitUpdate` / `userBusinessUnitCreate`
-   (`micro-cluster/src/cluster/business-unit/business-unit.service.ts`) never call it, so any
-   "restore" button built on them would let a cluster go over quota silently.
+2. **There is no tool to give a seat back.** Freeing a seat means deactivating every active BU
+   link the person has in the cluster, one `PATCH api-system/user/business-units/:id` at a time,
+   from a screen that does not show those links. (Correction 2026-10-26: an earlier draft claimed
+   re-activation skipped the seat check. It does not — `userBusinessUnitCreate` and
+   `userBusinessUnitUpdate` call `assertSeatAvailable` since 2026-08-18, `business-unit.service.ts`
+   ~1588 and ~1809, covering false→true, user reassignment and cross-cluster moves.)
 
 ## Goals
 
@@ -40,14 +42,15 @@ Two root problems found during recon:
 4. **Restore seat** — re-activates the BU links that release turned off, in one transaction,
    under `assertSeatAvailable` (cluster row `FOR UPDATE`). Refused with a clear message when the
    pool is full; honours `license.enforcement_enabled` shadow mode exactly as invitations do.
-5. **Close the bypass.** Every BU-link write that can turn someone into a new seat holder goes
-   through `assertSeatAvailable`: `PATCH api-system/user/business-units/:id` flipping
-   `is_active` false→true or moving `business_unit_id` into another cluster, and `POST` creating
-   an active link.
+5. **Keep the existing seat check intact.** BU-link create/update already run
+   `assertSeatAvailable`; this work must not weaken it, and the generic PATCH that re-activates a
+   link must also clear the release marker (see below).
 6. **Over-quota is obvious.** When `used > cap`, both pages show a banner: "9/8 seats used —
    release 1 seat to unlock writes in carmen-frontend", plus a way to filter to seat holders.
-7. **Who may do it:** backstage staff with cluster-update rights **and** the cluster's own admins
-   (`tb_cluster_user.role='admin'`), each only for clusters they administer.
+7. **Who may do it:** exactly who may read the member list today —
+   `ClusterAdminAuthzService.isClusterAdmin(actor, clusterId)`: backstage super admins and the
+   cluster's own admins (`tb_cluster_user.role='admin'`, active). Same rule as
+   `getUserClusterById` and `userBusinessUnitUpdate`.
 
 ## Non-goals
 
@@ -71,7 +74,8 @@ Two root problems found during recon:
 - **User:** release = "disable inside this cluster only" (option ก), not account deactivation.
 - **User:** management lives in backstage only (both backstage admin and cluster admin), not
   carmen-frontend.
-- **User:** do all of it in this round, including the backend seat check on re-activation.
+- **User:** do all of it in this round (backend + backstage). The re-activation seat check the
+  user approved turned out to exist already; restore reuses it.
 - **Claude's call:** dedicated release/restore endpoints (one transaction each) instead of the
   FE looping `PATCH` per link — a partial failure on restore would otherwise bypass the
   "adding 1 head" accounting, and release must be all-or-nothing (anti-goal above).
@@ -113,9 +117,10 @@ Two root problems found during recon:
   link, or a `business_unit_id` move into another cluster **when the resulting link is active**.
   Deactivations and edits that leave state unchanged are never checked. Existing callers that
   re-activate links will now be refused on a full cluster; that is the intended behaviour.
-- **Shadow mode:** when `license.enforcement_enabled` is off, restore and the PATCH check log and
-  allow (same as invitations). The over-quota banner then adds "enforcement is off — not yet
-  blocking carmen-frontend".
+- **Shadow mode:** when `license.enforcement_enabled` is off, restore logs and allows (same as
+  invitations and the PATCH check). The banner does not try to read the switch (cluster admins
+  cannot read backstage config); its copy says writes are blocked "while licence enforcement is
+  on".
 - **Admins releasing their own seat:** allowed. Release never touches `tb_cluster_user`, so the
   admin keeps backstage access; they lose carmen-frontend access. The confirm dialog adds an
   explicit warning when the target is the acting user.
