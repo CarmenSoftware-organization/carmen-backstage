@@ -61,6 +61,27 @@ const clusterService = {
     return response.data;
   },
 
+  // `userId` is the user's id (ClusterUser.user_id), NOT the membership row id.
+  releaseSeat: async (clusterId: string, userId: string): Promise<{ released: string[] }> => {
+    const response = await api.post(
+      `/api-system/clusters/${clusterId}/users/${userId}/seat/release`,
+    );
+    return response.data.data || response.data;
+  },
+
+  restoreSeat: async (
+    clusterId: string,
+    userId: string,
+  ): Promise<{
+    restored: string[];
+    skipped: { id: string; reason: 'bu_inactive' | 'user_inactive' }[];
+  }> => {
+    const response = await api.post(
+      `/api-system/clusters/${clusterId}/users/${userId}/seat/restore`,
+    );
+    return response.data.data || response.data;
+  },
+
   // Dedicated logo/avatar upload endpoints (multipart). Return { file_token, url, expires_at }.
   // The multipart Content-Type header is required so axios doesn't JSON-serialize the FormData.
   uploadLogo: async (id: string, file: File) => {

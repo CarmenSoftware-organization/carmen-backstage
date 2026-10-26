@@ -729,6 +729,27 @@ export const en = {
    * copy lives here instead, split by component name (i18n phase-2 slice-5.5).
    */
   components: {
+    // clusterSeat/* — ที่นั่งของสมาชิกใน cluster (SeatCell, SeatActions, SeatOverQuotaBanner, useSeatActions)
+    clusterSeat: {
+      holdsSeat: 'Holds seat',
+      noSeat: 'No seat',
+      released: 'released',
+      inactive: 'inactive',
+      release: 'Release seat',
+      restore: 'Restore seat',
+      releaseTitle: 'Release seat?',
+      releaseDescription: "{{name}} will stop using a seat in this cluster. Their access to its business units is switched off until you restore it.",
+      releaseSelfWarning: "This is your own account — you will lose access to this cluster's business units.",
+      restoreTitle: 'Restore seat?',
+      restoreDescription: "{{name}} will take a seat again and their released business-unit access is switched back on.",
+      releasedToast: 'Seat released for {{name}}',
+      restoredAll: 'Seat restored for {{name}}',
+      restoredPartial: 'Seat restored for {{name}}, but skipped: {{codes}}',
+      restoredNone: 'Nothing to restore for {{name}}',
+      limitReached: 'Seat limit reached: {{used}}/{{cap}} seats are in use, so {{name}} cannot take another.',
+      limitReachedNoCounts: 'Seat limit reached: no free seats in this cluster.',
+      overQuota: '{{used}}/{{cap}} seats in use — release {{over}} seat(s). While licence enforcement is on, carmen-frontend cannot save anything in this cluster\'s business units.',
+    },
     // FleetCapacity / CapacityGauge / CapacityMeter (i18n slice 7)
     // อยู่ใต้ src/pages/clusterManagement/ ก็จริง แต่เป็น component ร่วม: LicenseCenter
     // (slice 3b) import ข้าม slice มาใช้ และ meter ทั้งสองตัวถูกใช้ใน 8 ไฟล์ 4 slice

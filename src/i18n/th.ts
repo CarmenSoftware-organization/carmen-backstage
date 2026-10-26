@@ -521,6 +521,27 @@ export const th: Translations = {
   // pages.* เพราะถูกเรนเดอร์ในหลายหน้า จึงแยกเป็น namespace ของตัวเองตามชื่อคอมโพเนนต์
   // (i18n phase-2 slice-5.5) — ดู en.ts สำหรับเหตุผลของแต่ละคีย์
   components: {
+    // clusterSeat/* — ที่นั่งของสมาชิกใน cluster (SeatCell, SeatActions, SeatOverQuotaBanner, useSeatActions)
+    clusterSeat: {
+      holdsSeat: 'ถือที่นั่ง',
+      noSeat: 'ไม่มีที่นั่ง',
+      released: 'ปล่อยแล้ว',
+      inactive: 'ไม่ใช้งาน',
+      release: 'ปล่อยที่นั่ง',
+      restore: 'คืนที่นั่ง',
+      releaseTitle: 'ปล่อยที่นั่งหรือไม่?',
+      releaseDescription: '{{name}} จะไม่ใช้ที่นั่งใน cluster นี้อีก การเข้าถึง business unit ของ cluster จะถูกปิดจนกว่าคุณจะคืนที่นั่ง',
+      releaseSelfWarning: 'นี่คือบัญชีของคุณเอง — คุณจะเข้าถึง business unit ของ cluster นี้ไม่ได้',
+      restoreTitle: 'คืนที่นั่งหรือไม่?',
+      restoreDescription: '{{name}} จะกลับมาใช้ที่นั่งอีกครั้ง และการเข้าถึง business unit ที่เคยปล่อยไว้จะถูกเปิดกลับ',
+      releasedToast: 'ปล่อยที่นั่งของ {{name}} แล้ว',
+      restoredAll: 'คืนที่นั่งของ {{name}} แล้ว',
+      restoredPartial: 'คืนที่นั่งของ {{name}} แล้ว แต่ข้ามรายการ: {{codes}}',
+      restoredNone: 'ไม่มีอะไรให้คืนสำหรับ {{name}}',
+      limitReached: 'ที่นั่งเต็ม: ใช้อยู่ {{used}}/{{cap}} ที่นั่ง จึงให้ {{name}} ใช้เพิ่มอีกไม่ได้',
+      limitReachedNoCounts: 'ที่นั่งเต็ม: cluster นี้ไม่มีที่นั่งว่าง',
+      overQuota: 'ใช้ที่นั่งอยู่ {{used}}/{{cap}} — ปล่อยที่นั่งออก {{over}} ที่นั่ง ขณะที่เปิดการบังคับใช้ license อยู่ carmen-frontend จะบันทึกอะไรใน business unit ของ cluster นี้ไม่ได้',
+    },
     fleetCapacity: {
       heading: 'ความจุรวมทั้งระบบ',
       unavailable: 'ไม่มีข้อมูลความจุ',

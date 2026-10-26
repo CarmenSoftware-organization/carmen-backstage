@@ -548,6 +548,23 @@ export interface User {
 // Row returned by GET /api-system/user/clusters/:clusterId — a tb_cluster_user
 // join row, not a plain User. Carries cluster-membership fields plus a
 // nested userInfo (note the camelCase shape from the backend).
+/** One user↔BU link of a cluster member, as reported in `ClusterUser.seat.links`. */
+export interface ClusterSeatLink {
+  id: string;
+  business_unit_id: string;
+  bu_code: string;
+  bu_name: string;
+  is_active: boolean;
+  bu_is_active: boolean;
+  /** True when the link was switched off by "Release seat" (restorable). */
+  released: boolean;
+}
+
+export interface ClusterUserSeat {
+  holds: boolean;
+  links: ClusterSeatLink[];
+}
+
 export interface ClusterUser {
   id: string;          // tb_cluster_user.id (membership row id, NOT the user's id)
   user_id?: string;    // links to User.id
@@ -562,6 +579,8 @@ export interface ClusterUser {
     middlename?: string;
     lastname?: string;
   };
+  /** Absent when the backend predates seat management. */
+  seat?: ClusterUserSeat;
   created_at?: string;
   updated_at?: string;
 }
