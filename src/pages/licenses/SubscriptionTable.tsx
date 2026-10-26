@@ -500,7 +500,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
         // แปลงเป็น `end_date` บนสาย (ลำดับเดียวกันเป๊ะ) · เริ่ม asc = ใบที่ใกล้หมดก่อน คือสิ่งที่คนเปิดคอลัมน์นี้หา
         id: DAYS_LEFT_SORT_ID,
         accessorFn: (r) => r.end_date,
-        header: t('pages.subscriptions.daysLeft'),
+        header: t('common.field.daysLeft'),
         sortDescFirst: false,
         cell: ({ row }) => {
           const { state, end_date } = row.original;

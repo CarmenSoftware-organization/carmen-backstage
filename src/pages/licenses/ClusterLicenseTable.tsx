@@ -33,6 +33,8 @@ const SEARCH_KEY = 'search_cluster_license';
 const STATUS_KEY = 'filters_cluster_license_status';
 const LICENSE_KEY = 'filters_cluster_license_state';
 const DEFAULT_SORT = 'code:asc';
+// คอลัมน์ Days Left เรียงด้วย bu_cap_end_date บนสาย — ดู handleSortChange
+const DAYS_LEFT_SORT_ID = 'days_left';
 
 /**
  * ตัวกรองสถานะ license — ค่าแต่ละตัวคือ **คีย์พิเศษที่ backend รู้จัก** ไม่ใช่คอลัมน์จริง
@@ -235,7 +237,9 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
   const handleSortChange = (sort: string) => {
     // header toggle วนกลับมาที่ "ไม่เรียง" (สตริงว่าง) ได้ — ตกกลับไปที่ค่าเริ่มต้นเสมอ ไม่ส่ง
     // sort ว่างให้ backend
-    const next = sort || DEFAULT_SORT;
+    // `days_left` ไม่ใช่คีย์ที่ backend รู้จัก — ลำดับเดียวกับ bu_cap_end_date เป๊ะ จึงแปลงก่อนส่ง
+    const wire = sort.startsWith(`${DAYS_LEFT_SORT_ID}:`) ? sort.replace(DAYS_LEFT_SORT_ID, 'bu_cap_end_date') : sort;
+    const next = wire || DEFAULT_SORT;
     localStorage.setItem(SORT_KEY, next);
     localStorage.setItem(PAGE_KEY, '1');
     setPaginate(prev => ({ ...prev, sort: next, page: 1 }));
@@ -306,13 +310,32 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
           // ไม่แย่งพื้นที่จากวันที่จริงที่ต้องอ่าน (ทั้งสองกรณีจบเหมือนกันคือ "โควตาไม่หมดอายุ" —
           // ความต่างระหว่าง "ไม่มีใบ" กับ "ใบถาวร" อ่านได้จากคอลัมน์ BU Quota ซ้ายมืออยู่แล้ว)
           if (!end || isPerpetual(end)) return <span className="text-xs text-muted-foreground">&mdash;</span>;
+          // ป้าย "เหลืออีก N วัน" ที่เคยต่อท้ายวันที่ย้ายไปเป็นคอลัมน์ Days Left ข้างขวาแล้ว
+          return <span className="text-xs whitespace-nowrap">{fmtDate(end)}</span>;
+        },
+      },
+      {
+        // นับจากวันหมดอายุของโควตา BU (ตัวเดียวกับคอลัมน์ซ้าย) · เรียงได้ผ่าน bu_cap_end_date บนสาย
+        // (NULLS LAST ทั้งสองทิศ) · เริ่ม asc = คลัสเตอร์ที่ใกล้หมดก่อน
+        id: DAYS_LEFT_SORT_ID,
+        accessorFn: (row) => row.bu_cap_end_date,
+        header: t('common.field.daysLeft'),
+        sortDescFirst: false,
+        cell: ({ row }) => {
+          const end = row.original.bu_cap_end_date;
+          if (!end || isPerpetual(end)) return <span className="text-xs text-muted-foreground">&mdash;</span>;
           const left = daysLeft(end, new Date());
+          if (left < 0) {
+            return (
+              <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                {t('pages.licenses.expiredDaysAgo', { count: -left })}
+              </span>
+            );
+          }
+          const soon = left <= thresholds.bu_quota_days;
           return (
-            <span className="text-xs whitespace-nowrap">
-              {fmtDate(end)}
-              {left <= thresholds.bu_quota_days && left >= 0 && (
-                <Badge variant="warning" className="ml-2">{t('common.state.daysLeft', { count: left })}</Badge>
-              )}
+            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning font-medium' : ''}`}>
+              {t('common.state.daysLeft', { count: left })}
             </span>
           );
         },

@@ -382,6 +382,8 @@ export const en = {
       // ('Start date', 'End date'), which are default field NAMES for validation
       // messages — different job, different casing, deliberately both.
       seats: 'Seats',
+      // Column header for days-until-expiry — SubscriptionTable + ClusterLicenseTable.
+      daysLeft: 'Days Left',
       startDate: 'Start Date',
       endDate: 'End Date',
       // Required-field marker template (task J): every Edit page re-solves "label + asterisk"
@@ -1725,7 +1727,6 @@ export const en = {
       businessUnitName: 'Business Unit Name',
       featureCount: 'Feature Count',
       featureGroups: 'Feature Groups',
-      daysLeft: 'Days Left',
       period: 'Period',
       // "State" is deliberately not common.status.label ("Status") — review I1 in the
       // source: the badge and this filter/column both read the backend-computed `state`
