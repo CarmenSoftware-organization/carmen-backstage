@@ -670,7 +670,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                           className="h-4 w-4 rounded border-input"
                         />
                         <Label htmlFor="expiringSoon" className="text-sm text-muted-foreground cursor-pointer">
-                          {t('pages.subscriptions.expiringWithinDays', { days: thresholds.subscription_days })}
+                          {t('common.state.expiringWithinDays', { days: thresholds.subscription_days })}
                         </Label>
                       </div>
                     </div>

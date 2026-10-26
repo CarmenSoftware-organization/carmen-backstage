@@ -415,6 +415,7 @@ export const th: Translations = {
       // Copied verbatim from pages.subscriptions.expiringSoon / pages.licenses.
       // expiringSoonBadge — not retranslated. See en.ts for the promotion rationale.
       expiringSoon: 'ใกล้หมดอายุ',
+      expiringWithinDays: 'ใกล้หมดอายุภายใน {{days}} วัน',
       // Copied verbatim from pages.licenses.daysLeft — not retranslated. See en.ts for the
       // promotion rationale.
       daysLeft: 'เหลืออีก {{count}} วัน',
@@ -1358,7 +1359,6 @@ export const th: Translations = {
       // buttons this message refers to render that exact word once translated, so this
       // sentence must name the same word or the Thai UI would name two different states.
       lockedToActive: 'ล็อกไว้ที่สถานะใช้งาน ระหว่างที่แสดงสัญญาที่ใกล้หมดอายุ',
-      expiringWithinDays: 'ใกล้หมดอายุภายใน {{days}} วัน',
       expiry: 'วันหมดอายุ',
       subscriptionNumber: 'เลขที่สัญญา',
       clusterCode: 'รหัส Cluster',
