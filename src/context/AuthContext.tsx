@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import { loginPathForCurrentPage } from '../utils/resolveNextPath';
 import userService from '../services/userService';
 import permissionService from '../services/permissionService';
 import clusterAdminService from '../services/clusterAdminService';
@@ -61,7 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // `/login` here would throw away the tokens in the URL fragment.
       const publicPaths = ['/', '/login', '/login/callback', '/changelog'];
       if (!publicPaths.includes(window.location.pathname)) {
-        window.location.href = '/login';
+        window.location.href = loginPathForCurrentPage();
       }
       return;
     }
