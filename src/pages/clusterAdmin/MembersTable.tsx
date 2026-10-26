@@ -19,6 +19,8 @@ import { parseApiError } from '../../utils/errorParser';
 import { auditColumns } from '../../components/auditColumns';
 import { useI18n } from '../../hooks/useI18n';
 import { ROLE_LABEL_KEYS, roleLabel } from '../../utils/roleLabels';
+import { SeatCell } from '../../components/clusterSeat/SeatCell';
+import { SeatActions } from '../../components/clusterSeat/SeatActions';
 import type { ClusterUser } from '../../types';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -36,12 +38,21 @@ interface MembersTableProps {
   /** Narrows the already-loaded rows. Task 9 sets this when a duplicate invitation is rejected. */
   searchTerm: string;
   onChanged: () => void;
+  clusterId: string;
+  /** The signed-in user's id — SeatActions warns on self-release. */
+  currentUserId?: string;
+  /** Called after a seat release/restore: the parent refetches members and the seat pool. */
+  onSeatChanged: () => void;
 }
 
 /**
- * Cluster membership table for the cluster-admin Users page. No `clusterId` prop — the
- * membership row id (`member.id`) already scopes `updateClusterUser` / `deleteClusterUser` to
- * the right record, so the writes below never need it.
+ * Cluster membership table for the cluster-admin Users page. The role/remove writes need no
+ * `clusterId` — the membership row id (`member.id`) already scopes `updateClusterUser` /
+ * `deleteClusterUser` to the right record; `clusterId` is here only for the seat actions.
+ *
+ * Seat release/restore acts on the member's BU links (not on the membership row), so rows never
+ * disappear from this list when a seat is released. The reason Status/Deactivate stay absent
+ * (below) is unchanged.
  *
  * No Status column and no Activate/Deactivate action, deliberately: `GET
  * /api-system/user/clusters/:clusterId` (`cluster.service.ts` on the backend) hard-filters to
@@ -51,20 +62,24 @@ interface MembersTableProps {
  * vanish from a list that cannot show inactive members, leaving no way to reactivate from this
  * page. Do not re-add either without the backend first returning `is_active` from this endpoint.
  */
-const MembersTable: React.FC<MembersTableProps> = ({ members, loading, searchTerm, onChanged }) => {
+const MembersTable: React.FC<MembersTableProps> = ({
+  members, loading, searchTerm, onChanged, clusterId, currentUserId, onSeatChanged,
+}) => {
   const { t } = useI18n();
   const [removeTarget, setRemoveTarget] = useState<ClusterUser | null>(null);
+  const [seatHoldersOnly, setSeatHoldersOnly] = useState(false);
 
   const rows = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    if (!q) return members;
-    return members.filter(
+    const base = seatHoldersOnly ? members.filter((m) => m.seat?.holds) : members;
+    if (!q) return base;
+    return base.filter(
       (m) =>
         (m.email ?? '').toLowerCase().includes(q) ||
         (m.username ?? '').toLowerCase().includes(q) ||
         (m.name ?? '').toLowerCase().includes(q),
     );
-  }, [members, searchTerm]);
+  }, [members, searchTerm, seatHoldersOnly]);
 
   const handleRoleChange = useCallback(async (member: ClusterUser, role: string) => {
     try {
@@ -120,6 +135,19 @@ const MembersTable: React.FC<MembersTableProps> = ({ members, loading, searchTer
           </Badge>
         ),
       },
+      {
+        id: 'seat',
+        header: t('pages.clusters.columnSeat'),
+        enableSorting: false,
+        // Buttons live in this cell, not in the pinned actions column — they made that column
+        // too wide at 390px.
+        cell: ({ row }) => (
+          <div className="flex flex-wrap items-center gap-2">
+            <SeatCell seat={row.original.seat} />
+            <SeatActions user={row.original} clusterId={clusterId} currentUserId={currentUserId} onDone={onSeatChanged} />
+          </div>
+        ),
+      },
       createdColumn,
       updatedColumn,
       {
@@ -161,27 +189,45 @@ const MembersTable: React.FC<MembersTableProps> = ({ members, loading, searchTer
         },
       },
     ];
-  }, [handleRoleChange, t]);
+  }, [handleRoleChange, t, clusterId, currentUserId, onSeatChanged]);
 
   if (loading && members.length === 0) {
     // +1 accounts for the `#` row-index column DataTable always prepends.
     return <TableSkeleton columns={columns.length + 1} rows={5} />;
   }
 
+  const seatFilter = (
+    <div className="mb-3 flex flex-wrap items-center gap-2">
+      <Button
+        type="button"
+        variant={seatHoldersOnly ? 'secondary' : 'outline'}
+        size="sm"
+        aria-pressed={seatHoldersOnly}
+        onClick={() => setSeatHoldersOnly((v) => !v)}
+      >
+        {t('pages.clusters.seatHoldersOnly')}
+      </Button>
+    </div>
+  );
+
   if (!loading && rows.length === 0) {
     return (
-      <ListEmptyState
-        searchTerm={searchTerm}
-        activeFilterCount={0}
-        icon={Users}
-        emptyTitle={t('pages.clusterAdmin.noMembersYet')}
-        emptyDescription={t('pages.clusterAdmin.inviteToAccessHint')}
-      />
+      <>
+        {seatFilter}
+        <ListEmptyState
+          searchTerm={searchTerm}
+          activeFilterCount={seatHoldersOnly ? 1 : 0}
+          icon={Users}
+          emptyTitle={t('pages.clusterAdmin.noMembersYet')}
+          emptyDescription={t('pages.clusterAdmin.inviteToAccessHint')}
+        />
+      </>
     );
   }
 
   return (
     <div className="relative">
+      {seatFilter}
       {loading && members.length > 0 && (
         <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10" role="status" aria-label={t('pages.clusterAdmin.loadingMembersAria')}>
           <div className="text-muted-foreground">{t('pages.clusterAdmin.loadingMembers')}</div>
