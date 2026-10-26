@@ -2045,14 +2045,14 @@ export interface LocalizedText {
 }
 
 // ---------------------------------------------------------------------------
-// Cluster notes — บันทึกภายในของ staff ต่อ cluster (`/api-system/clusters/:id/notes`)
+// Notes — บันทึกภายในของ staff ต่อ owner: cluster (`/api-system/clusters/:id/notes`) และ BU
 // ---------------------------------------------------------------------------
 
 /**
- * ไฟล์แนบของโน้ต — `fileToken` ใช้ขอ presigned URL ผ่าน `clusterNoteService.fileUrl`
+ * ไฟล์แนบของโน้ต — `fileToken` ใช้ขอ presigned URL ผ่าน `adapter.fileUrl`
  * (ไม่ใช่ URL ตรง) `uploaded_by_id` ไม่ถูก enrich ที่ gateway จึงไม่มีชื่อมาให้เว้นแต่ backend เพิ่มภายหลัง
  */
-export interface ClusterNoteAttachment {
+export interface NoteAttachment {
   fileName: string;
   fileToken: string;
   contentType: string;
@@ -2067,11 +2067,13 @@ export interface ClusterNoteAttachment {
  * `created_at`/`created_by_id`/... ออกแล้ว re-nest เป็น `audit.created.{at,name}`) อ่านด้วย `normalizeAudit`
  * ไม่มีคีย์ `*_by_name` แบบแบนบนสายนี้ จึงคง flat field ไว้เป็น optional เผื่อ route ที่ไม่ผ่าน enrich
  */
-export interface ClusterNote {
+export interface Note {
   id: string;
-  cluster_id: string;
+  /** owner — cluster notes carry `cluster_id`, BU notes `business_unit_id` */
+  cluster_id?: string;
+  business_unit_id?: string;
   message: string | null;
-  attachments: ClusterNoteAttachment[];
+  attachments: NoteAttachment[];
   doc_version: number;
   is_edited: boolean;
   created_at?: string;
@@ -2082,33 +2084,42 @@ export interface ClusterNote {
 }
 
 /** แถวจาก `GET .../notes/files` — ไฟล์แนบรวมทุกโน้ตของ cluster พร้อม id โน้ตเจ้าของ */
-export interface ClusterNoteFile extends ClusterNoteAttachment {
+export interface NoteFile extends NoteAttachment {
   note_id: string;
 }
 
 /** ประวัติการแก้โน้ต — แถว activity log เดิม + diff (`changes`) */
-export type ClusterNoteHistoryEntry = ActivityLogEntry & {
+export type NoteHistoryEntry = ActivityLogEntry & {
   changes?: ActivityDiff;
   created_at?: string;
   /** snapshot ของโน้ตก่อน/หลังการเปลี่ยน — `attachments` ใช้โชว์ไฟล์ของแต่ละเวอร์ชัน */
-  old_data?: ClusterNoteSnapshot | null;
-  new_data?: ClusterNoteSnapshot | null;
+  old_data?: NoteSnapshot | null;
+  new_data?: NoteSnapshot | null;
 };
 
 /** ไฟล์แนบใน snapshot ประวัติ — `removed_at` มีเมื่อไฟล์ถูกเอาออกแล้ว */
-export interface ClusterNoteSnapshotAttachment {
+export interface NoteSnapshotAttachment {
   fileName: string;
   fileToken: string;
   contentType?: string;
   removed_at?: string | null;
 }
 
-export interface ClusterNoteSnapshot {
+export interface NoteSnapshot {
   message?: string | null;
-  attachments?: ClusterNoteSnapshotAttachment[];
+  attachments?: NoteSnapshotAttachment[];
 }
 
 /** `GET .../notes` — `summary.deleted_count` ใช้โชว์จำนวนโน้ตที่ลบแล้ว */
-export interface ClusterNotesResponse extends ApiListResponse<ClusterNote> {
+export interface NotesResponse extends ApiListResponse<Note> {
   summary?: { deleted_count: number };
 }
+
+/** ชื่อเดิมของ cluster notes — alias ของชนิดกลาง ไม่มีฟิลด์ต่างกัน */
+export type ClusterNote = Note;
+export type ClusterNoteAttachment = NoteAttachment;
+export type ClusterNoteFile = NoteFile;
+export type ClusterNoteHistoryEntry = NoteHistoryEntry;
+export type ClusterNoteSnapshotAttachment = NoteSnapshotAttachment;
+export type ClusterNoteSnapshot = NoteSnapshot;
+export type ClusterNotesResponse = NotesResponse;

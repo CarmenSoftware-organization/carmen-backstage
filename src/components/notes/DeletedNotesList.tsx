@@ -2,35 +2,36 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, RotateCcw } from 'lucide-react';
 import { NoteFileIcon } from './NoteFileIcon';
-import { Button } from '../../../components/ui/button';
-import { Skeleton } from '../../../components/ui/skeleton';
-import { AuditMeta } from '../../../components/AuditMeta';
-import clusterNoteService from '../../../services/clusterNoteService';
-import { useI18n } from '../../../hooks/useI18n';
-import { normalizeAudit } from '../../../utils/audit';
-import { getErrorDetail } from '../../../utils/errorParser';
-import { useClusterNotes } from './useClusterNotes';
+import { Button } from '../ui/button';
+import { Skeleton } from '../ui/skeleton';
+import { AuditMeta } from '../AuditMeta';
+import { useI18n } from '../../hooks/useI18n';
+import { normalizeAudit } from '../../utils/audit';
+import { getErrorDetail } from '../../utils/errorParser';
+import { useNotes } from './useNotes';
 import { openNoteFile } from './openNoteFile';
-import type { ClusterNote } from '../../../types';
+import type { Note } from '../../types';
+import type { NotesAdapter } from './types';
 
 interface DeletedNotesListProps {
-  clusterId: string;
+  ownerId: string;
+  adapter: NotesAdapter;
   canManage: boolean;
   deletedCount: number;
-  onRestored: (note: ClusterNote) => void;
-  onOpenHistory?: (note: ClusterNote) => void;
+  onRestored: (note: Note) => void;
+  onOpenHistory?: (note: Note) => void;
 }
 
 /** รายการโน้ตที่ลบแล้ว (อ่านอย่างเดียว) — กู้คืนได้เมื่อ `canManage` */
-function DeletedRows({ clusterId, canManage, onRestored, onOpenHistory }: Omit<DeletedNotesListProps, 'deletedCount'>) {
+function DeletedRows({ ownerId, adapter, canManage, onRestored, onOpenHistory }: Omit<DeletedNotesListProps, 'deletedCount'>) {
   const { t } = useI18n();
-  const { notes, loading, hasMore, loadMore, dropNote } = useClusterNotes(clusterId, { deleted: true });
+  const { notes, loading, hasMore, loadMore, dropNote } = useNotes(adapter, ownerId, { deleted: true });
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
-  const handleRestore = async (note: ClusterNote) => {
+  const handleRestore = async (note: Note) => {
     setRestoringId(note.id);
     try {
-      await clusterNoteService.restore(clusterId, note.id);
+      await adapter.restore(ownerId, note.id);
       toast.success(t('pages.clusterNotes.restored'));
       dropNote(note.id);
       onRestored(note);
@@ -90,7 +91,7 @@ function DeletedRows({ clusterId, canManage, onRestored, onOpenHistory }: Omit<D
                     <li key={a.fileToken}>
                       <button
                         type="button"
-                        onClick={() => void openNoteFile(clusterId, a.fileToken, t)}
+                        onClick={() => void openNoteFile(adapter, ownerId, a.fileToken, t)}
                         className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted"
                       >
                         <NoteFileIcon fileName={a.fileName} contentType={a.contentType} />

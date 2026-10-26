@@ -2854,6 +2854,7 @@ export const en = {
       technicalTab: 'Technical',
       // แท็บที่แยกออกมาจาก Users — ที่นั่งกับรายชื่อผู้ใช้เป็นคนละเรื่อง
       licensesTab: 'Licenses',
+      notesTab: 'Notes',
       createSubtitle: 'Create a new business unit',
       // Shown in the sticky action bar on the create route in place of 'No changes', which
       // described a record that does not exist yet. The three required fields sit in two
@@ -4456,6 +4457,7 @@ export const en = {
       popupBlocked: 'Your browser blocked the new tab. Allow pop-ups for this site and try again.',
       emptyTitle: 'No notes yet',
       emptyDescription: 'Internal notes about this cluster are visible to staff only.',
+      buEmptyDescription: 'Internal notes about this business unit are visible to staff only.',
       placeholder: 'Write a note…',
       attach: 'Attach files',
       post: 'Post note',

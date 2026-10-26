@@ -1,7 +1,7 @@
 import { toast } from 'sonner';
-import clusterNoteService from '../../../services/clusterNoteService';
-import { getErrorDetail } from '../../../utils/errorParser';
-import type { TFunction } from '../../../i18n/types';
+import { getErrorDetail } from '../../utils/errorParser';
+import type { TFunction } from '../../i18n/types';
+import type { NotesAdapter } from './types';
 
 /**
  * เปิดไฟล์แนบในแท็บใหม่ — ต้องเรียกจาก click handler แบบ synchronous
@@ -12,14 +12,14 @@ import type { TFunction } from '../../../i18n/types';
  * once it resolves (no `noopener` here — it would make window.open return null). Never logs the
  * token or URL.
  */
-export async function openNoteFile(clusterId: string, fileToken: string, t: TFunction): Promise<void> {
+export async function openNoteFile(adapter: NotesAdapter, ownerId: string, fileToken: string, t: TFunction): Promise<void> {
   const tab = window.open('', '_blank');
   if (!tab) {
     toast.error(t('pages.clusterNotes.popupBlocked'));
     return;
   }
   try {
-    const { url } = await clusterNoteService.fileUrl(clusterId, fileToken);
+    const { url } = await adapter.fileUrl(ownerId, fileToken);
     tab.opener = null;
     tab.location.href = url;
   } catch (err) {

@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, History, Loader2 } from 'lucide-react';
 import { NoteFileIcon } from './NoteFileIcon';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../../components/ui/sheet';
-import { Button } from '../../../components/ui/button';
-import { Skeleton } from '../../../components/ui/skeleton';
-import { EmptyState } from '../../../components/EmptyState';
-import { AuditMeta } from '../../../components/AuditMeta';
-import { ActivityDiffView, visibleFieldChanges } from '../../../components/activityTrail/ActivityDiffView';
-import clusterNoteService from '../../../services/clusterNoteService';
-import { useI18n } from '../../../hooks/useI18n';
-import { cn } from '../../../lib/utils';
-import { normalizeAudit } from '../../../utils/audit';
-import type { AuditActor } from '../../../utils/audit';
-import { getErrorDetail } from '../../../utils/errorParser';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet';
+import { Button } from '../ui/button';
+import { Skeleton } from '../ui/skeleton';
+import { EmptyState } from '../EmptyState';
+import { AuditMeta } from '../AuditMeta';
+import { ActivityDiffView, visibleFieldChanges } from '../activityTrail/ActivityDiffView';
+import { useI18n } from '../../hooks/useI18n';
+import { cn } from '../../lib/utils';
+import { normalizeAudit } from '../../utils/audit';
+import type { AuditActor } from '../../utils/audit';
+import { getErrorDetail } from '../../utils/errorParser';
 import { openNoteFile } from './openNoteFile';
-import type { TKey } from '../../../i18n/types';
-import type { ActivityDiff, ClusterNoteHistoryEntry, ClusterNoteSnapshotAttachment } from '../../../types';
+import type { TKey } from '../../i18n/types';
+import type { ActivityDiff, NoteHistoryEntry, NoteSnapshotAttachment } from '../../types';
+import type { NotesAdapter } from './types';
 
 const PER_PAGE = 20;
 
@@ -27,14 +27,15 @@ const VERB_KEYS: Record<string, TKey> = {
 };
 
 interface NoteHistorySheetProps {
-  clusterId: string;
+  ownerId: string;
+  adapter: NotesAdapter;
   noteId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 /** คนทำ: อ่านจาก audit ก่อน แล้วถอยไปฟิลด์ actor_* แบน */
-function actorOf(entry: ClusterNoteHistoryEntry): AuditActor | undefined {
+function actorOf(entry: NoteHistoryEntry): AuditActor | undefined {
   const fromAudit = normalizeAudit(entry).created;
   if (fromAudit) return fromAudit;
   const name = [entry.actor_firstname, entry.actor_middlename, entry.actor_lastname].filter(Boolean).join(' ')
@@ -50,14 +51,14 @@ function withoutAttachments(changes?: ActivityDiff): ActivityDiff | undefined {
   return { ...changes, fields: changes.fields?.filter((f) => f.field !== 'attachments') };
 }
 
-function HistoryRow({ clusterId, entry }: { clusterId: string; entry: ClusterNoteHistoryEntry }) {
+function HistoryRow({ ownerId, adapter, entry }: { ownerId: string; adapter: NotesAdapter; entry: NoteHistoryEntry }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const changes = withoutAttachments(entry.changes);
   const fieldCount = visibleFieldChanges(changes).length;
   // เวอร์ชันหลังการเปลี่ยน (ลบ = เวอร์ชันก่อนลบ)
   const snapshot = entry.action === 'delete' ? (entry.old_data ?? entry.new_data) : (entry.new_data ?? entry.old_data);
-  const attachments: ClusterNoteSnapshotAttachment[] = snapshot?.attachments ?? [];
+  const attachments: NoteSnapshotAttachment[] = snapshot?.attachments ?? [];
 
   return (
     <div className="border-b border-border last:border-b-0">
@@ -91,7 +92,7 @@ function HistoryRow({ clusterId, entry }: { clusterId: string; entry: ClusterNot
                 <li key={a.fileToken}>
                   <button
                     type="button"
-                    onClick={() => void openNoteFile(clusterId, a.fileToken, t)}
+                    onClick={() => void openNoteFile(adapter, ownerId, a.fileToken, t)}
                     className={cn(
                       'flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted',
                       a.removed_at && 'text-muted-foreground',
@@ -113,9 +114,9 @@ function HistoryRow({ clusterId, entry }: { clusterId: string; entry: ClusterNot
 }
 
 /** ประวัติการแก้โน้ตหนึ่งรายการ — หน้าตาเดียวกับ ActivityTrailSheet (ใช้ ActivityDiffView ร่วมกัน) */
-export function NoteHistorySheet({ clusterId, noteId, open, onOpenChange }: NoteHistorySheetProps) {
+export function NoteHistorySheet({ ownerId, adapter, noteId, open, onOpenChange }: NoteHistorySheetProps) {
   const { t } = useI18n();
-  const [entries, setEntries] = useState<ClusterNoteHistoryEntry[]>([]);
+  const [entries, setEntries] = useState<NoteHistoryEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -129,7 +130,7 @@ export function NoteHistorySheet({ clusterId, noteId, open, onOpenChange }: Note
       setLoading(true);
       setError(null);
       try {
-        const res = await clusterNoteService.history(clusterId, noteId, { page: next, perpage: PER_PAGE });
+        const res = await adapter.history(ownerId, noteId, { page: next, perpage: PER_PAGE });
         if (generation !== generationRef.current) return;
         const items = Array.isArray(res.data) ? res.data : [];
         setEntries((prev) => (append ? [...prev, ...items.filter((n) => !prev.some((p) => p.id === n.id))] : items));
@@ -142,7 +143,7 @@ export function NoteHistorySheet({ clusterId, noteId, open, onOpenChange }: Note
         if (generation === generationRef.current) setLoading(false);
       }
     },
-    [clusterId, noteId, t],
+    [adapter, ownerId, noteId, t],
   );
 
   useEffect(() => {
@@ -187,7 +188,7 @@ export function NoteHistorySheet({ clusterId, noteId, open, onOpenChange }: Note
           {entries.length > 0 && (
             <div>
               {entries.map((entry) => (
-                <HistoryRow key={entry.id} clusterId={clusterId} entry={entry} />
+                <HistoryRow key={entry.id} ownerId={ownerId} adapter={adapter} entry={entry} />
               ))}
             </div>
           )}

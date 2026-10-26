@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { NoteFileIcon } from './NoteFileIcon';
-import { Skeleton } from '../../../components/ui/skeleton';
-import { AuditMeta } from '../../../components/AuditMeta';
-import clusterNoteService from '../../../services/clusterNoteService';
-import { useI18n } from '../../../hooks/useI18n';
-import { cn } from '../../../lib/utils';
-import { devLog } from '../../../utils/errorParser';
+import { Skeleton } from '../ui/skeleton';
+import { AuditMeta } from '../AuditMeta';
+import { useI18n } from '../../hooks/useI18n';
+import { cn } from '../../lib/utils';
+import { devLog } from '../../utils/errorParser';
 import { openNoteFile } from './openNoteFile';
-import type { ClusterNoteFile } from '../../../types';
+import type { NoteFile } from '../../types';
+import type { NotesAdapter } from './types';
 
 interface NoteFilesPanelProps {
-  clusterId: string;
+  ownerId: string;
+  adapter: NotesAdapter;
   /** เปลี่ยนค่า = โหลดรายการไฟล์ใหม่ (bump หลัง create/update/delete/restore) */
   refreshKey: number;
 }
@@ -20,9 +21,9 @@ interface NoteFilesPanelProps {
  * แผง "ไฟล์ทั้งหมด" — ไฟล์แนบรวมทุกโน้ต ใหม่สุดก่อน
  * ต่ำกว่า lg พับได้ (พับไว้เป็นค่าเริ่มต้น) ที่ lg แสดงเสมอเป็นคอลัมน์ขวา
  */
-export function NoteFilesPanel({ clusterId, refreshKey }: NoteFilesPanelProps) {
+export function NoteFilesPanel({ ownerId, adapter, refreshKey }: NoteFilesPanelProps) {
   const { t } = useI18n();
-  const [files, setFiles] = useState<ClusterNoteFile[]>([]);
+  const [files, setFiles] = useState<NoteFile[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const [open, setOpen] = useState(false);
@@ -32,7 +33,7 @@ export function NoteFilesPanel({ clusterId, refreshKey }: NoteFilesPanelProps) {
     const generation = ++generationRef.current;
     void (async () => {
       try {
-        const rows = await clusterNoteService.files(clusterId);
+        const rows = await adapter.files(ownerId);
         if (generation !== generationRef.current) return;
         const list = Array.isArray(rows) ? rows : [];
         setFiles([...list].sort((a, b) => (b.uploaded_at ?? '').localeCompare(a.uploaded_at ?? '')));
@@ -50,7 +51,7 @@ export function NoteFilesPanel({ clusterId, refreshKey }: NoteFilesPanelProps) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generationRef.current++;
     };
-  }, [clusterId, refreshKey]);
+  }, [adapter, ownerId, refreshKey]);
 
   const title = t('pages.clusterNotes.filesTitle', { count: files.length });
 
@@ -82,7 +83,7 @@ export function NoteFilesPanel({ clusterId, refreshKey }: NoteFilesPanelProps) {
               <li key={`${f.note_id}-${f.fileToken}`}>
                 <button
                   type="button"
-                  onClick={() => void openNoteFile(clusterId, f.fileToken, t)}
+                  onClick={() => void openNoteFile(adapter, ownerId, f.fileToken, t)}
                   className="flex w-full items-start gap-2 rounded-md border bg-muted/40 px-2 py-1.5 text-left hover:bg-muted"
                 >
                   <NoteFileIcon fileName={f.fileName} contentType={f.contentType} className="mt-0.5" />

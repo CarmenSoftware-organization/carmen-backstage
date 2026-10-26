@@ -28,7 +28,7 @@ import { ClusterCreateForm } from './clusterManagement/ClusterCreateForm';
 import { ClusterPlate } from './clusterEdit/ClusterPlate';
 import { ClusterDraftPlate } from './clusterEdit/ClusterDraftPlate';
 import clusterNoteService from '../services/clusterNoteService';
-import { NotesSection } from './clusterEdit/sections/NotesSection';
+import { NotesSection } from '../components/notes/NotesSection';
 import { isClusterTabId, type ClusterTab, type ClusterTabId } from './clusterEdit/clusterTabs';
 import { BusinessUnitsSection } from './clusterEdit/sections/BusinessUnitsSection';
 import { SubscriptionCard } from './clusterEdit/sections/SubscriptionCard';
@@ -41,6 +41,8 @@ import { PERPETUAL_END_DATE } from '../utils/clusterLicense';
 import { toIsoEndOfDay } from './licenses/licenseDates';
 import type { BusinessUnit } from '../types';
 import { useI18n } from '../hooks/useI18n';
+
+const CLUSTER_NOTE_PERMISSIONS = { view: 'cluster_note.view', manage: 'cluster_note.manage' } as const;
 
 const CLUSTER_ROLES = ['admin', 'user'] as const;
 
@@ -103,7 +105,7 @@ const ClusterEdit: React.FC = () => {
   // Deep-linkable: ?tab= survives a reload and can be shared or bookmarked. Seeded from the
   // URL once — the state is the authority afterwards, so an unknown value degrades to
   // Licensing, the first tab.
-  const canViewNotes = !isNew && hasPermission('cluster_note.view', { clusterId: id });
+  const canViewNotes = !isNew && hasPermission(CLUSTER_NOTE_PERMISSIONS.view, { clusterId: id });
   const [notesTotal, setNotesTotal] = useState<number | undefined>(undefined);
   // Tab count must show on load, before the Notes tab is ever opened: seed it with a 1-row
   // list (only paginate.total is read). NotesSection keeps it fresh via onTotalChange after.
@@ -692,7 +694,13 @@ const ClusterEdit: React.FC = () => {
             {(activeTab === 'notes' || notesOpened) && canViewNotes && (
               <div hidden={activeTab !== 'notes'}>
                 <Card className="p-0">
-                  <NotesSection clusterId={id!} onTotalChange={setNotesTotal} />
+                  <NotesSection
+                    ownerId={id!}
+                    scopeClusterId={id!}
+                    adapter={clusterNoteService}
+                    permissions={CLUSTER_NOTE_PERMISSIONS}
+                    onTotalChange={setNotesTotal}
+                  />
                 </Card>
               </div>
             )}

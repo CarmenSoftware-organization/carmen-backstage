@@ -1,6 +1,6 @@
 import React from 'react';
 import { File, FileImage, FileSpreadsheet, FileText, FileType, type LucideIcon } from 'lucide-react';
-import { cn } from '../../../lib/utils';
+import { cn } from '../../lib/utils';
 
 type NoteFileKind = 'pdf' | 'word' | 'excel' | 'image' | 'other';
 
