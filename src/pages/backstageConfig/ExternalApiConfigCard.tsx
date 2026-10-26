@@ -24,7 +24,8 @@ interface ExternalApiConfigCardProps {
 }
 
 /**
- * การ์ดของค่าตั้งที่มี URL ช่องเดียว และ "ว่าง" = ยังไม่ตั้ง (backend ใช้ค่าจาก env แทน)
+ * การ์ดของค่าตั้งที่มี URL ช่องเดียว และ "ว่าง" = ยังไม่ตั้ง (backend ไม่มี env fallback แล้ว —
+ * API key ของ BU ตอบ `base_url: null` แล้ว FE ใช้ origin ของ backend ที่ต่ออยู่แทน)
  *
  * ใช้กับ `external_api` — root URL สาธารณะของ API gateway ไม่รวม `/api/ext/v1`
  * backend ปฏิเสธค่าที่มี `/api/ext` ฝั่ง FE จึงเตือนก่อนเพื่อ UX เท่านั้น

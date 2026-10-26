@@ -2714,7 +2714,7 @@ export const th: Translations = {
       sectionExternalApi: 'External API',
       externalApiTitle: 'External API',
       externalApiDescription:
-        'Base URL สาธารณะของ Carmen Blue API ที่ระบบภายนอก (เช่น ระบบบัญชี) เรียกด้วย BU API key — endpoint ที่แสดงให้ลูกค้าคือ URL นี้ + /api/ext/v1 ปล่อยว่างเพื่อใช้ค่าเริ่มต้นของเซิร์ฟเวอร์',
+        'Base URL สาธารณะของ Carmen Blue API ที่ระบบภายนอก (เช่น ระบบบัญชี) เรียกด้วย BU API key — endpoint ที่แสดงให้ลูกค้าคือ URL นี้ + /api/ext/v1 ค่าว่าง = ยังไม่ตั้ง หน้า API key ของ BU จะแสดงที่อยู่ของ backend ที่หน้านั้นต่ออยู่แทน',
       externalApiUrlHint: 'root URL สาธารณะ ไม่ต้องมี /api/ext/v1 เช่น',
       urlNoApiExt: 'ห้ามใส่ /api/ext — ใส่เฉพาะ root URL',
       passwordResetTitle: 'ตั้งรหัสผ่านใหม่',

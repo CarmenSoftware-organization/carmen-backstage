@@ -3854,7 +3854,7 @@ export const en = {
       sectionExternalApi: 'External API',
       externalApiTitle: 'External API',
       externalApiDescription:
-        'Public base URL of the Carmen Blue API that external systems (e.g. accounting) call with a BU API key. The endpoint shown to customers is this URL + /api/ext/v1. Leave empty to use the server default.',
+        'Public base URL of the Carmen Blue API that external systems (e.g. accounting) call with a BU API key. The endpoint shown to customers is this URL + /api/ext/v1. Empty = not set: the BU API key page shows the address of the backend it is connected to instead.',
       externalApiUrlHint: 'Public root URL without /api/ext/v1, e.g.',
       urlNoApiExt: 'Do not include /api/ext — enter only the root URL',
       passwordResetTitle: 'Password Reset',
