@@ -1591,6 +1591,11 @@ export interface Subscription {
   bu_code: string;
   bu_name: string;
   feature_count: number;
+  /**
+   * กลุ่มสิทธิ์ที่ใบนี้ถือ เรียง sort_order แล้ว code (ลำดับเดียวกับ `SubscriptionBu.groups`)
+   * optional เพราะ backend ที่ยังไม่ deploy ไม่ส่งมา — ไม่มีฟิลด์ ≠ ไม่มีกลุ่ม (`[]`)
+   */
+  groups?: { id: string; code: string; name: string }[];
   seat_used: number;
   /** จำนวนเต็มเสมอ ไม่มี null — ไม่มีคำว่า "ไม่จำกัด" ในระบบที่นั่ง 0 คือศูนย์ที่นั่งจริงๆ */
   seat_cap: number;
@@ -1624,7 +1629,7 @@ export interface SubscriptionBu {
 }
 
 export interface SubscriptionDetail
-  extends Omit<Subscription, 'bu_code' | 'bu_name' | 'feature_count' | 'seat_used' | 'seat_cap'> {
+  extends Omit<Subscription, 'bu_code' | 'bu_name' | 'feature_count' | 'groups' | 'seat_used' | 'seat_cap'> {
   /** ระดับ cluster — ไม่ใช่ของ BU ใด BU หนึ่ง เพราะ seat เป็น pool ร่วมทั้ง cluster */
   seat: SubscriptionSeat;
   /**

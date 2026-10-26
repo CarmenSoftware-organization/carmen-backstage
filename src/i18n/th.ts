@@ -1363,7 +1363,8 @@ export const th: Translations = {
       clusterCode: 'รหัส Cluster',
       businessUnitName: 'ชื่อหน่วยธุรกิจ',
       featureCount: 'จำนวนสิทธิ์',
-      features: 'สิทธิ์',
+      featureGroups: 'กลุ่มสิทธิ์',
+      daysLeft: 'วันที่เหลือ',
       period: 'ช่วงเวลา',
       state: 'สถานะ',
       // startDate/endDate dropped here (slice 3b Task 1 fix round 1) — see en.ts. Now

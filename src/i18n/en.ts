@@ -1724,7 +1724,8 @@ export const en = {
       clusterCode: 'Cluster Code',
       businessUnitName: 'Business Unit Name',
       featureCount: 'Feature Count',
-      features: 'Features',
+      featureGroups: 'Feature Groups',
+      daysLeft: 'Days Left',
       period: 'Period',
       // "State" is deliberately not common.status.label ("Status") — review I1 in the
       // source: the badge and this filter/column both read the backend-computed `state`
