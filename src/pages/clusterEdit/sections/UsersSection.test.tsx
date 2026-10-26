@@ -13,6 +13,7 @@ const users: ClusterUser[] = [
 function renderSection(extra?: Partial<React.ComponentProps<typeof UsersSection>>) {
   return render(
     <UsersSection
+      clusterId="c1" seatPool={{ used: 0, cap: 5 }} onSeatChanged={() => {}}
       users={users} loading={false} canEdit
       onRefresh={() => {}} onAddUser={() => {}}
       onUpdateUser={vi.fn().mockResolvedValue(undefined)}
