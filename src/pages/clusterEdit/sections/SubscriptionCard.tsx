@@ -119,7 +119,11 @@ export function SubscriptionCard({ clusterId, embedded = false }: SubscriptionCa
                 {/* BU ของสัญญาเด่นกว่าเลขที่สัญญาในบริบทนี้: หนึ่ง cluster มีหลาย BU และ
                     หนึ่ง BU มีได้หลายใบ (ต่ออายุ/ซื้อโมดูลเพิ่ม) คนอ่านการ์ดนี้กำลังหาว่า
                     "BU ไหนมีสัญญาอะไรอยู่" ไม่ใช่ไล่เลขที่สัญญา */}
-                {sub.bu_code && <Badge variant="outline" className="text-xs">{sub.bu_code}</Badge>}
+                {(sub.bu_name || sub.bu_code) && (
+                  <Badge variant="outline" className="text-xs" title={sub.bu_code || undefined}>
+                    {sub.bu_name || sub.bu_code}
+                  </Badge>
+                )}
                 <Badge variant={sub.state === 'active' ? 'success' : 'secondary'} className="text-xs capitalize">
                   {sub.state}
                 </Badge>
