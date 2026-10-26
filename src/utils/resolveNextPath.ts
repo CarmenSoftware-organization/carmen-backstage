@@ -16,3 +16,26 @@ export function resolveNextPath(next: string | null): string {
   }
   return next;
 }
+
+// Pages that never need a `next`: returning to them after sign-in is the default anyway, and
+// `/login/callback` would replay a spent Google fragment. Mirrors AuthContext's publicPaths.
+const NO_RETURN_PATHS = ['/', '/login', '/login/callback', '/changelog'];
+
+/**
+ * The login URL for a session that has to sign in again, carrying where it was so Login can send
+ * it straight back. Explicit logout should keep using a bare `/login` — nobody wants to be
+ * returned to the page they just left.
+ * @param path - pathname + search + hash of the page being left, e.g. from `window.location`
+ * @returns `/login?next=<path>`, or bare `/login` when the path is public or would not survive `resolveNextPath`
+ */
+export function loginPathFor(path: string): string {
+  const pathname = path.split(/[?#]/, 1)[0];
+  if (NO_RETURN_PATHS.includes(pathname) || resolveNextPath(path) !== path) return '/login';
+  return `/login?${new URLSearchParams({ next: path }).toString()}`;
+}
+
+/** {@link loginPathFor} for the page the browser is on right now. */
+export function loginPathForCurrentPage(): string {
+  const { pathname, search, hash } = window.location;
+  return loginPathFor(`${pathname}${search}${hash}`);
+}

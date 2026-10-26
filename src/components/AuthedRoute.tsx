@@ -1,7 +1,8 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useI18n } from '../hooks/useI18n';
+import { loginPathFor } from '../utils/resolveNextPath';
 
 /**
  * Authentication only — no permission check and no view boundary.
@@ -14,13 +15,14 @@ import { useI18n } from '../hooks/useI18n';
 const AuthedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const { t } = useI18n();
+  const location = useLocation();
 
   if (loading) {
     return <div className="loading">{t('common.busy.loading')}</div>;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={loginPathFor(`${location.pathname}${location.search}${location.hash}`)} replace />;
   }
 
   return <>{children}</>;

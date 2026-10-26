@@ -116,12 +116,16 @@ const Login: React.FC = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if already logged in
+  // Where to land after sign-in: the page that sent us here (`?next=`, set by the auth guards and
+  // session teardown), else /dashboard. resolveNextPath rejects anything off-site.
+  const nextPath = resolveNextPath(searchParams.get('next'));
+
+  // Already logged in — skip the form and go straight there
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      navigate(nextPath, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, nextPath]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -161,7 +165,7 @@ const Login: React.FC = () => {
     const result = await login(credentials);
 
     if (result.success) {
-      navigate('/dashboard', { replace: true });
+      navigate(nextPath, { replace: true });
     } else {
       setError(result.error || t('login.failed'));
       setLocked(RATE_LIMIT_PATTERN.test(result.error ?? ''));

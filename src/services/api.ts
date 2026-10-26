@@ -1,6 +1,7 @@
 import axios from "axios";
 import { handleResponseError } from "./tokenRefresh";
 import { appSecretHeader } from "./appIdentity";
+import { loginPathForCurrentPage } from "../utils/resolveNextPath";
 
 const api = axios.create({
   baseURL: import.meta.env.REACT_APP_API_BASE_URL,
@@ -25,7 +26,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     } else if (!config.url?.includes("/auth/login")) {
       // No access_token and not a login request - redirect to login
-      window.location.href = "/login";
+      window.location.href = loginPathForCurrentPage();
       return Promise.reject(new Error("No access token"));
     }
     return config;

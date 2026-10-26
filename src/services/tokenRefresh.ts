@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { translate } from '../i18n/translate';
 import { DEFAULT_LANG, LANGUAGE_STORAGE_KEY, type Lang } from '../i18n/types';
 import { appSecretHeader, isAppSecretInvalid } from './appIdentity';
+import { loginPathForCurrentPage } from '../utils/resolveNextPath';
 
 const TOKEN_KEY = 'token';
 const REFRESH_KEY = 'refresh_token';
@@ -73,7 +74,7 @@ export function clearSession(): void {
 
 // Hard navigation (full reload) — load-bearing for teardown; see clearSession().
 export function redirectToLogin(): void {
-  window.location.href = '/login';
+  window.location.href = loginPathForCurrentPage();
 }
 
 // No React context here, so the language is read the way useI18n.tsx reads it.
