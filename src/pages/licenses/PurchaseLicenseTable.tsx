@@ -19,7 +19,9 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useI18n } from '../../hooks/useI18n';
 import { generateCSV, downloadCSV } from '../../utils/csvExport';
 import { devLog, licenseActionErrorMessage } from '../../utils/errorParser';
-import { fmtDate, isPerpetual } from './licenseDates';
+import { fmtDate, isPerpetual, daysLeft } from './licenseDates';
+import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
+import type { ExpiryThresholdsConfig } from '../../types';
 import { auditColumns } from '../../components/auditColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { licenseStatus as buLicenseStatus } from '../../utils/buLicense';
@@ -47,6 +49,16 @@ const STATUS_VALUES_BY_KIND: Record<LicenseKind, StatusFilterValue[]> = {
   interface: ['active', 'capped', 'scheduled', 'expired'],
 };
 const statusValuesFor = (kind: LicenseKind): StatusFilterValue[] => STATUS_VALUES_BY_KIND[kind];
+
+/** เกณฑ์ "ใกล้หมดอายุ" ของแต่ละชนิดใบ — คีย์เดียวกับที่ผู้ดูแลตั้งในหน้า Backstage Config */
+const THRESHOLD_KEY_BY_KIND: Record<LicenseKind, keyof ExpiryThresholdsConfig> = {
+  seat: 'seat_days',
+  'bu-quota': 'bu_quota_days',
+  interface: 'interface_days',
+};
+
+// คอลัมน์ Days Left เรียงด้วย end_date บนสาย — ดู handleSortChange
+const DAYS_LEFT_SORT_ID = 'days_left';
 
 type StatusBadgeVariant = 'success' | 'secondary' | 'destructive' | 'warning';
 
@@ -135,6 +147,8 @@ interface FleetLicenseRow {
   amount: number;
   start_date: string;
   end_date: string;
+  /** end_date ดิบ (ISO) — `end_date` ข้างบนถูกจัดรูปเป็นข้อความแสดงผลแล้ว นับวันจากมันไม่ได้ */
+  end_iso: string;
   status: StatusFilterValue;
   reference_no: string;
   /**
@@ -220,6 +234,7 @@ function toFleetRow(
     amount: kind === 'seat' ? seat.licensed_users : kind === 'bu-quota' ? quota.licensed_bus : 0,
     start_date: fmtDate(row.start_date),
     end_date: showNoExpiry && isPerpetual(row.end_date) ? noExpiryLabel : fmtDate(row.end_date),
+    end_iso: row.end_date,
     status,
     reference_no: row.reference_no || '-',
     created_at: rowAudit.created?.at ?? null,
@@ -279,10 +294,12 @@ const SUMMARY_COLOR: Record<StatusFilterValue, string> = {
  */
 export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTableProps) {
   const { t } = useI18n();
+  const { thresholds } = useExpiryThresholds();
   const { isSuperAdmin } = useAuth();
   // ใบโควตา BU ที่ยกเลิกแล้วคงอยู่ในตารางนี้ (ไม่ถูกลบแบบซ่อน) — ทางลบถาวรของมันจึงอยู่ที่นี่
   // ไม่ใช่ในมุมมองใบที่ลบแล้ว · เห็นเฉพาะ superadmin เหมือนปุ่มลบถาวรทุกจุด
   const canHardDeleteCancelled = config.kind === 'bu-quota' && isSuperAdmin;
+  const expiringSoonDays = thresholds[THRESHOLD_KEY_BY_KIND[config.kind]];
   const [hardDeleteRow, setHardDeleteRow] = useState<FleetLicenseRow | null>(null);
   const [hardDeleting, setHardDeleting] = useState(false);
   // One lookup for every rendering of a status value in this file — both badges (the
@@ -438,7 +455,10 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   };
 
   const handleSortChange = (sort: string) => {
-    const next = withTiebreaker(sort);
+    // `days_left` ไม่ใช่คีย์ที่ backend รู้จัก — ลำดับเดียวกับ end_date เป๊ะ จึงแปลงก่อนส่ง
+    const next = withTiebreaker(
+      sort.startsWith(`${DAYS_LEFT_SORT_ID}:`) ? sort.replace(DAYS_LEFT_SORT_ID, 'end_date') : sort,
+    );
     localStorage.setItem(sortKey, next);
     localStorage.setItem(pageKey, '1');
     setPaginate((p) => ({ ...p, sort: next, page: 1 }));
@@ -629,6 +649,34 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
         ),
       },
       {
+        // นับจาก end_date ล้วน · ใบที่ยกเลิกแล้วไม่มีวันเหลือให้นับ (ป้าย Cancelled บอกอยู่แล้ว) ·
+        // เริ่ม asc = ใบที่ใกล้หมดก่อน
+        id: DAYS_LEFT_SORT_ID,
+        accessorFn: (row) => row.end_iso,
+        header: t('common.field.daysLeft'),
+        sortDescFirst: false,
+        cell: ({ row }) => {
+          const { end_iso, status } = row.original;
+          if (status === 'cancelled' || isPerpetual(end_iso)) {
+            return <span className="text-xs text-muted-foreground">&mdash;</span>;
+          }
+          const left = daysLeft(end_iso, new Date());
+          if (left < 0) {
+            return (
+              <span className="text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+                {t('pages.licenses.expiredDaysAgo', { count: -left })}
+              </span>
+            );
+          }
+          const soon = left <= expiringSoonDays;
+          return (
+            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning font-medium' : ''}`}>
+              {t('common.state.daysLeft', { count: left })}
+            </span>
+          );
+        },
+      },
+      {
         id: 'status',
         header: t('common.status.label'),
         // เรียงได้แล้ว (2026-09-09): backend คำนวณสถานะจากวันที่ด้วยกติกาเดียวกับ utils/buLicense.ts และ
@@ -675,7 +723,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
           } as ColumnDef<FleetLicenseRow, unknown>]
         : []),
     ];
-  }, [config, t, ownerLabel, amountLabel, rowStatusLabel, canHardDeleteCancelled]);
+  }, [config, t, ownerLabel, amountLabel, rowStatusLabel, canHardDeleteCancelled, expiringSoonDays]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
