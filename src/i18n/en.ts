@@ -555,6 +555,9 @@ export const en = {
       // SubscriptionSection.tsx) — clears the promote-to-common bar. Both page-local keys
       // were deleted, both call sites' explanatory comments removed.
       expiringSoon: 'Expiring soon',
+      // Promoted from pages.subscriptions.expiringWithinDays — the subscription and licence
+      // (seat / BU quota / interface) filters both label their expiring-soon window with it.
+      expiringWithinDays: 'Expiring within {{days}} days',
       // Promoted from pages.licenses.daysLeft (i18n phase-2 slice-4 Task 5 fix round 1):
       // reused directly by clusterAdmin/licenses/SeatsByBuTable.tsx (slice 4) alongside 3
       // slice-3b files (ClusterLicenseTable.tsx, BuQuotaSection.tsx, SeatSection.tsx) — 4
@@ -1715,7 +1718,6 @@ export const en = {
       lockedToActive: 'Locked to Active while showing subscriptions expiring soon.',
       // expiringSoon moved to common.state.expiringSoon (i18n phase-2 slice-3b Task 4 fix
       // round 1) — see the comment there.
-      expiringWithinDays: 'Expiring within {{days}} days',
       expiry: 'Expiry',
       // Bare column headers — distinct from entity.* (toast-safe nouns) and from
       // common.validation.subscriptionNumber/startDate/endDate (lowercase field-name

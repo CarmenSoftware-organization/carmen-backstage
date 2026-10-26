@@ -259,11 +259,30 @@ function toFleetRow(
 /** ชนิดใบที่ backend รับ `?status=` (สถานะที่คำนวณจากข้อมูลนอกแถว) แทน `advance` ช่วงวันที่ */
 const usesStatusParam = (kind: LicenseKind): boolean => kind !== 'seat';
 
-function buildAdvance(kind: LicenseKind, status: StatusFilterValue | null): string {
-  // ใบโควตา/interface กรองผ่านพารามิเตอร์ `status` แทน — `superseded` ต้องรู้ใบที่ชนะใน view และ
-  // `capped` ต้องรู้สถานะสัญญาแม่ ซึ่ง where บนตารางเดียวแสดงไม่ได้ (ดู `usesStatusParam`)
-  if (!status || usesStatusParam(kind)) return '';
+/**
+ * "ใกล้หมดอายุ" = ใบ active ที่ end_date อยู่ภายใน `expiringSoonDays` วันจากนี้ — `status` ที่ส่งเข้ามา
+ * ต้องเป็น 'active' แล้ว (ผู้เรียกบังคับ) ที่นี่แค่ต่อเพดาน end_date · backend AND `advance.where`
+ * กับ `?status=` เข้าด้วยกัน ใบโควตา/interface จึงได้ทั้ง active ตามนิยามของมันเอง (ไม่ใช่ superseded/
+ * capped) และเพดานวันที่ในคำขอเดียว · ใบ perpetual (2099) หลุดเพดานไปเองโดยไม่ต้องดักแยก
+ */
+function buildAdvance(
+  kind: LicenseKind,
+  status: StatusFilterValue | null,
+  expiringSoonDays: number | null = null,
+): string {
   const now = new Date().toISOString();
+  const soonEnd = expiringSoonDays === null
+    ? null
+    : new Date(Date.now() + expiringSoonDays * 24 * 60 * 60 * 1000).toISOString();
+  // ใบโควตา/interface กรองสถานะผ่านพารามิเตอร์ `status` แทน — `superseded` ต้องรู้ใบที่ชนะใน view และ
+  // `capped` ต้องรู้สถานะสัญญาแม่ ซึ่ง where บนตารางเดียวแสดงไม่ได้ (ดู `usesStatusParam`)
+  if (usesStatusParam(kind)) {
+    return soonEnd ? JSON.stringify({ where: { end_date: { lte: soonEnd } } }) : '';
+  }
+  if (!status) return '';
+  if (soonEnd) {
+    return JSON.stringify({ where: { start_date: { lte: now }, end_date: { gte: now, lte: soonEnd } } });
+  }
   if (status === 'scheduled') return JSON.stringify({ where: { start_date: { gt: now } } });
   if (status === 'expired') return JSON.stringify({ where: { end_date: { lt: now } } });
   return JSON.stringify({ where: { start_date: { lte: now }, end_date: { gte: now } } });
@@ -318,6 +337,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   const sortKey = `sort_${config.kind}_license`;
   const searchKey = `search_${config.kind}_license`;
   const statusKey = `filters_${config.kind}_license_status`;
+  const expiringSoonKey = `filters_${config.kind}_license_expiring_soon`;
 
   const [rows, setRows] = useState<FleetLicenseRow[]>([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -330,6 +350,13 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
     const raw = localStorage.getItem(statusKey);
     return (statusValuesFor(config.kind) as string[]).includes(raw ?? '') ? (raw as StatusFilterValue) : null;
   });
+  // ใกล้หมดอายุเป็น "ส่วนย่อยของ active" ไม่ใช่แกนอิสระ — เปิดแล้วสถานะที่เลือกไว้ถูกล้าง (ดู
+  // handleExpiringSoonToggle) เพื่อไม่ให้ประกอบ "หมดอายุแล้ว + ใกล้หมดอายุ" ที่ไม่มีวันคืนผล
+  const [expiringSoonFilter, setExpiringSoonFilter] = useState(
+    () => localStorage.getItem(expiringSoonKey) === '1',
+  );
+  // สถานะที่ส่งจริง — โหมดใกล้หมดอายุบังคับเป็น active (เพดานวันที่ต่อใน buildAdvance)
+  const effectiveStatus: StatusFilterValue | null = expiringSoonFilter ? 'active' : statusFilter;
 
   const [paginate, setPaginate] = useState(() => ({
     page: Number(localStorage.getItem(pageKey)) || 1,
@@ -360,8 +387,8 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
         perpage: paginate.perpage,
         sort: paginate.sort,
         ...(debouncedSearch ? { search: debouncedSearch } : {}),
-        advance: buildAdvance(config.kind, statusFilter),
-        ...(usesStatusParam(config.kind) && statusFilter ? { status: statusFilter } : {}),
+        advance: buildAdvance(config.kind, effectiveStatus, expiringSoonFilter ? expiringSoonDays : null),
+        ...(usesStatusParam(config.kind) && effectiveStatus ? { status: effectiveStatus } : {}),
       };
       const data = await config.service.listBackstage(params);
       const now = new Date();
@@ -379,7 +406,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
     } finally {
       setLoading(false);
     }
-  }, [config, paginate, debouncedSearch, statusFilter, t]);
+  }, [config, paginate, debouncedSearch, effectiveStatus, expiringSoonFilter, expiringSoonDays, t]);
 
   useEffect(() => {
     fetchRows();
@@ -471,16 +498,32 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
     const next = statusFilter === value ? null : value;
     setStatusFilter(next);
     localStorage.setItem(statusKey, next ?? '');
+    // เลือกสถานะ = ออกจากโหมดใกล้หมดอายุ — สองตัวนี้เลือกได้ทีละอันเหมือนปุ่มสถานะด้วยกันเอง
+    setExpiringSoonFilter(false);
+    localStorage.setItem(expiringSoonKey, '');
+    resetPage();
+  };
+
+  const handleExpiringSoonToggle = () => {
+    const next = !expiringSoonFilter;
+    setExpiringSoonFilter(next);
+    localStorage.setItem(expiringSoonKey, next ? '1' : '');
+    if (next) {
+      setStatusFilter(null);
+      localStorage.setItem(statusKey, '');
+    }
     resetPage();
   };
 
   const handleClearFilters = () => {
     setStatusFilter(null);
     localStorage.setItem(statusKey, '');
+    setExpiringSoonFilter(false);
+    localStorage.setItem(expiringSoonKey, '');
     resetPage();
   };
 
-  const activeFilterCount = statusFilter ? 1 : 0;
+  const activeFilterCount = statusFilter || expiringSoonFilter ? 1 : 0;
 
   // การ์ดกรองกดระหว่างดูใบที่ลบ = กลับไปตารางปกติที่กรองตามการ์ดนั้น (ถ้าตัวกรองนั้นเปิดอยู่แล้ว
   // แค่กลับ ไม่ toggle ปิดทิ้ง) — ท่าเดียวกับ SubscriptionTable
@@ -491,7 +534,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
       label: t('common.option.all'),
       value: summary?.total,
       color: 'text-foreground',
-      active: !showingDeleted && statusFilter === null,
+      active: !showingDeleted && statusFilter === null && !expiringSoonFilter,
       onClick: () => {
         if (showingDeleted) deletedView.onToggle();
         handleClearFilters();
@@ -775,6 +818,15 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
                           {statusLabel(value)}
                         </Button>
                       ))}
+                      <Button
+                        variant={expiringSoonFilter ? 'default' : 'outline'}
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={handleExpiringSoonToggle}
+                        title={t('common.state.expiringWithinDays', { days: expiringSoonDays })}
+                      >
+                        {t('common.state.expiringSoon')}
+                      </Button>
                     </div>
                   </div>
 
@@ -799,10 +851,12 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
             </Button>
           </div>
 
-          {activeFilterCount > 0 && statusFilter && (
+          {activeFilterCount > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary" className="gap-1">
-                {statusLabel(statusFilter)}
+                {expiringSoonFilter
+                  ? t('common.state.expiringWithinDays', { days: expiringSoonDays })
+                  : statusFilter && statusLabel(statusFilter)}
                 <button type="button" onClick={handleClearFilters} aria-label={t('pages.licenses.removeStatusFilterAria')}>
                   <X className="h-3 w-3" />
                 </button>
