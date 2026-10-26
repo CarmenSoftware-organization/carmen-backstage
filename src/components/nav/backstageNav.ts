@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Network, Building2, Users, FileText, Newspaper, Megaphone, AppWindow,
   ShieldCheck, ShieldAlert, UserCog, DatabaseZap, Database, DatabaseBackup, LayoutGrid, Mail, FileSpreadsheet,
-  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout
+  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TKey } from '../../i18n/types';
@@ -52,6 +52,8 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   // ไม่มี feature โดยเจตนา — สวิตช์ที่ปิดตัวเองได้จะเปิดกลับไม่ได้อีกจากหน้าจอ
   // Deliberately ungated: a switch that could hide itself could never be restored from the UI.
   { path: '/backstage/features', labelKey: 'nav.featureFlags', icon: ToggleLeft, permission: 'feature_flag.manage', groupKey: 'navGroup.backstage' },
+  // AI — ต้องอยู่ติดกัน และอยู่ก่อนกลุ่ม Database ที่ต้องเป็นท้ายสุด
+  { path: '/ai-providers', labelKey: 'nav.aiProviders', icon: Sparkles, permission: 'ai_provider.read', groupKey: 'navGroup.ai', feature: 'ai_providers' },
   // Database — ต้องอยู่ท้ายสุด: ทั้งสองแถวเคยอยู่กลางกลุ่ม Backstage การแยกออกเป็นกลุ่มของตัวเอง
   // โดยทิ้งไว้ตำแหน่งเดิมจะทำให้กลุ่ม Backstage ขาดเป็นสองท่อนและวาดหัวข้อซ้ำสองครั้ง
   // Must stay last: pulling these out mid-group would split Backstage's heading in two.
