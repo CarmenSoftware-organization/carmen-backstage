@@ -422,18 +422,39 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
   const [summary, setSummary] = useState<LicenseFleetSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState('');
+  /**
+   * จำนวนใบใกล้หมดอายุ — endpoint summary ไม่นับค่านี้ จึงยิงรายการด้วย**ตัวกรองเดียวกับปุ่ม**
+   * (`buildAdvance` + `status=active`) ขอแค่ 1 แถวแล้วอ่าน `paginate.total` ตัวเลขบนการ์ดจึงเท่ากับ
+   * จำนวนแถวที่ได้เมื่อกดการ์ดเสมอ · `undefined` = ยังโหลดไม่เสร็จหรือโหลดไม่ได้ (ไม่ใช่ 0)
+   */
+  const [expiringCount, setExpiringCount] = useState<number | undefined>(undefined);
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
-    try {
-      setSummary(await config.service.getBackstageSummary());
+    const [summaryResult, expiringResult] = await Promise.allSettled([
+      config.service.getBackstageSummary(),
+      config.service.listBackstage({
+        page: 1,
+        perpage: 1,
+        advance: buildAdvance(config.kind, 'active', expiringSoonDays),
+        ...(usesStatusParam(config.kind) ? { status: 'active' as const } : {}),
+      }),
+    ]);
+    if (summaryResult.status === 'fulfilled') {
+      setSummary(summaryResult.value);
       setSummaryError('');
-    } catch (err: unknown) {
+    } else {
       setSummaryError(t('pages.licenses.loadFailedTitle'));
-      devLog(`Failed to load ${config.kind} license summary:`, err);
-    } finally {
-      setSummaryLoading(false);
+      devLog(`Failed to load ${config.kind} license summary:`, summaryResult.reason);
     }
-  }, [config, t]);
+    // การ์ดนี้พังได้โดยไม่ลากทั้งแถบลงไปด้วย — แค่เหลือตัวเลขว่าง
+    if (expiringResult.status === 'fulfilled') {
+      setExpiringCount(expiringResult.value.paginate?.total ?? expiringResult.value.data.length);
+    } else {
+      setExpiringCount(undefined);
+      devLog(`Failed to count expiring ${config.kind} licenses:`, expiringResult.reason);
+    }
+    setSummaryLoading(false);
+  }, [config, t, expiringSoonDays]);
 
   useEffect(() => {
     fetchSummary();
@@ -554,6 +575,21 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
         handleStatusFilter(value);
       },
     })),
+    {
+      key: 'expiring_soon',
+      label: t('common.state.expiringSoon'),
+      value: expiringCount,
+      // ส้มเฉพาะตอนมีใบให้ดูจริง — 0 ใบเป็นข่าวดี ไม่ควรแย่งสายตาจากการ์ดอื่น
+      color: expiringCount ? 'text-warning' : 'text-muted-foreground',
+      active: !showingDeleted && expiringSoonFilter,
+      onClick: () => {
+        if (showingDeleted) {
+          deletedView.onToggle();
+          if (expiringSoonFilter) return;
+        }
+        handleExpiringSoonToggle();
+      },
+    },
     ...(deletedView
       ? [{
           key: 'deleted',
