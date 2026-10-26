@@ -13,9 +13,10 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   // Organization
   { path: '/clusters', labelKey: 'nav.clusters', icon: Network, permission: 'cluster.read', groupKey: 'navGroup.organization', feature: 'clusters' },
   { path: '/business-units', labelKey: 'nav.businessUnits', icon: Building2, permission: 'cluster.read', groupKey: 'navGroup.organization', feature: 'business_units' },
-  { path: '/tenant-migrations', labelKey: 'nav.tenantMigrations', icon: DatabaseZap, permission: 'tenant_migration.read', groupKey: 'navGroup.organization', feature: 'tenant_migrations' },
-  { path: '/tenant-seeds', labelKey: 'nav.tenantSeeds', icon: Sprout, permission: 'tenant_seed.read', groupKey: 'navGroup.organization', feature: 'tenant_seeds' },
-  { path: '/tenant-imports', labelKey: 'nav.dataImport', icon: FileSpreadsheet, permission: 'data_import.manage', groupKey: 'navGroup.organization', feature: 'tenant_imports' },
+  // งานฐานข้อมูลราย BU — วาดเป็นแถวย่อยใต้ Business Units ต้องอยู่ถัดจากแม่ติดกัน
+  { path: '/tenant-migrations', labelKey: 'nav.tenantMigrations', icon: DatabaseZap, permission: 'tenant_migration.read', groupKey: 'navGroup.organization', feature: 'tenant_migrations', parentPath: '/business-units' },
+  { path: '/tenant-seeds', labelKey: 'nav.tenantSeeds', icon: Sprout, permission: 'tenant_seed.read', groupKey: 'navGroup.organization', feature: 'tenant_seeds', parentPath: '/business-units' },
+  { path: '/tenant-imports', labelKey: 'nav.dataImport', icon: FileSpreadsheet, permission: 'data_import.manage', groupKey: 'navGroup.organization', feature: 'tenant_imports', parentPath: '/business-units' },
   { path: '/users', labelKey: 'nav.users', icon: Users, permission: 'user.read', groupKey: 'navGroup.organization', feature: 'users' },
   // License management — ต้องอยู่ติดกัน: Sidebar จัดกลุ่มจากแถวที่ groupKey ซ้ำกันติด ๆ
   // การแทรกรายการกลุ่มอื่นคั่นจะทำให้หัวข้อนี้แตกเป็นสองหัวข้อ

@@ -42,7 +42,29 @@ export interface NavItem {
    * The rule belongs to this row, so it disappears with it when the row is filtered out.
    */
   dividerBefore?: boolean;
+  /**
+   * path ของรายการแม่ — วาดเป็นแถวย่อยเยื้องใต้แม่พร้อมเส้นนำ ต้องอยู่ถัดจากแม่ติดกันในอาร์เรย์
+   * ถ้าแม่ถูกกรองทิ้ง (สิทธิ์ไม่ถึงหรือฟีเจอร์ถูกซ่อน) แถวนี้จะกลับเป็นแถวปกติ ไม่ลอยเยื้องใต้ความว่าง
+   * Falls back to a top-level row when the parent was filtered out.
+   */
+  parentPath?: string;
 }
+
+interface NavRow {
+  item: NavItem;
+  children: NavItem[];
+}
+
+/** Attach each `parentPath` item to its parent row; an orphan becomes a row of its own. */
+const nestNavItems = (items: NavItem[]): NavRow[] => {
+  const rows: NavRow[] = [];
+  for (const item of items) {
+    const parent = item.parentPath ? rows.find((r) => r.item.path === item.parentPath) : undefined;
+    if (parent) parent.children.push(item);
+    else rows.push({ item, children: [] });
+  }
+  return rows;
+};
 
 /** Who the application shell is currently representing — the product, or one administered cluster. */
 export interface BrandIdentity {
@@ -113,7 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     return groups;
   }, [navItems]);
 
-  const NavLink: React.FC<{ item: NavItem; showLabel: boolean }> = ({ item, showLabel }) => {
+  const NavLink: React.FC<{ item: NavItem; showLabel: boolean; nested?: boolean }> = ({ item, showLabel, nested }) => {
     const Icon = item.icon;
     const active = isActive(item.path);
 
@@ -127,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           title={t('common.comingSoon')}
           className={cn(
             'flex items-center gap-3 rounded-lg text-sm font-medium relative overflow-hidden cursor-not-allowed text-muted-foreground/60',
-            showLabel ? 'px-3 py-2.5' : 'justify-center px-2 py-2.5',
+            showLabel ? (nested ? 'px-3 py-2' : 'px-3 py-2.5') : 'justify-center px-2 py-2.5',
           )}
         >
           <Icon className="h-4 w-4 shrink-0" />
@@ -148,7 +170,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         to={item.path}
         className={cn(
           'sidebar-item-transition flex items-center gap-3 rounded-lg text-sm font-medium relative group overflow-hidden',
-          showLabel ? 'px-3 py-2.5' : 'justify-center px-2 py-2.5',
+          showLabel ? (nested ? 'px-3 py-2' : 'px-3 py-2.5') : 'justify-center px-2 py-2.5',
           active
             ? 'bg-primary/10 text-primary'
             : 'text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -223,18 +245,30 @@ const Sidebar: React.FC<SidebarProps> = ({
               )}
               {isCollapsed && gi > 0 && <Separator className="!my-2" />}
               <div className="space-y-1">
-                {g.items.map((item, ii) => (
+                {nestNavItems(g.items).map(({ item, children }, ii) => (
                   <React.Fragment key={item.path}>
                     {/* ii > 0: เส้นบนรายการแรกจะซ้อนกับหัวข้อกลุ่มที่มีเส้นใต้อยู่แล้ว */}
                     {item.dividerBefore && ii > 0 && <Separator className="!my-2" />}
                     {isCollapsed ? (
-                      <Tooltip content={t(item.labelKey)} side="right">
-                        <div>
-                          <NavLink item={item} showLabel={false} />
-                        </div>
-                      </Tooltip>
+                      // ยุบแล้วเหลือแค่ไอคอน — การเยื้องไม่มีที่ให้วาด แถวย่อยจึงเรียงต่อกันเป็นแถวปกติ
+                      [item, ...children].map((row) => (
+                        <Tooltip key={row.path} content={t(row.labelKey)} side="right">
+                          <div>
+                            <NavLink item={row} showLabel={false} />
+                          </div>
+                        </Tooltip>
+                      ))
                     ) : (
-                      <NavLink item={item} showLabel={true} />
+                      <>
+                        <NavLink item={item} showLabel={true} />
+                        {children.length > 0 && (
+                          <div className="ml-5 space-y-1 border-l border-border pl-2">
+                            {children.map((child) => (
+                              <NavLink key={child.path} item={child} showLabel={true} nested />
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </React.Fragment>
                 ))}
@@ -313,17 +347,19 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </p>
                 )}
                 <div className="space-y-1">
-                  {g.items.map((item, ii) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.path);
-                    return (
-                      <React.Fragment key={item.path}>
-                        {item.dividerBefore && ii > 0 && <Separator className="!my-2" />}
+                  {nestNavItems(g.items).map(({ item, children }, ii) => {
+                    const renderLink = (row: NavItem, nested: boolean) => {
+                      const Icon = row.icon;
+                      const active = isActive(row.path);
+                      return (
                         <Link
-                          to={item.path}
+                          key={row.path}
+                          to={row.path}
                           onClick={() => onMobileOpenChange(false)}
                           className={cn(
-                            'sidebar-item-transition flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium relative overflow-hidden group',
+                            'sidebar-item-transition flex items-center gap-3 rounded-lg px-3 text-sm font-medium relative overflow-hidden group',
+                            // แถวย่อยเตี้ยกว่าแถวแม่เล็กน้อย แต่ยังสูง ≥ 44px สำหรับนิ้ว
+                            nested ? 'py-2.5' : 'py-3',
                             active
                               ? 'bg-primary/10 text-primary'
                               : 'text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -333,8 +369,19 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-primary rounded-r-full" />
                           )}
                           <Icon className={cn('h-4 w-4 shrink-0 transition-transform duration-200', !active && 'group-hover:scale-110')} />
-                          <span>{t(item.labelKey)}</span>
+                          <span>{t(row.labelKey)}</span>
                         </Link>
+                      );
+                    };
+                    return (
+                      <React.Fragment key={item.path}>
+                        {item.dividerBefore && ii > 0 && <Separator className="!my-2" />}
+                        {renderLink(item, false)}
+                        {children.length > 0 && (
+                          <div className="ml-5 space-y-1 border-l border-border pl-2">
+                            {children.map((child) => renderLink(child, true))}
+                          </div>
+                        )}
                       </React.Fragment>
                     );
                   })}
