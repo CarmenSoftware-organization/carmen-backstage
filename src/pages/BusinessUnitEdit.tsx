@@ -96,7 +96,7 @@ const BusinessUnitEdit: React.FC = () => {
   // Staff-only notes. Tab and slot wait for the BU (with its cluster_id) to load so the
   // permission is checked against the real cluster and nothing flickers in afterwards.
   const canViewNotes =
-    !isNew && !!formData.cluster_id && hasPermission(BU_NOTE_PERMISSIONS.view, { clusterId: formData.cluster_id });
+    !isNew && !!savedFormData.cluster_id && hasPermission(BU_NOTE_PERMISSIONS.view, { clusterId: savedFormData.cluster_id });
   const [notesTotal, setNotesTotal] = useState<number | undefined>(undefined);
   // Seed the tab count before the Notes tab is ever opened with a 1-row list (only
   // paginate.total is read); NotesSection keeps it fresh via onTotalChange afterwards.
@@ -853,7 +853,7 @@ const BusinessUnitEdit: React.FC = () => {
                 <Card className="p-0">
                   <NotesSection
                     ownerId={id!}
-                    scopeClusterId={formData.cluster_id}
+                    scopeClusterId={savedFormData.cluster_id}
                     adapter={businessUnitNoteService}
                     permissions={BU_NOTE_PERMISSIONS}
                     onTotalChange={setNotesTotal}
