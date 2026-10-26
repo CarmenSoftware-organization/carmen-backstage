@@ -27,6 +27,8 @@ import type { ClusterFormData } from './clusterManagement/ClusterIdentityFields'
 import { ClusterCreateForm } from './clusterManagement/ClusterCreateForm';
 import { ClusterPlate } from './clusterEdit/ClusterPlate';
 import { ClusterDraftPlate } from './clusterEdit/ClusterDraftPlate';
+import clusterNoteService from '../services/clusterNoteService';
+import { NotesSection } from './clusterEdit/sections/NotesSection';
 import { isClusterTabId, type ClusterTab, type ClusterTabId } from './clusterEdit/clusterTabs';
 import { BusinessUnitsSection } from './clusterEdit/sections/BusinessUnitsSection';
 import { SubscriptionCard } from './clusterEdit/sections/SubscriptionCard';
@@ -101,10 +103,37 @@ const ClusterEdit: React.FC = () => {
   // Deep-linkable: ?tab= survives a reload and can be shared or bookmarked. Seeded from the
   // URL once — the state is the authority afterwards, so an unknown value degrades to
   // Licensing, the first tab.
+  const canViewNotes = !isNew && hasPermission('cluster_note.view', { clusterId: id });
+  const [notesTotal, setNotesTotal] = useState<number | undefined>(undefined);
+  // Tab count must show on load, before the Notes tab is ever opened: seed it with a 1-row
+  // list (only paginate.total is read). NotesSection keeps it fresh via onTotalChange after.
+  useEffect(() => {
+    if (!canViewNotes || !id) return;
+    let cancelled = false;
+    clusterNoteService
+      .list(id, { page: 1, perpage: 1 })
+      .then((res) => {
+        if (!cancelled && res.paginate?.total != null) setNotesTotal(res.paginate.total);
+      })
+      .catch((err) => devLog('Failed to load notes count:', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [id, canViewNotes]);
   const [activeTab, setActiveTab] = useState<ClusterTabId>(() => {
     const fromUrl = searchParams.get('tab');
-    return isClusterTabId(fromUrl) ? fromUrl : 'licensing';
+    if (!isClusterTabId(fromUrl)) return 'licensing';
+    // ?tab=notes without cluster_note.view degrades to Licensing, same as an unknown value
+    if (fromUrl === 'notes' && !canViewNotes) return 'licensing';
+    return fromUrl;
   });
+
+  // Notes stays mounted once opened (hidden, not unmounted) so an unsent composer/edit draft
+  // survives a tab switch; lazy so page load does not fetch notes a second time.
+  const [notesOpened, setNotesOpened] = useState(activeTab === 'notes');
+  useEffect(() => {
+    if (activeTab === 'notes') setNotesOpened(true);
+  }, [activeTab]);
 
   const [savedFormData, setSavedFormData] = useState<ClusterFormData>(formData);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -505,6 +534,7 @@ const ClusterEdit: React.FC = () => {
     { id: 'licensing', label: t('pages.clusters.tabLicensing') },
     { id: 'business-units', label: t('pages.clusters.tabBusinessUnits'), count: businessUnits.length },
     { id: 'users', label: t('pages.clusters.tabUsers'), count: users.clusterUsers.length },
+    ...(canViewNotes ? [{ id: 'notes' as const, label: t('pages.clusters.tabNotes'), count: notesTotal }] : []),
   ];
 
   return (
@@ -657,6 +687,14 @@ const ClusterEdit: React.FC = () => {
                   onBulkRemove={handleBulkRemove}
                 />
               </Card>
+            )}
+
+            {(activeTab === 'notes' || notesOpened) && canViewNotes && (
+              <div hidden={activeTab !== 'notes'}>
+                <Card className="p-0">
+                  <NotesSection clusterId={id!} onTotalChange={setNotesTotal} />
+                </Card>
+              </div>
             )}
           </>
         )}
