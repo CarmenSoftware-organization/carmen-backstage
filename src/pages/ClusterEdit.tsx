@@ -128,6 +128,13 @@ const ClusterEdit: React.FC = () => {
     return fromUrl;
   });
 
+  // Notes stays mounted once opened (hidden, not unmounted) so an unsent composer/edit draft
+  // survives a tab switch; lazy so page load does not fetch notes a second time.
+  const [notesOpened, setNotesOpened] = useState(activeTab === 'notes');
+  useEffect(() => {
+    if (activeTab === 'notes') setNotesOpened(true);
+  }, [activeTab]);
+
   const [savedFormData, setSavedFormData] = useState<ClusterFormData>(formData);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -682,10 +689,12 @@ const ClusterEdit: React.FC = () => {
               </Card>
             )}
 
-            {activeTab === 'notes' && canViewNotes && (
-              <Card className="p-0">
-                <NotesSection clusterId={id!} onTotalChange={setNotesTotal} />
-              </Card>
+            {(activeTab === 'notes' || notesOpened) && canViewNotes && (
+              <div hidden={activeTab !== 'notes'}>
+                <Card className="p-0">
+                  <NotesSection clusterId={id!} onTotalChange={setNotesTotal} />
+                </Card>
+              </div>
             )}
           </>
         )}

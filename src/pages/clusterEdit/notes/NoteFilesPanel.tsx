@@ -89,7 +89,7 @@ export function NoteFilesPanel({ clusterId, refreshKey }: NoteFilesPanelProps) {
                     <span className="block truncate text-xs">{f.fileName}</span>
                     <AuditMeta
                       variant="compact"
-                      actor={{ at: f.uploaded_at, name: f.uploaded_by_name }}
+                      actor={{ at: f.uploaded_at, name: f.uploaded_by_name ?? undefined }}
                       className="text-[11px] text-muted-foreground"
                     />
                   </span>

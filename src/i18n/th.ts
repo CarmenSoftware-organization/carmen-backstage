@@ -3276,6 +3276,7 @@ export const th: Translations = {
       },
     },
     clusterNotes: {
+      popupBlocked: 'เบราว์เซอร์บล็อกแท็บใหม่ กรุณาอนุญาตป๊อปอัปสำหรับเว็บนี้แล้วลองอีกครั้ง',
       emptyTitle: 'ยังไม่มีบันทึก',
       emptyDescription: 'บันทึกภายในเกี่ยวกับ Cluster นี้ เห็นได้เฉพาะเจ้าหน้าที่',
       placeholder: 'เขียนบันทึก…',
@@ -3691,6 +3692,7 @@ export const th: Translations = {
       actionCreate: 'สร้าง',
       actionUpdate: 'แก้ไข',
       actionDelete: 'ลบ',
+      actionRestore: 'กู้คืน',
       membershipGranted: 'เพิ่ม {{name}}',
       membershipRevoked: 'ถอด {{name}} ออก',
       membershipUnknownSubject: 'ผู้ใช้รายหนึ่ง',

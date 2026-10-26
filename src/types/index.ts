@@ -2059,7 +2059,7 @@ export interface ClusterNoteAttachment {
   size?: number;
   uploaded_at: string;
   uploaded_by_id?: string | null;
-  uploaded_by_name?: string;
+  uploaded_by_name?: string | null;
 }
 
 /**

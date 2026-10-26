@@ -4453,6 +4453,7 @@ export const en = {
     },
     // ── slice 7: Clusters ──
     clusterNotes: {
+      popupBlocked: 'Your browser blocked the new tab. Allow pop-ups for this site and try again.',
       emptyTitle: 'No notes yet',
       emptyDescription: 'Internal notes about this cluster are visible to staff only.',
       placeholder: 'Write a note…',
@@ -4702,6 +4703,7 @@ export const en = {
       actionCreate: 'created',
       actionUpdate: 'updated',
       actionDelete: 'deleted',
+      actionRestore: 'restored',
       membershipGranted: 'added {{name}}',
       membershipRevoked: 'removed {{name}}',
       // แถวที่มาจากคำเชิญไม่ได้เก็บว่าใครถูกเพิ่ม — พูดตามที่รู้ ไม่เดาชื่อ

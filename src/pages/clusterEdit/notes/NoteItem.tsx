@@ -13,6 +13,7 @@ import {
 import { AuditMeta } from '../../../components/AuditMeta';
 import clusterNoteService from '../../../services/clusterNoteService';
 import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges';
+import { openNoteFile } from './openNoteFile';
 import { NOTE_ACCEPT, NOTE_MAX_FILES, validatePickedFiles } from './attachmentRules';
 import { useI18n } from '../../../hooks/useI18n';
 import { normalizeAudit } from '../../../utils/audit';
@@ -123,16 +124,6 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
     }
   };
 
-  // ไม่ log token/URL — ทั้งคู่เป็นข้อมูลเข้าถึงไฟล์
-  const openFile = async (fileToken: string) => {
-    try {
-      const { url } = await clusterNoteService.fileUrl(clusterId, fileToken);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-      toast.error(getErrorDetail(err, t));
-    }
-  };
-
   return (
     <li className="space-y-2 p-4">
       <div className="flex items-start justify-between gap-2">
@@ -234,7 +225,7 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
             <li key={a.fileToken}>
               <button
                 type="button"
-                onClick={() => void openFile(a.fileToken)}
+                onClick={() => void openNoteFile(clusterId, a.fileToken, t)}
                 className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted"
               >
                 <Paperclip className="h-3 w-3 shrink-0" />

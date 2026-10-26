@@ -22,6 +22,7 @@ const VERB_KEYS: Record<string, TKey> = {
   create: 'pages.activityTrail.actionCreate',
   update: 'pages.activityTrail.actionUpdate',
   delete: 'pages.activityTrail.actionDelete',
+  restore: 'pages.activityTrail.actionRestore',
 };
 
 interface NoteHistorySheetProps {
