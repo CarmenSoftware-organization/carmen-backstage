@@ -2087,7 +2087,26 @@ export interface ClusterNoteFile extends ClusterNoteAttachment {
 }
 
 /** ประวัติการแก้โน้ต — แถว activity log เดิม + diff (`changes`) */
-export type ClusterNoteHistoryEntry = ActivityLogEntry & { changes?: ActivityDiff };
+export type ClusterNoteHistoryEntry = ActivityLogEntry & {
+  changes?: ActivityDiff;
+  created_at?: string;
+  /** snapshot ของโน้ตก่อน/หลังการเปลี่ยน — `attachments` ใช้โชว์ไฟล์ของแต่ละเวอร์ชัน */
+  old_data?: ClusterNoteSnapshot | null;
+  new_data?: ClusterNoteSnapshot | null;
+};
+
+/** ไฟล์แนบใน snapshot ประวัติ — `removed_at` มีเมื่อไฟล์ถูกเอาออกแล้ว */
+export interface ClusterNoteSnapshotAttachment {
+  fileName: string;
+  fileToken: string;
+  contentType?: string;
+  removed_at?: string | null;
+}
+
+export interface ClusterNoteSnapshot {
+  message?: string | null;
+  attachments?: ClusterNoteSnapshotAttachment[];
+}
 
 /** `GET .../notes` — `summary.deleted_count` ใช้โชว์จำนวนโน้ตที่ลบแล้ว */
 export interface ClusterNotesResponse extends ApiListResponse<ClusterNote> {
