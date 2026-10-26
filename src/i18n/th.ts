@@ -1839,6 +1839,8 @@ export const th: Translations = {
       membersTab: 'สมาชิก',
       invitationsTab: 'คำเชิญ',
       searchMembersPlaceholder: 'ค้นหาสมาชิก...',
+      seatFilterAll: 'สมาชิกทั้งหมด',
+      seatFilterAria: 'กรองสมาชิกตามที่นั่ง',
 
       // --- Task 3: ClusterPeopleCard.tsx ---
       viewAllClusterUsers: 'ดูผู้ใช้ทั้งหมดของ cluster',
