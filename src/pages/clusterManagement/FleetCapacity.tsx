@@ -138,7 +138,7 @@ export function FleetCapacity({
             {/* BU quota is seat-ruled now (fleet total of `bu_cap`) — 0 is a real zero, not
                 "unlimited"; `uncappedNote` is a no-op here since `uncapped_count` stays 0 for bu. */}
             <CapacityGauge icon={Building2} label={t('components.fleetCapacity.businessUnits')} used={summary.bu.used ?? 0} cap={summary.bu.cap ?? 0} finite note={uncappedNote(t, summary.bu)} />
-            <CapacityGauge icon={Users} label={t('nav.users')} used={summary.users.used ?? 0} cap={summary.users.cap ?? null} note={uncappedNote(t, summary.users)} />
+            <CapacityGauge icon={Users} label={t('nav.users')} used={summary.users.used ?? 0} cap={summary.users.cap ?? 0} finite note={uncappedNote(t, summary.users)} />
             <div className="flex flex-wrap gap-x-6 gap-y-1 border-border sm:grid sm:grid-cols-2 sm:gap-x-5 sm:gap-y-1 sm:border-l sm:pl-8">
               <Stat value={summary.total} label={t('components.fleetCapacity.clusters')} />
               <Stat value={summary.active} label={t('components.fleetCapacity.active')} />

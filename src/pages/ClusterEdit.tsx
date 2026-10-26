@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
 import clusterService from '../services/clusterService';
+import { toSeatPool } from '../utils/seatPool';
 import { fetchAllBusinessUnits } from '../utils/fetchAllBusinessUnits';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -55,6 +56,29 @@ const CLUSTER_ROLES = ['admin', 'user'] as const;
  */
 const AUDIT_RECORDING_STARTED_ON = '2026-08-31';
 
+// Seat pool is the cluster's own aggregate (backend-computed from the licence view) — see the
+// `userUsed`/`userCap` derivation in the component. BU quota is from the winning cluster licence:
+// 0 is a real zero, never "unlimited" (see the `buCap` derivation).
+interface ClusterMeta {
+  users_count?: number;
+  total_max_license_users?: number;
+  bu_cap?: number;
+  bu_used?: number;
+}
+
+const toClusterMeta = (cluster: Record<string, any>): ClusterMeta => ({
+  users_count: cluster.users_count,
+  // Backend contract drift, captured off the dev backend on 2026-08-23: the LIST endpoint
+  // (`GET /api-system/clusters`) returns this cap as `total_max_license_users`, but the
+  // DETAIL endpoint this page reads (`GET /api-system/clusters/:id`) returns the same
+  // number as `total_count_license_users` and omits the other key entirely. The list spelling
+  // is preferred, so aligning the backend detail response retires the fallback. Pinned by
+  // ClusterEdit.test.tsx.
+  total_max_license_users: cluster.total_max_license_users ?? cluster.total_count_license_users,
+  bu_cap: cluster.bu_cap,
+  bu_used: cluster.bu_used,
+});
+
 const ClusterEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -88,16 +112,7 @@ const ClusterEdit: React.FC = () => {
   // `normalizeAudit()` has the full record (it reads both nested `audit.*` and flat
   // `created_at`/`created_by_name` shapes) at the ClusterPlate call site.
   const [clusterRecord, setClusterRecord] = useState<unknown>(null);
-  const [clusterMeta, setClusterMeta] = useState<{
-    // Seat pool is the cluster's own aggregate (backend-computed from the license view) —
-    // see the `userCap`/`userUsed` derivation below.
-    users_count?: number;
-    total_max_license_users?: number;
-    // BU quota from the winning cluster licence (Task 7) — 0 is a real zero, never
-    // "unlimited". See the `buCap` derivation below.
-    bu_cap?: number;
-    bu_used?: number;
-  }>({});
+  const [clusterMeta, setClusterMeta] = useState<ClusterMeta>({});
   const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
   const [buLoading, setBuLoading] = useState(false);
 
@@ -229,23 +244,7 @@ const ClusterEdit: React.FC = () => {
       setSavedFormData(loaded);
       setDocVersion(getDocVersion(cluster));
       setClusterRecord(cluster);
-      setClusterMeta({
-        users_count: cluster.users_count,
-        // Backend contract drift, captured off the dev backend on 2026-08-23: the LIST endpoint
-        // (`GET /api-system/clusters`) returns this cap as `total_max_license_users`, but the
-        // DETAIL endpoint this page reads (`GET /api-system/clusters/:id`) returns the same
-        // number as `total_count_license_users` and omits the other key entirely. The field is
-        // optional and an absent cap reads as "uncapped", so the drift failed silently in two
-        // places at once: the hero rendered "∞ (no cap)" beside a subscription row reporting
-        // 8/15 seats, and `clusterAtLimit` further down could never be true — the Add User seat
-        // guard was dead. Every other reader of this cap (ClusterManagement, ClusterLicenseTable,
-        // BusinessUnitEdit) goes through the list endpoint, which is why only this page was hit.
-        // The list spelling is preferred, so aligning the backend detail response retires the
-        // fallback without touching this line. Pinned by ClusterEdit.test.tsx.
-        total_max_license_users: cluster.total_max_license_users ?? cluster.total_count_license_users,
-        bu_cap: cluster.bu_cap,
-        bu_used: cluster.bu_used,
-      });
+      setClusterMeta(toClusterMeta(cluster));
       setLogoUrl(cluster.logo?.url || '');
       setAvatarUrl(cluster.avatar?.url || '');
     } catch (err: unknown) {
@@ -271,6 +270,21 @@ const ClusterEdit: React.FC = () => {
   const handleUploadAvatar = async (file: File) => {
     const res = await clusterService.uploadAvatar(id!, file);
     setAvatarUrl((res?.data?.url ?? res?.url ?? '') as string);
+  };
+
+  // Re-reads only the cluster meta (seat pool + BU quota) — unlike fetchCluster() it leaves
+  // formData/savedFormData alone, so a seat action never discards an edit in progress.
+  const refreshClusterMeta = async () => {
+    try {
+      const data = await clusterService.getById(id!);
+      const cluster = data.data || data;
+      if (cluster?.id) {
+        setClusterRecord(cluster);
+        setClusterMeta(toClusterMeta(cluster));
+      }
+    } catch (err: unknown) {
+      devLog('Failed to refresh cluster meta:', err);
+    }
   };
 
   const fetchBusinessUnits = async () => {
@@ -397,6 +411,7 @@ const ClusterEdit: React.FC = () => {
     try {
       await users.removeUser(cuId);
       await users.fetchClusterUsers();
+      await refreshClusterMeta(); // seat count changed
     } catch (err) {
       toast.error(t('pages.clusters.removeUserFailed'), { description: getErrorDetail(err, t) });
     }
@@ -407,6 +422,7 @@ const ClusterEdit: React.FC = () => {
     try {
       await users.addUser(input);
       setShowAddUser(false);
+      void refreshClusterMeta(); // seat count changed
     } catch {
       // addUser already toasted the error
     }
@@ -521,15 +537,14 @@ const ClusterEdit: React.FC = () => {
   // โควตามาจากใบที่ชนะ — 0 คือศูนย์จริง ไม่ใช่ "ไม่จำกัด" (ต่างจากกติกา max_license_bu เดิม)
   const buCap = clusterMeta.bu_cap ?? 0;
   const buActive = businessUnits.filter((b) => b.is_active).length;
-  const userUsed = users.clusterUsers.length;
+  // Seat holders as the backend counts them (`users_count`) — NOT the membership list length,
+  // which still includes members who hold no seat (inactive link / inactive BU). The Users tab
+  // badge keeps the membership count.
   // Seat cap is the cluster's own aggregate now (backend-computed from the licence view,
   // per BU-scoped dated rows) — it can no longer be summed client-side from
   // `bu.max_license_users`, which no longer exists on the BU record at all (Task 3.5).
-  // 0/null/absent = uncapped, same convention as ClusterManagement's CapacityMeter — NOT the
-  // same convention as `buCap` above any more. `buCap` is now always a finite number (0 means
-  // "no covering licence", never "unlimited"); `userCap` still genuinely means "unlimited" when
-  // null, because per-BU seat licensing was untouched by this feature.
-  const userCap = clusterMeta.total_max_license_users ? clusterMeta.total_max_license_users : null;
+  // 0/null/absent = 0 seats, never "unlimited" — same rule as `buCap` above.
+  const { used: userUsed, cap: userCap } = toSeatPool(clusterMeta.users_count, clusterMeta.total_max_license_users);
   const userActive = users.clusterUsers.filter((u) => u.is_active !== false).length;
 
   const tabs: ClusterTab[] = [
@@ -833,20 +848,18 @@ const ClusterEdit: React.FC = () => {
 
             {/* Cluster-wide seat cap (Task 3.5) — the seat pool is shared across every BU in
                 the cluster, so membership is a cluster-level fact with no BU to pick here. */}
-            {userCap != null && (
-              <p className={`text-xs ${userUsed >= userCap ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {userUsed >= userCap
-                  ? t('pages.clusters.clusterLimitReached', { used: userUsed, cap: userCap })
-                  : t('pages.clusters.licensedUsersInCluster', { used: userUsed, cap: userCap })}
-              </p>
-            )}
+            <p className={`text-xs ${userUsed >= userCap ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {userUsed >= userCap
+                ? t('pages.clusters.clusterLimitReached', { used: userUsed, cap: userCap })
+                : t('pages.clusters.licensedUsersInCluster', { used: userUsed, cap: userCap })}
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setShowAddUser(false)}>{t('common.cancel')}</Button>
             {(() => {
               // Cluster-wide cap, not a per-BU one (Task 3.5) — the seat pool belongs to the
               // cluster as a whole, so this does not depend on which BU is selected above.
-              const clusterAtLimit = userCap != null && userUsed >= userCap;
+              const clusterAtLimit = userUsed >= userCap;
               return (
                 <Button size="sm" onClick={() => void handleSubmitAddUser()} disabled={addingUser || !selectedUser || clusterAtLimit}>
                   <UserPlus className="mr-2 h-4 w-4" />

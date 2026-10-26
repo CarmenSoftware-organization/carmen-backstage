@@ -1,8 +1,8 @@
 // License-capacity math for clusters. A cluster caps its users
-// (`total_max_license_users`); a cap of 0, null, or undefined means "no cap" for that seat
-// pool. Business-unit quota does NOT follow this rule any more — a cluster's BU cap comes
-// from its dated licence view (`bu_cap`/`bu_used`), where there is no "unlimited" state at
-// all: no covering licence means quota 0, not infinity. See `seatUtilization` below.
+// (`total_max_license_users`). Neither the seat pool nor the business-unit quota has an
+// "unlimited" state any more: a cap of 0, null, or undefined means ZERO seats / quota. Use
+// `seatUtilization` below for both; `utilization` (null = uncapped) is kept only for callers
+// that still opt into the legacy behaviour.
 //
 // Fleet-wide capacity totals come from the backend's `GET /clusters/summary` endpoint —
 // there is no local fallback computation in this file any more.
@@ -32,15 +32,12 @@ export function utilization(used?: number | null, cap?: number | null): Utilizat
 /**
  * Seat capacity math — a deliberate second implementation, not a variant of `utilization()`.
  *
- * `utilization()` above treats a cap of `0`/`null`/`undefined` as "uncapped". That rule still
- * holds for `total_max_license_users` — its remaining callers (`CapacityMeter`, `CapacityGauge`,
- * `ClusterPlate`, `CapacityStrip`) — and Task 13 (the `max_license_bu` column drop) confirmed
- * it stays: `utilization` is NOT dead code, it's scoped down to exactly this one dimension. It
- * no longer applies to business-unit quota at all — see the file header. The seat system's rule
- * is the opposite (spec §6.4): there is no "unlimited" seat cap anymore — `cap` is always a
- * finite integer, and `0` means zero seats, not infinite ones. Flipping `utilization()` itself
- * would have to land in lockstep with the backend's `finiteCap()` (a different repo), so this
- * is a standalone function in the same file rather than a change to the existing one.
+ * `utilization()` above treats a cap of `0`/`null`/`undefined` as "uncapped"; it is the legacy
+ * behaviour that `CapacityMeter`/`CapacityGauge` still offer when `finite` is not set. Every seat
+ * and business-unit-quota display uses this function instead (spec §6.4): there is no "unlimited"
+ * cap — `cap` is always a finite integer, and `0` means zero seats, not infinite ones. Flipping
+ * `utilization()` itself would have to land in lockstep with the backend's `finiteCap()` (a
+ * different repo), so this is a standalone function in the same file.
  */
 export interface SeatUtilization {
   used: number;

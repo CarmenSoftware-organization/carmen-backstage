@@ -291,7 +291,7 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
         accessorFn: (row) => row.users_count,
         header: t('common.field.seats'),
         cell: ({ row }) => (
-          <CapacityMeter used={row.original.users_count} cap={row.original.total_max_license_users} />
+          <CapacityMeter used={row.original.users_count} cap={row.original.total_max_license_users} finite />
         ),
       },
       {

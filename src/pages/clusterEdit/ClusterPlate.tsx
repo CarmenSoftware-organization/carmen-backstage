@@ -8,7 +8,7 @@ import { StatusToggle } from '../../components/StatusToggle';
 import { TabStrip } from '../../components/TabStrip';
 import { AllocationTicks } from '../clusterAdmin/AllocationTicks';
 import { HeroName } from '../businessUnitEdit/HeroName';
-import { seatUtilization, utilization } from '../../utils/capacity';
+import { seatUtilization } from '../../utils/capacity';
 import { PlateField } from './PlateField';
 import type { ClusterTab, ClusterTabId } from './clusterTabs';
 import type { ClusterFormData } from '../clusterManagement/ClusterIdentityFields';
@@ -20,9 +20,8 @@ interface LicenceRailProps {
   icon: LucideIcon;
   label: string;
   used: number;
-  /** null = uncapped. Only the seat pool can be uncapped; BU quota is always finite. */
-  cap: number | null;
-  finite?: boolean;
+  /** Always a finite integer — 0 means zero licences, never "unlimited". */
+  cap: number;
   note: React.ReactNode;
 }
 
@@ -34,9 +33,9 @@ interface LicenceRailProps {
  * answers it by drawing one tick per licence, so a free one is something you see rather than
  * something you compute from 33%.
  */
-function LicenceRail({ icon: Icon, label, used, cap, finite = false, note }: LicenceRailProps) {
+function LicenceRail({ icon: Icon, label, used, cap, note }: LicenceRailProps) {
   const { t } = useI18n();
-  const u = finite ? seatUtilization(used, cap ?? 0) : utilization(used, cap);
+  const u = seatUtilization(used, cap);
   return (
     <div>
       {/* The count sits beside the label, not pushed to the far edge: a pool of three draws
@@ -51,7 +50,7 @@ function LicenceRail({ icon: Icon, label, used, cap, finite = false, note }: Lic
           <span className="text-foreground font-semibold">{u.used.toLocaleString()}</span>
           <span className="text-muted-foreground">
             {' / '}
-            {u.cap == null ? '∞' : u.cap.toLocaleString()} {t('pages.clusters.licensedSuffix')}
+            {u.cap.toLocaleString()} {t('pages.clusters.licensedSuffix')}
           </span>
         </span>
       </div>
@@ -63,7 +62,7 @@ function LicenceRail({ icon: Icon, label, used, cap, finite = false, note }: Lic
           used={u.used}
           cap={u.cap}
           level={u.level}
-          label={`${label}: ${u.used} of ${u.cap == null ? 'unlimited' : u.cap} licensed`}
+          label={`${label}: ${u.used} of ${u.cap} licensed`}
         />
       </div>
       <p className="text-muted-foreground mt-1.5 text-[11px]">{note}</p>
@@ -80,7 +79,7 @@ export interface ClusterPlateProps {
   audit: NormalizedAudit;
   backTo: string;
   bu: { used: number; cap: number; active: number };
-  users: { used: number; cap: number | null; active: number };
+  users: { used: number; cap: number; active: number };
   tabs: ClusterTab[];
   activeTab: ClusterTabId;
   onCommit: (name: string, value: string) => void;
@@ -148,7 +147,7 @@ export function ClusterPlate({
 
   const buFree = Math.max(0, bu.cap - bu.used);
   const buInactive = bu.used - bu.active;
-  const usersFree = users.cap != null ? Math.max(0, users.cap - users.used) : null;
+  const usersFree = Math.max(0, users.cap - users.used);
 
   return (
     <>
@@ -259,8 +258,7 @@ export function ClusterPlate({
                 used={bu.used}
                 cap={bu.cap}
                 // BU quota comes from the cluster's licence view — 0 is a real zero, never
-                // "unlimited", unlike the seat pool below.
-                finite
+                // "unlimited" — and so is the seat pool below.
                 /* "N active" is only worth printing when it differs from the used count already
                    shown above the rail — with every unit active the old note reprinted the same
                    number and the free count was the only new fact in it. */
@@ -285,11 +283,9 @@ export function ClusterPlate({
                 note={
                   [
                     users.active !== users.used ? t('pages.clusters.activeCount', { count: users.active }) : '',
-                    usersFree != null
-                      ? usersFree === 1
-                        ? t('pages.clusters.seatFree', { count: usersFree })
-                        : t('pages.clusters.seatsFree', { count: usersFree })
-                      : t('pages.clusters.noSeatCap'),
+                    usersFree === 1
+                      ? t('pages.clusters.seatFree', { count: usersFree })
+                      : t('pages.clusters.seatsFree', { count: usersFree }),
                   ]
                     .filter(Boolean)
                     .join(' · ')
