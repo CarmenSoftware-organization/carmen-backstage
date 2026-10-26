@@ -743,12 +743,14 @@ export const en = {
       restoreTitle: 'Restore seat?',
       restoreDescription: "{{name}} will take a seat again and their released business-unit access is switched back on.",
       releasedToast: 'Seat released for {{name}}',
+      releasedNone: 'Nothing to release for {{name}}',
       restoredAll: 'Seat restored for {{name}}',
       restoredPartial: 'Seat restored for {{name}}, but skipped: {{codes}}',
       restoredNone: 'Nothing to restore for {{name}}',
       limitReached: 'Seat limit reached: {{used}}/{{cap}} seats are in use, so {{name}} cannot take another.',
       limitReachedNoCounts: 'Seat limit reached: no free seats in this cluster.',
       overQuota: '{{used}}/{{cap}} seats in use — release {{over}} seat(s). While licence enforcement is on, carmen-frontend cannot save anything in this cluster\'s business units.',
+      hiddenHolders: '{{hidden}} seat holder(s) are not in this member list (inactive cluster membership). Free their seats from the business unit\'s Users tab.',
     },
     // FleetCapacity / CapacityGauge / CapacityMeter (i18n slice 7)
     // อยู่ใต้ src/pages/clusterManagement/ ก็จริง แต่เป็น component ร่วม: LicenseCenter

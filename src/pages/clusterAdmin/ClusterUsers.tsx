@@ -173,13 +173,18 @@ const ClusterUsers: React.FC = () => {
                     <SeatOverQuotaBanner
                       used={toSeatPool(cluster.users_count, cluster.total_max_license_users).used}
                       cap={toSeatPool(cluster.users_count, cluster.total_max_license_users).cap}
+                      listedHolders={
+                        members.some((m) => m.seat !== undefined)
+                          ? members.filter((m) => m.seat?.holds).length
+                          : undefined
+                      }
                     />
                   )}
                   <MembersTable
                     members={members}
                     loading={loading}
                     searchTerm={memberSearch}
-                    onChanged={fetchMembers}
+                    onChanged={handleSeatChanged}
                     clusterId={clusterId ?? ''}
                     currentUserId={authUser?.id}
                     onSeatChanged={handleSeatChanged}

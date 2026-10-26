@@ -69,9 +69,12 @@ const MembersTable: React.FC<MembersTableProps> = ({
   const [removeTarget, setRemoveTarget] = useState<ClusterUser | null>(null);
   const [seatHoldersOnly, setSeatHoldersOnly] = useState(false);
 
+  // Old backends send no `seat`; then the column and filter would only ever show "No seat".
+  const hasSeatData = useMemo(() => members.some((m) => m.seat !== undefined), [members]);
+
   const rows = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    const base = seatHoldersOnly ? members.filter((m) => m.seat?.holds) : members;
+    const base = hasSeatData && seatHoldersOnly ? members.filter((m) => m.seat?.holds) : members;
     if (!q) return base;
     return base.filter(
       (m) =>
@@ -79,7 +82,7 @@ const MembersTable: React.FC<MembersTableProps> = ({
         (m.username ?? '').toLowerCase().includes(q) ||
         (m.name ?? '').toLowerCase().includes(q),
     );
-  }, [members, searchTerm, seatHoldersOnly]);
+  }, [members, searchTerm, seatHoldersOnly, hasSeatData]);
 
   const handleRoleChange = useCallback(async (member: ClusterUser, role: string) => {
     try {
@@ -135,7 +138,7 @@ const MembersTable: React.FC<MembersTableProps> = ({
           </Badge>
         ),
       },
-      {
+      ...(hasSeatData ? [{
         id: 'seat',
         header: t('pages.clusters.columnSeat'),
         enableSorting: false,
@@ -147,7 +150,7 @@ const MembersTable: React.FC<MembersTableProps> = ({
             <SeatActions user={row.original} clusterId={clusterId} currentUserId={currentUserId} onDone={onSeatChanged} />
           </div>
         ),
-      },
+      } satisfies ColumnDef<ClusterUser, unknown>] : []),
       createdColumn,
       updatedColumn,
       {
@@ -189,14 +192,14 @@ const MembersTable: React.FC<MembersTableProps> = ({
         },
       },
     ];
-  }, [handleRoleChange, t, clusterId, currentUserId, onSeatChanged]);
+  }, [handleRoleChange, t, clusterId, currentUserId, onSeatChanged, hasSeatData]);
 
   if (loading && members.length === 0) {
     // +1 accounts for the `#` row-index column DataTable always prepends.
     return <TableSkeleton columns={columns.length + 1} rows={5} />;
   }
 
-  const seatFilter = (
+  const seatFilter = !hasSeatData ? null : (
     <div className="mb-3 flex flex-wrap items-center gap-2">
       <Button
         type="button"
@@ -216,7 +219,7 @@ const MembersTable: React.FC<MembersTableProps> = ({
         {seatFilter}
         <ListEmptyState
           searchTerm={searchTerm}
-          activeFilterCount={seatHoldersOnly ? 1 : 0}
+          activeFilterCount={hasSeatData && seatHoldersOnly ? 1 : 0}
           icon={Users}
           emptyTitle={t('pages.clusterAdmin.noMembersYet')}
           emptyDescription={t('pages.clusterAdmin.inviteToAccessHint')}

@@ -537,10 +537,12 @@ export const th: Translations = {
       releasedToast: 'ปล่อยที่นั่งของ {{name}} แล้ว',
       restoredAll: 'คืนที่นั่งของ {{name}} แล้ว',
       restoredPartial: 'คืนที่นั่งของ {{name}} แล้ว แต่ข้ามรายการ: {{codes}}',
+      releasedNone: 'ไม่มีอะไรให้ปล่อยสำหรับ {{name}}',
       restoredNone: 'ไม่มีอะไรให้คืนสำหรับ {{name}}',
       limitReached: 'ที่นั่งเต็ม: ใช้อยู่ {{used}}/{{cap}} ที่นั่ง จึงให้ {{name}} ใช้เพิ่มอีกไม่ได้',
       limitReachedNoCounts: 'ที่นั่งเต็ม: cluster นี้ไม่มีที่นั่งว่าง',
       overQuota: 'ใช้ที่นั่งอยู่ {{used}}/{{cap}} — ปล่อยที่นั่งออก {{over}} ที่นั่ง ขณะที่เปิดการบังคับใช้ license อยู่ carmen-frontend จะบันทึกอะไรใน business unit ของ cluster นี้ไม่ได้',
+      hiddenHolders: 'ผู้ถือที่นั่ง {{hidden}} คนไม่อยู่ในรายชื่อสมาชิกนี้ (สมาชิกภาพใน cluster ไม่ active) ให้ปล่อยที่นั่งของพวกเขาจากแท็บ Users ของ business unit',
     },
     fleetCapacity: {
       heading: 'ความจุรวมทั้งระบบ',

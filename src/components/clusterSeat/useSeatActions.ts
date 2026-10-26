@@ -60,8 +60,12 @@ export const useSeatActions = (clusterId: string, onDone: () => void) => {
       if (!user.user_id) return;
       setPendingId(user.id);
       try {
-        await clusterService.releaseSeat(clusterId, user.user_id);
-        toast.success(t('components.clusterSeat.releasedToast', { name: seatUserLabel(user) }));
+        const res = await clusterService.releaseSeat(clusterId, user.user_id);
+        if ((res.released ?? []).length === 0) {
+          toast.info(t('components.clusterSeat.releasedNone', { name: seatUserLabel(user) }));
+        } else {
+          toast.success(t('components.clusterSeat.releasedToast', { name: seatUserLabel(user) }));
+        }
         onDone();
       } catch (err) {
         devLog('Release seat failed', err);
