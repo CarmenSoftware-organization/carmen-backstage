@@ -17,7 +17,6 @@ import { LicenseEnforcementCard } from './backstageConfig/LicenseEnforcementCard
 import { ExpiryThresholdsCard } from './backstageConfig/ExpiryThresholdsCard';
 import { BackstageMigrationConfigCard } from './backstageConfig/BackstageMigrationConfigCard';
 import { GoogleSignInConfigCard } from './backstageConfig/GoogleSignInConfigCard';
-import { TextFieldsConfigCard } from './backstageConfig/TextFieldsConfigCard';
 import backstageConfigService from '../services/backstageConfigService';
 import { useAuth } from '../context/AuthContext';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
@@ -28,7 +27,6 @@ import type {
   NotificationEmailConfig,
   BackstageConfig,
   BackstageMigrationConfig,
-  GoogleOAuthConfig,
 } from '../types';
 import { useI18n } from '../hooks/useI18n';
 
@@ -44,8 +42,6 @@ type CardId =
   | 'expiry_thresholds'
   | 'backstage_migration'
   | 'google_sign_in'
-  | 'google_oauth'
-  | 'frontend_urls'
   | 'external_api';
 
 /**
@@ -85,9 +81,6 @@ const BackstageConfigManagement: React.FC = () => {
   // (`platform_configs.controller.ts` → `writeKeyDenial`) เพราะสิ่งที่สวิตช์นี้เปิดคือ endpoint
   // ที่บังคับ super-admin อยู่แล้ว ผู้ถือ backstage_config.manage เปิดประตูที่ตัวเองเดินผ่านไม่ได้
   const canManageBackstageMigration = canManage && isSuperAdmin;
-  // `google_oauth` และ `frontend_urls` ก็ super-admin เท่านั้นด้วยด่านเดียวกัน — gateway ส่ง token หลัง
-  // Google sign-in ไปที่ frontend URL และ client id + redirect host คุมว่าผู้ใช้ไปหน้า consent ของใคร
-  const canManageSignInTargets = canManage && isSuperAdmin;
 
   const [configs, setConfigs] = useState<BackstageConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,8 +125,6 @@ const BackstageConfigManagement: React.FC = () => {
   const backstageMigration = configs.find((c) => c.key === 'backstage_migration') ?? null;
   const googleSignIn = configs.find((c) => c.key === 'google_sign_in') ?? null;
   const externalApi = configs.find((c) => c.key === 'external_api') ?? null;
-  const googleOAuth = configs.find((c) => c.key === 'google_oauth') ?? null;
-  const frontendUrls = configs.find((c) => c.key === 'frontend_urls') ?? null;
 
   // ที่มาเดียวของ audit ต่อ config — การ์ดแต่ละใบไม่รู้จัก normalizeAudit เอง (อยู่นอกขอบเขต
   // ของ task นี้) ตัว key เดิมของแต่ละการ์ดก็อ่านผ่านค่าเหล่านี้ด้วย แทนฟิลด์แบนตรง ๆ
@@ -147,8 +138,6 @@ const BackstageConfigManagement: React.FC = () => {
   const backstageMigrationAudit = normalizeAudit(backstageMigration);
   const googleSignInAudit = normalizeAudit(googleSignIn);
   const externalApiAudit = normalizeAudit(externalApi);
-  const googleOAuthAudit = normalizeAudit(googleOAuth);
-  const frontendUrlsAudit = normalizeAudit(frontendUrls);
   // ค่ากริยา+actor ล่าสุดต่อการ์ด สำหรับแถบท้ายการ์ด — คำนวณแยกจาก *Audit ด้านบน
   // ที่ยังต้องใช้เดิมสำหรับ remount key
   const invitationLatest = latestActor(invitation);
@@ -161,16 +150,6 @@ const BackstageConfigManagement: React.FC = () => {
   const backstageMigrationLatest = latestActor(backstageMigration);
   const googleSignInLatest = latestActor(googleSignIn);
   const externalApiLatest = latestActor(externalApi);
-  const googleOAuthLatest = latestActor(googleOAuth);
-  const frontendUrlsLatest = latestActor(frontendUrls);
-  // redirect URI ที่ต้องลงทะเบียนใน Google Cloud — ประกอบจากค่าที่บันทึกไว้ ไม่ใช่ค่าในฟอร์ม
-  const savedGatewayUrl = String(
-    ((googleOAuth?.value ?? {}) as Partial<GoogleOAuthConfig>).gateway_public_url ?? '',
-  ).replace(/\/+$/, '');
-  const redirectUri = `${savedGatewayUrl || 'https://api.example.com'}/api/auth/google/callback`;
-  const superAdminNote = (
-    <p className="text-xs text-muted-foreground">{t('pages.backstageConfig.superAdminOnlyNote')}</p>
-  );
 
   /** แถบ audit ท้ายการ์ด — รูปแบบเดียวกันทุกใบ และอยู่ *ใน* การ์ดที่มันอธิบาย */
   const auditFooter = (latest: ReturnType<typeof latestActor>) => (
@@ -377,86 +356,6 @@ const BackstageConfigManagement: React.FC = () => {
                   onCancelEdit={() => setEditingCard(null)}
                   onSaved={handleSaved}
                   footer={auditFooter(googleSignInLatest)}
-                />
-                <TextFieldsConfigCard
-                  key={`google_oauth-${googleOAuthAudit.updated?.at ?? googleOAuthAudit.created?.at ?? 'default'}`}
-                  configKey="google_oauth"
-                  title={t('pages.backstageConfig.googleOAuthTitle')}
-                  description={t('pages.backstageConfig.googleOAuthDesc')}
-                  fields={[
-                    {
-                      name: 'client_id',
-                      kind: 'text',
-                      label: t('pages.backstageConfig.googleOAuthClientId'),
-                      placeholder: '1234567890-abc.apps.googleusercontent.com',
-                      hint: (
-                        <>
-                          {t('pages.backstageConfig.googleOAuthClientIdHint')}{' '}
-                          <code className="font-mono">1234567890-abc.apps.googleusercontent.com</code>
-                        </>
-                      ),
-                    },
-                    {
-                      name: 'gateway_public_url',
-                      kind: 'url',
-                      label: t('pages.backstageConfig.googleOAuthGatewayUrl'),
-                      placeholder: 'https://api.example.com',
-                      hint: (
-                        <>
-                          {t('pages.backstageConfig.googleOAuthGatewayUrlHint')}{' '}
-                          <code className="font-mono break-all">{redirectUri}</code>
-                        </>
-                      ),
-                    },
-                  ]}
-                  config={googleOAuth}
-                  canManage={canManageSignInTargets}
-                  isEditing={editingCard === 'google_oauth'}
-                  onRequestEdit={() => setEditingCard('google_oauth')}
-                  onCancelEdit={() => setEditingCard(null)}
-                  onSaved={handleSaved}
-                  note={superAdminNote}
-                  footer={auditFooter(googleOAuthLatest)}
-                />
-                <TextFieldsConfigCard
-                  key={`frontend_urls-${frontendUrlsAudit.updated?.at ?? frontendUrlsAudit.created?.at ?? 'default'}`}
-                  configKey="frontend_urls"
-                  title={t('pages.backstageConfig.frontendUrlsTitle')}
-                  description={t('pages.backstageConfig.frontendUrlsDesc')}
-                  fields={[
-                    {
-                      name: 'app_url',
-                      kind: 'url',
-                      label: t('pages.backstageConfig.frontendUrlsApp'),
-                      placeholder: 'https://app.example.com',
-                      hint: (
-                        <>
-                          {t('pages.backstageConfig.frontendUrlsAppHint')}{' '}
-                          <code className="font-mono">https://app.example.com</code>
-                        </>
-                      ),
-                    },
-                    {
-                      name: 'backstage_url',
-                      kind: 'url',
-                      label: t('pages.backstageConfig.frontendUrlsBackstage'),
-                      placeholder: 'https://backstage.example.com',
-                      hint: (
-                        <>
-                          {t('pages.backstageConfig.frontendUrlsBackstageHint')}{' '}
-                          <code className="font-mono">https://backstage.example.com</code>
-                        </>
-                      ),
-                    },
-                  ]}
-                  config={frontendUrls}
-                  canManage={canManageSignInTargets}
-                  isEditing={editingCard === 'frontend_urls'}
-                  onRequestEdit={() => setEditingCard('frontend_urls')}
-                  onCancelEdit={() => setEditingCard(null)}
-                  onSaved={handleSaved}
-                  note={superAdminNote}
-                  footer={auditFooter(frontendUrlsLatest)}
                 />
               </div>
 

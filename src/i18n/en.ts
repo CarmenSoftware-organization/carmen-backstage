@@ -3840,7 +3840,7 @@ export const en = {
       sectionSignIn: 'Sign-in',
       googleSignInTitle: 'Google sign-in',
       googleSignInDesc:
-        'Turns the "Continue with Google" button on or off per app. When off, the button is shown disabled and the gateway also blocks the Google flow. The button is only clickable once Google OAuth and the frontend URLs below are both set.',
+        'Turns the "Continue with Google" button on or off per app. When off, the button is shown disabled and the gateway also blocks the Google flow. The button is only clickable when the gateway has Google OAuth configured.',
       googleSignInBackstage: 'Carmen Blue Backstage',
       googleSignInBackstageHint: 'The login page of this admin app.',
       googleSignInApp: 'Carmen Blue Platform',
@@ -3849,24 +3849,6 @@ export const en = {
       googleSignInOn: 'On',
       googleSignInOff: 'Off',
       googleSignInSavedToast: 'Google sign-in settings saved',
-      googleOAuthTitle: 'Google OAuth client',
-      googleOAuthDesc:
-        'The Google OAuth client the gateway signs in with. Formerly the gateway env vars GOOGLE_CLIENT_ID and GATEWAY_PUBLIC_URL; the client secret stays in the server environment. Empty = not set, and Google sign-in answers 503.',
-      googleOAuthClientId: 'Client ID',
-      googleOAuthClientIdHint: 'From Google Cloud → APIs & Services → Credentials, e.g.',
-      googleOAuthGatewayUrl: 'Gateway public URL',
-      googleOAuthGatewayUrlHint: 'Root URL of this API gateway. Register this redirect URI in Google Cloud:',
-      frontendUrlsTitle: 'Frontend URLs',
-      frontendUrlsDesc:
-        'Where the browser returns to after Google sign-in, per app. Formerly the gateway env vars CARMEN_WEB_URL and CARMEN_BACKSTAGE_WEB_URL. Empty = not set, and Google sign-in for that app answers 503.',
-      frontendUrlsApp: 'Carmen Blue Platform URL',
-      frontendUrlsAppHint: 'Origin of the main web app, without a path, e.g.',
-      frontendUrlsBackstage: 'Carmen Blue Backstage URL',
-      frontendUrlsBackstageHint: 'Origin of this admin app, without a path, e.g.',
-      superAdminOnlyNote:
-        'Super-admins only. The gateway sends sign-in tokens to these addresses, so a wrong value can hand other people\'s sessions to someone else.',
-      notSetValue: 'Not set',
-      urlNoQuery: 'Do not include a query string (?) or fragment (#)',
       emailVerificationTitle: 'Email Verification',
       emailVerificationDescription: 'The verification link for the legacy path (accounts created before the order was reversed, and those an admin creates)',
       sectionExternalApi: 'External API',

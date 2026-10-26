@@ -1369,32 +1369,6 @@ export interface GoogleSignInConfig {
 }
 
 /**
- * OAuth client ของ Google sign-in ของ gateway — คีย์ `google_oauth` ใน Backstage Config
- * เคยเป็น env `GOOGLE_CLIENT_ID` / `GATEWAY_PUBLIC_URL` ของ backend-gateway (client secret ยังอยู่ใน env)
- *
- * **เขียนได้เฉพาะ super-admin** (`backstage_configs.controller.ts` → `writeKeyDenial`) เพราะผู้ที่คุม
- * client id กับ redirect host ได้ จะพาผู้ใช้ไปหน้า consent ของ OAuth app ของตัวเองได้
- * ค่าว่าง = ยังไม่ตั้ง → gateway ตอบ 503 และปุ่ม Google ไม่ขึ้น (ไม่มี env fallback)
- */
-export interface GoogleOAuthConfig {
-  client_id: string;
-  /** redirect URI = `${gateway_public_url}/api/auth/google/callback` ต้องลงทะเบียนใน Google Cloud */
-  gateway_public_url: string;
-}
-
-/**
- * origin ของ frontend ที่ browser กลับไปหลัง Google sign-in — คีย์ `frontend_urls` ใน Backstage Config
- * เคยเป็น env `CARMEN_WEB_URL` / `CARMEN_BACKSTAGE_WEB_URL` ของ backend-gateway
- *
- * **เขียนได้เฉพาะ super-admin** เพราะ gateway ส่ง access/refresh token ไปที่ `${url}/login/callback#...`
- * ค่าว่าง = ยังไม่ตั้ง → Google sign-in ของแอปนั้นตอบ 503
- */
-export interface FrontendUrlsConfig {
-  app_url: string;
-  backstage_url: string;
-}
-
-/**
  * เกณฑ์ "ใกล้หมดอายุ" ของใบแต่ละชนิด หน่วยเป็นวัน — คีย์ `expiry_thresholds` ใน Backstage Config
  * The per-kind "expiring soon" windows, in days.
  *
