@@ -101,6 +101,7 @@ const sampleSub = {
   bu_code: 'BU1',
   bu_name: 'Acme BU',
   feature_count: 5,
+  groups: [{ id: 'g1', code: 'CORE', name: 'Core' }],
   seat_used: 10,
   seat_cap: 20,
   doc_version: 1,
@@ -479,26 +480,23 @@ describe('SubscriptionTable — the State filter matches what the badge shows', 
 // Review M3: spec §8.1 lists BU, Features, and a cluster filter. The values were already on
 // every row (they even shipped in the CSV export) — just never rendered. The BU column now
 // names the contract's single business unit instead of counting them: one contract = one BU.
-describe('SubscriptionTable — BU and Features columns', () => {
+describe('SubscriptionTable — BU and Feature Groups columns', () => {
   it('renders both column headers with the row values', async () => {
     renderPage();
     await screen.findByText('SUB-0001');
 
     expect(screen.getByText('Business Unit')).toBeInTheDocument();
-    expect(screen.getByText('Features')).toBeInTheDocument();
+    expect(screen.getByText('Feature Groups')).toBeInTheDocument();
     expect(screen.getByText('BU1')).toBeInTheDocument();     // bu_code
     expect(screen.getByText('Acme BU')).toBeInTheDocument(); // bu_name
-    expect(screen.getByText('5')).toBeInTheDocument();       // feature_count
+    expect(screen.getByText('CORE')).toBeInTheDocument();    // groups[].code
   });
 
   // Both are backend-derived values, not tb_subscription columns — the backend now accepts them
   // as sort keys it computes in memory (DERIVED_SORT_KEYS in subscription.service.ts). The wire
   // key must be the same field name the row carries, plus the unique tiebreaker like every sort.
-  // Features starts descending: TanStack's `sortDescFirst` defaults to true for a numeric
-  // accessor, and "most features first" is the reading a count column is for.
   it.each([
     ['Business Unit', 'bu_code:asc'],
-    ['Features', 'feature_count:desc'],
     ['State', 'state:asc'],
     ['Cluster', 'tb_cluster.name:asc'],
   ])('sorts by the %s header, sending `%s` as the wire key with the id tiebreaker', async (header, term) => {

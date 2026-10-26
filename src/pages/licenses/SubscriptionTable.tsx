@@ -23,6 +23,7 @@ import { SubscriptionSummary, type SummaryFilterKey } from './subscriptionManage
 import { DeletedLicenseTable, type DeletedViewControl } from './DeletedLicenseTable';
 import { buildAdvance, type SubscriptionFilters } from './subscriptionManagement/buildAdvance';
 import { isExpiringSoon } from '../../utils/subscriptionState';
+import { daysLeft, isPerpetual } from './licenseDates';
 import { useAuth } from '../../context/AuthContext';
 import { useAllClusters } from '../../hooks/useAllClusters';
 import { auditColumns } from '../../components/auditColumns';
@@ -37,6 +38,10 @@ import { readStoredPerpage } from '../../utils/pageRange';
 // สถานะที่แสดงผล (`state`) ชุดเดียวกับที่ badge ในตารางและการ์ด summary ใช้ — ไม่ใช่ `status` ดิบ
 // การกรองแปลงกลับเป็นเงื่อนไขบนคอลัมน์จริงใน `buildAdvance`
 const STATE_OPTIONS: SubscriptionState[] = ['active', 'inactive', 'expired'];
+// คอลัมน์ Days Left เรียงด้วย end_date บนสาย — ดู handleSortChange
+const DAYS_LEFT_SORT_ID = 'days_left';
+// เกินนี้ยุบเป็น +N — เซลล์ต้องสูงเท่าแถวอื่น ไม่ใช่ห่อเป็นก้อนสามบรรทัดเมื่อใบไหนถือหลายกลุ่ม
+const MAX_GROUP_CHIPS = 3;
 
 // backend ไม่มี default sort เลย (`orderBy: {}`) ถ้าไม่ส่ง `sort` — ลำดับแถวข้ามหน้าจะไม่นิ่ง
 // (phase-b-backend-contract.md §8.3) จึงต้องมีค่านี้เสมอ ไม่ปล่อยให้ตกไปเป็นสตริงว่าง
@@ -330,7 +335,9 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
     // DataTable's 3-state header toggle can cycle back to "" (unsorted) — never let that
     // through, or the next fetch drops `orderBy` entirely (see DEFAULT_SORT comment above).
     // Every value gets the id tiebreaker, not just the default one.
-    const next = withTiebreaker(sort);
+    const next = withTiebreaker(
+      sort.startsWith(`${DAYS_LEFT_SORT_ID}:`) ? sort.replace(DAYS_LEFT_SORT_ID, 'end_date') : sort,
+    );
     localStorage.setItem('sort_subscriptions', next);
     localStorage.setItem('page_subscriptions', '1');
     setPaginate(prev => ({ ...prev, sort: next, page: 1 }));
@@ -341,6 +348,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
       ...item,
       ...auditCsvFields(normalizeAudit(item)),
       state: stateLabel(item.state),
+      groups: (item.groups ?? []).map((g) => g.code).join(', '),
     }));
     const csv = generateCSV(rows, [
       { key: 'subscription_number', label: t('pages.subscriptions.subscriptionNumber') },
@@ -353,6 +361,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
       { key: 'seat_cap', label: t('pages.subscriptions.seatsCap') },
       { key: 'bu_code', label: t('entity.businessUnit.title') },
       { key: 'bu_name', label: t('pages.subscriptions.businessUnitName') },
+      { key: 'groups', label: t('pages.subscriptions.featureGroups') },
       { key: 'feature_count', label: t('pages.subscriptions.featureCount') },
       { key: 'created_at', label: t('common.audit.createdAt') },
       { key: 'created_by', label: t('common.audit.createdBy') },
@@ -441,12 +450,39 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
         },
       },
       {
-        // คีย์ sort ที่ backend คำนวณให้เช่นกัน (นับ feature distinct ข้ามทุกกลุ่มของสัญญา)
-        id: 'feature_count',
-        accessorKey: 'feature_count',
-        header: t('pages.subscriptions.features'),
-        meta: { card: 'hidden' },
-        cell: ({ row }) => <span className="tabular-nums">{row.original.feature_count}</span>,
+        // กลุ่มคือสิ่งที่ขายจริง (หน้าแก้สัญญาเลือกเป็นกลุ่ม) — ตัวเลข feature_count ล้วนบอกไม่ได้ว่าใบนี้
+        // ได้อะไร ยอด feature distinct ย้ายไปอยู่ใน title ของเซลล์ · เรียงไม่ได้: รายการกลุ่มไม่มีลำดับที่มีความหมาย
+        id: 'groups',
+        header: t('pages.subscriptions.featureGroups'),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const { groups, feature_count } = row.original;
+          const featuresLabel = t('pages.licenseFeatureGroups.featuresOnly', { count: feature_count });
+          // ไม่มีฟิลด์ = backend ยังไม่ deploy ตัวที่ส่ง groups — แสดงยอด feature แทนช่องว่างที่ดูเหมือน "ไม่มีกลุ่ม"
+          if (!groups) {
+            return <span className="text-muted-foreground text-xs tabular-nums">{featuresLabel}</span>;
+          }
+          if (groups.length === 0) return <span className="text-muted-foreground text-xs">—</span>;
+          const shown = groups.slice(0, MAX_GROUP_CHIPS);
+          const rest = groups.length - shown.length;
+          return (
+            <div
+              className="flex max-w-[16rem] flex-wrap gap-1"
+              title={`${groups.map((g) => g.name).join(', ')} · ${featuresLabel}`}
+            >
+              {shown.map((g) => (
+                <Badge key={g.id} variant="outline" className="font-mono text-[11px] font-normal">
+                  {g.code}
+                </Badge>
+              ))}
+              {rest > 0 && (
+                <Badge variant="secondary" className="text-[11px] font-normal tabular-nums">
+                  +{rest}
+                </Badge>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'end_date',
@@ -457,6 +493,36 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
             {fmtDate(row.original.start_date)} → {fmtDate(row.original.end_date)}
           </div>
         ),
+      },
+      {
+        // นับจาก end_date ล้วน ไม่ดู state — ใบ inactive ที่วันยังไม่ถึงก็ยังมีวันเหลือจริง ส่วนป้าย State
+        // ข้าง ๆ บอกอยู่แล้วว่าใช้งานได้ไหม · `days_left` ไม่ใช่คีย์ที่ backend รู้จัก handleSortChange
+        // แปลงเป็น `end_date` บนสาย (ลำดับเดียวกันเป๊ะ) · เริ่ม asc = ใบที่ใกล้หมดก่อน คือสิ่งที่คนเปิดคอลัมน์นี้หา
+        id: DAYS_LEFT_SORT_ID,
+        accessorFn: (r) => r.end_date,
+        header: t('pages.subscriptions.daysLeft'),
+        sortDescFirst: false,
+        cell: ({ row }) => {
+          const { state, end_date } = row.original;
+          if (isPerpetual(end_date)) {
+            return <span className="text-muted-foreground text-xs">{t('common.state.noExpiry')}</span>;
+          }
+          const left = daysLeft(end_date, new Date());
+          if (left < 0) {
+            return (
+              <span className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
+                {t('pages.licenses.expiredDaysAgo', { count: -left })}
+              </span>
+            );
+          }
+          // สีเตือนใช้เกณฑ์เดียวกับป้าย "ใกล้หมดอายุ" ในคอลัมน์ State — ห้ามตั้งเกณฑ์ของตัวเอง
+          const soon = isExpiringSoon(state, end_date, thresholds.subscription_days);
+          return (
+            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning font-medium' : ''}`}>
+              {t('common.state.daysLeft', { count: left })}
+            </span>
+          );
+        },
       },
       createdColumn,
       updatedColumn,
