@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, MoreHorizontal, Paperclip } from 'lucide-react';
+import { Loader2, MoreHorizontal, Paperclip, X } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Textarea } from '../../../components/ui/textarea';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
@@ -12,6 +12,8 @@ import {
 } from '../../../components/ui/dropdown-menu';
 import { AuditMeta } from '../../../components/AuditMeta';
 import clusterNoteService from '../../../services/clusterNoteService';
+import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges';
+import { NOTE_ACCEPT, NOTE_MAX_FILES, validatePickedFiles } from './attachmentRules';
 import { useI18n } from '../../../hooks/useI18n';
 import { normalizeAudit } from '../../../utils/audit';
 import { getErrorDetail } from '../../../utils/errorParser';
@@ -39,6 +41,9 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
   const [draft, setDraft] = useState(note.message ?? '');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [picked, setPicked] = useState<File[]>([]);
+  const [removed, setRemoved] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const editRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -47,11 +52,31 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
 
   const audit = normalizeAudit(note);
   const attachments = note.attachments ?? [];
-  // โน้ตที่มีแต่ไฟล์ (message ว่าง) ต้องไม่ถูกแก้จนว่างทั้งข้อความและไฟล์
-  const canSaveEdit = !saving && draft !== (note.message ?? '') && (draft.trim() !== '' || attachments.length > 0);
+  const remaining = attachments.filter((a) => !removed.includes(a.fileToken));
+  const dirty = draft !== (note.message ?? '') || picked.length > 0 || removed.length > 0;
+  useUnsavedChanges(editing && dirty);
+  // ผลลัพธ์ต้องไม่ว่างทั้งข้อความและไฟล์ (เดิม − ที่เอาออก + ที่เพิ่ม)
+  const canSaveEdit = !saving && dirty && (draft.trim() !== '' || remaining.length + picked.length > 0);
+
+  const closeEdit = () => {
+    setEditing(false);
+    setPicked([]);
+    setRemoved([]);
+  };
+
+  const handlePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const list = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (list.length === 0) return;
+    const { ok, errors } = validatePickedFiles(list, remaining.length + picked.length);
+    errors.forEach((er) => toast.error(t(er.key, er.params)));
+    setPicked((prev) => [...prev, ...ok]);
+  };
 
   const startEdit = () => {
     setDraft(note.message ?? '');
+    setPicked([]);
+    setRemoved([]);
     setEditing(true);
   };
 
@@ -60,16 +85,18 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
     setSaving(true);
     try {
       const updated = await clusterNoteService.update(clusterId, note.id, {
-        message: draft.trim(),
+        ...(draft !== (note.message ?? '') ? { message: draft.trim() } : {}),
+        files: picked,
+        remove: removed,
         doc_version: note.doc_version,
       });
-      setEditing(false);
+      closeEdit();
       toast.success(t('pages.clusterNotes.updated'));
       onChanged(updated);
     } catch (err) {
       if (statusOf(err) === 409) {
         notifyVersionConflict(t);
-        setEditing(false);
+        closeEdit();
         onConflict();
       } else {
         toast.error(getErrorDetail(err, t));
@@ -140,14 +167,61 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
             disabled={saving}
             aria-label={t('pages.clusterNotes.editAria')}
           />
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" size="sm" onClick={() => setEditing(false)} disabled={saving}>
+          {(remaining.length > 0 || picked.length > 0) && (
+            <ul className="flex flex-wrap gap-2">
+              {remaining.map((a) => (
+                <li key={a.fileToken} className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs">
+                  <Paperclip className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{a.fileName}</span>
+                  <button
+                    type="button"
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                    aria-label={t('pages.clusterNotes.removeFile', { name: a.fileName })}
+                    disabled={saving}
+                    onClick={() => setRemoved((prev) => [...prev, a.fileToken])}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </li>
+              ))}
+              {picked.map((f, i) => (
+                <li key={`${f.name}-${i}`} className="flex max-w-full items-center gap-1.5 rounded-md border border-dashed bg-muted/40 px-2 py-1 text-xs">
+                  <Paperclip className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{f.name}</span>
+                  <button
+                    type="button"
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                    aria-label={t('pages.clusterNotes.removeFile', { name: f.name })}
+                    disabled={saving}
+                    onClick={() => setPicked((prev) => prev.filter((_, j) => j !== i))}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <input ref={fileInputRef} type="file" multiple accept={NOTE_ACCEPT} className="hidden" onChange={handlePick} />
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={saving || remaining.length + picked.length >= NOTE_MAX_FILES}
+            >
+              <Paperclip className="mr-2 h-4 w-4" />
+              {t('pages.clusterNotes.attach')}
+            </Button>
+            <div className="flex gap-3">
+            <Button variant="outline" size="sm" onClick={closeEdit} disabled={saving}>
               {t('common.cancel')}
             </Button>
             <Button size="sm" onClick={handleSave} disabled={!canSaveEdit}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {saving ? t('common.busy.saving') : t('common.action.save')}
             </Button>
+            </div>
           </div>
         </div>
       ) : (

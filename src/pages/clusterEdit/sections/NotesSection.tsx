@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Loader2, StickyNote } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Skeleton } from '../../../components/ui/skeleton';
@@ -25,9 +25,16 @@ export function NotesSection({ clusterId, onTotalChange }: NotesSectionProps) {
   const state = useClusterNotes(clusterId);
   const { notes, total, loading, hasMore, loadMore, refetch, replaceNote, dropNote, prependNote } = state;
 
+  // Report only after a real load: the hook's initial total (0) must not overwrite the count
+  // ClusterEdit already seeded on page load.
+  const sawLoading = useRef(false);
   useEffect(() => {
-    onTotalChange?.(total);
-  }, [total, onTotalChange]);
+    if (loading) {
+      sawLoading.current = true;
+      return;
+    }
+    if (sawLoading.current) onTotalChange?.(total);
+  }, [total, loading, onTotalChange]);
 
   // Task 9 hook-in: เปิดแผงประวัติ (no-op จนกว่า Task 9 จะเสียบ)
   const handleOpenHistory = (_note: ClusterNote) => {};

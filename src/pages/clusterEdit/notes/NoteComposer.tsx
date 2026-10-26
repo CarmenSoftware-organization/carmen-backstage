@@ -8,11 +8,7 @@ import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges';
 import { useI18n } from '../../../hooks/useI18n';
 import { getErrorDetail } from '../../../utils/errorParser';
 import type { ClusterNote } from '../../../types';
-
-export const NOTE_MAX_FILES = 5;
-export const NOTE_MAX_FILE_BYTES = 10 * 1024 * 1024;
-export const NOTE_ACCEPT =
-  '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,application/pdf,image/jpeg,image/png,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+import { NOTE_ACCEPT, NOTE_MAX_FILES, validatePickedFiles } from './attachmentRules';
 
 interface NoteComposerProps {
   clusterId: string;
@@ -36,12 +32,9 @@ export function NoteComposer({ clusterId, onCreated }: NoteComposerProps) {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = '';
     if (picked.length === 0) return;
-    const tooBig = picked.filter((f) => f.size > NOTE_MAX_FILE_BYTES);
-    if (tooBig.length > 0) toast.error(t('pages.clusterNotes.fileTooLarge', { name: tooBig[0].name }));
-    const ok = picked.filter((f) => f.size <= NOTE_MAX_FILE_BYTES);
-    const room = NOTE_MAX_FILES - files.length;
-    if (ok.length > room) toast.error(t('pages.clusterNotes.tooManyFiles', { max: NOTE_MAX_FILES }));
-    setFiles((prev) => [...prev, ...ok.slice(0, Math.max(0, room))]);
+    const { ok, errors } = validatePickedFiles(picked, files.length);
+    errors.forEach((e) => toast.error(t(e.key, e.params)));
+    setFiles((prev) => [...prev, ...ok]);
   };
 
   const handleSave = async () => {
