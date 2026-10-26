@@ -28,7 +28,7 @@ const clusterNoteService = {
     return response.data;
   },
 
-  /** ไฟล์แนบทุกโน้ตของ cluster (รวมโน้ตที่ลบแล้ว ตามที่ backend ตัดสิน) */
+  /** ไฟล์แนบทุกโน้ตของ cluster */
   files: async (clusterId: string): Promise<ClusterNoteFile[]> => {
     const response = await api.get(`${BASE(clusterId)}/files`);
     return response.data.data || response.data;
