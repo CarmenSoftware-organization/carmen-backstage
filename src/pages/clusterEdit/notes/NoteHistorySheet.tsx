@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronDown, History, Loader2, Paperclip } from 'lucide-react';
+import { ChevronDown, History, Loader2 } from 'lucide-react';
+import { NoteFileIcon } from './NoteFileIcon';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../../components/ui/sheet';
 import { Button } from '../../../components/ui/button';
 import { Skeleton } from '../../../components/ui/skeleton';
@@ -96,7 +97,7 @@ function HistoryRow({ clusterId, entry }: { clusterId: string; entry: ClusterNot
                       a.removed_at && 'text-muted-foreground',
                     )}
                   >
-                    <Paperclip className="h-3 w-3 shrink-0" />
+                    <NoteFileIcon fileName={a.fileName} contentType={a.contentType} />
                     <span className={cn('truncate', a.removed_at && 'line-through')}>{a.fileName}</span>
                     {a.removed_at && <span className="shrink-0">({t('pages.clusterNotes.fileRemoved')})</span>}
                   </button>

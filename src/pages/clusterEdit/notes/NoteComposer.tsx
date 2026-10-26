@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Paperclip, Send, X } from 'lucide-react';
+import { NoteFileIcon } from './NoteFileIcon';
 import { Button } from '../../../components/ui/button';
 import { Textarea } from '../../../components/ui/textarea';
 import clusterNoteService from '../../../services/clusterNoteService';
@@ -76,7 +77,7 @@ export function NoteComposer({ clusterId, onCreated }: NoteComposerProps) {
               key={`${f.name}-${i}`}
               className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs"
             >
-              <Paperclip className="h-3 w-3 shrink-0" />
+              <NoteFileIcon fileName={f.name} contentType={f.type} />
               <span className="truncate">{f.name}</span>
               <button
                 type="button"

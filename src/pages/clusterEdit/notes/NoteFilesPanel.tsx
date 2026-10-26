@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, FileText } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { NoteFileIcon } from './NoteFileIcon';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { AuditMeta } from '../../../components/AuditMeta';
 import clusterNoteService from '../../../services/clusterNoteService';
@@ -84,7 +85,7 @@ export function NoteFilesPanel({ clusterId, refreshKey }: NoteFilesPanelProps) {
                   onClick={() => void openNoteFile(clusterId, f.fileToken, t)}
                   className="flex w-full items-start gap-2 rounded-md border bg-muted/40 px-2 py-1.5 text-left hover:bg-muted"
                 >
-                  <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <NoteFileIcon fileName={f.fileName} contentType={f.contentType} className="mt-0.5" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-xs">{f.fileName}</span>
                     <AuditMeta

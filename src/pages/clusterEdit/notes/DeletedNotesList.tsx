@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Paperclip, RotateCcw } from 'lucide-react';
+import { Loader2, RotateCcw } from 'lucide-react';
+import { NoteFileIcon } from './NoteFileIcon';
 import { Button } from '../../../components/ui/button';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { AuditMeta } from '../../../components/AuditMeta';
@@ -92,7 +93,7 @@ function DeletedRows({ clusterId, canManage, onRestored, onOpenHistory }: Omit<D
                         onClick={() => void openNoteFile(clusterId, a.fileToken, t)}
                         className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted"
                       >
-                        <Paperclip className="h-3 w-3 shrink-0" />
+                        <NoteFileIcon fileName={a.fileName} contentType={a.contentType} />
                         <span className="truncate">{a.fileName}</span>
                       </button>
                     </li>

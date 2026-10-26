@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, MoreHorizontal, Paperclip, X } from 'lucide-react';
+import { NoteFileIcon } from './NoteFileIcon';
 import { Button } from '../../../components/ui/button';
 import { Textarea } from '../../../components/ui/textarea';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
@@ -162,7 +163,7 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
             <ul className="flex flex-wrap gap-2">
               {remaining.map((a) => (
                 <li key={a.fileToken} className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs">
-                  <Paperclip className="h-3 w-3 shrink-0" />
+                  <NoteFileIcon fileName={a.fileName} contentType={a.contentType} />
                   <span className="truncate">{a.fileName}</span>
                   <button
                     type="button"
@@ -177,7 +178,7 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
               ))}
               {picked.map((f, i) => (
                 <li key={`${f.name}-${i}`} className="flex max-w-full items-center gap-1.5 rounded-md border border-dashed bg-muted/40 px-2 py-1 text-xs">
-                  <Paperclip className="h-3 w-3 shrink-0" />
+                  <NoteFileIcon fileName={f.name} contentType={f.type} />
                   <span className="truncate">{f.name}</span>
                   <button
                     type="button"
@@ -228,7 +229,7 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
                 onClick={() => void openNoteFile(clusterId, a.fileToken, t)}
                 className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted"
               >
-                <Paperclip className="h-3 w-3 shrink-0" />
+                <NoteFileIcon fileName={a.fileName} contentType={a.contentType} />
                 <span className="truncate">{a.fileName}</span>
               </button>
             </li>
