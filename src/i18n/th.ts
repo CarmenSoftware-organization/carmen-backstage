@@ -305,6 +305,7 @@ export const th: Translations = {
       severity: 'ระดับความรุนแรง',
       delivery: 'การส่ง',
       seats: 'ที่นั่ง',
+      daysLeft: 'วันที่เหลือ',
       startDate: 'วันที่เริ่ม',
       endDate: 'วันที่สิ้นสุด',
       required: '{{label}} *',
@@ -1364,7 +1365,6 @@ export const th: Translations = {
       businessUnitName: 'ชื่อหน่วยธุรกิจ',
       featureCount: 'จำนวนสิทธิ์',
       featureGroups: 'กลุ่มสิทธิ์',
-      daysLeft: 'วันที่เหลือ',
       period: 'ช่วงเวลา',
       state: 'สถานะ',
       // startDate/endDate dropped here (slice 3b Task 1 fix round 1) — see en.ts. Now
