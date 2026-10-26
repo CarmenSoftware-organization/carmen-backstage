@@ -27,8 +27,8 @@ const toForm = (config: BackstageConfig | null): GoogleSignInConfig => {
 
 /**
  * สวิตช์ปุ่ม "Continue with Google" แยกต่อแอป — ปิดแล้ว gateway ซ่อนปุ่มและปฏิเสธ flow ด้วย
- * (redirect กลับ `/login?error=google_disabled`) ปุ่มจะขึ้นจริงก็ต่อเมื่อ gateway ตั้งค่า Google OAuth
- * ครบด้วย เปิดสวิตช์บน env ที่ยังไม่ตั้งจึงไม่มีผล
+ * (redirect กลับ `/login?error=google_disabled`) ปุ่มจะขึ้นจริงก็ต่อเมื่อตั้ง `google_oauth` และ
+ * `frontend_urls` ครบด้วย (สองการ์ดที่อยู่คู่กันในหน้านี้) เปิดสวิตช์ตอนที่ยังไม่ตั้งจึงไม่มีผล
  */
 export const GoogleSignInConfigCard: React.FC<GoogleSignInConfigCardProps> = ({
   config,
