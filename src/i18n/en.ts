@@ -4627,6 +4627,8 @@ export const en = {
       removeSelectedConfirm: 'Remove {{count}} user(s) from this cluster?',
       removeOneConfirm: 'Remove "{{name}}" from this cluster?',
       columnRole: 'Role',
+      columnSeat: 'Seat',
+      seatHoldersOnly: 'Seat holders only',
       subscriptionsHeading: 'Subscriptions',
       addUserTitle: 'Add User to Cluster',
       addUserDescription: 'Search and select a user to add',

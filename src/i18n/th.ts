@@ -3441,6 +3441,8 @@ export const th: Translations = {
       removeSelectedConfirm: 'นำผู้ใช้ {{count}} คนออกจาก Cluster นี้หรือไม่',
       removeOneConfirm: 'นำ "{{name}}" ออกจาก Cluster นี้หรือไม่',
       columnRole: 'บทบาท',
+      columnSeat: 'ที่นั่ง',
+      seatHoldersOnly: 'เฉพาะผู้ถือที่นั่ง',
       subscriptionsHeading: 'สัญญา',
       addUserTitle: 'เพิ่มผู้ใช้เข้า Cluster',
       addUserDescription: 'ค้นหาและเลือกผู้ใช้ที่จะเพิ่ม',

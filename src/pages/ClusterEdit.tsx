@@ -84,7 +84,7 @@ const ClusterEdit: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const isNew = !id;
-  const { hasPermission } = useAuth();
+  const { hasPermission, user: authUser } = useAuth();
   const canEdit = !isNew && hasPermission('cluster.update', { clusterId: id });
 
   const [formData, setFormData] = useState<ClusterFormData>({
@@ -694,6 +694,10 @@ const ClusterEdit: React.FC = () => {
             {activeTab === 'users' && (
               <Card className="p-0">
                 <UsersSection
+                  clusterId={id!}
+                  currentUserId={authUser?.id}
+                  seatPool={{ used: userUsed, cap: userCap }}
+                  onSeatChanged={() => { void users.fetchClusterUsers(); void refreshClusterMeta(); }}
                   users={users.clusterUsers}
                   loading={users.usersLoading}
                   canEdit={canEdit}
