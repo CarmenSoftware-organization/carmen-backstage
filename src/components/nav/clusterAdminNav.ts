@@ -16,8 +16,8 @@ export function buildClusterAdminNav(
   const items: NavItem[] = [
     { path: `${base}/cluster`, labelKey: 'nav.cluster', icon: Network, feature: 'cluster_admin_cluster' },
     { path: `${base}/business-units`, labelKey: 'nav.businessUnits', icon: Building2, feature: 'cluster_admin_business_units' },
-    { path: `${base}/licenses`, labelKey: 'nav.licenses', icon: KeyRound, feature: 'cluster_admin_licenses' },
     { path: `${base}/users`, labelKey: 'nav.users', icon: Users, feature: 'cluster_admin_users' },
+    { path: `${base}/licenses`, labelKey: 'nav.licenses', icon: KeyRound, feature: 'cluster_admin_licenses' },
   ];
   return items
     .filter((item) => !item.feature || flagOf(item.feature) !== 'hide')
