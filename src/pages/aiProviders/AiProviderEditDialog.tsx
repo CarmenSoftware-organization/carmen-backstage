@@ -90,7 +90,7 @@ export default function AiProviderEditDialog({ open, onOpenChange, provider, nex
 
   const codeValid = provider !== null || CODE_RE.test(code);
   const canSave = !saving && codeValid && label.trim() !== '' && urlTemplate.trim() !== ''
-    && prompt.trim() !== '' && prompt.length <= PROMPT_MAX && Number.isInteger(Number(sortOrder));
+    && prompt.trim() !== '' && prompt.length <= PROMPT_MAX && sortOrder.trim() !== '' && Number.isInteger(Number(sortOrder)) && Number(sortOrder) >= 0;
 
   const handleSave = async () => {
     setSaving(true);
