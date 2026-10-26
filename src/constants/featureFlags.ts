@@ -62,6 +62,8 @@ export const FEATURE_CATALOG: readonly FeatureDefinition[] = [
   { key: 'dashboard_templates', labelKey: 'nav.dashboardTemplates', groupKey: 'navGroup.content', defaultState: 'active' },
   { key: 'news', labelKey: 'nav.news', groupKey: 'navGroup.content', defaultState: 'active' },
   { key: 'broadcasts', labelKey: 'nav.broadcasts', groupKey: 'navGroup.content', defaultState: 'active' },
+  // AI
+  { key: 'ai_providers', labelKey: 'nav.aiProviders', groupKey: 'navGroup.ai', defaultState: 'active' },
   // Analytics
   { key: 'usage_analytics', labelKey: 'nav.usageAnalytics', groupKey: 'navGroup.analytics', defaultState: 'active' },
   { key: 'activity_events', labelKey: 'nav.activityEvents', groupKey: 'navGroup.analytics', defaultState: 'active' },

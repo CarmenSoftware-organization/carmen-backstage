@@ -2147,3 +2147,21 @@ export type ClusterNoteHistoryEntry = NoteHistoryEntry;
 export type ClusterNoteSnapshotAttachment = NoteSnapshotAttachment;
 export type ClusterNoteSnapshot = NoteSnapshot;
 export type ClusterNotesResponse = NotesResponse;
+
+export interface AiProvider {
+  id: string;
+  code: string;
+  label: string;
+  icon_key: string | null;
+  icon_url: string | null;
+  url_template: string;
+  default_prompt: string;
+  is_active: boolean;
+  default_enabled_for_bu: boolean;
+  sort_order: number;
+  doc_version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AiProviderInput = Omit<AiProvider, 'id' | 'doc_version' | 'created_at' | 'updated_at'>;

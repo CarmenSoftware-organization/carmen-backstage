@@ -43,6 +43,7 @@ const ReportTemplateManagement = lazy(() => import("./pages/ReportTemplateManage
 const ReportTemplateEdit = lazy(() => import("./pages/ReportTemplateEdit"));
 const ReportFormGroupManagement = lazy(() => import("./pages/ReportFormGroupManagement"));
 const DashboardTemplateManagement = lazy(() => import("./pages/DashboardTemplateManagement"));
+const AiProviderManagement = lazy(() => import("./pages/AiProviderManagement"));
 const NewsManagement = lazy(() => import("./pages/NewsManagement"));
 const NewsEdit = lazy(() => import("./pages/NewsEdit"));
 const BroadcastManagement = lazy(() => import("./pages/BroadcastManagement"));
@@ -384,6 +385,14 @@ function AppContent() {
               element={
                 <PrivateRoute requiredPermission="dashboard_template.read" feature="dashboard_templates">
                   <DashboardTemplateManagement />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/ai-providers"
+              element={
+                <PrivateRoute requiredPermission="ai_provider.read" feature="ai_providers">
+                  <AiProviderManagement />
                 </PrivateRoute>
               }
             />
