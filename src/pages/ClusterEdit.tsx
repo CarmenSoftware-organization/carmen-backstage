@@ -27,6 +27,7 @@ import type { ClusterFormData } from './clusterManagement/ClusterIdentityFields'
 import { ClusterCreateForm } from './clusterManagement/ClusterCreateForm';
 import { ClusterPlate } from './clusterEdit/ClusterPlate';
 import { ClusterDraftPlate } from './clusterEdit/ClusterDraftPlate';
+import { NotesSection } from './clusterEdit/sections/NotesSection';
 import { isClusterTabId, type ClusterTab, type ClusterTabId } from './clusterEdit/clusterTabs';
 import { BusinessUnitsSection } from './clusterEdit/sections/BusinessUnitsSection';
 import { SubscriptionCard } from './clusterEdit/sections/SubscriptionCard';
@@ -101,9 +102,14 @@ const ClusterEdit: React.FC = () => {
   // Deep-linkable: ?tab= survives a reload and can be shared or bookmarked. Seeded from the
   // URL once — the state is the authority afterwards, so an unknown value degrades to
   // Licensing, the first tab.
+  const canViewNotes = !isNew && hasPermission('cluster_note.view', { clusterId: id });
+  const [notesTotal, setNotesTotal] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<ClusterTabId>(() => {
     const fromUrl = searchParams.get('tab');
-    return isClusterTabId(fromUrl) ? fromUrl : 'licensing';
+    if (!isClusterTabId(fromUrl)) return 'licensing';
+    // ?tab=notes without cluster_note.view degrades to Licensing, same as an unknown value
+    if (fromUrl === 'notes' && !canViewNotes) return 'licensing';
+    return fromUrl;
   });
 
   const [savedFormData, setSavedFormData] = useState<ClusterFormData>(formData);
@@ -505,6 +511,7 @@ const ClusterEdit: React.FC = () => {
     { id: 'licensing', label: t('pages.clusters.tabLicensing') },
     { id: 'business-units', label: t('pages.clusters.tabBusinessUnits'), count: businessUnits.length },
     { id: 'users', label: t('pages.clusters.tabUsers'), count: users.clusterUsers.length },
+    ...(canViewNotes ? [{ id: 'notes' as const, label: t('pages.clusters.tabNotes'), count: notesTotal }] : []),
   ];
 
   return (
@@ -656,6 +663,12 @@ const ClusterEdit: React.FC = () => {
                   onRemoveUser={handleRemoveUser}
                   onBulkRemove={handleBulkRemove}
                 />
+              </Card>
+            )}
+
+            {activeTab === 'notes' && canViewNotes && (
+              <Card className="p-0">
+                <NotesSection clusterId={id!} onTotalChange={setNotesTotal} />
               </Card>
             )}
           </>

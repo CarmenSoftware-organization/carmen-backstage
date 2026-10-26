@@ -342,7 +342,8 @@ describe('ClusterEdit — the Licensing tab does not follow subscription.read', 
     expect(within(strip).getByRole('tab', { name: /licensing/i })).toBeInTheDocument();
     expect(within(strip).getByRole('tab', { name: /business units/i })).toBeInTheDocument();
     expect(within(strip).getByRole('tab', { name: /users/i })).toBeInTheDocument();
-    expect(within(strip).getAllByRole('tab')).toHaveLength(3);
+    // + Notes, which these permission stubs also grant (cluster_note.view)
+    expect(within(strip).getAllByRole('tab')).toHaveLength(4);
   };
 
   it('keeps every tab without subscription.read', async () => {
