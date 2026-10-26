@@ -1,31 +1,37 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, StickyNote } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
-import { Skeleton } from '../../../components/ui/skeleton';
-import { EmptyState } from '../../../components/EmptyState';
-import { useAuth } from '../../../context/AuthContext';
-import { useI18n } from '../../../hooks/useI18n';
-import { NoteComposer } from '../notes/NoteComposer';
-import { NoteItem } from '../notes/NoteItem';
-import { NoteFilesPanel } from '../notes/NoteFilesPanel';
-import { DeletedNotesList } from '../notes/DeletedNotesList';
-import { NoteHistorySheet } from '../notes/NoteHistorySheet';
-import { useClusterNotes } from '../notes/useClusterNotes';
-import type { ClusterNote } from '../../../types';
+import { Button } from '../ui/button';
+import { Skeleton } from '../ui/skeleton';
+import { EmptyState } from '../EmptyState';
+import { useAuth } from '../../context/AuthContext';
+import { useI18n } from '../../hooks/useI18n';
+import { NoteComposer } from './NoteComposer';
+import { NoteItem } from './NoteItem';
+import { NoteFilesPanel } from './NoteFilesPanel';
+import { DeletedNotesList } from './DeletedNotesList';
+import { NoteHistorySheet } from './NoteHistorySheet';
+import { useNotes } from './useNotes';
+import type { Note } from '../../types';
+import type { NotesAdapter, NotesPermissionKeys } from './types';
 
 interface NotesSectionProps {
-  clusterId: string;
+  ownerId: string;
+  /** cluster ที่ใช้ scope สิทธิ์ — cluster: เท่ากับ ownerId, BU: cluster ของ BU */
+  scopeClusterId: string;
+  adapter: NotesAdapter;
+  permissions: NotesPermissionKeys;
   /** ให้ ClusterEdit โชว์จำนวนบน tab (รู้ค่าหลังเปิด tab ครั้งแรก) */
   onTotalChange?: (total: number) => void;
 }
 
 /** tab "Notes" — ไทม์ไลน์ (ซ้าย) + แผงไฟล์ (ขวา; stack ด้านบนต่ำกว่า lg) */
-export function NotesSection({ clusterId, onTotalChange }: NotesSectionProps) {
+export function NotesSection({ ownerId, scopeClusterId, adapter, permissions, onTotalChange }: NotesSectionProps) {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
   const canManage =
-    hasPermission('cluster_note.view', { clusterId }) && hasPermission('cluster_note.manage', { clusterId });
-  const state = useClusterNotes(clusterId);
+    hasPermission(permissions.view, { clusterId: scopeClusterId }) &&
+    hasPermission(permissions.manage, { clusterId: scopeClusterId });
+  const state = useNotes(adapter, ownerId);
   const { notes, total, loading, hasMore, loadMore, refetch, replaceNote, dropNote, prependNote } = state;
 
   // refreshKey: bump หลัง create/update/delete/restore เพื่อให้แผงไฟล์โหลดใหม่
@@ -49,13 +55,13 @@ export function NotesSection({ clusterId, onTotalChange }: NotesSectionProps) {
     if (sawLoading.current) onTotalChange?.(total);
   }, [total, loading, onTotalChange]);
 
-  const handleOpenHistory = (note: ClusterNote) => setHistoryNoteId(note.id);
+  const handleOpenHistory = (note: Note) => setHistoryNoteId(note.id);
 
-  const handleCreated = (note: ClusterNote) => {
+  const handleCreated = (note: Note) => {
     prependNote(note);
     bumpFiles();
   };
-  const handleChanged = (note: ClusterNote) => {
+  const handleChanged = (note: Note) => {
     replaceNote(note);
     bumpFiles();
   };
@@ -78,11 +84,11 @@ export function NotesSection({ clusterId, onTotalChange }: NotesSectionProps) {
         data-slot="notes-files-panel"
         className="order-first border-b empty:hidden lg:order-last lg:border-b-0 lg:border-l"
       >
-        <NoteFilesPanel clusterId={clusterId} refreshKey={refreshKey} />
+        <NoteFilesPanel ownerId={ownerId} adapter={adapter} refreshKey={refreshKey} />
       </aside>
 
       <div className="min-w-0">
-        {canManage && <NoteComposer clusterId={clusterId} onCreated={handleCreated} />}
+        {canManage && <NoteComposer ownerId={ownerId} adapter={adapter} onCreated={handleCreated} />}
 
         {loading && notes.length === 0 ? (
           <div className="space-y-4 p-4" aria-busy="true">
@@ -105,7 +111,8 @@ export function NotesSection({ clusterId, onTotalChange }: NotesSectionProps) {
               <NoteItem
                 key={note.id}
                 note={note}
-                clusterId={clusterId}
+                ownerId={ownerId}
+                adapter={adapter}
                 canManage={canManage}
                 onChanged={handleChanged}
                 onDeleted={handleDeleted}
@@ -127,7 +134,8 @@ export function NotesSection({ clusterId, onTotalChange }: NotesSectionProps) {
 
         <DeletedNotesList
           key={deletedListKey}
-          clusterId={clusterId}
+          ownerId={ownerId}
+          adapter={adapter}
           canManage={canManage}
           deletedCount={deletedCount}
           onRestored={handleRestored}
@@ -136,7 +144,8 @@ export function NotesSection({ clusterId, onTotalChange }: NotesSectionProps) {
       </div>
 
       <NoteHistorySheet
-        clusterId={clusterId}
+        ownerId={ownerId}
+        adapter={adapter}
         noteId={historyNoteId}
         open={historyNoteId !== null}
         onOpenChange={(o) => {

@@ -2,33 +2,34 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, MoreHorizontal, Paperclip, X } from 'lucide-react';
 import { NoteFileIcon } from './NoteFileIcon';
-import { Button } from '../../../components/ui/button';
-import { Textarea } from '../../../components/ui/textarea';
-import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
+import { ConfirmDialog } from '../ui/confirm-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../../../components/ui/dropdown-menu';
-import { AuditMeta } from '../../../components/AuditMeta';
-import clusterNoteService from '../../../services/clusterNoteService';
-import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges';
+} from '../ui/dropdown-menu';
+import { AuditMeta } from '../AuditMeta';
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import { openNoteFile } from './openNoteFile';
 import { NOTE_ACCEPT, NOTE_MAX_FILES, validatePickedFiles } from './attachmentRules';
-import { useI18n } from '../../../hooks/useI18n';
-import { normalizeAudit } from '../../../utils/audit';
-import { getErrorDetail } from '../../../utils/errorParser';
-import { notifyVersionConflict } from '../../../utils/docVersion';
-import type { ClusterNote } from '../../../types';
+import { useI18n } from '../../hooks/useI18n';
+import { normalizeAudit } from '../../utils/audit';
+import { getErrorDetail } from '../../utils/errorParser';
+import { notifyVersionConflict } from '../../utils/docVersion';
+import type { Note } from '../../types';
+import type { NotesAdapter } from './types';
 
 interface NoteItemProps {
-  note: ClusterNote;
-  clusterId: string;
+  note: Note;
+  ownerId: string;
+  adapter: NotesAdapter;
   canManage: boolean;
-  onChanged: (note: ClusterNote) => void;
+  onChanged: (note: Note) => void;
   onDeleted: (id: string) => void;
-  onOpenHistory: (note: ClusterNote) => void;
+  onOpenHistory: (note: Note) => void;
   /** 409 = doc_version ชนหรือ state ไม่ตรง (เช่นถูกลบไปแล้ว) — ผู้เรียกโหลดรายการใหม่เพื่อให้เห็นสถานะจริง */
   onConflict: () => void;
 }
@@ -37,7 +38,7 @@ const statusOf = (err: unknown): number | undefined =>
   (err as { response?: { status?: number } })?.response?.status;
 
 /** โน้ตหนึ่งรายการในไทม์ไลน์ — แก้ข้อความ inline / ลบ ได้เมื่อ `canManage` */
-export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onOpenHistory, onConflict }: NoteItemProps) {
+export function NoteItem({ note, ownerId, adapter, canManage, onChanged, onDeleted, onOpenHistory, onConflict }: NoteItemProps) {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note.message ?? '');
@@ -86,7 +87,7 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
     if (!canSaveEdit) return;
     setSaving(true);
     try {
-      const updated = await clusterNoteService.update(clusterId, note.id, {
+      const updated = await adapter.update(ownerId, note.id, {
         ...(draft !== (note.message ?? '') ? { message: draft.trim() } : {}),
         files: picked,
         remove: removed,
@@ -110,7 +111,7 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
 
   const handleDelete = async () => {
     try {
-      await clusterNoteService.remove(clusterId, note.id);
+      await adapter.remove(ownerId, note.id);
       setConfirmDelete(false);
       toast.success(t('pages.clusterNotes.deleted'));
       onDeleted(note.id);
@@ -226,7 +227,7 @@ export function NoteItem({ note, clusterId, canManage, onChanged, onDeleted, onO
             <li key={a.fileToken}>
               <button
                 type="button"
-                onClick={() => void openNoteFile(clusterId, a.fileToken, t)}
+                onClick={() => void openNoteFile(adapter, ownerId, a.fileToken, t)}
                 className="flex max-w-full items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 text-xs hover:bg-muted"
               >
                 <NoteFileIcon fileName={a.fileName} contentType={a.contentType} />

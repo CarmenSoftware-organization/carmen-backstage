@@ -2,22 +2,23 @@ import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Paperclip, Send, X } from 'lucide-react';
 import { NoteFileIcon } from './NoteFileIcon';
-import { Button } from '../../../components/ui/button';
-import { Textarea } from '../../../components/ui/textarea';
-import clusterNoteService from '../../../services/clusterNoteService';
-import { useUnsavedChanges } from '../../../hooks/useUnsavedChanges';
-import { useI18n } from '../../../hooks/useI18n';
-import { getErrorDetail } from '../../../utils/errorParser';
-import type { ClusterNote } from '../../../types';
+import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
+import { useI18n } from '../../hooks/useI18n';
+import { getErrorDetail } from '../../utils/errorParser';
+import type { Note } from '../../types';
 import { NOTE_ACCEPT, NOTE_MAX_FILES, validatePickedFiles } from './attachmentRules';
+import type { NotesAdapter } from './types';
 
 interface NoteComposerProps {
-  clusterId: string;
-  onCreated: (note: ClusterNote) => void;
+  ownerId: string;
+  adapter: NotesAdapter;
+  onCreated: (note: Note) => void;
 }
 
 /** ช่องเขียนโน้ตใหม่ + แนบไฟล์ (ตรวจ 10 MB / 5 ไฟล์ ฝั่ง client ก่อนส่ง) */
-export function NoteComposer({ clusterId, onCreated }: NoteComposerProps) {
+export function NoteComposer({ ownerId, adapter, onCreated }: NoteComposerProps) {
   const { t } = useI18n();
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -42,7 +43,7 @@ export function NoteComposer({ clusterId, onCreated }: NoteComposerProps) {
     if (!canSave) return;
     setSaving(true);
     try {
-      const note = await clusterNoteService.create(clusterId, { message: text.trim(), files });
+      const note = await adapter.create(ownerId, { message: text.trim(), files });
       setText('');
       setFiles([]);
       toast.success(t('pages.clusterNotes.created'));

@@ -1,20 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import clusterNoteService from '../../../services/clusterNoteService';
-import { getErrorDetail } from '../../../utils/errorParser';
-import { useI18n } from '../../../hooks/useI18n';
-import type { ClusterNote } from '../../../types';
+import { getErrorDetail } from '../../utils/errorParser';
+import { useI18n } from '../../hooks/useI18n';
+import type { Note } from '../../types';
+import type { NotesAdapter } from './types';
 
 export const NOTES_PER_PAGE = 20;
 
 /**
- * รายการโน้ตของ cluster — โหลดหน้าแรกเมื่อ mount / เปลี่ยน cluster / สลับ `deleted`
+ * รายการโน้ตของ owner (cluster / BU) — โหลดหน้าแรกเมื่อ mount / เปลี่ยน owner / สลับ `deleted`
  * แล้ว `loadMore` ต่อท้ายทีละหน้า (20) ใช้ generation counter กัน response เก่าทับใหม่
  * (agent-os/standards/hooks/fetch-race-guards.md) — `refetch` ทำให้ `loadMore` ที่ค้างอยู่ถูกทิ้งด้วย
  */
-export function useClusterNotes(clusterId: string | undefined, { deleted = false }: { deleted?: boolean } = {}) {
+export function useNotes(
+  adapter: NotesAdapter,
+  ownerId: string | undefined,
+  { deleted = false }: { deleted?: boolean } = {},
+) {
   const { t } = useI18n();
-  const [notes, setNotes] = useState<ClusterNote[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [total, setTotal] = useState(0);
   const [deletedCount, setDeletedCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -24,11 +28,11 @@ export function useClusterNotes(clusterId: string | undefined, { deleted = false
 
   const fetchPage = useCallback(
     async (nextPage: number, append: boolean) => {
-      if (!clusterId) return;
+      if (!ownerId) return;
       const generation = ++generationRef.current;
       setLoading(true);
       try {
-        const res = await clusterNoteService.list(clusterId, { page: nextPage, perpage: NOTES_PER_PAGE, deleted });
+        const res = await adapter.list(ownerId, { page: nextPage, perpage: NOTES_PER_PAGE, deleted });
         if (generation !== generationRef.current) return;
         const items = Array.isArray(res.data) ? res.data : [];
         setNotes((prev) => (append ? [...prev, ...items.filter((n) => !prev.some((p) => p.id === n.id))] : items));
@@ -44,7 +48,7 @@ export function useClusterNotes(clusterId: string | undefined, { deleted = false
         if (generation === generationRef.current) setLoading(false);
       }
     },
-    [clusterId, deleted, t],
+    [adapter, ownerId, deleted, t],
   );
 
   useEffect(() => {
@@ -63,7 +67,7 @@ export function useClusterNotes(clusterId: string | undefined, { deleted = false
   const loadMore = useCallback(() => fetchPage(pageRef.current + 1, true), [fetchPage]);
   const refetch = useCallback(() => fetchPage(1, false), [fetchPage]);
 
-  const replaceNote = useCallback((note: ClusterNote) => {
+  const replaceNote = useCallback((note: Note) => {
     setNotes((prev) => prev.map((n) => (n.id === note.id ? note : n)));
   }, []);
 
@@ -73,7 +77,7 @@ export function useClusterNotes(clusterId: string | undefined, { deleted = false
   }, []);
 
   /** โน้ตใหม่ขึ้นบนสุด */
-  const prependNote = useCallback((note: ClusterNote) => {
+  const prependNote = useCallback((note: Note) => {
     setNotes((prev) => [note, ...prev.filter((n) => n.id !== note.id)]);
     setTotal((prev) => prev + 1);
   }, []);
