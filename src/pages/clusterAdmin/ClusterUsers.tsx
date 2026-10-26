@@ -9,11 +9,12 @@ import InvitationsTable from './InvitationsTable';
 import InviteUserDialog from './InviteUserDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { TabStrip, type TabStripItem } from '../../components/TabStrip';
 import { SearchInput } from '../../components/SearchInput';
 import { DevDebugSheet } from '../../components/ui/dev-debug-sheet';
 import { SeatOverQuotaBanner } from '../../components/clusterSeat/SeatOverQuotaBanner';
+import { SeatMeter } from './businessUnitForm/SeatMeter';
 import { useAuth } from '../../context/AuthContext';
 import { toSeatPool } from '../../utils/seatPool';
 import clusterService from '../../services/clusterService';
@@ -128,6 +129,9 @@ const ClusterUsers: React.FC = () => {
     setTab('invitations');
   };
 
+  const seatPool = cluster ? toSeatPool(cluster.users_count, cluster.total_max_license_users) : null;
+  const seatOver = seatPool ? Math.max(0, seatPool.used - seatPool.cap) : 0;
+
   const USER_TABS = useMemo<TabStripItem<'members' | 'invitations'>[]>(() => [
     { id: 'members', label: t('pages.clusterAdmin.membersTab'), count: members.length },
     { id: 'invitations', label: t('pages.clusterAdmin.invitationsTab'), count: invitations.length },
@@ -151,6 +155,34 @@ const ClusterUsers: React.FC = () => {
           <ClusterAccessLost />
         ) : (
           <>
+            {/* The pool sits above the tabs: it is what every row's seat draws down, and over the
+                cap the whole cluster goes read-only — not something to find only on one tab. */}
+            {seatPool && (
+              <Card className="sm:p-6">
+                <SeatMeter
+                  used={seatPool.used}
+                  cap={seatPool.cap}
+                  licensesTo={`/cluster-admin/${clusterId}/licenses`}
+                  // Over the cap the banner below names the fix on this page (release seats);
+                  // SeatMeter's own line would say "deactivate users", which this page does not do.
+                  note={
+                    seatOver > 0
+                      ? t(seatOver === 1 ? 'pages.clusterAdmin.seatsBeyondLicensedOne' : 'pages.clusterAdmin.seatsBeyondLicensedMany', { count: seatOver })
+                      : undefined
+                  }
+                />
+                <SeatOverQuotaBanner
+                  used={seatPool.used}
+                  cap={seatPool.cap}
+                  listedHolders={
+                    members.some((m) => m.seat !== undefined)
+                      ? members.filter((m) => m.seat?.holds).length
+                      : undefined
+                  }
+                />
+              </Card>
+            )}
+
             <TabStrip
               tabs={USER_TABS}
               value={tab}
@@ -160,27 +192,15 @@ const ClusterUsers: React.FC = () => {
 
             {tab === 'members' ? (
               <Card>
-                <CardHeader>
-                  <SearchInput
-                    value={memberSearch}
-                    onValueChange={setMemberSearch}
-                    placeholder={t('pages.clusterAdmin.searchMembersPlaceholder')}
-                    className="sm:max-w-sm"
-                  />
-                </CardHeader>
                 <CardContent>
-                  {cluster && (
-                    <SeatOverQuotaBanner
-                      used={toSeatPool(cluster.users_count, cluster.total_max_license_users).used}
-                      cap={toSeatPool(cluster.users_count, cluster.total_max_license_users).cap}
-                      listedHolders={
-                        members.some((m) => m.seat !== undefined)
-                          ? members.filter((m) => m.seat?.holds).length
-                          : undefined
-                      }
-                    />
-                  )}
                   <MembersTable
+                    search={
+                      <SearchInput
+                        value={memberSearch}
+                        onValueChange={setMemberSearch}
+                        placeholder={t('pages.clusterAdmin.searchMembersPlaceholder')}
+                      />
+                    }
                     members={members}
                     loading={loading}
                     searchTerm={memberSearch}

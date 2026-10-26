@@ -2452,6 +2452,8 @@ export const en = {
       membersTab: 'Members',
       invitationsTab: 'Invitations',
       searchMembersPlaceholder: 'Search members...',
+      seatFilterAll: 'All members',
+      seatFilterAria: 'Filter members by seat',
 
       // --- Task 3: ClusterPeopleCard.tsx ---
       viewAllClusterUsers: 'View all cluster users',

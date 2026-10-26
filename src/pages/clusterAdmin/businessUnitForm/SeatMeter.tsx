@@ -11,6 +11,11 @@ interface SeatMeterProps {
   cap: number;
   /** License Center ของ cluster นี้ — ทางออกเดียวเมื่อที่นั่งตึง */
   licensesTo: string;
+  /**
+   * แทนบรรทัด "แล้วยังไงต่อ" ที่คำนวณเอง — หน้า Users ของ cluster admin ใช้เมื่อเกินเพดาน เพราะ
+   * ทางแก้ที่นั่นคือคืนที่นั่ง (มี banner บอกอยู่ใต้แถบ) ไม่ใช่ deactivate user อย่างที่หน้า BU บอก
+   */
+  note?: string;
 }
 
 /**
@@ -28,7 +33,7 @@ interface SeatMeterProps {
  * แถบเป็นของแถม ตัวเลขเป็นตัวหลัก: AllocationTicks เป็น role="img" มี label ของตัวเอง
  * ส่วนบรรทัดตัวเลขเป็น role="status" คนที่อ่านด้วย screen reader จึงได้ข้อมูลเท่ากันทุกอย่าง
  */
-export function SeatMeter({ used, cap, licensesTo }: SeatMeterProps) {
+export function SeatMeter({ used, cap, licensesTo, note: noteOverride }: SeatMeterProps) {
   const { t } = useI18n();
   const u = seatUtilization(used, cap);
   const overBy = Math.max(0, u.used - u.cap);
@@ -38,7 +43,7 @@ export function SeatMeter({ used, cap, licensesTo }: SeatMeterProps) {
   // สิ่งที่ cluster admin ต้องทำต่อในแต่ละสถานะ ไม่ใช่คำบรรยายว่าแถบยาวเท่าไร —
   // ตัวเลขข้างบนบอกไปแล้ว บรรทัดนี้จึงเป็นของ "แล้วยังไงต่อ" อย่างเดียว
   const note =
-    overBy > 0
+    noteOverride ?? (overBy > 0
       ? t(overBy === 1 ? 'pages.clusterAdmin.overBySeatsOne' : 'pages.clusterAdmin.overBySeatsMany', { overBy })
       : u.level === 'over'
         ? t('pages.clusterAdmin.atCapacityDeactivateUser')
@@ -48,7 +53,7 @@ export function SeatMeter({ used, cap, licensesTo }: SeatMeterProps) {
             ? // 90% ขึ้นไปแต่ยังไม่เต็ม — เตือนล่วงหน้าเพื่อให้ซื้อที่นั่งเพิ่มทันก่อนจะเขียนอะไร
               // ไม่ได้ทั้ง cluster ลิงก์ View licenses ด้านล่างขึ้นเองแล้วเพราะ pressured เป็นจริง
               t(seatsLeft === 1 ? 'pages.clusterAdmin.nearingCapacitySeatOne' : 'pages.clusterAdmin.nearingCapacitySeatMany', { seatsLeft })
-            : t(seatsLeft === 1 ? 'pages.clusterAdmin.seatsOpenOne' : 'pages.clusterAdmin.seatsOpenMany', { seatsLeft });
+            : t(seatsLeft === 1 ? 'pages.clusterAdmin.seatsOpenOne' : 'pages.clusterAdmin.seatsOpenMany', { seatsLeft }));
 
   return (
     <div className="sm:min-w-56">
