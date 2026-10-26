@@ -94,7 +94,7 @@ describe('SubscriptionCard — has data', () => {
     expect(screen.getByText(/Expires 2026-12-31/)).toBeInTheDocument();
     expect(screen.getByText(/3 features/)).toBeInTheDocument();
     // ป้าย BU แทนตัวนับ — หนึ่งใบผูก BU เดียว ตัวนับจึงเป็น 1 ตลอดกาลและไม่บอกอะไร
-    expect(screen.getByText('BU1')).toBeInTheDocument();
+    expect(screen.getByText('Acme BU')).toBeInTheDocument();
     expect(screen.getByText(/8\/20 seats/)).toBeInTheDocument();
   });
 
