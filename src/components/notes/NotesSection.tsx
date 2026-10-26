@@ -12,6 +12,7 @@ import { DeletedNotesList } from './DeletedNotesList';
 import { NoteHistorySheet } from './NoteHistorySheet';
 import { useNotes } from './useNotes';
 import type { Note } from '../../types';
+import type { TKey } from '../../i18n/types';
 import type { NotesAdapter, NotesPermissionKeys } from './types';
 
 interface NotesSectionProps {
@@ -22,10 +23,12 @@ interface NotesSectionProps {
   permissions: NotesPermissionKeys;
   /** ให้ ClusterEdit โชว์จำนวนบน tab (รู้ค่าหลังเปิด tab ครั้งแรก) */
   onTotalChange?: (total: number) => void;
+  /** i18n key ของคำอธิบายสถานะว่าง — default คือข้อความของ cluster */
+  emptyDescriptionKey?: TKey;
 }
 
 /** tab "Notes" — ไทม์ไลน์ (ซ้าย) + แผงไฟล์ (ขวา; stack ด้านบนต่ำกว่า lg) */
-export function NotesSection({ ownerId, scopeClusterId, adapter, permissions, onTotalChange }: NotesSectionProps) {
+export function NotesSection({ ownerId, scopeClusterId, adapter, permissions, onTotalChange, emptyDescriptionKey = 'pages.clusterNotes.emptyDescription' }: NotesSectionProps) {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
   const canManage =
@@ -103,7 +106,7 @@ export function NotesSection({ ownerId, scopeClusterId, adapter, permissions, on
           <EmptyState
             icon={StickyNote}
             title={t('pages.clusterNotes.emptyTitle')}
-            description={t('pages.clusterNotes.emptyDescription')}
+            description={t(emptyDescriptionKey)}
           />
         ) : (
           <ul className="divide-y">

@@ -34,6 +34,8 @@ import { ATTACHMENT_KEYS, ATTACHMENT_MAX_MB, isAttachmentKey } from '../constant
 import { useBusinessUnitUsers } from './businessUnitEdit/useBusinessUnitUsers';
 import businessUnitLicenseService from '../services/businessUnitLicenseService';
 import businessUnitInterfaceLicenseService from '../services/businessUnitInterfaceLicenseService';
+import businessUnitNoteService from '../services/businessUnitNoteService';
+import { NotesSection } from '../components/notes/NotesSection';
 import { useLicenseLedger } from './licenses/useLicenseLedger';
 import { sumActiveLicenses, licenseStatus } from '../utils/buLicense';
 import BusinessUnitBrandingCard from './businessUnitEdit/BusinessUnitBrandingCard';
@@ -45,6 +47,8 @@ import BusinessUnitDebugSheet from './businessUnitEdit/BusinessUnitDebugSheet';
 import BusinessUnitDocument from './businessUnitEdit/BusinessUnitDocument';
 import { HeroName } from './businessUnitEdit/HeroName';
 import { isBuTabId, tabsWithErrors, type BuTab, type BuTabId } from './businessUnitEdit/BusinessUnitTabs';
+
+const BU_NOTE_PERMISSIONS = { view: 'bu_note.view', manage: 'bu_note.manage' } as const;
 
 const BusinessUnitEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -88,6 +92,27 @@ const BusinessUnitEdit: React.FC = () => {
     const fromUrl = searchParams.get('tab');
     return isBuTabId(fromUrl) ? fromUrl : 'general';
   });
+
+  // Staff-only notes. Tab and slot wait for the BU (with its cluster_id) to load so the
+  // permission is checked against the real cluster and nothing flickers in afterwards.
+  const canViewNotes =
+    !isNew && !!formData.cluster_id && hasPermission(BU_NOTE_PERMISSIONS.view, { clusterId: formData.cluster_id });
+  const [notesTotal, setNotesTotal] = useState<number | undefined>(undefined);
+  // Seed the tab count before the Notes tab is ever opened with a 1-row list (only
+  // paginate.total is read); NotesSection keeps it fresh via onTotalChange afterwards.
+  useEffect(() => {
+    if (!canViewNotes || !id) return;
+    let cancelled = false;
+    businessUnitNoteService
+      .list(id, { page: 1, perpage: 1 })
+      .then((res) => {
+        if (!cancelled && res.paginate?.total != null) setNotesTotal(res.paginate.total);
+      })
+      .catch((err) => devLog('Failed to load notes count:', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [id, canViewNotes]);
 
   const users = useBusinessUnitUsers(id, formData.cluster_id, isNew);
   const licenses = useLicenseLedger<BusinessUnitLicense>(id, businessUnitLicenseService);
@@ -155,12 +180,22 @@ const BusinessUnitEdit: React.FC = () => {
         count: licenses.licenses.length + interfaceLicenses.licenses.length,
       });
     }
+    if (canViewNotes) {
+      base.push({ id: 'notes', label: t('pages.businessUnits.notesTab'), count: notesTotal });
+    }
     // Renamed from the pre-existing `(t) =>` — now that `t` is this component's translator,
     // reusing the name here would shadow it.
     return base.map((tab) => ({ ...tab, hasError: errored.includes(tab.id) }));
   })();
   // A ?tab=users deep link on the create form would otherwise render an empty page.
   const currentTab: BuTabId = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'general';
+
+  // Notes stays mounted once opened (hidden, not unmounted) so an unsent draft survives a tab
+  // switch; lazy so page load does not fetch the list a second time.
+  const [notesOpened, setNotesOpened] = useState(false);
+  useEffect(() => {
+    if (currentTab === 'notes') setNotesOpened(true);
+  }, [currentTab]);
 
   const handleTabChange = (tab: BuTabId) => {
     setActiveTab(tab);
@@ -810,6 +845,22 @@ const BusinessUnitEdit: React.FC = () => {
                   />
                 )}
               </>
+            ) : null
+          }
+          notesSlot={
+            canViewNotes && (currentTab === 'notes' || notesOpened) ? (
+              <div hidden={currentTab !== 'notes'}>
+                <Card className="p-0">
+                  <NotesSection
+                    ownerId={id!}
+                    scopeClusterId={formData.cluster_id}
+                    adapter={businessUnitNoteService}
+                    permissions={BU_NOTE_PERMISSIONS}
+                    onTotalChange={setNotesTotal}
+                    emptyDescriptionKey="pages.clusterNotes.buEmptyDescription"
+                  />
+                </Card>
+              </div>
             ) : null
           }
           usersSlot={!isNew ? <BusinessUnitUsersCard users={users} canEdit={canEdit} /> : null}
