@@ -455,9 +455,9 @@ const ClusterManagement: React.FC = () => {
       // ดูเหตุผลที่ต้องมี accessor ในคอลัมน์ bu_count ด้านบน
       accessorFn: (row) => row.users_count,
       header: t('nav.users'),
-      // `total_max_license_users` = backend aggregate of per-BU caps; 0 / null / absent = no cap.
+      // `total_max_license_users` = backend aggregate of per-BU caps; 0 / null / absent = 0 seats.
       cell: ({ row }) => (
-        <CapacityMeter used={row.original.users_count} cap={row.original.total_max_license_users} />
+        <CapacityMeter used={row.original.users_count} cap={row.original.total_max_license_users} finite />
       ),
       // เรียงตามจำนวนผู้ถือที่นั่งจริง (`users_count`) ด้วยนิยามเดียวกับที่ตัวเลขในช่องใช้ —
       // backend อ่านจาก `clusterHeadsSubquery()` ตัวเดียวกับ `countClusterHeads`

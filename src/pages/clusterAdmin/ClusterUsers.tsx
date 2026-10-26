@@ -13,11 +13,14 @@ import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import { TabStrip, type TabStripItem } from '../../components/TabStrip';
 import { SearchInput } from '../../components/SearchInput';
 import { DevDebugSheet } from '../../components/ui/dev-debug-sheet';
+import { SeatOverQuotaBanner } from '../../components/clusterSeat/SeatOverQuotaBanner';
+import { useAuth } from '../../context/AuthContext';
+import { toSeatPool } from '../../utils/seatPool';
 import clusterService from '../../services/clusterService';
 import clusterAdminService from '../../services/clusterAdminService';
-import { parseApiError } from '../../utils/errorParser';
+import { devLog, parseApiError } from '../../utils/errorParser';
 import { useI18n } from '../../hooks/useI18n';
-import type { ClusterInvitation, ClusterUser } from '../../types';
+import type { Cluster, ClusterInvitation, ClusterUser } from '../../types';
 
 /**
  * Cluster membership + invitations, scoped to a single administered cluster (the URL's
@@ -28,6 +31,8 @@ import type { ClusterInvitation, ClusterUser } from '../../types';
 const ClusterUsers: React.FC = () => {
   const { t } = useI18n();
   const { clusterId } = useParams<{ clusterId: string }>();
+  const { user: authUser } = useAuth();
+  const [cluster, setCluster] = useState<Cluster | null>(null);
   const [tab, setTab] = useState<'members' | 'invitations'>('members');
   const [members, setMembers] = useState<ClusterUser[]>([]);
   const [memberSearch, setMemberSearch] = useState('');
@@ -64,6 +69,25 @@ const ClusterUsers: React.FC = () => {
     }
   }, [clusterId, t]);
 
+  // Seat pool (users_count / cap) comes from the cluster detail. A failure leaves the banner
+  // hidden rather than toasting: the members fetch owns the 403 / access-lost handling.
+  const fetchCluster = useCallback(async () => {
+    if (!clusterId) return;
+    try {
+      const res = await clusterService.getById(clusterId);
+      const data = (res?.data ?? res) as Cluster;
+      setCluster(data?.id ? data : null);
+    } catch (err: unknown) {
+      devLog('Failed to load cluster:', err);
+      setCluster(null);
+    }
+  }, [clusterId]);
+
+  const handleSeatChanged = useCallback(() => {
+    void fetchMembers();
+    void fetchCluster();
+  }, [fetchMembers, fetchCluster]);
+
   const fetchInvitations = useCallback(async () => {
     if (!clusterId) return;
     setInvitationsLoading(true);
@@ -89,8 +113,9 @@ const ClusterUsers: React.FC = () => {
 
   useEffect(() => {
     fetchMembers();
+    fetchCluster();
     fetchInvitations();
-  }, [fetchMembers, fetchInvitations]);
+  }, [fetchMembers, fetchCluster, fetchInvitations]);
 
   const handleAlreadyMember = (email: string) => {
     setTab('members');
@@ -144,11 +169,25 @@ const ClusterUsers: React.FC = () => {
                   />
                 </CardHeader>
                 <CardContent>
+                  {cluster && (
+                    <SeatOverQuotaBanner
+                      used={toSeatPool(cluster.users_count, cluster.total_max_license_users).used}
+                      cap={toSeatPool(cluster.users_count, cluster.total_max_license_users).cap}
+                      listedHolders={
+                        members.some((m) => m.seat !== undefined)
+                          ? members.filter((m) => m.seat?.holds).length
+                          : undefined
+                      }
+                    />
+                  )}
                   <MembersTable
                     members={members}
                     loading={loading}
                     searchTerm={memberSearch}
-                    onChanged={fetchMembers}
+                    onChanged={handleSeatChanged}
+                    clusterId={clusterId ?? ''}
+                    currentUserId={authUser?.id}
+                    onSeatChanged={handleSeatChanged}
                   />
                 </CardContent>
               </Card>

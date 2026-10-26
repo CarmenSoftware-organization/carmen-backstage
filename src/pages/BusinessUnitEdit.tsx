@@ -46,6 +46,7 @@ import { useBusinessUnitSubscriptions } from './businessUnitEdit/useBusinessUnit
 import BusinessUnitDebugSheet from './businessUnitEdit/BusinessUnitDebugSheet';
 import BusinessUnitDocument from './businessUnitEdit/BusinessUnitDocument';
 import { HeroName } from './businessUnitEdit/HeroName';
+import { toSeatPool } from '../utils/seatPool';
 import { isBuTabId, tabsWithErrors, type BuTab, type BuTabId } from './businessUnitEdit/BusinessUnitTabs';
 
 const BU_NOTE_PERMISSIONS = { view: 'bu_note.view', manage: 'bu_note.manage' } as const;
@@ -127,11 +128,11 @@ const BusinessUnitEdit: React.FC = () => {
   const activeLicenseCount = licenses.licenses.filter((l) => licenseStatus(l) === 'active').length;
 
   // Seat pool is the cluster's, not this BU's — `total_max_license_users` is a backend
-  // aggregate across every BU in the cluster. Treat 0/null/absent as uncapped (no meter),
-  // same convention as ClusterManagement's CapacityMeter — never show a false "0 / 0".
+  // aggregate across every BU in the cluster. 0/null/absent = 0 seats (never "unlimited"),
+  // so a cluster with members and no seat licence reads "n / 0" and over-quota.
   const currentCluster = clusters.find((c) => c.id === formData.cluster_id);
-  const clusterSeat = currentCluster?.total_max_license_users
-    ? { used: currentCluster.users_count ?? 0, cap: currentCluster.total_max_license_users }
+  const clusterSeat = currentCluster
+    ? toSeatPool(currentCluster.users_count, currentCluster.total_max_license_users)
     : undefined;
 
   // จริงเมื่อ "เคยตั้งค่าไว้แล้ว" และกำลังเปลี่ยนไปเป็นค่าอื่น — BU ใหม่หรือ BU ที่ยังไม่เคย

@@ -13,13 +13,8 @@ const MAX_TICKS = 40;
 
 export interface AllocationTicksProps {
   used: number;
-  /**
-   * `null` = uncapped — the seat pool's rule (`total_max_license_users` treats 0/null as "no
-   * cap"; see `utilization()` in utils/capacity). There is no finite set of licences to draw,
-   * so an uncapped pool renders the empty track rather than a misleadingly full one. Business-
-   * unit quota never passes null: its 0 is a real zero.
-   */
-  cap: number | null;
+  /** Always a finite integer — 0 is a real zero (no licences), for BU quota and seats alike. */
+  cap: number;
   level: CapLevel;
   /** Describes the whole strip. Individual ticks carry no meaning on their own. */
   label: string;
@@ -54,15 +49,11 @@ export function AllocationTicks({
   className,
   fillClassName,
 }: AllocationTicksProps) {
-  // An uncapped pool has no boundary, so there is no allocation to draw. An empty track here
-  // would be a picture of nothing that reads exactly like a capped pool sitting at 0%.
-  if (cap == null) return null;
-
   const total = Math.max(cap, used);
   const segmented = total > 0 && total <= MAX_TICKS;
 
   if (!segmented) {
-    // cap === 0 is a real zero, not an absent cap — the track stays, empty, to say so.
+    // cap === 0 is a real zero — the track stays, empty, to say so.
     const ratio = cap > 0 ? Math.min(1, used / cap) : 0;
     return (
       <div

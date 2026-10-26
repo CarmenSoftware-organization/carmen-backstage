@@ -25,10 +25,9 @@ interface CapacityMeterProps {
   cap?: number | null;
   /**
    * true = cap เป็นจำนวนเต็มเสมอ 0 คือศูนย์จริง ไม่ใช่ "ไม่จำกัด" (มิติโควตา BU ซึ่งมาจากใบซื้อ)
-   * ค่าเริ่มต้น false รักษาพฤติกรรมเดิมไว้ให้มิติผู้ใช้ ที่ null ยังแปลว่าไม่จำกัดจริง ๆ
-   * true = the cap is always a finite integer and 0 means zero, never "unlimited" (the BU-quota
-   * dimension, which comes from purchased licences). Default false keeps the old behaviour for the
-   * user dimension, where null really does mean uncapped.
+   * ทั้งมิติโควตา BU และมิติที่นั่งผู้ใช้ต้องส่ง `finite` ค่าเริ่มต้น false คงไว้เป็นพฤติกรรมเดิมเท่านั้น
+   * true = the cap is always a finite integer and 0 means zero, never "unlimited" — pass it for
+   * both the BU-quota and the seat dimensions. Default false is the legacy null = uncapped path.
    */
   finite?: boolean;
 }

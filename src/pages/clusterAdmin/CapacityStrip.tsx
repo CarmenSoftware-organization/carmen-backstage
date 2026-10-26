@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/card';
 import { cn } from '../../lib/utils';
 import { AllocationTicks } from './AllocationTicks';
 import { GAUGE_TEXT } from '../clusterManagement/CapacityGauge';
-import { seatUtilization, utilization, type CapLevel } from '../../utils/capacity';
+import { seatUtilization, type CapLevel } from '../../utils/capacity';
 import { isPerpetual } from '../../utils/clusterLicense';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -19,7 +19,7 @@ interface PoolProps {
   icon: LucideIcon;
   label: string;
   used: number;
-  cap: number | null;
+  cap: number;
   level: CapLevel;
   note: string;
   /** Rendered only when the pool is at or over its cap — the point where the admin needs a route out.
@@ -45,9 +45,7 @@ function Pool({ icon: Icon, label, used, cap, level, note, licensesTo }: PoolPro
           {used.toLocaleString()}
         </span>
         <span className="text-muted-foreground text-sm">
-          {cap == null
-            ? t('pages.clusterAdmin.noCapSuffix')
-            : t('pages.clusterAdmin.capLicensedSuffix', { cap: cap.toLocaleString() })}
+          {t('pages.clusterAdmin.capLicensedSuffix', { cap: cap.toLocaleString() })}
         </span>
       </div>
 
@@ -56,11 +54,7 @@ function Pool({ icon: Icon, label, used, cap, level, note, licensesTo }: PoolPro
         used={used}
         cap={cap}
         level={level}
-        label={
-          cap == null
-            ? t('pages.clusterAdmin.poolAriaNoCap', { label, used })
-            : t('pages.clusterAdmin.poolAriaWithCap', { label, used, cap })
-        }
+        label={t('pages.clusterAdmin.poolAriaWithCap', { label, used, cap })}
       />
 
       <p className="text-muted-foreground mt-2 text-xs">{note}</p>
@@ -81,8 +75,8 @@ function Pool({ icon: Icon, label, used, cap, level, note, licensesTo }: PoolPro
 export interface CapacityStripProps {
   /** Business-unit quota. `cap` is always a finite integer — 0 means zero, never unlimited. */
   bu: { used: number; cap: number; endDate: string | null };
-  /** Seat pool. `cap` of null means genuinely uncapped, per `total_max_license_users`. */
-  seats: { used: number; cap: number | null };
+  /** Seat pool. `cap` is always a finite integer — 0 means zero seats, never unlimited. */
+  seats: { used: number; cap: number };
   /** ปล่อยว่างได้เมื่อหน้าที่วางแถบนี้คือหน้า licences เอง — ลิงก์ไปตัวเองไม่ได้พาไปไหน */
   licensesTo?: string;
 }
@@ -98,15 +92,14 @@ export interface CapacityStripProps {
  */
 export function CapacityStrip({ bu, seats, licensesTo }: CapacityStripProps) {
   const { t } = useI18n();
-  // Two different rules on purpose: BU quota comes from dated purchase rows where 0 is zero,
-  // seats from a nullable cap where absent means unlimited. See utils/capacity.
+  // Both pools are finite: 0 is zero, never unlimited. See utils/capacity.
   const buU = seatUtilization(bu.used, bu.cap);
-  const seatU = utilization(seats.used, seats.cap);
+  const seatU = seatUtilization(seats.used, seats.cap);
 
   const buFree = Math.max(0, buU.cap - buU.used);
   const buOver = Math.max(0, buU.used - buU.cap);
-  const seatFree = seatU.cap == null ? null : Math.max(0, seatU.cap - seatU.used);
-  const seatOver = seatU.cap == null ? 0 : Math.max(0, seatU.used - seatU.cap);
+  const seatFree = Math.max(0, seatU.cap - seatU.used);
+  const seatOver = Math.max(0, seatU.used - seatU.cap);
 
   // A cluster admin cannot create business units at all (the Business Units page offers only
   // Export), so a full quota is a licence position to act on, not a blocked button. Only real
@@ -126,13 +119,11 @@ export function CapacityStrip({ bu, seats, licensesTo }: CapacityStripProps) {
     bu.endDate != null && !isPerpetual(bu.endDate) ? t('pages.clusterAdmin.expiresOn', { date: fmtDate(bu.endDate) }) : null;
 
   const seatNote =
-    seatU.cap == null
-      ? t('pages.clusterAdmin.noSeatCapSet')
-      : seatOver > 0
-        ? t(seatOver === 1 ? 'pages.clusterAdmin.seatsBeyondLicensedOne' : 'pages.clusterAdmin.seatsBeyondLicensedMany', { count: seatOver })
-        : seatFree === 0
-          ? t('pages.clusterAdmin.noSeatsOpen')
-          : t(seatFree === 1 ? 'pages.clusterAdmin.seatsOpenOne' : 'pages.clusterAdmin.seatsOpenMany', { seatsLeft: seatFree ?? 0 });
+    seatOver > 0
+      ? t(seatOver === 1 ? 'pages.clusterAdmin.seatsBeyondLicensedOne' : 'pages.clusterAdmin.seatsBeyondLicensedMany', { count: seatOver })
+      : seatFree === 0
+        ? t('pages.clusterAdmin.noSeatsOpen')
+        : t(seatFree === 1 ? 'pages.clusterAdmin.seatsOpenOne' : 'pages.clusterAdmin.seatsOpenMany', { seatsLeft: seatFree });
 
   const underPressure = (level: CapLevel) => level === 'warn' || level === 'over';
 

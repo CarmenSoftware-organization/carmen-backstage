@@ -18,9 +18,18 @@ import { SortableTableHead } from '../../../components/SortableTableHead';
 import { cycleSort, sortRows, type SortState } from '../../../utils/tableSort';
 import { HIT_SLOP_44 } from '../../../lib/hitSlop';
 import type { ClusterUser } from '../../../types';
+import { SeatCell } from '../../../components/clusterSeat/SeatCell';
+import { SeatActions } from '../../../components/clusterSeat/SeatActions';
+import { SeatOverQuotaBanner } from '../../../components/clusterSeat/SeatOverQuotaBanner';
 import { useI18n } from '../../../hooks/useI18n';
 
 export interface UsersSectionProps {
+  clusterId: string;
+  /** The signed-in user's id — SeatActions warns on self-release. */
+  currentUserId?: string;
+  seatPool: { used: number; cap: number };
+  /** Called after a release/restore: refetch members and the cluster meta. */
+  onSeatChanged: () => void;
   users: ClusterUser[];
   loading: boolean;
   canEdit: boolean;
@@ -49,6 +58,7 @@ const sortAccessor = (u: ClusterUser, key: string): unknown => {
 };
 
 export function UsersSection({
+  clusterId, currentUserId, seatPool, onSeatChanged,
   users, loading, canEdit,
   onRefresh, onAddUser, onUpdateUser, onRemoveUser, onBulkRemove,
 }: UsersSectionProps) {
@@ -56,10 +66,15 @@ export function UsersSection({
   const [search, setSearch] = useState('');
   const [activeOnly, setActiveOnly] = useState(false);
   const [inactiveOnly, setInactiveOnly] = useState(false);
+  const [seatHoldersOnly, setSeatHoldersOnly] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmBulkRemove, setConfirmBulkRemove] = useState(false);
   const [confirmRemoveOne, setConfirmRemoveOne] = useState<ClusterUser | null>(null);
   const [sort, setSort] = useState<SortState | null>(null);
+
+  // Old backends send no `seat`; then the column and filter would only ever show "No seat".
+  const hasSeatData = useMemo(() => users.some((u) => u.seat !== undefined), [users]);
+  const listedHolders = useMemo(() => users.filter((u) => u.seat?.holds).length, [users]);
 
   const rows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -71,10 +86,11 @@ export function UsersSection({
       const active = u.is_active !== false;
       if (activeOnly && !active) return false;
       if (inactiveOnly && active) return false;
+      if (hasSeatData && seatHoldersOnly && !u.seat?.holds) return false;
       return true;
     });
     return sortRows(filtered, sort, sortAccessor);
-  }, [users, search, activeOnly, inactiveOnly, sort]);
+  }, [users, search, activeOnly, inactiveOnly, seatHoldersOnly, hasSeatData, sort]);
 
   // Selection is scoped to the currently-filtered set; reset it whenever filters change.
   const resetSelection = () => setSelected(new Set());
@@ -102,6 +118,11 @@ export function UsersSection({
 
   return (
     <div>
+      <SeatOverQuotaBanner
+        used={seatPool.used}
+        cap={seatPool.cap}
+        listedHolders={hasSeatData ? listedHolders : undefined}
+      />
       <TableToolbar
         search={search}
         onSearchChange={(v) => { setSearch(v); resetSelection(); }}
@@ -109,6 +130,7 @@ export function UsersSection({
         filters={[
           { key: 'active', label: t('common.status.active'), active: activeOnly, onToggle: () => { setActiveOnly((v) => !v); setInactiveOnly(false); resetSelection(); } },
           { key: 'inactive', label: t('common.status.inactive'), active: inactiveOnly, onToggle: () => { setInactiveOnly((v) => !v); setActiveOnly(false); resetSelection(); } },
+          ...(hasSeatData ? [{ key: 'seatHolders', label: t('pages.clusters.seatHoldersOnly'), active: seatHoldersOnly, onToggle: () => { setSeatHoldersOnly((v) => !v); resetSelection(); } }] : []),
         ]}
         right={
           <>
@@ -167,6 +189,7 @@ export function UsersSection({
                     ~650px between a person and their role. Parking it here packs the three
                     facts about a user against each other and leaves the gap in front of the
                     action, which is anchored right by `table-sticky-right` regardless. */}
+                {hasSeatData && <TableHead>{t('pages.clusters.columnSeat')}</TableHead>}
                 <TableHead aria-hidden="true" />
                 <TableHead className="w-10" />
               </TableRow>
@@ -210,6 +233,16 @@ export function UsersSection({
                         <Badge variant="secondary" className="text-xs">{t('common.status.inactive')}</Badge>
                       )}
                     </TableCell>
+                    {hasSeatData && (
+                      <TableCell>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <SeatCell seat={u.seat} />
+                          {canEdit && (
+                            <SeatActions user={u} clusterId={clusterId} currentUserId={currentUserId} onDone={onSeatChanged} />
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell aria-hidden="true" />
                     <TableCell className="text-center">
                       {canEdit && (

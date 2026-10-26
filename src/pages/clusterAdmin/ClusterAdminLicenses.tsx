@@ -9,6 +9,7 @@ import { fetchAllBusinessUnits } from '../../utils/fetchAllBusinessUnits';
 import clusterLicenseService from '../../services/clusterLicenseService';
 import { devLog, isNotFoundError } from '../../utils/errorParser';
 import { activeLicense } from '../../utils/clusterLicense';
+import { toSeatPool } from '../../utils/seatPool';
 import { CapacityStrip } from './CapacityStrip';
 import { SeatsByBuTable } from './licenses/SeatsByBuTable';
 import { QuotaLedgerCard } from './licenses/QuotaLedgerCard';
@@ -138,7 +139,7 @@ export default function ClusterAdminLicenses() {
               cap: cluster?.bu_cap ?? 0,
               endDate: cluster?.bu_cap_end_date ?? null,
             }}
-            seats={{ used: cluster?.users_count ?? 0, cap: cluster?.total_max_license_users ?? null }}
+            seats={toSeatPool(cluster?.users_count, cluster?.total_max_license_users)}
           />
         )}
 

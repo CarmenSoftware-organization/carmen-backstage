@@ -18,6 +18,7 @@ import { ClusterBusinessUnitsCard, type ClusterBusinessUnitSummary } from './Clu
 import { ClusterPeopleCard, type ClusterMemberSummary } from './ClusterPeopleCard';
 import type { ClusterFormData } from '../clusterManagement/ClusterIdentityFields';
 import { validateField } from '../../utils/validation';
+import { toSeatPool } from '../../utils/seatPool';
 import { getErrorDetail, parseApiError } from '../../utils/errorParser';
 import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../../utils/docVersion';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
@@ -96,7 +97,7 @@ const ClusterProfile: React.FC = () => {
   const [buQuota, setBuQuota] = useState<{ cap: number; used: number; endDate: string | null } | null>(null);
   // Seat pool. `total_max_license_users` keeps the nullable-uncapped rule (see utils/capacity),
   // so absent stays `null` here rather than collapsing to 0 — the two mean opposite things.
-  const [seats, setSeats] = useState<{ used: number; cap: number | null }>({ used: 0, cap: null });
+  const [seats, setSeats] = useState<{ used: number; cap: number }>({ used: 0, cap: 0 });
   const [units, setUnits] = useState<ClusterBusinessUnitSummary[]>([]);
   const [members, setMembers] = useState<ClusterMemberSummary[]>([]);
 
@@ -129,7 +130,7 @@ const ClusterProfile: React.FC = () => {
         used: cluster.bu_used ?? 0,
         endDate: cluster.bu_cap_end_date ?? null,
       });
-      setSeats({ used: cluster.users_count ?? 0, cap: cluster.total_max_license_users ?? null });
+      setSeats(toSeatPool(cluster.users_count, cluster.total_max_license_users));
       setUnits(
         Array.isArray(cluster.tb_business_unit)
           ? cluster.tb_business_unit.map((bu: ClusterBusinessUnitSummary) => ({
