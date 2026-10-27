@@ -5,8 +5,7 @@ import { Save, X, Loader2 } from 'lucide-react';
 import ClusterAdminLayout from '../../components/ClusterAdminLayout';
 import ClusterAccessLost from './ClusterAccessLost';
 import { Button } from '../../components/ui/button';
-import { Label } from '../../components/ui/label';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Card } from '../../components/ui/card';
 import { Skeleton } from '../../components/ui/skeleton';
 import { DevDebugSheet } from '../../components/ui/dev-debug-sheet';
 import businessUnitService from '../../services/businessUnitService';
@@ -16,11 +15,8 @@ import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../../u
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
 import { useI18n } from '../../hooks/useI18n';
-import { cn } from '../../lib/utils';
-import { ReadOnlyText, ReadOnlyTextarea, Group } from '../businessUnitEdit/shared';
 import { initialFormData, aliasBound, type BusinessUnitFormData, type DefaultCurrency } from '../businessUnitEdit/types';
-import CalculationSettingsSection from '../businessUnitEdit/sections/CalculationSettingsSection';
-import NumberFormatsSection from '../businessUnitEdit/sections/NumberFormatsSection';
+import { ConfigurationReadout } from './businessUnitForm/ConfigurationReadout';
 import { ClusterBuDocument, type TabSummary } from './businessUnitForm/ClusterBuDocument';
 import { BuPropertyPlate } from './businessUnitForm/BuPropertyPlate';
 import {
@@ -39,18 +35,6 @@ import businessUnitInterfaceLicenseService from '../../services/businessUnitInte
 import { useBusinessUnitSubscriptions } from '../businessUnitEdit/useBusinessUnitSubscriptions';
 import type { BusinessUnitLicense, InterfaceLicense } from '../../types';
 import type { TKey } from '../../i18n/types';
-
-// Text-valued fields eligible for the generic edit/read-only field renderer below.
-// Booleans (is_hq/is_active), arrays (config), and the fields this narrowed
-// page never exposes (cluster_id comes from the URL only; code is a system identifier this
-// view no longer surfaces — it still loads from the API and still ships in the save payload,
-// see fetchBusinessUnit/buildPayload below, it just never renders) are excluded so the
-// compiler — not just convention — stops any of them from being wired into a text input here.
-type TextFieldName = Exclude<
-  keyof BusinessUnitFormData,
-  'is_hq' | 'is_active' | 'config' | 'cluster_id' | 'code'
-  | 'database_pool_id' | 'db_schema' | 'database_pool_name'
->;
 
 /**
  * ฟิลด์ที่ API ไม่ยอมให้ล้างค่า — ตรวจกับ BusinessUnitUpdateDto บน swagger 2026-08-19:
@@ -355,15 +339,6 @@ const BusinessUnitForm: React.FC = () => {
     setError('');
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value, undefined, t) }));
-  };
-
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFieldErrors((prev) => ({ ...prev, [e.target.name]: '' }));
-  };
-
   // commit ลง formData เท่านั้น การบันทึกยังเป็น PUT ครั้งเดียวตอนกด Save
   // (ท่าเดียวกับ BusinessUnitEdit.tsx:111-121 ของหน้า platform)
   const handleInlineCommit = (name: string, value: string) => {
@@ -524,19 +499,16 @@ const BusinessUnitForm: React.FC = () => {
     }
   };
 
-  // editing: false เสมอ — tab Configuration เป็นของอ่านอย่างเดียวทั้งใบ ไม่ใช่ตาม canEdit
-  // handler ยังส่งไปเพราะ SectionFieldProps บังคับให้มี ตัว section จะไม่เรียกมันในโหมดอ่าน
-  const sectionField = { formData, editing: false, fieldErrors, onChange: handleChange, onBlur: handleBlur, onFocus: handleFocus };
-
   // สิ่งที่อีก 4 tab ถืออยู่จริง แสดงบน Overview — ชื่อ tab เปล่า ๆ บังคับให้คลิกทีละใบ
   // เพื่อรู้ว่าข้างในว่างหรือมีของ ซึ่งทำลายงาน "ดูว่า BU นี้ตั้งค่าไว้ยังไง"
-  // Hotel ไม่ซ้ำกับแผ่นป้าย: ป้ายบอกว่าที่ไหน บรรทัดนี้บอกว่าติดต่อยังไง
+  // Hotel ขึ้นต้นด้วยชื่อโรงแรมเหมือนแถว Company ขึ้นต้นด้วยชื่อบริษัท — เดิมตัดชื่อออกเพราะแผ่นป้าย
+  // มีอยู่แล้ว แต่ผู้ใช้อ่านแถวนี้แล้วไม่เห็นว่าโรงแรมไหน (ผู้ใช้ขอ 2026-10-27)
   const summaries: TabSummary[] = [
     {
       id: 'hotel',
       label: t('common.section.hotel'),
       value:
-        [formData.hotel_tel, formData.hotel_email].filter(Boolean).join(' · ') ||
+        [formData.hotel_name, formData.hotel_tel, formData.hotel_email].filter(Boolean).join(' · ') ||
         t('pages.clusterAdmin.noContactDetails'),
     },
     {
@@ -572,59 +544,47 @@ const BusinessUnitForm: React.FC = () => {
     },
   ];
 
-  /**
-   * Read-only renderer for the Configuration tab's plain text fields.
-   *
-   * ไม่มีโหมดแก้: ทั้ง tab เป็นของอ่านอย่างเดียว (ดูหมายเหตุที่ configurationSlot) จึงไม่รับ
-   * canEdit และไม่ผูก onChange/onBlur เลย — ช่องที่พิมพ์ได้แต่บันทึกไม่ได้แย่กว่าช่องที่บอก
-   * ตรง ๆ ว่าอ่านได้อย่างเดียว fieldErrors ยังแสดงอยู่เพราะ backend ยังตอบ error รายฟิลด์
-   * กลับมาได้แม้ค่าจะไม่ได้มาจากหน้านี้
-   */
-  const readOnlyField = (
-    name: TextFieldName,
-    label: string,
-    opts?: { mono?: boolean; textarea?: boolean },
-  ) => {
-    const value = formData[name];
-    const err = fieldErrors[name];
-    return (
-      <div className="space-y-2">
-        <Label htmlFor={name}>{label}</Label>
-        <div className={cn(opts?.mono && 'font-mono')}>
-          {opts?.textarea ? <ReadOnlyTextarea value={value} /> : <ReadOnlyText value={value} />}
-        </div>
-        {err && <p className="text-xs text-destructive">{err}</p>}
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <ClusterAdminLayout>
+        {/* ทรงเดียวกับหน้าที่โหลดเสร็จ (BackLink → แผ่นป้าย → TabStrip → การ์ด Group) จอจึงไม่กระโดดตอนข้อมูลมา */}
         <div className="space-y-4 sm:space-y-6" role="status" aria-label={t('pages.clusterAdmin.loadingBusinessUnitAria')}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <Skeleton className="h-7 w-48" />
-              <Skeleton className="h-4 w-64 mt-2" />
-            </div>
-            <Skeleton className="h-9 w-20" />
-          </div>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-48 mt-1" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {Array.from({ length: 4 }).map((_, j) => (
-                  <div key={j} className="space-y-2">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-9 w-full" />
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-32" />
+            <Card className="p-0">
+              <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:p-6">
+                <div className="flex min-w-0 gap-4">
+                  <Skeleton className="size-12 shrink-0 rounded-lg" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-56" />
+                    <Skeleton className="h-6 w-40" />
                   </div>
-                ))}
-              </CardContent>
+                </div>
+                <div className="space-y-2 sm:min-w-56">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-7 w-28" />
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              </div>
             </Card>
-          ))}
+          </div>
+          <div className="space-y-4">
+            <div className="flex gap-6 border-b pb-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-5 w-16" />
+              ))}
+            </div>
+            <Card className="space-y-3 p-4 sm:px-6 sm:py-5">
+              <Skeleton className="h-5 w-24" />
+              {Array.from({ length: 4 }).map((_, j) => (
+                <div key={j} className="grid grid-cols-1 gap-1 sm:grid-cols-[150px_1fr] sm:gap-3">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-5 w-2/3" />
+                </div>
+              ))}
+            </Card>
+          </div>
         </div>
       </ClusterAdminLayout>
     );
@@ -692,33 +652,13 @@ const BusinessUnitForm: React.FC = () => {
               /* ทั้ง tab เป็นของอ่านอย่างเดียว: รูปแบบวันที่ เวลา ตัวเลข และวิธีคิดต้นทุน
                  ถูกตั้งตอน provision BU และมีระบบอื่นอ่านค่าเหล่านี้ไปใช้ การแก้จึงเป็นงาน
                  ของ platform admin ไม่ใช่ของ cluster admin — ค่าทั้งหมดยังโหลดและยังถูกส่ง
-                 กลับไปใน payload ตอน Save เหมือนเดิม การบันทึกจากหน้านี้จึงไม่ล้างของที่ไม่ได้แก้
-
-                 Regional formats เป็นกลุ่มที่หน้านี้ประกอบเอง จึงใส่ป้าย Group ให้ ส่วนอีกสอง
-                 section มีหัวการ์ดของตัวเองอยู่แล้ว (ใช้ร่วมกับหน้า platform) — ห่อ Group ทับ
-                 จะได้หัวข้อซ้อนสองชั้น */
-              <div className="space-y-4">
-                <Card className="p-0">
-                  <Group label={t('pages.clusterAdmin.regionalFormats')}>
-                    <div className="grid gap-4 pt-1 sm:grid-cols-2 lg:grid-cols-3">
-                      {readOnlyField('timezone', t('pages.clusterAdmin.timezone'))}
-                      {readOnlyField('date_format', t('pages.clusterAdmin.dateFormat'), { mono: true })}
-                      {readOnlyField('date_time_format', t('pages.clusterAdmin.dateTimeFormat'), { mono: true })}
-                      {readOnlyField('time_format', t('pages.clusterAdmin.timeFormat'), { mono: true })}
-                      {readOnlyField('long_time_format', t('pages.clusterAdmin.longTimeFormat'), { mono: true })}
-                      {readOnlyField('short_time_format', t('pages.clusterAdmin.shortTimeFormat'), { mono: true })}
-                    </div>
-                  </Group>
-                </Card>
-                <CalculationSettingsSection
-                  {...sectionField}
-                  defaultCurrency={defaultCurrency}
-                  getCalculationMethodLabel={getCalculationMethodLabel}
-                  showCurrencyField={false}
-                  canEditCalculationMethod={false}
-                />
-                <NumberFormatsSection {...sectionField} />
-              </div>
+                 กลับไปใน payload ตอน Save เหมือนเดิม การบันทึกจากหน้านี้จึงไม่ล้างของที่ไม่ได้แก้ */
+              <ConfigurationReadout
+                formData={formData}
+                fieldErrors={fieldErrors}
+                defaultCurrency={defaultCurrency}
+                getCalculationMethodLabel={getCalculationMethodLabel}
+              />
             }
           />
         ))}

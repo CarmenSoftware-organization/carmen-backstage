@@ -58,11 +58,13 @@ function TabJumpList({ summaries, onJump }: { summaries: TabSummary[]; onJump: (
               <button
                 type="button"
                 onClick={() => onJump(s.id)}
-                className="hover:bg-primary/5 focus-visible:ring-ring flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left focus-visible:ring-1 focus-visible:outline-hidden"
+                // คอลัมน์เดียวกับ InlineField (ป้าย 150px, ค่าเริ่มที่ +170px) — เดิมป้ายกว้าง w-20
+                // "Configuration" (92px) ล้นไปชนค่า และค่าไม่ตรงคอลัมน์กับการ์ด Identity ข้างบน
+                className="hover:bg-primary/5 focus-visible:ring-ring grid w-full grid-cols-[1fr_auto] items-center gap-x-3 gap-y-0.5 rounded-md px-2 py-2 text-left focus-visible:ring-1 focus-visible:outline-hidden sm:grid-cols-[150px_1fr_auto]"
               >
-                <span className="w-20 shrink-0 text-sm font-medium">{s.label}</span>
-                <span className="text-muted-foreground min-w-0 flex-1 truncate text-sm">{s.value}</span>
-                <ChevronRight className="text-muted-foreground size-4 shrink-0" />
+                <span className="text-muted-foreground col-start-1 text-xs sm:row-start-1">{s.label}</span>
+                <span className="col-start-1 min-w-0 truncate text-sm sm:col-start-2 sm:row-start-1 sm:pl-2">{s.value}</span>
+                <ChevronRight className="text-muted-foreground col-start-2 row-span-2 row-start-1 size-4 shrink-0 sm:col-start-3 sm:row-span-1" />
               </button>
             </li>
           ))}
@@ -108,10 +110,13 @@ export function ClusterBuDocument({
     />
   );
 
+  // แถวเดียวกับ InlineField (ป้าย 150px | ค่า) — เดิมป้ายใหญ่กว่าและค่าเริ่มที่ขอบซ้าย ไม่ตรงคอลัมน์ค่า
   const address = (prefix: 'hotel' | 'company') => (
-    <div className="mt-2">
-      <div className="text-muted-foreground mb-1 px-2 text-sm">{t('pages.clusterAdmin.addressLabel')}</div>
-      <AddressBlock prefix={prefix} formData={f} disabled={!canEdit} onChange={onChange} />
+    <div className="grid grid-cols-1 gap-0.5 py-1.5 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-3">
+      <span className="text-muted-foreground pt-2 text-xs">{t('pages.clusterAdmin.addressLabel')}</span>
+      <div className="min-w-0">
+        <AddressBlock prefix={prefix} formData={f} disabled={!canEdit} onChange={onChange} />
+      </div>
     </div>
   );
 
@@ -159,7 +164,7 @@ export function ClusterBuDocument({
         <Card className="p-0">
           <Group label={t('common.section.hotel')}>
             {inline('hotel_name', t('pages.clusterAdmin.hotelNameLabel'))}
-            {inline('hotel_tel', t('pages.clusterAdmin.phoneLabel'), { mono: true, validate: true })}
+            {inline('hotel_tel', t('pages.clusterAdmin.phoneLabel'), { validate: true })}
             {inline('hotel_email', t('common.field.email'), { type: 'email', validate: true })}
             {address('hotel')}
           </Group>
@@ -180,7 +185,7 @@ export function ClusterBuDocument({
             }
           >
             {inline('company_name', t('pages.clusterAdmin.companyNameLabel'))}
-            {inline('company_tel', t('pages.clusterAdmin.phoneLabel'), { mono: true, validate: true })}
+            {inline('company_tel', t('pages.clusterAdmin.phoneLabel'), { validate: true })}
             {inline('company_email', t('common.field.email'), { type: 'email', validate: true })}
             {inline('tax_no', t('pages.clusterAdmin.taxIdLabel'), { mono: true })}
             {inline('branch_no', t('pages.clusterAdmin.branchLabel'), { mono: true })}
