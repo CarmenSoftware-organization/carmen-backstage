@@ -2685,6 +2685,18 @@ export const en = {
 
       // --- ClusterAdminLicenses.tsx: SubscriptionsCard / InterfaceLicensesCard (CoverageCard) ---
       licenseTypesLabel: 'License types',
+      licenseTypeSeats: 'Seats',
+      licenseTypeFeatures: 'Features',
+      licenseTypeInterface: 'Interface',
+      seatLicensesTitle: 'Seat licenses',
+      noSeatLicenses: 'No seat license has been issued for this business unit',
+      seatLicenseRowSeats: '{{count}} {{count#seat|seats}}',
+      seatSourceOwn: 'This business unit',
+      seatSourceOthers: 'From other business units',
+      seatSourcePool: 'Cluster pool',
+      seatSourcePoolUsed: '{{used}} in use',
+      seatSourceNote: 'Seats are shared across the cluster — users in this business unit draw from the whole pool.',
+      seatSourceInactive: 'This business unit is inactive, so its licenses do not count toward the pool.',
       licensesSummary: '{{subs}} active {{subs#subscription|subscriptions}} · {{inf}} interface {{inf#licence|licences}} in force',
       coverageSubscriptionsLabel: 'Subscriptions',
       coverageInterfaceLabel: 'Interface licences',

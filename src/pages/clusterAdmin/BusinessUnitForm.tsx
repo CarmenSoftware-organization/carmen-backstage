@@ -29,9 +29,10 @@ import { useBusinessUnitUsers } from '../businessUnitEdit/useBusinessUnitUsers';
 import businessUnitLicenseService from '../../services/businessUnitLicenseService';
 import { useLicenseLedger } from '../licenses/useLicenseLedger';
 import BusinessUnitUsersCard from '../businessUnitEdit/BusinessUnitUsersCard';
-import BusinessUnitLicensesCard from '../businessUnitEdit/BusinessUnitLicensesCard';
 import BusinessUnitInterfaceLicensesCard from '../businessUnitEdit/BusinessUnitInterfaceLicensesCard';
 import { LicenseTypeTabs } from './businessUnitForm/LicenseTypeTabs';
+import { BuSeatLicensesCard } from './businessUnitForm/BuSeatLicensesCard';
+import { BuSubscriptionsCard } from './businessUnitForm/BuSubscriptionsCard';
 import businessUnitInterfaceLicenseService from '../../services/businessUnitInterfaceLicenseService';
 import { useBusinessUnitSubscriptions } from '../businessUnitEdit/useBusinessUnitSubscriptions';
 import type { BusinessUnitLicense, InterfaceLicense } from '../../types';
@@ -191,7 +192,7 @@ const BusinessUnitForm: React.FC = () => {
       {
         id: 'licenses',
         label: t('pages.businessUnits.licensesTab'),
-        count: buSubscriptions.items.length + interfaceLicenses.licenses.length,
+        count: licenses.licenses.length + buSubscriptions.items.length + interfaceLicenses.licenses.length,
       },
       { id: 'users', label: t('pages.businessUnits.usersLabel'), count: users.buUsers.length },
     ];
@@ -632,20 +633,26 @@ const BusinessUnitForm: React.FC = () => {
             usersSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} />}
             licensesSlot={
               <LicenseTypeTabs
-                userCount={buSubscriptions.items.length}
+                seatsCount={licenses.licenses.length}
+                featuresCount={buSubscriptions.items.length}
                 interfaceCount={interfaceLicenses.licenses.length}
-                /* ทั้งสองการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
+                /* ทุกการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
                    (`/licenses/*` บังคับ `subscription.read`) `manageHref` จึงชี้ route ไลเซนส์ของ shell เอง
-                   ไม่ส่ง createHref/editHref/subscriptionHref: ปุ่มหรือแถวที่พาไปชนหน้าที่เตะกลับแย่กว่าไม่มี
-                   ไม่ส่ง clusterSeat: แผ่นป้ายด้านบนบอก 11 / 15 ไปแล้วและเห็นจากทุก tab
-                   การพิมพ์ซ้ำในการ์ดนี้คือตัวเลขเดียวกันสองที่บนจอเดียว */
-                user={
-                  <BusinessUnitLicensesCard
+                   แท็บ Seats รับ clusterSeat เพื่อแจกแจงว่า pool มาจาก BU นี้เท่าไร BU อื่นเท่าไร
+                   ไม่ใช่พิมพ์ 11 / 15 ซ้ำแผ่นป้าย */
+                seats={
+                  <BuSeatLicensesCard
                     licenses={licenses.licenses}
                     loading={licenses.loading}
+                    manageHref={`/cluster-admin/${clusterId}/licenses`}
+                    clusterSeat={clusterSeat}
+                    buActive={savedFormData.is_active !== false}
+                  />
+                }
+                features={
+                  <BuSubscriptionsCard
                     subscriptions={buSubscriptions}
                     manageHref={`/cluster-admin/${clusterId}/licenses`}
-                    subscriptionHref={() => undefined}
                   />
                 }
                 interface={
