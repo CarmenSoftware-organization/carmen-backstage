@@ -163,7 +163,10 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
                         {[u.firstname, u.middlename, u.lastname].filter(Boolean).join(' ') || '-'}
                       </Link>
                     ) : (
-                      [u.firstname, u.middlename, u.lastname].filter(Boolean).join(' ') || '-'
+                      // ไม่มีสี primary ของลิงก์แล้ว — font-medium คงให้ชื่อเป็นจุดยึดสายตาของแถว ไม่จมไปกับอีเมล
+                      <span className="font-medium text-foreground">
+                        {[u.firstname, u.middlename, u.lastname].filter(Boolean).join(' ') || '-'}
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>{u.email || '-'}</TableCell>
