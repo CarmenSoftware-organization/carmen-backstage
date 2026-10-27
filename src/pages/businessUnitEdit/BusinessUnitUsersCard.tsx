@@ -32,6 +32,10 @@ interface BusinessUnitUsersCardProps {
    *  นับ active เฉพาะแถวใน BU นี้จึงเป็นตัวส่วนที่ผิด แถบนี้จึงต้องมาจาก `cluster_seat` ของ backend
    *  (Task 4b.1) ไม่ใช่คำนวณเองจาก `users.buUsers` */
   clusterSeat?: { used: number; cap: number };
+  /** ชื่อผู้ใช้ลิงก์ไป `/users/:id/edit` ของ platform — shell cluster-admin ต้องส่ง false:
+   *  ไม่มีหน้าผู้ใช้รายคนของตัวเอง และ `PrivateRoute` เด้ง cluster admin ที่ไม่มีสิทธิ์ platform
+   *  กลับไป `/cluster-admin` แบบ replace จึงดูเหมือนคลิกแล้วหน้าพัง */
+  linkToUser?: boolean;
 }
 
 type BuUserRow = ReturnType<typeof useBusinessUnitUsers>['buUsers'][number];
@@ -59,7 +63,7 @@ const sortAccessor = (u: BuUserRow, key: string): unknown => {
   return '';
 };
 
-const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, canEdit = false, clusterSeat }) => {
+const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, canEdit = false, clusterSeat, linkToUser = true }) => {
   const { t } = useI18n();
   const over = clusterSeat ? clusterSeat.used > clusterSeat.cap : false;
   // จำนวนทั้งหมดอยู่บน tab แล้ว — หัวการ์ดบอกเฉพาะส่วนที่ผิดปกติ (inactive) และเงียบเมื่อไม่มี
@@ -151,12 +155,16 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
               {sortedUsers.map((u) => (
                 <TableRow key={u.id}>
                   <TableCell>
-                    <Link
-                      to={`/users/${u.user_id}/edit`}
-                      className="text-primary hover:underline"
-                    >
-                      {[u.firstname, u.middlename, u.lastname].filter(Boolean).join(' ') || '-'}
-                    </Link>
+                    {linkToUser ? (
+                      <Link
+                        to={`/users/${u.user_id}/edit`}
+                        className="text-primary hover:underline"
+                      >
+                        {[u.firstname, u.middlename, u.lastname].filter(Boolean).join(' ') || '-'}
+                      </Link>
+                    ) : (
+                      [u.firstname, u.middlename, u.lastname].filter(Boolean).join(' ') || '-'
+                    )}
                   </TableCell>
                   <TableCell>{u.email || '-'}</TableCell>
                   {showUsernameColumn && <TableCell>{u.username || '-'}</TableCell>}

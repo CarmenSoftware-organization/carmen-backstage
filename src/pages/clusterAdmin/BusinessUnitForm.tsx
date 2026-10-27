@@ -638,7 +638,7 @@ const BusinessUnitForm: React.FC = () => {
             avatarUrl={avatarUrl}
             onUploadLogo={handleUploadLogo}
             onUploadAvatar={handleUploadAvatar}
-            usersSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} />}
+            usersSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} linkToUser={false} />}
             licensesSlot={
               <LicenseTypeTabs
                 // ระหว่างโหลดไม่ส่งตัวเลข — "0" บนแท็บอ่านว่า BU นี้ไม่มีของ ซึ่งไม่จริง TabStrip ซ่อน badge เมื่อเป็น undefined
