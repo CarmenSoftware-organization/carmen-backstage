@@ -593,6 +593,9 @@ export interface AdminCluster {
   is_active?: boolean;
   /** Resolved presigned square avatar — absent until the gateway can reach the file service. */
   avatar?: PresignedImage | null;
+  /** Resolved presigned wide logo — the sidebar's brand slot. Absent on backends that predate it,
+   *  so the shell falls back to `avatar`. */
+  logo?: PresignedImage | null;
 }
 
 /**

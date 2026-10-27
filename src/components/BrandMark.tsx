@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from 'react';
 import { cn } from '../lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
@@ -86,5 +87,37 @@ export const BrandMark = ({
         {brandInitials(name, code)}
       </AvatarFallback>
     </Avatar>
+  );
+};
+
+interface BrandLogoProps {
+  /** Presigned wide logo. Absent, expired, or failing to load → `fallback` renders instead. */
+  src?: string;
+  /** What to show when there is no usable logo — normally the square `BrandMark`. */
+  fallback: ReactNode;
+  className?: string;
+}
+
+/**
+ * A cluster's wide logo at its natural aspect ratio, for the shell's brand slot.
+ *
+ * The logo is landscape (uploads are capped at 500px wide), so it cannot go through `BrandMark`:
+ * the square avatar frame would crop it. Height is fixed by the caller and width follows the
+ * image up to a cap, so a very wide logo cannot push the name out of the sidebar.
+ *
+ * A load failure is remembered per URL rather than reset in an effect: the next presigned URL
+ * is a different string, so it gets its own attempt without a state sync.
+ */
+export const BrandLogo = ({ src, fallback, className }: BrandLogoProps) => {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  if (!src || failedSrc === src) return <>{fallback}</>;
+  return (
+    // Decorative for the same reason as BrandMark: the wrapping link already carries the name.
+    <img
+      src={src}
+      alt=""
+      onError={() => setFailedSrc(src)}
+      className={cn('w-auto max-w-24 shrink-0 object-contain object-left', className)}
+    />
   );
 };

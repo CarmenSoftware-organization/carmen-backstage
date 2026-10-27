@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { PanelLeft, PanelLeftClose, type LucideIcon } from 'lucide-react';
 import { Button } from './ui/button';
-import { BrandMark } from './BrandMark';
+import { BrandLogo, BrandMark } from './BrandMark';
 import { ProductLogo } from './ProductLogo';
 import { Tooltip } from './ui/tooltip';
 import { Separator } from './ui/separator';
@@ -71,8 +71,11 @@ export interface BrandIdentity {
   name: string;
   /** Initials source for the mark when no image resolves. */
   code?: string;
-  /** Presigned branding image; falls back to the initials when absent or expired. */
+  /** Presigned wide logo — the expanded brand slot shows it at its own aspect ratio. */
   logoUrl?: string;
+  /** Presigned square avatar — the mark used when collapsed or when there is no logo; falls back
+   *  to the initials when absent or expired. */
+  avatarUrl?: string;
 }
 
 export const PRODUCT_BRAND: BrandIdentity = { name: 'Carmen Blue Backstage', code: 'C' };
@@ -212,13 +215,21 @@ const Sidebar: React.FC<SidebarProps> = ({
               />
             ) : (
               <>
-                <BrandMark
-                  name={brand.name}
-                  code={brand.code}
-                  src={brand.logoUrl}
-                  tone="primary"
-                  size="md"
-                  className="shadow-xs transition-transform duration-300 group-hover:scale-105"
+                {/* ตอนกาง: โลโก้แนวนอนตามสัดส่วนจริง · ตอนพับหรือไม่มีโลโก้: สัญลักษณ์จัตุรัส (avatar →
+                    ตัวย่อ) เพราะโลโก้กว้างย่อลงช่อง 36px แล้วอ่านไม่ออก (ผู้ใช้เคาะไว้) */}
+                <BrandLogo
+                  src={isCollapsed ? undefined : brand.logoUrl}
+                  className="h-9 transition-transform duration-300 group-hover:scale-105"
+                  fallback={
+                    <BrandMark
+                      name={brand.name}
+                      code={brand.code}
+                      src={brand.avatarUrl}
+                      tone="primary"
+                      size="md"
+                      className="shadow-xs transition-transform duration-300 group-hover:scale-105"
+                    />
+                  }
                 />
                 {/* ชื่อแบรนด์ไม่ใช่ <h1> ของเอกสาร — ชื่อหน้าใน PageHeader ต่างหากที่เป็น
                     วัดบน /cluster-admin/:id/users แล้วเคยได้ <h1> สามตัวในหน้าเดียว สองตัว
@@ -316,13 +327,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                   </>
                 ) : (
                   <>
-                    <BrandMark
-                      name={brand.name}
-                      code={brand.code}
+                    {/* ลิ้นชักมือถือคือ sidebar ตอนกาง — โลโก้ก่อน ถอยไปสัญลักษณ์จัตุรัส */}
+                    <BrandLogo
                       src={brand.logoUrl}
-                      tone="primary"
-                      size="md"
-                      className="shadow-xs transition-transform duration-300 group-hover:scale-105"
+                      className="h-9 transition-transform duration-300 group-hover:scale-105"
+                      fallback={
+                        <BrandMark
+                          name={brand.name}
+                          code={brand.code}
+                          src={brand.avatarUrl}
+                          tone="primary"
+                          size="md"
+                          className="shadow-xs transition-transform duration-300 group-hover:scale-105"
+                        />
+                      }
                     />
                     <span className="truncate text-xl font-bold text-foreground">
                       {brand.name}
