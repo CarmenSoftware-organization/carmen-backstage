@@ -1,5 +1,4 @@
 import { FileText } from 'lucide-react';
-import { Badge } from '../../../components/ui/badge';
 import { CoverageCard, type CoverageRowItem } from './CoverageCard';
 import { fmtCoverageRange } from '../../licenses/licenseDates';
 import { useI18n } from '../../../hooks/useI18n';
@@ -19,9 +18,6 @@ export interface SubscriptionsCardProps {
   onRetry: () => void;
   now?: Date;
 }
-
-const stateVariant = (s: Subscription['state']) =>
-  s === 'active' ? 'success' : s === 'expired' ? 'destructive' : 'secondary';
 
 /**
  * สัญญาทุกใบของ cluster จัดกลุ่มตาม BU เรียงตามวันหมดอายุ
@@ -57,7 +53,6 @@ export function SubscriptionsCard({
             ? t('pages.businessUnits.subscriptionRowOne', { count: sub.feature_count })
             : t('pages.businessUnits.subscriptionRowMany', { count: sub.feature_count })
         }`,
-        badge: <Badge variant={stateVariant(sub.state)}>{t(`common.status.${sub.state}`)}</Badge>,
         href,
         ariaLabel: t('pages.clusterAdmin.openBusinessUnitLicences', { name: bu?.name || buLabel }),
         group: { key: sub.bu_code || sub.bu_name || '?', label: sub.bu_name ? `${buLabel} · ${sub.bu_name}` : buLabel },

@@ -1,10 +1,8 @@
 import { Plug } from 'lucide-react';
-import { Badge } from '../../../components/ui/badge';
 import { CoverageCard, type CoverageRowItem } from './CoverageCard';
 import { fmtCoverageRange } from '../../licenses/licenseDates';
 import { useI18n } from '../../../hooks/useI18n';
 import { useExpiryThresholds } from '../../../context/ExpiryThresholdContext';
-import type { InterfaceLicense } from '../../../types';
 import type { InterfaceRow } from '../../licenses/useClusterInterfaceLicenses';
 
 export interface InterfaceLicensesCardProps {
@@ -17,7 +15,7 @@ export interface InterfaceLicensesCardProps {
 }
 
 /**
- * ใบสิทธิ์ interface ทุกใบใน cluster — **สถานะทุกป้ายมาจาก backend** (`in_force`/`state`)
+ * ใบสิทธิ์ interface ทุกใบใน cluster — **ใบไหนคุ้มครองอยู่ ตัดสินจาก `in_force` ของ backend**
  * ใบที่วันยังไม่หมดแต่ `in_force=false` คือ "ถูกครอบด้วยสัญญาหลัก" ห้ามคำนวณจากวันที่เอง
  * แถวลิงก์ไปแท็บ Licenses ของ BU ในเชลล์ cluster-admin — ไม่ใช่ `/licenses/interface/:id/edit`
  * ซึ่งบังคับ `subscription.read`
@@ -25,13 +23,6 @@ export interface InterfaceLicensesCardProps {
 export function InterfaceLicensesCard({ rows, failedBus, loading, clusterId, onRetry, now = new Date() }: InterfaceLicensesCardProps) {
   const { t } = useI18n();
   const { thresholds } = useExpiryThresholds();
-
-  const badgeOf = (l: InterfaceLicense) => {
-    if (l.in_force) return <Badge variant="success">{t('common.status.active')}</Badge>;
-    if (l.state === 'active') return <Badge variant="warning">{t('pages.businessUnits.interfaceCapped')}</Badge>;
-    if (l.state === 'scheduled') return <Badge variant="secondary">{t('common.status.scheduled')}</Badge>;
-    return <Badge variant="destructive">{t('common.status.expired')}</Badge>;
-  };
 
   // วาดเฉพาะใบที่ `in_force` — ใบที่หมด/ถูกครอบ/ยังไม่เริ่ม เหลือแค่ตัวนับบนหัวการ์ด (ผู้ใช้เคาะไว้)
   const items: CoverageRowItem[] = rows.filter((r) => r.license.in_force).map(({ bu, license: l }) => {
@@ -48,7 +39,6 @@ export function InterfaceLicensesCard({ rows, failedBus, loading, clusterId, onR
         </>
       ),
       secondary: `${l.group?.name ?? ''} · ${fmtCoverageRange(l.start_date, l.end_date, t('common.state.noExpiry'))}`,
-      badge: badgeOf(l),
       href: `/cluster-admin/${clusterId}/business-units/${bu.id}/edit?tab=licenses`,
       ariaLabel: t('pages.clusterAdmin.openBusinessUnitLicences', { name: bu.name || buLabel }),
       group: { key: bu.id, label: bu.name ? `${buLabel} · ${bu.name}` : buLabel },

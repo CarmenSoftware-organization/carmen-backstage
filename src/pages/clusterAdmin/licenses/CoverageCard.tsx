@@ -18,8 +18,6 @@ export interface CoverageRowItem {
   primary: React.ReactNode;
   /** บรรทัดล่าง — BU · กลุ่ม · ช่วงวัน ผู้เรียกประกอบเองเพราะรู้บริบท */
   secondary: React.ReactNode;
-  /** ป้ายสถานะจาก backend — การ์ดไม่คำนวณสถานะเอง */
-  badge: React.ReactNode;
   /** ปลายทางเมื่อกดแถว — ไม่ส่ง = แถวไม่เป็นลิงก์ (ผู้เรียกตัดสินตามสิทธิ์ของ shell) */
   href?: string;
   ariaLabel?: string;
@@ -139,23 +137,31 @@ export function CoverageCard({
             </h4>
             {g.rows.map((i) => {
               const soon = isSoon(i);
-              const rowClass = 'flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs';
+              // ข้อความยืดซ้าย ส่วนท้ายแถวไม่หด — แถวจึงสูงเท่ากันไม่ว่าข้อความยาวแค่ไหน (flex-wrap
+              // เดิมดันแถบกับป้ายลงบรรทัดสองเฉพาะแถวที่ข้อความยาว ทำให้รายการขรุขระ)
+              const rowClass = `flex items-center gap-3 rounded-md border px-3 py-2 text-xs ${soon ? 'border-warning/40 bg-warning/5' : ''}`;
               const body = (
                 <>
-                  <div className="min-w-0 space-y-0.5">
-                    <div className={`font-mono ${i.href ? 'group-hover:underline' : ''}`}>{i.primary}</div>
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className={`truncate font-mono ${i.href ? 'group-hover:underline' : ''}`}>{i.primary}</div>
                     <div className="text-muted-foreground">{i.secondary}</div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <LicenseTimeline
-                      variant="item"
-                      items={[i]}
-                      window={window}
-                      now={now}
-                      label={t('pages.licenses.coverageBarLabel', { text: fmtCoverageRange(i.start_date, i.end_date, t('common.state.noExpiry')) })}
-                    />
-                    {soon && <Badge variant="warning">{t('common.state.daysLeft', { count: daysLeft(i.end_date, now) })}</Badge>}
-                    {i.badge}
+                  <div className="flex shrink-0 items-center gap-2">
+                    {/* แถบรายใบวาดเฉพาะใบที่ใกล้หมด: ใบอื่นมีแถบหน้าตาเหมือนกันหมด (ใบไม่มีวันหมดคือแถบเต็ม)
+                        และแถบรวมบนหัวการ์ดตอบเรื่องช่วงคุ้มครองไว้แล้ว — ไม่มีป้ายสถานะรายแถวด้วย
+                        เพราะการ์ดวาดเฉพาะใบที่คุ้มครองอยู่ ป้ายจึง "Active" ทุกแถวเสมอ */}
+                    {soon && (
+                      <>
+                        <LicenseTimeline
+                          variant="item"
+                          items={[i]}
+                          window={window}
+                          now={now}
+                          label={t('pages.licenses.coverageBarLabel', { text: fmtCoverageRange(i.start_date, i.end_date, t('common.state.noExpiry')) })}
+                        />
+                        <Badge variant="warning">{t('common.state.daysLeft', { count: daysLeft(i.end_date, now) })}</Badge>
+                      </>
+                    )}
                     {i.href && (
                       <ChevronRight className="text-muted-foreground h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                     )}

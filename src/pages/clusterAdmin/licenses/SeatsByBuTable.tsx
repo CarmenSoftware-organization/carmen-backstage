@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Users } from 'lucide-react';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { Skeleton } from '../../../components/ui/skeleton';
-import { Group } from '../../businessUnitEdit/shared';
 import { sumActiveLicenses, licenseStatus, isExpiringSoon } from '../../../utils/buLicense';
 import { isPerpetual, fmtDate, daysLeft } from '../../licenses/licenseDates';
 import { useI18n } from '../../../hooks/useI18n';
@@ -49,50 +48,70 @@ export function SeatsByBuTable({ rows, loading, clusterId, onRetry }: SeatsByBuT
   const now = new Date();
   const failedCount = rows.filter((r) => r.failed).length;
 
+  const computed = rows.map((row) => ({
+    row,
+    seats: row.failed ? 0 : sumActiveLicenses(row.licenses, now),
+    activeCount: row.failed ? 0 : row.licenses.filter((l) => licenseStatus(l, now) === 'active').length,
+  }));
+  const totalSeats = computed.reduce((n, c) => n + c.seats, 0);
+  const unpurchased = computed.filter((c) => !c.row.failed && c.activeCount === 0).length;
+  // แถบสัดส่วนวาดเฉพาะเมื่อรู้ครบทุก BU — ผลรวมที่ขาดบางหน่วยทำให้ทุกแถบยาวเกินจริง
+  const showShare = failedCount === 0 && totalSeats > 0;
+
   return (
     <Card className="p-0">
-      <Group
-        label={t('pages.clusterAdmin.seatsByBusinessUnitLabel')}
-        action={
-          failedCount > 0 && (
-            <Button variant="outline" size="sm" onClick={onRetry} disabled={loading}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              {t('common.action.retry')}
-            </Button>
-          )
-        }
-      >
+      {/* หัวการ์ดรูปเดียวกับ CoverageCard/CollapsibleGroupCard — หน้านี้ต้องอ่านเป็นแอปเดียว */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 p-4 sm:px-6 sm:py-5">
+        <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1.5 text-[11px] font-bold tracking-[0.13em] uppercase">
+          <Users className="size-3.5" aria-hidden="true" />
+          {t('pages.clusterAdmin.seatsByBusinessUnitLabel')}
+        </span>
+        {!loading && unpurchased > 0 && (
+          <span className="text-muted-foreground text-xs tabular-nums">
+            {t('pages.clusterAdmin.seatsNotPurchasedSummary', { count: unpurchased, total: rows.length })}
+          </span>
+        )}
+        {failedCount > 0 && (
+          <Button variant="outline" size="sm" className="ml-auto" onClick={onRetry} disabled={loading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            {t('common.action.retry')}
+          </Button>
+        )}
+      </div>
+
+      <div className="border-t p-4 sm:px-6 sm:py-4">
         {loading && rows.length === 0 ? (
-          <div className="space-y-2 pt-1">
+          <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-9 w-full" />
             ))}
           </div>
         ) : rows.length === 0 ? (
-          <p className="text-muted-foreground pt-1 text-sm">
+          <p className="text-muted-foreground text-sm">
             {t('pages.clusterAdmin.clusterHasNoBusinessUnitsYet')}
           </p>
         ) : (
-          <div className="overflow-x-auto pt-1">
-            <table className="w-full text-sm [&_th]:whitespace-nowrap">
+          <div className="overflow-x-auto">
+            {/* ความกว้างที่เหลือไปตกที่คอลัมน์สุดท้าย (`w-full`) ไม่ใช่คอลัมน์ชื่อ — ไม่งั้นที่ 1440px
+                ชื่อ BU กับตัวเลขของมันห่างกันครึ่งจอ ตาต้องกระโดดข้ามช่องว่างทุกแถว */}
+            <table className="text-sm [&_th]:whitespace-nowrap">
               <thead>
                 <tr className="text-muted-foreground text-xs">
-                  <th className="px-2 py-1.5 text-left">{t('entity.businessUnit.title')}</th>
-                  <th className="px-2 py-1.5 text-right whitespace-nowrap">{t('common.field.seats')}</th>
-                  <th className="px-2 py-1.5 text-right whitespace-nowrap">{t('pages.clusterAdmin.licencesLabel')}</th>
-                  <th className="px-2 py-1.5 text-left whitespace-nowrap">{t('pages.clusterAdmin.endsColumn')}</th>
+                  <th className="py-1.5 pr-6 pl-2 text-left font-medium">{t('entity.businessUnit.title')}</th>
+                  <th className="px-2 py-1.5 text-left font-medium">{t('common.field.seats')}</th>
+                  <th className="px-2 py-1.5 text-right font-medium">{t('pages.clusterAdmin.licencesLabel')}</th>
+                  <th className="w-full py-1.5 pr-2 pl-6 text-left font-medium">{t('pages.clusterAdmin.endsColumn')}</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => {
-                  const seats = sumActiveLicenses(row.licenses, now);
-                  const activeCount = row.licenses.filter((l) => licenseStatus(l, now) === 'active').length;
+                {computed.map(({ row, seats, activeCount }) => {
                   const { date, soon } = earliestExpiry(row, now, thresholds.seat_days);
+                  const none = !row.failed && activeCount === 0;
                   return (
                     <tr key={row.bu.id} className="border-b last:border-0">
                       {/* ลิงก์กินพื้นที่แตะของทั้งแถว (`-my-3 py-3`) — วัดที่ 390px แล้วตัวอักษร
                           เปล่า ๆ ให้เป้าแตะแค่ 17px ซึ่งเล็กเกินสำหรับนิ้ว */}
-                      <td className="px-2 py-3">
+                      <td className="py-3 pr-6 pl-2 whitespace-nowrap">
                         <Link
                           to={`/cluster-admin/${clusterId}/business-units/${row.bu.id}/edit`}
                           className="text-primary -my-3 inline-block py-3 hover:underline"
@@ -112,17 +131,43 @@ export function SeatsByBuTable({ rows, loading, clusterId, onRetry }: SeatsByBuT
                         </td>
                       ) : (
                         <>
-                          <td className="px-2 py-3 text-right font-mono tabular-nums">{seats}</td>
+                          <td className="px-2 py-3">
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`w-8 text-right font-mono tabular-nums ${none ? 'text-muted-foreground' : ''}`}
+                              >
+                                {seats}
+                              </span>
+                              {/* แถวที่ไม่มีที่นั่งเว้นช่องไว้แทนรางเปล่า — ป้าย Not purchased บอกเรื่องนี้แล้ว */}
+                              {showShare && seats === 0 && <div className="w-24" aria-hidden="true" />}
+                              {showShare && seats > 0 && (
+                                // สัดส่วนของสระที่นั่งทั้งคลัสเตอร์ — สีกลาง ไม่ใช่สีสถานะ: ส่วนแบ่งมาก
+                                // ไม่ได้แปลว่าดีหรือแย่ (สีสถานะของสระอยู่บนแถบด้านบนของหน้าแล้ว)
+                                <div
+                                  className="bg-muted h-1.5 w-24 overflow-hidden rounded-full"
+                                  role="img"
+                                  aria-label={t('pages.clusterAdmin.seatShareAria', { seats, total: totalSeats })}
+                                >
+                                  <div
+                                    className="bg-muted-foreground/60 h-full rounded-full"
+                                    style={{ width: `${(seats / totalSeats) * 100}%` }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </td>
                           <td className="text-muted-foreground px-2 py-3 text-right font-mono tabular-nums">
                             {activeCount || '—'}
                           </td>
-                          <td className="px-2 py-3 whitespace-nowrap">
-                            {activeCount === 0 ? (
-                              <span className="text-muted-foreground">{t('pages.clusterAdmin.notPurchased')}</span>
+                          <td className="py-3 pr-2 pl-6 whitespace-nowrap">
+                            {none ? (
+                              <Badge variant="outline" className="text-muted-foreground font-normal">
+                                {t('pages.clusterAdmin.notPurchased')}
+                              </Badge>
                             ) : date == null ? (
                               <span className="text-muted-foreground">{t('common.state.noExpiry')}</span>
                             ) : (
-                              <span className="inline-flex items-center gap-2">
+                              <span className="inline-flex items-center gap-2 tabular-nums">
                                 {fmtDate(date)}
                                 {soon && (
                                   <Badge variant="warning" className="text-[10px]">
@@ -141,7 +186,7 @@ export function SeatsByBuTable({ rows, loading, clusterId, onRetry }: SeatsByBuT
             </table>
           </div>
         )}
-      </Group>
+      </div>
     </Card>
   );
 }
