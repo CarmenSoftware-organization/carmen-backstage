@@ -341,6 +341,15 @@ export const en = {
       // upper-cased, e.g. 'JPEG, PNG, WEBP') — this key supplies only the trailing half:
       // '{{types}} · {{this key}}'.
       maxSizeHint: 'up to {{size}} MB',
+      // Appended after maxSizeHint when the slot shrinks images before upload.
+      maxWidthHint: 'resized to max {{width}}px wide',
+      // Square (avatar) slots open a crop dialog before upload.
+      avatarHint: 'cropped to a circle, max {{size}}px',
+      cropTitle: 'Crop {{label}}',
+      cropDescription: 'Drag to reposition and use the slider to zoom. Only the part inside the circle is kept.',
+      cropZoom: 'Zoom',
+      cropConfirm: 'Use photo',
+      cropLoadFailed: 'This image could not be opened.',
       updated: '{{label}} updated',
       uploadFailed: '{{label}} upload failed',
     },

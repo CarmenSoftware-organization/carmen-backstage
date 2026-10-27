@@ -44,8 +44,10 @@ export function BuPropertyPlate({
       <Card className="p-0">
         <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:p-6">
           <div className="flex min-w-0 gap-4">
+            {/* โลโก้คงสัดส่วนเดิม (สูง 48px กว้างตามรูป ไม่เกิน 128px) — เดิม size-12 object-cover
+                ตัดโลโก้แนวนอนเหลือสี่เหลี่ยมจัตุรัสตรงกลาง avatar ยังเป็นจัตุรัสเพราะมันเป็นจัตุรัสอยู่แล้ว */}
             {logoUrl ? (
-              <img src={logoUrl} alt="" className="size-12 shrink-0 rounded-lg border object-cover" />
+              <img src={logoUrl} alt="" className="bg-background h-12 w-auto max-w-32 shrink-0 rounded-lg border object-contain p-1" />
             ) : avatarUrl ? (
               <img src={avatarUrl} alt="" className="size-12 shrink-0 rounded-lg border object-cover" />
             ) : (
@@ -56,7 +58,13 @@ export function BuPropertyPlate({
 
             <div className="min-w-0">
               <h1 className="truncate text-xl font-semibold tracking-tight">
-                <HeroName value={f.name} disabled={!canEdit} onCommit={(v) => onCommit('name', v)} />
+                {/* ไม่มีปุ่ม submit — ชื่อบันทึกตอน blur ดอกจันจึงไม่เตือนอะไร (เหตุผลเดียวกับ ClusterPlate) */}
+                <HeroName
+                  value={f.name}
+                  disabled={!canEdit}
+                  showRequiredMarker={false}
+                  onCommit={(v) => onCommit('name', v)}
+                />
               </h1>
 
               <p className="text-muted-foreground mt-0.5 truncate text-sm">

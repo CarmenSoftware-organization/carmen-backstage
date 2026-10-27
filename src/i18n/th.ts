@@ -277,6 +277,13 @@ export const th: Translations = {
       // คู่กับรายการชนิดไฟล์ที่ไม่แปล (ข้อมูล ไม่ใช่ข้อความ เช่น 'JPEG, PNG, WEBP') — คีย์นี้
       // ให้แค่ครึ่งหลัง: '{{types}} · {{คีย์นี้}}'
       maxSizeHint: 'ไม่เกิน {{size}} MB',
+      maxWidthHint: 'ย่อให้กว้างไม่เกิน {{width}}px',
+      avatarHint: 'ตัดเป็นวงกลม ไม่เกิน {{size}}px',
+      cropTitle: 'ตัดรูป {{label}}',
+      cropDescription: 'ลากเพื่อจัดตำแหน่ง และใช้แถบเลื่อนเพื่อซูม เก็บเฉพาะส่วนที่อยู่ในวงกลม',
+      cropZoom: 'ซูม',
+      cropConfirm: 'ใช้รูปนี้',
+      cropLoadFailed: 'เปิดรูปนี้ไม่ได้',
       updated: 'อัปเดต {{label}} แล้ว',
       uploadFailed: 'อัปโหลด {{label}} ไม่สำเร็จ',
     },
