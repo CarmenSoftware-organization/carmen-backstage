@@ -29,10 +29,10 @@ import { useBusinessUnitUsers } from '../businessUnitEdit/useBusinessUnitUsers';
 import businessUnitLicenseService from '../../services/businessUnitLicenseService';
 import { useLicenseLedger } from '../licenses/useLicenseLedger';
 import BusinessUnitUsersCard from '../businessUnitEdit/BusinessUnitUsersCard';
-import BusinessUnitInterfaceLicensesCard from '../businessUnitEdit/BusinessUnitInterfaceLicensesCard';
 import { LicenseTypeTabs } from './businessUnitForm/LicenseTypeTabs';
 import { BuSeatLicensesCard } from './businessUnitForm/BuSeatLicensesCard';
 import { BuSubscriptionsCard } from './businessUnitForm/BuSubscriptionsCard';
+import { BuInterfaceLicensesCard } from './businessUnitForm/BuInterfaceLicensesCard';
 import businessUnitInterfaceLicenseService from '../../services/businessUnitInterfaceLicenseService';
 import { useBusinessUnitSubscriptions } from '../businessUnitEdit/useBusinessUnitSubscriptions';
 import type { BusinessUnitLicense, InterfaceLicense } from '../../types';
@@ -197,7 +197,10 @@ const BusinessUnitForm: React.FC = () => {
       {
         id: 'licenses',
         label: t('pages.businessUnits.licensesTab'),
-        count: licenses.licenses.length + buSubscriptions.items.length + interfaceLicenses.licenses.length,
+        // ผลรวมระหว่างที่บางก้อนยังโหลดอยู่คือตัวเลขที่ผิด — ซ่อนจนครบทั้งสามก้อน
+        count: licenses.loading || buSubscriptions.loading || interfaceLicenses.loading
+          ? undefined
+          : licenses.licenses.length + buSubscriptions.items.length + interfaceLicenses.licenses.length,
       },
       { id: 'users', label: t('pages.businessUnits.usersLabel'), count: users.buUsers.length },
     ];
@@ -638,9 +641,10 @@ const BusinessUnitForm: React.FC = () => {
             usersSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} />}
             licensesSlot={
               <LicenseTypeTabs
-                seatsCount={licenses.licenses.length}
-                modulesCount={buModuleCount}
-                interfaceCount={interfaceLicenses.licenses.length}
+                // ระหว่างโหลดไม่ส่งตัวเลข — "0" บนแท็บอ่านว่า BU นี้ไม่มีของ ซึ่งไม่จริง TabStrip ซ่อน badge เมื่อเป็น undefined
+                seatsCount={licenses.loading ? undefined : licenses.licenses.length}
+                modulesCount={buSubscriptions.loading ? undefined : buModuleCount}
+                interfaceCount={interfaceLicenses.loading ? undefined : interfaceLicenses.licenses.length}
                 manageHref={`/cluster-admin/${clusterId}/licenses`}
                 /* ทุกการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
                    (`/licenses/*` บังคับ `subscription.read`) `manageHref` จึงชี้ route ไลเซนส์ของ shell เอง
@@ -661,10 +665,9 @@ const BusinessUnitForm: React.FC = () => {
                   />
                 }
                 interface={
-                  <BusinessUnitInterfaceLicensesCard
+                  <BuInterfaceLicensesCard
                     licenses={interfaceLicenses.licenses}
                     loading={interfaceLicenses.loading}
-                    titleHidden
                   />
                 }
               />

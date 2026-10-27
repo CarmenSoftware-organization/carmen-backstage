@@ -19,6 +19,12 @@ interface SubscriptionRowsProps {
    * `groups` ไม่มี (backend เก่า) = ไม่วาดอะไร ห้ามอ่านเป็น "ไม่มีกลุ่ม"
    */
   showGroups?: boolean;
+  /**
+   * จำนวน feature ท้ายช่วงวันที่ ("98 features") — ค่าตั้งต้นวาด (การ์ดฝั่ง platform)
+   * แท็บ Modules ของ cluster admin ปิด: ผู้อ่านที่นั่นถามว่า "ซื้อ module อะไร" ป้าย module ตอบแล้ว
+   * ตัวเลข feature เป็นหน่วยของระบบที่ลูกค้าไม่ได้ซื้อ จึงเป็นแค่เสียงรบกวน
+   */
+  showFeatureCount?: boolean;
   now: Date;
 }
 
@@ -29,7 +35,7 @@ const stateVariant = (s: Subscription['state']) =>
  * รายการสัญญาของ BU พร้อมสถานะโหลด/ล้ม/ว่าง — ใช้ร่วมระหว่าง `BusinessUnitLicensesCard` (platform)
  * กับแท็บ Features ของ cluster admin ซึ่งแยกสัญญาออกจากใบที่นั่ง
  */
-export function SubscriptionRows({ subscriptions, subscriptionHref, window, soonMs, showGroups = false, now }: SubscriptionRowsProps) {
+export function SubscriptionRows({ subscriptions, subscriptionHref, window, soonMs, showGroups = false, showFeatureCount = true, now }: SubscriptionRowsProps) {
   const { t } = useI18n();
 
   return (
@@ -56,12 +62,12 @@ export function SubscriptionRows({ subscriptions, subscriptionHref, window, soon
               <div className={href ? 'font-mono group-hover:underline' : 'font-mono'}>{sub.subscription_number}</div>
               <div className="text-muted-foreground">
                 {fmtCoverageRange(sub.start_date, sub.end_date, t('common.state.noExpiry'))}
-                {' · '}
+                {showFeatureCount && ' · '}
                 {/* ไม่โชว์ที่นั่งรายแถว: `seat_used/seat_cap` ของสัญญาคือพูลระดับ cluster ซึ่งขึ้นเป็น
                     บรรทัด "Cluster pool" บนหัวการ์ดอยู่แล้ว ซ้ำทุกแถวจะอ่านผิดว่าเป็นของใบนั้น */}
-                {sub.feature_count === 1
+                {showFeatureCount && (sub.feature_count === 1
                   ? t('pages.businessUnits.subscriptionRowOne', { count: sub.feature_count })
-                  : t('pages.businessUnits.subscriptionRowMany', { count: sub.feature_count })}
+                  : t('pages.businessUnits.subscriptionRowMany', { count: sub.feature_count }))}
               </div>
               {groups && groups.length > 0 && (
                 <div className="flex flex-wrap gap-1 pt-1">
