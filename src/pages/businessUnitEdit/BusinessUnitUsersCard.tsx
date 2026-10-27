@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import {
   Table,
   TableBody,
@@ -62,8 +62,21 @@ const sortAccessor = (u: BuUserRow, key: string): unknown => {
 const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, canEdit = false, clusterSeat }) => {
   const { t } = useI18n();
   const over = clusterSeat ? clusterSeat.used > clusterSeat.cap : false;
-  // ผู้ใช้ที่ปิดแล้วไม่คืนที่นั่ง — นับไว้เพื่อตัดสินว่าต้องอธิบายป้าย Shared หรือไม่
-  const sharedCount = users.buUsers.filter((u) => u.is_active && u.frees_seat === false).length;
+  // จำนวนทั้งหมดอยู่บน tab แล้ว — หัวการ์ดบอกเฉพาะส่วนที่ผิดปกติ (inactive) และเงียบเมื่อไม่มี
+  const inactiveCount = users.buUsers.filter((u) => !u.is_active).length;
+  const showHeader = canEdit || inactiveCount > 0 || !!clusterSeat;
+  // ผลต่อที่นั่ง cluster เมื่อปิดใช้งานหรือนำแถวนี้ออก — บอกตอนตัดสินใจ (dialog แก้ไข / ยืนยันลบ)
+  // แทนป้าย Shared ทุกแถว: ใน BU จริงเกือบทุกคนเป็น shared ป้ายจึงขึ้นแทบทุกแถวและกลายเป็นเสียงรบกวน
+  // frees_seat undefined (backend ยังไม่ส่ง) หรือแถวที่ปิดอยู่แล้ว → ไม่พูดอะไร เพราะตัดสินไม่ได้/ไม่มีผล
+  const seatEffect = (u: BuUserRow | null): string | null => {
+    if (!u || !u.is_active || u.frees_seat === undefined) return null;
+    return u.frees_seat
+      ? t('pages.businessUnits.seatFreedHint')
+      : t('pages.businessUnits.seatNotFreedHint');
+  };
+  const editSeatEffect =
+    users.editingUser && !users.editUserForm.is_active ? seatEffect(users.editingUser) : null;
+  const deleteSeatEffect = seatEffect(users.deleteUser);
   // ระบบนี้ตั้ง username เป็นอีเมลเป็นค่าเริ่มต้น ตารางจริงจึงมีสองคอลัมน์ที่ค่าเท่ากันทุกแถว
   // กินความกว้าง ~30% โดยไม่ให้ข้อมูลเพิ่ม — ซ่อนคอลัมน์ username เมื่อ "ทุกแถว" ซ้ำ
   // (แถวเดียวที่ต่างก็พอให้คอลัมน์นี้มีความหมาย จึงยังแสดง)
@@ -83,15 +96,17 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
 
   return (
   <Card>
+    {/* ไม่มี CardTitle: การ์ดนี้อยู่ใต้ tab ชื่อ People/Users ที่มีตัวนับอยู่แล้วทั้งสองหน้า
+        หัวการ์ดจึงเหลือเป็นแถบเครื่องมือ — ข้อมูลที่ไม่ซ้ำกับ tab ด้านซ้าย ปุ่มเพิ่มด้านขวา */}
+    {showHeader && (
     <CardHeader>
-      <div className="flex items-center justify-between">
-        <div>
-          <CardTitle className="text-base">{t('pages.businessUnits.usersLabel')}</CardTitle>
-          {/* ไม่ใช้ CardDescription: มันเรนเดอร์เป็น <p> ซึ่งครอบ <div> ของ Badge ไม่ได้ */}
-          <div className="flex items-center gap-2 mt-0.5">
-            <Badge variant="success" className="text-xs px-1.5 py-0">{t('pages.businessUnits.activeCountBadge', { count: users.buUsers.filter(u => u.is_active).length })}</Badge>
-            <span className="text-muted-foreground text-xs">{t('pages.businessUnits.ofTotalUsers', { total: users.buUsers.length })}</span>
-          </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          {inactiveCount > 0 && (
+            <p className="text-muted-foreground text-xs">
+              {t('pages.businessUnits.inactiveCount', { count: inactiveCount })}
+            </p>
+          )}
           {clusterSeat && (
             <p className={`text-xs mt-1 ${over ? 'text-destructive' : 'text-muted-foreground'}`}>
               {t('pages.businessUnits.clusterSeatsUsed', { used: clusterSeat.used, cap: clusterSeat.cap })}
@@ -102,29 +117,24 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
           )}
         </div>
         {canEdit && (
-          <Button variant="outline" size="sm" onClick={users.handleOpenAddUser}>
+          <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={users.handleOpenAddUser}>
             <UserPlus className="mr-2 h-4 w-4" />
             {t('common.action.addUser')}
           </Button>
         )}
       </div>
     </CardHeader>
+    )}
     <CardContent>
       {users.buUsers.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('pages.businessUnits.noUsersAssignedYet')}</p>
       ) : (
         <div className="overflow-x-auto">
-          {sharedCount > 0 && (
-            <p className="text-muted-foreground mb-2 text-xs">
-              <span className="text-foreground font-medium">{t('pages.businessUnits.sharedLabel')}</span> — {t('pages.businessUnits.sharedExplanation')}
-            </p>
-          )}
           {/* ตรึงคอลัมน์ปุ่มไว้ขวา — gate ด้วย canEdit เพราะคอลัมน์นั้นถูกถอดทิ้ง
               เมื่อไม่มีสิทธิ์ คอลัมน์ท้ายจะกลายเป็น BU Status ซึ่งไม่ควรถูกตรึง */}
           <Table className={canEdit ? 'table-sticky-right [--sticky-right-bg:var(--card)]' : undefined}>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10 text-center">#</TableHead>
                 <SortableTableHead sortKey="name" sort={sort} onSort={onSort}>{t('common.field.name')}</SortableTableHead>
                 <SortableTableHead sortKey="email" sort={sort} onSort={onSort}>{t('common.field.email')}</SortableTableHead>
                 {showUsernameColumn && (
@@ -138,9 +148,8 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedUsers.map((u, idx) => (
+              {sortedUsers.map((u) => (
                 <TableRow key={u.id}>
-                  <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
                   <TableCell>
                     <Link
                       to={`/users/${u.user_id}/edit`}
@@ -152,33 +161,24 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
                   <TableCell>{u.email || '-'}</TableCell>
                   {showUsernameColumn && <TableCell>{u.username || '-'}</TableCell>}
                   <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {u.role ? roleLabel(t, u.role) : '-'}
-                    </Badge>
+                    {/* หลักเดียวกับคอลัมน์สถานะ: role ปกติ (User) เป็นตัวหนังสือจาง
+                        Admin ซึ่งเป็นส่วนน้อยที่ต้องหาให้เจอเป็นป้าย */}
+                    {u.role === 'admin' ? (
+                      <Badge variant="outline" className="text-xs">{roleLabel(t, u.role)}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">{u.role ? roleLabel(t, u.role) : '-'}</span>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-center gap-1.5">
-                      {/* สีสงวนไว้ให้แถวที่ผิดปกติ: ป้ายเขียวเรียงกันทุกแถวคือเสียงรบกวน
-                          ไม่ใช่ข้อมูล — ปกติ (Active) จึงเป็นตัวหนังสือจาง ส่วน Inactive
-                          ยังเป็นป้ายเพื่อให้สะดุดตาเวลากวาดสายตา */}
+                    {/* สีสงวนไว้ให้แถวที่ผิดปกติ: ป้ายเขียวเรียงกันทุกแถวคือเสียงรบกวน
+                        ไม่ใช่ข้อมูล — ปกติ (Active) จึงเป็นตัวหนังสือจาง ส่วน Inactive
+                        ยังเป็นป้ายเพื่อให้สะดุดตาเวลากวาดสายตา */}
+                    <div className="flex items-center justify-center">
                       {u.is_active ? (
                         <span className="text-muted-foreground text-xs">{t('common.status.active')}</span>
                       ) : (
                         <Badge variant="secondary" className="text-xs">
                           {t('common.status.inactive')}
-                        </Badge>
-                      )}
-                      {/* frees_seat มาจาก backend เท่านั้น (optional — Task 4b.1) — undefined ต้องไม่ขึ้น
-                          ป้ายนี้ เพราะยังตัดสินไม่ได้ว่าปิดแล้วคืนที่นั่งหรือเปล่า
-                          ป้ายสั้นแทนประโยคเต็ม: ความหมายเหมือนกันทุกแถว การพิมพ์ซ้ำ 10 รอบจึงเป็น
-                          เสียงรบกวน — คำอธิบายอยู่เหนือตารางครั้งเดียว (sharedCount ด้านบน) */}
-                      {u.is_active && u.frees_seat === false && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs"
-                          title={t('pages.businessUnits.sharedBadgeTooltip')}
-                        >
-                          {t('pages.businessUnits.sharedLabel')}
                         </Badge>
                       )}
                     </div>
@@ -241,6 +241,9 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
                   <option value="true">{t('common.status.active')}</option>
                   <option value="false">{t('common.status.inactive')}</option>
                 </select>
+                {editSeatEffect && (
+                  <p className="text-muted-foreground text-xs">{editSeatEffect}</p>
+                )}
               </div>
             </div>
             <DialogFooter>
@@ -261,7 +264,7 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
             name: users.deleteUser
               ? ([users.deleteUser.firstname, users.deleteUser.middlename, users.deleteUser.lastname].filter(Boolean).join(' ') || users.deleteUser.username || users.deleteUser.email || t('pages.businessUnits.thisUser'))
               : '',
-          })}
+          }) + (deleteSeatEffect ? ` ${deleteSeatEffect}` : '')}
           confirmText={t('common.action.remove')}
           confirmVariant="destructive"
           onConfirm={users.handleConfirmDeleteUser}

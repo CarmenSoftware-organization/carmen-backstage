@@ -36,7 +36,7 @@ export interface ClusterBuDocumentProps {
   onUploadLogo: (f: File) => Promise<void>;
   onUploadAvatar: (f: File) => Promise<void>;
   /** ตารางผู้ใช้ + สรุปใบอนุญาต (tab People) */
-  peopleSlot?: React.ReactNode;
+  usersSlot?: React.ReactNode;
   /** timezone, รูปแบบตัวเลข/วันที่, config (tab Configuration) */
   configurationSlot?: React.ReactNode;
   /** การ์ดสัญญา/ที่นั่ง + การ์ดใบ interface (tab Licenses) — อ่านอย่างเดียว */
@@ -84,7 +84,7 @@ function TabJumpList({ summaries, onJump }: { summaries: TabSummary[]; onJump: (
 export function ClusterBuDocument({
   formData: f, fieldErrors, canEdit, onCommit, onValidate, onChange, onCopyHotelAddress,
   logoUrl, avatarUrl, onUploadLogo, onUploadAvatar,
-  tabs, activeTab, onTabChange, summaries, peopleSlot, configurationSlot, licensesSlot,
+  tabs, activeTab, onTabChange, summaries, usersSlot, configurationSlot, licensesSlot,
 }: ClusterBuDocumentProps) {
   const { t } = useI18n();
 
@@ -153,7 +153,7 @@ export function ClusterBuDocument({
         </div>
       )}
 
-      {activeTab === 'people' && peopleSlot}
+      {activeTab === 'users' && usersSlot}
 
       {activeTab === 'hotel' && (
         <Card className="p-0">

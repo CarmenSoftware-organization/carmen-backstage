@@ -25,7 +25,7 @@ import { ClusterBuDocument, type TabSummary } from './businessUnitForm/ClusterBu
 import { BuPropertyPlate } from './businessUnitForm/BuPropertyPlate';
 import {
   clusterBuTabsWithErrors,
-  isClusterBuTabId,
+  parseClusterBuTab,
   type ClusterBuTab,
   type ClusterBuTabId,
 } from './businessUnitForm/ClusterBuTabs';
@@ -145,9 +145,18 @@ const BusinessUnitForm: React.FC = () => {
   // once — the state is the authority afterwards, so an unknown value degrades to Overview.
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<ClusterBuTabId>(() => {
-    const fromUrl = searchParams.get('tab');
-    return isClusterBuTabId(fromUrl) ? fromUrl : 'overview';
+    return parseClusterBuTab(searchParams.get('tab')) ?? 'overview';
   });
+  // ลิงก์เก่า ?tab=people → เขียน URL ใหม่เป็น ?tab=users ครั้งเดียว ให้ลิงก์ที่ถูกคัดลอกต่อจากนี้เป็นค่าปัจจุบัน
+  useEffect(() => {
+    const raw = searchParams.get('tab');
+    const parsed = parseClusterBuTab(raw);
+    if (raw && parsed && raw !== parsed) {
+      const next = new URLSearchParams(searchParams);
+      next.set('tab', parsed);
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Re-reads only `cluster_seat`, not the whole record: fetchBusinessUnit() would also
   // overwrite formData/savedFormData, discarding any edit in progress elsewhere on the page.
@@ -191,7 +200,6 @@ const BusinessUnitForm: React.FC = () => {
     const errored = clusterBuTabsWithErrors(fieldErrors);
     const base: ClusterBuTab[] = [
       { id: 'overview', label: t('pages.clusterAdmin.overview') },
-      { id: 'people', label: t('pages.clusterAdmin.people'), count: users.buUsers.length },
       { id: 'hotel', label: t('common.section.hotel') },
       { id: 'company', label: t('common.section.company') },
       { id: 'configuration', label: t('common.section.configuration') },
@@ -200,6 +208,7 @@ const BusinessUnitForm: React.FC = () => {
         label: t('pages.businessUnits.licensesTab'),
         count: buSubscriptions.items.length + interfaceLicenses.licenses.length,
       },
+      { id: 'users', label: t('pages.businessUnits.usersLabel'), count: users.buUsers.length },
     ];
     return base.map((tab) => ({ ...tab, hasError: errored.includes(tab.id) }));
   })();
@@ -524,14 +533,6 @@ const BusinessUnitForm: React.FC = () => {
   // Hotel ไม่ซ้ำกับแผ่นป้าย: ป้ายบอกว่าที่ไหน บรรทัดนี้บอกว่าติดต่อยังไง
   const summaries: TabSummary[] = [
     {
-      id: 'people',
-      label: t('pages.clusterAdmin.people'),
-      value: t(
-        users.buUsers.length === 1 ? 'pages.clusterAdmin.userCount' : 'pages.clusterAdmin.userCountPlural',
-        { count: users.buUsers.length },
-      ),
-    },
-    {
       id: 'hotel',
       label: t('common.section.hotel'),
       value:
@@ -560,6 +561,14 @@ const BusinessUnitForm: React.FC = () => {
         subs: buSubscriptions.items.filter((sub) => sub.state === 'active').length,
         inf: interfaceLicenses.licenses.filter((l) => l.in_force).length,
       }),
+    },
+    {
+      id: 'users',
+      label: t('pages.businessUnits.usersLabel'),
+      value: t(
+        users.buUsers.length === 1 ? 'pages.clusterAdmin.userCount' : 'pages.clusterAdmin.userCountPlural',
+        { count: users.buUsers.length },
+      ),
     },
   ];
 
@@ -657,7 +666,7 @@ const BusinessUnitForm: React.FC = () => {
             avatarUrl={avatarUrl}
             onUploadLogo={handleUploadLogo}
             onUploadAvatar={handleUploadAvatar}
-            peopleSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} />}
+            usersSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} />}
             licensesSlot={
               <div className="space-y-4">
                 {/* ทั้งสองการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้

@@ -2136,14 +2136,12 @@ export const th: Translations = {
       noInterfaceLicenses: 'ยังไม่มีใบสิทธิ์ interface ของหน่วยธุรกิจนี้',
 
       // --- Task 4: BusinessUnitUsersCard.tsx ---
-      activeCountBadge: 'ใช้งาน {{count}} ราย',
-      ofTotalUsers: 'จากทั้งหมด {{total}} คน',
+      inactiveCount: 'ปิดใช้งาน {{count}} คน',
       clusterSeatsUsed: 'ใช้ที่นั่งระดับ cluster ไป {{used}} / {{cap}}',
       deactivateMoreHint: 'ต้องปิดใช้งานเพิ่มอีก {{count}} คนที่ไม่ได้สังกัดหน่วยธุรกิจอื่นใน cluster นี้',
       noUsersAssignedYet: 'ยังไม่มีผู้ใช้ที่มอบหมาย',
-      sharedLabel: 'ใช้ร่วมกัน',
-      sharedExplanation: 'ยังใช้งานอยู่ในหน่วยธุรกิจอื่นใน cluster นี้ด้วย การปิดใช้งานที่นี่จึงไม่คืนที่นั่ง',
-      sharedBadgeTooltip: 'ยังใช้งานอยู่ในหน่วยธุรกิจอื่นใน cluster นี้ด้วย',
+      seatNotFreedHint: 'ยังใช้งานอยู่ในหน่วยธุรกิจอื่นใน cluster นี้ การปิดที่นี่จึงไม่คืนที่นั่ง cluster',
+      seatFreedHint: 'การปิดนี้จะคืนที่นั่ง cluster 1 ที่',
       buStatusLabel: 'สถานะ BU',
       editUserAria: 'แก้ไข {{name}}',
       editUserInBuTitle: 'แก้ไขผู้ใช้ในหน่วยธุรกิจ',
