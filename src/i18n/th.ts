@@ -1868,7 +1868,6 @@ export const th: Translations = {
 
       // --- Task 4: ClusterBuDocument.tsx ---
       elsewhere: 'ที่อื่น',
-      addressLabel: 'ที่อยู่',
       logoLabel: 'โลโก้',
       hotelNameLabel: 'ชื่อโรงแรม',
       phoneLabel: 'โทรศัพท์',
@@ -1876,9 +1875,16 @@ export const th: Translations = {
       companyNameLabel: 'ชื่อบริษัท',
       taxIdLabel: 'เลขประจำตัวผู้เสียภาษี',
       branchLabel: 'สาขา',
+      contactGroup: 'ติดต่อ',
+      locationGroup: 'ที่ตั้ง',
+      billingDetailsGroup: 'ข้อมูลออกบิล',
+      billingAddressGroup: 'ที่อยู่ออกบิล',
+      callPhoneAria: 'โทร {{value}}',
+      sendEmailAria: 'ส่งอีเมลถึง {{value}}',
 
       // --- Task 4: AddressBlock.tsx ---
       setAddressPlaceholder: 'ตั้งค่าที่อยู่…',
+      openInMaps: 'เปิดในแผนที่',
       coordinatesLabel: 'พิกัด',
       addressLine1Label: 'ที่อยู่บรรทัดที่ 1',
       addressLine2Label: 'ที่อยู่บรรทัดที่ 2',

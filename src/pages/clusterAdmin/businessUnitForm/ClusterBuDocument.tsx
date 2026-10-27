@@ -1,4 +1,4 @@
-import { ChevronRight, Copy } from 'lucide-react';
+import { ChevronRight, Copy, Mail, Phone } from 'lucide-react';
 import { BrandingImageUpload } from '../../../components/BrandingImageUpload';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
@@ -93,7 +93,13 @@ export function ClusterBuDocument({
   const inline = (
     name: keyof BusinessUnitFormData,
     label: string,
-    opts?: { type?: 'text' | 'email' | 'textarea'; mono?: boolean; validate?: boolean; maxLength?: number },
+    opts?: {
+      type?: 'text' | 'email' | 'textarea';
+      mono?: boolean;
+      validate?: boolean;
+      maxLength?: number;
+      trailing?: React.ReactNode;
+    },
   ) => (
     <InlineField
       key={name}
@@ -107,17 +113,46 @@ export function ClusterBuDocument({
       disabled={!canEdit}
       onCommit={onCommit}
       onValidate={opts?.validate ? onValidate : undefined}
+      trailing={opts?.trailing}
     />
   );
 
-  // แถวเดียวกับ InlineField (ป้าย 150px | ค่า) — เดิมป้ายใหญ่กว่าและค่าเริ่มที่ขอบซ้าย ไม่ตรงคอลัมน์ค่า
-  const address = (prefix: 'hotel' | 'company') => (
-    <div className="grid grid-cols-1 gap-0.5 py-1.5 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-3">
-      <span className="text-muted-foreground pt-2 text-xs">{t('pages.clusterAdmin.addressLabel')}</span>
-      <div className="min-w-0">
-        <AddressBlock prefix={prefix} formData={f} disabled={!canEdit} onChange={onChange} />
+  // ทางลัดข้างค่า: คลิกที่ค่ายังเป็นการแก้ ส่วนไอคอนนี้คือ "ใช้" ค่านั้น (โทร/ส่งอีเมล)
+  const actionLink = (href: string, label: string, Icon: typeof Phone) => (
+    <a
+      href={href}
+      aria-label={label}
+      title={label}
+      className="text-muted-foreground hover:text-foreground hover:bg-primary/5 focus-visible:ring-ring inline-flex size-8 items-center justify-center rounded-md focus-visible:ring-1 focus-visible:outline-hidden"
+    >
+      <Icon className="size-3.5" aria-hidden="true" />
+    </a>
+  );
+  const phone = (name: 'hotel_tel' | 'company_tel') => {
+    const value = String(f[name] ?? '').trim();
+    return inline(name, t('pages.clusterAdmin.phoneLabel'), {
+      validate: true,
+      trailing: value && actionLink(`tel:${value.replace(/[^\d+]/g, '')}`, t('pages.clusterAdmin.callPhoneAria', { value }), Phone),
+    });
+  };
+  const email = (name: 'hotel_email' | 'company_email') => {
+    const value = String(f[name] ?? '').trim();
+    return inline(name, t('common.field.email'), {
+      type: 'email',
+      validate: true,
+      trailing: value && actionLink(`mailto:${value}`, t('pages.clusterAdmin.sendEmailAria', { value }), Mail),
+    });
+  };
+
+  // ข้อมูลติดต่อ | ที่ตั้ง วางเคียงกันตั้งแต่ lg — เดิมเป็นกลุ่มเดียวหัวข้อซ้ำชื่อ tab
+  // และครึ่งขวาของการ์ดว่างตลอด ขณะที่ที่อยู่ยาวบรรทัดเดียวจนรหัสไปรษณีย์ตกบรรทัด
+  const contactCard = (left: React.ReactNode, right: React.ReactNode) => (
+    <Card className="gap-0 p-0">
+      <div className="lg:grid lg:grid-cols-2">
+        {left}
+        {right}
       </div>
-    </div>
+    </Card>
   );
 
   return (
@@ -160,39 +195,43 @@ export function ClusterBuDocument({
 
       {activeTab === 'users' && usersSlot}
 
-      {activeTab === 'hotel' && (
-        <Card className="p-0">
-          <Group label={t('common.section.hotel')}>
+      {activeTab === 'hotel' &&
+        contactCard(
+          <Group label={t('pages.clusterAdmin.contactGroup')}>
             {inline('hotel_name', t('pages.clusterAdmin.hotelNameLabel'))}
-            {inline('hotel_tel', t('pages.clusterAdmin.phoneLabel'), { validate: true })}
-            {inline('hotel_email', t('common.field.email'), { type: 'email', validate: true })}
-            {address('hotel')}
-          </Group>
-        </Card>
-      )}
+            {phone('hotel_tel')}
+            {email('hotel_email')}
+          </Group>,
+          <Group label={t('pages.clusterAdmin.locationGroup')} className="lg:border-l">
+            <AddressBlock prefix="hotel" formData={f} disabled={!canEdit} onChange={onChange} />
+          </Group>,
+        )}
 
-      {activeTab === 'company' && (
-        <Card className="p-0">
+      {activeTab === 'company' &&
+        contactCard(
+          <Group label={t('pages.clusterAdmin.billingDetailsGroup')}>
+            {inline('company_name', t('pages.clusterAdmin.companyNameLabel'))}
+            {phone('company_tel')}
+            {email('company_email')}
+            {inline('tax_no', t('pages.clusterAdmin.taxIdLabel'), { mono: true })}
+            {inline('branch_no', t('pages.clusterAdmin.branchLabel'), { mono: true })}
+          </Group>,
           <Group
-            label={t('common.section.company')}
+            label={t('pages.clusterAdmin.billingAddressGroup')}
+            className="lg:border-l"
+            // ปุ่มคัดลอกแตะแค่ที่อยู่ จึงอยู่บนหัวกลุ่มที่อยู่ ไม่ใช่หัวของทั้ง tab
             action={
               canEdit && (
-                <Button type="button" variant="ghost" size="sm" onClick={onCopyHotelAddress}>
+                <Button type="button" variant="ghost" size="sm" className="-my-2" onClick={onCopyHotelAddress}>
                   <Copy className="mr-2 h-4 w-4" />
                   {t('pages.clusterAdmin.copyFromHotelAddress')}
                 </Button>
               )
             }
           >
-            {inline('company_name', t('pages.clusterAdmin.companyNameLabel'))}
-            {inline('company_tel', t('pages.clusterAdmin.phoneLabel'), { validate: true })}
-            {inline('company_email', t('common.field.email'), { type: 'email', validate: true })}
-            {inline('tax_no', t('pages.clusterAdmin.taxIdLabel'), { mono: true })}
-            {inline('branch_no', t('pages.clusterAdmin.branchLabel'), { mono: true })}
-            {address('company')}
-          </Group>
-        </Card>
-      )}
+            <AddressBlock prefix="company" formData={f} disabled={!canEdit} onChange={onChange} />
+          </Group>,
+        )}
 
       {activeTab === 'configuration' && configurationSlot}
 
