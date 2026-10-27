@@ -391,15 +391,17 @@ describe('ClusterEdit — Add User dialog respects the cluster-wide license cap'
   };
 
   beforeEach(() => {
-    // One existing cluster user (userUsed = 1) — same shape/precedent as the write-surface
-    // gating describe block above (`asMock(api.get).mockResolvedValue(...)` unconditionally).
+    // One existing cluster user — same shape/precedent as the write-surface gating describe
+    // block above (`asMock(api.get).mockResolvedValue(...)` unconditionally). This row is NOT
+    // what the seat line counts: since 566418aa `userUsed` is the backend's `users_count`
+    // (distinct users with an active BU link), so each test below sends `users_count: 1`.
     asMock(api.get).mockResolvedValue({ data: { data: [clusterUser] } });
     asMock(userService.getAll).mockResolvedValue({ data: [candidateUser], paginate: { total: 1 } });
   });
 
   it('cluster has seats free: a picked candidate can be submitted', async () => {
     asMock(clusterService.getById).mockResolvedValue({
-      data: { ...fakeCluster, total_max_license_users: 5 }, // 1 used of 5 — room to spare
+      data: { ...fakeCluster, users_count: 1, total_max_license_users: 5 }, // 1 used of 5 — room to spare
     });
     const user = userEvent.setup();
     renderAt('/clusters/c1/edit');
@@ -415,7 +417,7 @@ describe('ClusterEdit — Add User dialog respects the cluster-wide license cap'
 
   it('cluster is at its cap: blocks the submit even with a candidate picked, and says why', async () => {
     asMock(clusterService.getById).mockResolvedValue({
-      data: { ...fakeCluster, total_max_license_users: 1 }, // 1 used of 1 — at the cluster's cap
+      data: { ...fakeCluster, users_count: 1, total_max_license_users: 1 }, // 1 used of 1 — at the cluster's cap
     });
     const user = userEvent.setup();
     renderAt('/clusters/c1/edit');
@@ -440,7 +442,7 @@ describe('ClusterEdit — Add User dialog respects the cluster-wide license cap'
   // a refactor cannot quietly bring the hole back.
   it('reads the cap from the detail endpoint spelling, total_count_license_users', async () => {
     asMock(clusterService.getById).mockResolvedValue({
-      data: { ...fakeCluster, total_count_license_users: 1 }, // detail key only — no total_max_*
+      data: { ...fakeCluster, users_count: 1, total_count_license_users: 1 }, // detail key only — no total_max_*
     });
     const user = userEvent.setup();
     renderAt('/clusters/c1/edit');
