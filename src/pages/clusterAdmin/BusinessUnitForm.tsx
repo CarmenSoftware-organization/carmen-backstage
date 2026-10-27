@@ -29,8 +29,10 @@ import { useBusinessUnitUsers } from '../businessUnitEdit/useBusinessUnitUsers';
 import businessUnitLicenseService from '../../services/businessUnitLicenseService';
 import { useLicenseLedger } from '../licenses/useLicenseLedger';
 import BusinessUnitUsersCard from '../businessUnitEdit/BusinessUnitUsersCard';
-import BusinessUnitLicensesCard from '../businessUnitEdit/BusinessUnitLicensesCard';
 import BusinessUnitInterfaceLicensesCard from '../businessUnitEdit/BusinessUnitInterfaceLicensesCard';
+import { LicenseTypeTabs } from './businessUnitForm/LicenseTypeTabs';
+import { BuSeatLicensesCard } from './businessUnitForm/BuSeatLicensesCard';
+import { BuSubscriptionsCard } from './businessUnitForm/BuSubscriptionsCard';
 import businessUnitInterfaceLicenseService from '../../services/businessUnitInterfaceLicenseService';
 import { useBusinessUnitSubscriptions } from '../businessUnitEdit/useBusinessUnitSubscriptions';
 import type { BusinessUnitLicense, InterfaceLicense } from '../../types';
@@ -190,7 +192,7 @@ const BusinessUnitForm: React.FC = () => {
       {
         id: 'licenses',
         label: t('pages.businessUnits.licensesTab'),
-        count: buSubscriptions.items.length + interfaceLicenses.licenses.length,
+        count: licenses.licenses.length + buSubscriptions.items.length + interfaceLicenses.licenses.length,
       },
       { id: 'users', label: t('pages.businessUnits.usersLabel'), count: users.buUsers.length },
     ];
@@ -203,6 +205,8 @@ const BusinessUnitForm: React.FC = () => {
     // Overview is the default: leave it out so the plain URL stays the canonical one.
     if (tab === 'overview') next.delete('tab');
     else next.set('tab', tab);
+    // แท็บย่อยประเภทไลเซนส์มีความหมายเฉพาะใต้ Licenses — ไม่พามันติดไปแท็บอื่น
+    if (tab !== 'licenses') next.delete('license');
     // replace, not push — a tab switch is not a navigation step, and stacking them would
     // make Back walk through every tab the user touched instead of leaving the page.
     setSearchParams(next, { replace: true });
@@ -628,25 +632,37 @@ const BusinessUnitForm: React.FC = () => {
             onUploadAvatar={handleUploadAvatar}
             usersSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} />}
             licensesSlot={
-              <div className="space-y-4">
-                {/* ทั้งสองการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
-                    (`/licenses/*` บังคับ `subscription.read`) `manageHref` จึงชี้ route ไลเซนส์ของ shell เอง
-                    ไม่ส่ง createHref/editHref/subscriptionHref: ปุ่มหรือแถวที่พาไปชนหน้าที่เตะกลับแย่กว่าไม่มี */}
-                {/* ไม่ส่ง clusterSeat: แผ่นป้ายด้านบนบอก 11 / 15 ไปแล้วและเห็นจากทุก tab
-                    การพิมพ์ซ้ำในการ์ดนี้คือตัวเลขเดียวกันสองที่บนจอเดียว */}
-                <BusinessUnitLicensesCard
-                  licenses={licenses.licenses}
-                  loading={licenses.loading}
-                  subscriptions={buSubscriptions}
-                  manageHref={`/cluster-admin/${clusterId}/licenses`}
-                  subscriptionHref={() => undefined}
-                />
-                <BusinessUnitInterfaceLicensesCard
-                  licenses={interfaceLicenses.licenses}
-                  loading={interfaceLicenses.loading}
-                  manageHref={`/cluster-admin/${clusterId}/licenses`}
-                />
-              </div>
+              <LicenseTypeTabs
+                seatsCount={licenses.licenses.length}
+                featuresCount={buSubscriptions.items.length}
+                interfaceCount={interfaceLicenses.licenses.length}
+                manageHref={`/cluster-admin/${clusterId}/licenses`}
+                /* ทุกการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
+                   (`/licenses/*` บังคับ `subscription.read`) `manageHref` จึงชี้ route ไลเซนส์ของ shell เอง
+                   และส่งให้แถวแท็บย่อยครั้งเดียว ไม่ใช่ทุกการ์ด
+                   แท็บ Seats รับ clusterSeat เพื่อแจกแจงว่า pool มาจาก BU นี้เท่าไร BU อื่นเท่าไร
+                   ไม่ใช่พิมพ์ 11 / 15 ซ้ำแผ่นป้าย */
+                seats={
+                  <BuSeatLicensesCard
+                    licenses={licenses.licenses}
+                    loading={licenses.loading}
+                    clusterSeat={clusterSeat}
+                    buActive={savedFormData.is_active !== false}
+                  />
+                }
+                features={
+                  <BuSubscriptionsCard
+                    subscriptions={buSubscriptions}
+                  />
+                }
+                interface={
+                  <BusinessUnitInterfaceLicensesCard
+                    licenses={interfaceLicenses.licenses}
+                    loading={interfaceLicenses.loading}
+                    titleHidden
+                  />
+                }
+              />
             }
             configurationSlot={
               /* ทั้ง tab เป็นของอ่านอย่างเดียว: รูปแบบวันที่ เวลา ตัวเลข และวิธีคิดต้นทุน
