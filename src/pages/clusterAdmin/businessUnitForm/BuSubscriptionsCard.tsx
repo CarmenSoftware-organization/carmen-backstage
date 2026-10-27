@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../../../components/ui/card';
-import { Button } from '../../../components/ui/button';
 import { useI18n } from '../../../hooks/useI18n';
 import { useExpiryThresholds } from '../../../context/ExpiryThresholdContext';
 import type { BusinessUnitSubscriptions } from '../../businessUnitEdit/useBusinessUnitSubscriptions';
@@ -9,7 +7,6 @@ import { SubscriptionRows } from '../../businessUnitEdit/SubscriptionRows';
 
 interface BuSubscriptionsCardProps {
   subscriptions: BusinessUnitSubscriptions;
-  manageHref: string;
   now?: Date;
 }
 
@@ -17,7 +14,7 @@ interface BuSubscriptionsCardProps {
  * แท็บ Features ของ cluster admin — สัญญาของ BU นี้และกลุ่ม feature ที่แต่ละใบถือ อ่านอย่างเดียว
  * แถวไม่เป็นลิงก์: หน้าสัญญาอยู่ใต้ `/licenses/*` ซึ่ง shell นี้ไม่มี `subscription.read`
  */
-export function BuSubscriptionsCard({ subscriptions, manageHref, now = new Date() }: BuSubscriptionsCardProps) {
+export function BuSubscriptionsCard({ subscriptions, now = new Date() }: BuSubscriptionsCardProps) {
   const { t } = useI18n();
   const { thresholds } = useExpiryThresholds();
   const window = useCoverageWindow(now);
@@ -25,9 +22,11 @@ export function BuSubscriptionsCard({ subscriptions, manageHref, now = new Date(
 
   return (
     <Card>
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-1">
-          <h3 className="text-sm font-semibold">{t('pages.clusterAdmin.coverageSubscriptionsLabel')}</h3>
+      {/* ปุ่ม Manage licences อยู่ที่แถวแท็บย่อยแท็บเดียว ไม่ซ้ำในทุกการ์ด · ชื่อการ์ดซ้ำกับแท็บที่เพิ่งกด
+          จึงเหลือไว้ให้ screen reader เท่านั้น */}
+      <CardHeader className="space-y-1">
+        <div className="min-w-0 space-y-1">
+          <h3 className="sr-only">{t('pages.clusterAdmin.coverageSubscriptionsLabel')}</h3>
           {!subscriptions.loading && items.length > 0 && (
             <LicenseTimeline
               variant="group"
@@ -37,9 +36,6 @@ export function BuSubscriptionsCard({ subscriptions, manageHref, now = new Date(
             />
           )}
         </div>
-        <Button asChild size="sm" variant="outline">
-          <Link to={manageHref}>{t('common.action.manageLicences')}</Link>
-        </Button>
       </CardHeader>
       <CardContent className="space-y-2">
         <SubscriptionRows

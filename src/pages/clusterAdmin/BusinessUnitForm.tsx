@@ -636,15 +636,16 @@ const BusinessUnitForm: React.FC = () => {
                 seatsCount={licenses.licenses.length}
                 featuresCount={buSubscriptions.items.length}
                 interfaceCount={interfaceLicenses.licenses.length}
+                manageHref={`/cluster-admin/${clusterId}/licenses`}
                 /* ทุกการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
                    (`/licenses/*` บังคับ `subscription.read`) `manageHref` จึงชี้ route ไลเซนส์ของ shell เอง
+                   และส่งให้แถวแท็บย่อยครั้งเดียว ไม่ใช่ทุกการ์ด
                    แท็บ Seats รับ clusterSeat เพื่อแจกแจงว่า pool มาจาก BU นี้เท่าไร BU อื่นเท่าไร
                    ไม่ใช่พิมพ์ 11 / 15 ซ้ำแผ่นป้าย */
                 seats={
                   <BuSeatLicensesCard
                     licenses={licenses.licenses}
                     loading={licenses.loading}
-                    manageHref={`/cluster-admin/${clusterId}/licenses`}
                     clusterSeat={clusterSeat}
                     buActive={savedFormData.is_active !== false}
                   />
@@ -652,14 +653,13 @@ const BusinessUnitForm: React.FC = () => {
                 features={
                   <BuSubscriptionsCard
                     subscriptions={buSubscriptions}
-                    manageHref={`/cluster-admin/${clusterId}/licenses`}
                   />
                 }
                 interface={
                   <BusinessUnitInterfaceLicensesCard
                     licenses={interfaceLicenses.licenses}
                     loading={interfaceLicenses.loading}
-                    manageHref={`/cluster-admin/${clusterId}/licenses`}
+                    titleHidden
                   />
                 }
               />

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
 import { TabStrip, type TabStripItem } from '../../../components/TabStrip';
 import { useI18n } from '../../../hooks/useI18n';
 
@@ -18,6 +20,8 @@ interface LicenseTypeTabsProps {
   seats: ReactNode;
   features: ReactNode;
   interface: ReactNode;
+  /** route ไลเซนส์ของ shell เอง (cluster admin เข้า `/licenses/*` ไม่ได้) — ปุ่มเดียวแทนปุ่มในทุกการ์ด */
+  manageHref: string;
 }
 
 /**
@@ -28,7 +32,7 @@ interface LicenseTypeTabsProps {
  * แท็บแรกไม่เขียนลง URL ให้ `?tab=licenses` เปล่า ๆ ยังเป็น URL หลัก — ลิงก์เดิมที่ชี้มาไม่เปลี่ยนความหมาย ·
  * panel ใช้ `hidden` ไม่ unmount: ทุกการ์ดเป็นแค่การแสดงผลของ ledger ที่หน้าแม่โหลดไว้แล้ว
  */
-export function LicenseTypeTabs({ seatsCount, featuresCount, interfaceCount, seats, features, interface: iface }: LicenseTypeTabsProps) {
+export function LicenseTypeTabs({ seatsCount, featuresCount, interfaceCount, seats, features, interface: iface, manageHref }: LicenseTypeTabsProps) {
   const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const active = parseLicenseType(searchParams.get('license'));
@@ -49,7 +53,18 @@ export function LicenseTypeTabs({ seatsCount, featuresCount, interfaceCount, sea
 
   return (
     <div className="space-y-4">
-      <TabStrip tabs={tabs} value={active} onChange={handleChange} ariaLabel={t('pages.clusterAdmin.licenseTypesLabel')} />
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <TabStrip tabs={tabs} value={active} onChange={handleChange} ariaLabel={t('pages.clusterAdmin.licenseTypesLabel')} />
+        </div>
+        {/* ใต้ sm เหลือแค่ไอคอน — สามแท็บพร้อมตัวเลขกินที่ ~300px ของ 390px แล้ว */}
+        <Button asChild size="sm" variant="ghost" className="shrink-0">
+          <Link to={manageHref} aria-label={t('common.action.manageLicences')}>
+            <ArrowUpRight className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{t('common.action.manageLicences')}</span>
+          </Link>
+        </Button>
+      </div>
       <div hidden={active !== 'seats'}>{seats}</div>
       <div hidden={active !== 'features'}>{features}</div>
       <div hidden={active !== 'interface'}>{iface}</div>
