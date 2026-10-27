@@ -2965,8 +2965,9 @@ export const en = {
       noInterfaceLicenses: 'No interface license has been issued for this business unit',
 
       // --- Task 4: BusinessUnitUsersCard.tsx ---
-      activeCountBadge: '{{count}} Active',
-      ofTotalUsers: 'of {{total}} total',
+      // Toolbar line above the roster, shown only when count > 0 — the total already sits on
+      // the People/Users tab, so the card states only the exception.
+      inactiveCount: '{{count}} inactive',
       // NOT the same sentence as pages.businessUnits.clusterPoolSeatsUsed above
       // (BusinessUnitLicensesCard.tsx): that one reads "Cluster pool: {{used}} / {{cap}}
       // seats used" (label prefix, "seats used" last); this one reads "{{used}} / {{cap}}
@@ -2981,18 +2982,12 @@ export const en = {
       // this key holds only the text that follows the bullet.
       deactivateMoreHint: 'deactivate {{count}} more who belong to no other BU in this cluster',
       noUsersAssignedYet: 'No users assigned yet.',
-      // The bold lead word of the "Shared — ..." explanation paragraph, and the identical
-      // text on the row Badge — both bind here, one key for the one word.
-      sharedLabel: 'Shared',
-      // The rest of the explanation paragraph, after the bold "Shared" span and the em dash
-      // (which stays a literal JSX separator, same convention as deactivateMoreHint above).
-      // NOT byte-identical to sharedBadgeTooltip below (different case on "also", and this
-      // one carries the extra "so deactivating here frees no seat" clause the tooltip omits).
-      sharedExplanation: 'also active in another business unit in this cluster, so deactivating here frees no seat.',
-      // The Badge `title` tooltip — a standalone sentence, not a fragment continuing the bold
-      // "Shared" span the way sharedExplanation is, so it gets its own key rather than reusing
-      // that one with different capitalisation spliced in.
-      sharedBadgeTooltip: 'Also active in another business unit in this cluster',
+      // Seat consequence shown at the moment of decision (Edit dialog when switching to
+      // Inactive, Remove confirmation) instead of a "Shared" badge on every row — in a real BU
+      // nearly every member is shared, so the per-row badge was noise. Only rendered when the
+      // backend sent frees_seat for an active row.
+      seatNotFreedHint: 'Still active in another business unit in this cluster, so this frees no cluster seat.',
+      seatFreedHint: 'This frees one cluster seat.',
       buStatusLabel: 'BU Status',
       // "Edit" aria-label template for the per-row icon button, with the `entity.user.lower`
       // ('user') fallback when the row has neither a username nor an email. No sibling

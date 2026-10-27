@@ -101,10 +101,6 @@ describe('BusinessUnitUsersCard — แถบ seat ระดับ cluster', () 
     );
     expect(screen.getByText(/12 \/ 5/)).toBeInTheDocument();
     expect(screen.getByText(/deactivate 7 more/)).toBeInTheDocument();
-    // aUser (จาก stubUsers) ไม่มี frees_seat เลย (undefined) — แถวปกติที่ backend ยังไม่ส่งค่า
-    // หรือ frees_seat เป็น true ต้องไม่มีป้าย Shared ถ้า implementation ติดป้ายให้ทุกแถว
-    // active โดยไม่เช็ค frees_seat เลย เทสต์นี้ต้องจับได้ (คำอธิบายเหนือตารางก็ต้องไม่ขึ้นด้วย)
-    expect(screen.queryByText('Shared')).not.toBeInTheDocument();
   });
 
   it('ไม่ขึ้นเตือนเมื่อยังไม่เกิน', () => {
@@ -116,21 +112,37 @@ describe('BusinessUnitUsersCard — แถบ seat ระดับ cluster', () 
     expect(screen.queryByText(/deactivate/)).not.toBeInTheDocument();
   });
 
-  it('คนที่ปิดแล้วไม่คืนที่นั่งต้องบอกให้เห็น ไม่งั้นแอดมินปิดไปเรื่อยแล้วตัวเลขไม่ขยับ', () => {
+  // เดิมเป็นป้าย Shared ทุกแถว — ย้ายมาบอกตอนตัดสินใจ: แอดมินต้องรู้ก่อนกดว่าปิดแล้วตัวเลขไม่ขยับ
+  it('ปิดใช้งานคนที่ยัง active ใน BU อื่น — dialog แก้ไขบอกว่าไม่คืนที่นั่ง', () => {
+    const shared = { ...aUser, id: 'm1', is_active: true, frees_seat: false };
     render(
       <MemoryRouter>
         <BusinessUnitUsersCard
-          {...base}
-          users={{ ...base.users, buUsers: [
-            { ...aUser, id: 'm1', user_id: 'u1', is_active: true, frees_seat: false },
-          ] }}
-          clusterSeat={{ used: 12, cap: 5 }}
+          canEdit
+          users={{ ...base.users, buUsers: [shared], editingUser: shared, editUserForm: { role: 'admin', is_active: false } }}
         />
       </MemoryRouter>,
     );
-    // ป้ายในแถว + คำอธิบายเหนือตาราง — ทั้งคู่ต้องมี ไม่งั้นป้ายเปล่าที่ไม่มีใครรู้ว่าแปลว่าอะไร
-    expect(screen.getAllByText('Shared')).toHaveLength(2);
-    expect(screen.getByText(/frees no seat/)).toBeInTheDocument();
+    expect(screen.getByText(/frees no cluster seat/)).toBeInTheDocument();
+  });
+
+  it('ยืนยันลบคนที่ถือที่นั่งคนเดียว — บอกว่าคืนที่นั่ง', () => {
+    const solo = { ...aUser, id: 'm2', is_active: true, frees_seat: true };
+    render(
+      <MemoryRouter>
+        <BusinessUnitUsersCard canEdit users={{ ...base.users, buUsers: [solo], deleteUser: solo }} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText(/frees one cluster seat/)).toBeInTheDocument();
+  });
+
+  it('frees_seat ไม่มีค่า — ไม่เดาผลต่อที่นั่ง', () => {
+    render(
+      <MemoryRouter>
+        <BusinessUnitUsersCard canEdit users={{ ...base.users, editingUser: aUser, editUserForm: { role: 'admin', is_active: false } }} />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText(/cluster seat\./)).not.toBeInTheDocument();
   });
 
   it('แถบ seat ต้องพูดว่าเป็นของทั้ง cluster ไม่ใช่ของ BU นี้', () => {
