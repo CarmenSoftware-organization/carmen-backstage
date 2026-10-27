@@ -1957,6 +1957,8 @@ export const th: Translations = {
       endsColumn: 'สิ้นสุด',
       couldNotLoadLicencesForBu: 'โหลดไลเซนส์สำหรับหน่วยธุรกิจนี้ไม่สำเร็จ — ที่นั่งของหน่วยนี้ไม่ทราบจำนวน ไม่ใช่ศูนย์',
       notPurchased: 'ยังไม่ได้ซื้อ',
+      seatsNotPurchasedSummary: '{{count}} จาก {{total}} หน่วยยังไม่มีที่นั่ง',
+      seatShareAria: '{{seats}} จาก {{total}} ที่นั่งของคลัสเตอร์',
 
       // --- Task 5: licenses/QuotaLedgerCard.tsx ---
       quotaColumn: 'โควตา',

@@ -2630,6 +2630,8 @@ export const en = {
       endsColumn: 'Ends',
       couldNotLoadLicencesForBu: 'Could not load licences for this business unit — its seats are unknown, not zero.',
       notPurchased: 'Not purchased',
+      seatsNotPurchasedSummary: '{{count}} of {{total}} without seats',
+      seatShareAria: '{{seats}} of {{total}} cluster seats',
 
       // --- Task 5: licenses/QuotaLedgerCard.tsx ---
       // Cross-slice fix (final review F2): the Quota column header read pages.licenses.
