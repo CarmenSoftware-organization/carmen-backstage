@@ -145,7 +145,7 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
                   <SortableTableHead sortKey="username" sort={sort} onSort={onSort}>{t('common.field.username')}</SortableTableHead>
                 )}
                 <SortableTableHead sortKey="role" sort={sort} onSort={onSort}>{t('common.label.buRole')}</SortableTableHead>
-                <SortableTableHead sortKey="status" sort={sort} onSort={onSort} className="text-center">
+                <SortableTableHead sortKey="status" sort={sort} onSort={onSort}>
                   {t('pages.businessUnits.buStatusLabel')}
                 </SortableTableHead>
                 {canEdit && <TableHead className="w-10" />}
@@ -172,19 +172,18 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
                   <TableCell>{u.email || '-'}</TableCell>
                   {showUsernameColumn && <TableCell>{u.username || '-'}</TableCell>}
                   <TableCell>
-                    {/* หลักเดียวกับคอลัมน์สถานะ: role ปกติ (User) เป็นตัวหนังสือจาง
-                        Admin ซึ่งเป็นส่วนน้อยที่ต้องหาให้เจอเป็นป้าย */}
-                    {u.role === 'admin' ? (
-                      <Badge variant="outline" className="text-xs">{roleLabel(t, u.role)}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">{u.role ? roleLabel(t, u.role) : '-'}</span>
-                    )}
+                    {/* หลักเดียวกับคอลัมน์สถานะ: role ปกติ (User) เป็นตัวหนังสือจาง Admin ซึ่งเป็น
+                        ส่วนน้อยที่ต้องหาให้เจอเป็นตัวหนังสือเข้มหนา — ไม่ใช่ป้ายมีกรอบ: ป้ายทำให้สองค่า
+                        ในคอลัมน์เดียวคนละรูปทรง และ padding ดันขอบซ้ายเยื้องจาก User (ผู้ใช้เคาะไว้) */}
+                    <span className={`text-xs ${u.role === 'admin' ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                      {u.role ? roleLabel(t, u.role) : '-'}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {/* สีสงวนไว้ให้แถวที่ผิดปกติ: ป้ายเขียวเรียงกันทุกแถวคือเสียงรบกวน
                         ไม่ใช่ข้อมูล — ปกติ (Active) จึงเป็นตัวหนังสือจาง ส่วน Inactive
                         ยังเป็นป้ายเพื่อให้สะดุดตาเวลากวาดสายตา */}
-                    <div className="flex items-center justify-center">
+                    <div className="flex items-center">
                       {u.is_active ? (
                         <span className="text-muted-foreground text-xs">{t('common.status.active')}</span>
                       ) : (
