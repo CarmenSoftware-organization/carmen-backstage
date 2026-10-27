@@ -4,10 +4,15 @@ import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { Button } from './ui/button';
 import { BrandMark } from './BrandMark';
-import { parseApiError } from '../utils/errorParser';
+import { devLog, parseApiError } from '../utils/errorParser';
+import { resizeImageToMaxWidth } from '../utils/resizeImage';
+import { AvatarCropDialog } from './AvatarCropDialog';
 import { useI18n } from '../hooks/useI18n';
 
 const DEFAULT_ACCEPT = ['image/jpeg', 'image/png', 'image/webp'];
+/** ค่าตั้งต้นของทุกหน้า: โลโก้กว้างไม่เกิน 500px, avatar ตัดวงกลมไม่เกิน 250px */
+const DEFAULT_LOGO_MAX_WIDTH = 500;
+const DEFAULT_AVATAR_SIZE = 250;
 
 interface BrandingImageUploadProps {
   label: string;
@@ -22,6 +27,16 @@ interface BrandingImageUploadProps {
    */
   compact?: boolean;
   maxSizeMB?: number;
+  /**
+   * `shape="rect"` (โลโก้): ย่อให้กว้างไม่เกินค่านี้ (px) ฝั่ง browser ก่อนอัปโหลด คงสัดส่วนเดิม
+   * ค่าตั้งต้น 500 · `0` = อัปโหลดไฟล์ตามที่เลือก ตรวจ `maxSizeMB` กับไฟล์ *หลัง* ย่อ
+   */
+  maxWidth?: number;
+  /**
+   * `shape="square"` (avatar): เปิด dialog ให้ตัดเป็นวงกลมก่อนอัปโหลด แล้วได้ไฟล์จัตุรัสด้านละไม่เกิน
+   * ค่านี้ (px) ค่าตั้งต้น 250 · `0` = ไม่ตัด อัปโหลดไฟล์ตามที่เลือก
+   */
+  avatarSize?: number;
   accept?: string[];
   /** Entity name behind this branding — feeds the square slot's initials fallback. */
   fallbackName?: string;
@@ -38,6 +53,8 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
   shape = 'rect',
   compact = false,
   maxSizeMB = 5,
+  maxWidth = DEFAULT_LOGO_MAX_WIDTH,
+  avatarSize = DEFAULT_AVATAR_SIZE,
   accept = DEFAULT_ACCEPT,
   fallbackName,
   fallbackCode,
@@ -58,33 +75,64 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
   // A fresh upload (or a re-presigned URL for the same image) deserves a fresh attempt.
   useEffect(() => setBroken(false), [value]);
 
-  const validate = (file: File): string => {
-    if (!accept.includes(file.type)) {
-      return t('common.upload.unsupportedType', { types: accept.map((t2) => t2.replace('image/', '')).join(', ') });
-    }
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      return t('common.upload.tooLarge', { size: maxSizeMB });
-    }
-    return '';
-  };
+  const crops = shape === 'square' && avatarSize > 0;
+  const resizes = shape === 'rect' && maxWidth > 0;
+  // ไฟล์ที่รอผู้ใช้ตัดใน dialog — null = dialog ปิด
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
-  const handleFile = async (file: File) => {
-    const err = validate(file);
-    if (err) {
-      toast.error(err);
+  const clearInput = () => { if (inputRef.current) inputRef.current.value = ''; };
+
+  const handleFile = (picked: File) => {
+    if (!accept.includes(picked.type)) {
+      toast.error(t('common.upload.unsupportedType', { types: accept.map((t2) => t2.replace('image/', '')).join(', ') }));
+      clearInput();
       return;
     }
+    if (crops) {
+      setCropFile(picked);
+      return;
+    }
+    void upload(picked);
+  };
+
+  const upload = async (picked: File) => {
     setBusy(true);
     try {
+      let file = picked;
+      if (resizes) {
+        try {
+          file = await resizeImageToMaxWidth(picked, maxWidth);
+        } catch (e) {
+          // ย่อไม่ได้ก็ยังอัปโหลดไฟล์เดิมได้ — backend ตรวจชนิด/ขนาดของมันเองอยู่แล้ว
+          devLog('BrandingImageUpload.resize', e);
+        }
+      }
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        toast.error(t('common.upload.tooLarge', { size: maxSizeMB }));
+        return;
+      }
       await onUpload(file);
       toast.success(t('common.upload.updated', { label }));
     } catch (e) {
       toast.error(t('common.upload.uploadFailed', { label }), { description: parseApiError(e).message });
     } finally {
       setBusy(false);
-      if (inputRef.current) inputRef.current.value = '';
+      clearInput();
     }
   };
+
+  const cropDialog = crops && (
+    <AvatarCropDialog
+      file={cropFile}
+      label={label}
+      outputSize={avatarSize}
+      onCancel={() => { setCropFile(null); clearInput(); }}
+      onConfirm={async (cropped) => {
+        await upload(cropped);
+        setCropFile(null);
+      }}
+    />
+  );
 
   const frameClass = compact
     ? shape === 'square'
@@ -136,13 +184,16 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
   };
 
   const fileInput = (
-    <input
-      ref={inputRef}
-      type="file"
-      accept={accept.join(',')}
-      className="hidden"
-      onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }}
-    />
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept.join(',')}
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+      />
+      {cropDialog}
+    </>
   );
 
   if (compact) {
@@ -202,6 +253,8 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
             <p className="text-xs text-muted-foreground">
               {accept.map((mime) => mime.replace('image/', '').toUpperCase()).join(', ')} ·{' '}
               {t('common.upload.maxSizeHint', { size: maxSizeMB })}
+              {resizes && ` · ${t('common.upload.maxWidthHint', { width: maxWidth })}`}
+              {crops && ` · ${t('common.upload.avatarHint', { size: avatarSize })}`}
             </p>
           </div>
         )}
