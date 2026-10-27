@@ -1,6 +1,6 @@
 import type { TabStripItem } from '../../../components/TabStrip';
 
-export type ClusterBuTabId = 'overview' | 'people' | 'hotel' | 'company' | 'configuration' | 'licenses';
+export type ClusterBuTabId = 'overview' | 'hotel' | 'company' | 'configuration' | 'licenses' | 'users';
 
 export const CLUSTER_BU_TAB_IDS: ClusterBuTabId[] = [
   'overview',
@@ -10,11 +10,21 @@ export const CLUSTER_BU_TAB_IDS: ClusterBuTabId[] = [
   // ไม่มีฟิลด์ในฟอร์ม จึงไม่มีทางถูก tabsWithErrors เลือก แต่ต้องอยู่ในนี้เพราะ isClusterBuTabId
   // ใช้ตัวเดียวกันตรวจ deep link `?tab=licenses` (แถวสัญญาบนหน้า /cluster-admin/:id/licenses ชี้มาที่นี่)
   'licenses',
-  'people',
+  'users',
 ];
 
 export const isClusterBuTabId = (v: string | null): v is ClusterBuTabId =>
   !!v && (CLUSTER_BU_TAB_IDS as string[]).includes(v);
+
+/** id เก่าของ tab ที่เปลี่ยนชื่อแล้ว — ลิงก์/bookmark `?tab=people` ที่ออกไปก่อนหน้านี้ต้องยังเปิด tab เดิมได้
+ *  (isClusterBuTabId ปัดค่าที่ไม่รู้จักไป Overview เงียบ ๆ จึงต้องแปลงก่อนตรวจ) */
+const LEGACY_CLUSTER_BU_TAB_IDS: Record<string, ClusterBuTabId> = { people: 'users' };
+
+/** อ่าน `?tab=` ให้เป็น tab id ปัจจุบัน — แปลง id เก่าก่อน ค่าที่ไม่รู้จักคืน null */
+export const parseClusterBuTab = (v: string | null): ClusterBuTabId | null => {
+  const id = (v && LEGACY_CLUSTER_BU_TAB_IDS[v]) || v;
+  return isClusterBuTabId(id) ? id : null;
+};
 
 export type ClusterBuTab = TabStripItem<ClusterBuTabId>;
 
