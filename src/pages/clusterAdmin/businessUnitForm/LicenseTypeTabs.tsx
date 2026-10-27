@@ -19,9 +19,10 @@ const parseLicenseType = (raw: string | null): LicenseTypeId => {
 };
 
 interface LicenseTypeTabsProps {
-  seatsCount: number;
-  modulesCount: number;
-  interfaceCount: number;
+  /** undefined = ยังโหลดไม่เสร็จ แท็บไม่วาดตัวเลข */
+  seatsCount?: number;
+  modulesCount?: number;
+  interfaceCount?: number;
   seats: ReactNode;
   modules: ReactNode;
   interface: ReactNode;

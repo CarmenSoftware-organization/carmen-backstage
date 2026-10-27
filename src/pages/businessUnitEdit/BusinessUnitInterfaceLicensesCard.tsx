@@ -15,8 +15,6 @@ interface BusinessUnitInterfaceLicensesCardProps {
   /** ปุ่ม "จัดการ" — ผู้เรียกตัดสิน URL เหมือน BusinessUnitLicensesCard (cluster admin เข้า /licenses ไม่ได้) */
   /** ไม่ส่ง = ไม่มีปุ่ม — แท็บย่อยของ cluster admin วางปุ่มเดียวไว้ที่แถวแท็บแทน */
   manageHref?: string;
-  /** ซ่อนชื่อการ์ดจากสายตา (ยังอยู่กับ screen reader) — ใช้เมื่อแท็บที่ครอบอยู่บอกชื่อเดียวกันไปแล้ว */
-  titleHidden?: boolean;
   /** ปุ่มออกใบใหม่ — ไม่ส่ง = ไม่มีปุ่ม ผู้เรียกครอบสิทธิ์ subscription.manage เอง */
   createHref?: string;
   /**
@@ -36,7 +34,6 @@ export default function BusinessUnitInterfaceLicensesCard({
   licenses,
   loading,
   manageHref,
-  titleHidden = false,
   createHref,
   editHref,
   now = new Date(),
@@ -61,7 +58,7 @@ export default function BusinessUnitInterfaceLicensesCard({
     <Card>
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-1">
-          <h3 className={titleHidden ? 'sr-only' : 'text-sm font-semibold'}>{t('pages.businessUnits.interfaceLicensesTitle')}</h3>
+          <h3 className="text-sm font-semibold">{t('pages.businessUnits.interfaceLicensesTitle')}</h3>
           <p className="text-muted-foreground text-xs">
             {loading
               ? t('common.busy.loadingEllipsis')
