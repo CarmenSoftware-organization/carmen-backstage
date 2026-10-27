@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react';
 import { ReadOnlyField } from '../../components/ReadOnlyField';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
+import { cn } from '../../lib/utils';
 
 export const selectClassName = "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring";
 
@@ -109,22 +110,26 @@ export const AddrField: React.FC<{
  *
  * `cols={2}` แบ่งลูกเป็นสองคอลัมน์ตั้งแต่ lg ขึ้นไป — สำหรับกลุ่มที่มีหลาย field สั้น
  * (ที่อยู่ 13 ช่อง) ซึ่งเรียงคอลัมน์เดียวแล้วยาวเกินหนึ่งจอโดยที่ครึ่งขวาของหน้าว่างเปล่า
+ *
+ * `className` ให้ผู้เรียกที่วางกลุ่มเคียงกันสลับเส้นคั่นบนเป็นเส้นคั่นซ้ายได้
  */
 export function Group({
   label,
   description,
   action,
   cols = 1,
+  className,
   children,
 }: {
   label: string;
   description?: string;
   action?: React.ReactNode;
   cols?: 1 | 2;
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-t p-4 sm:px-6 sm:py-5">
+    <div className={cn('border-t p-4 sm:px-6 sm:py-5', className)}>
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-base font-semibold leading-none tracking-tight">{label}</h3>

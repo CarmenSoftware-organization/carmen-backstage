@@ -2488,7 +2488,6 @@ export const en = {
 
       // --- Task 4: ClusterBuDocument.tsx ---
       elsewhere: 'Elsewhere',
-      addressLabel: 'Address',
       logoLabel: 'Logo',
       hotelNameLabel: 'Hotel name',
       // Shared by hotel_tel and company_tel — both InlineField calls pass the identical
@@ -2498,9 +2497,17 @@ export const en = {
       companyNameLabel: 'Company name',
       taxIdLabel: 'Tax ID',
       branchLabel: 'Branch',
+      // Hotel/Company tabs split into two groups; these headings replace the repeated tab name.
+      contactGroup: 'Contact',
+      locationGroup: 'Location',
+      billingDetailsGroup: 'Billing details',
+      billingAddressGroup: 'Billing address',
+      callPhoneAria: 'Call {{value}}',
+      sendEmailAria: 'Email {{value}}',
 
       // --- Task 4: AddressBlock.tsx ---
       setAddressPlaceholder: 'Set address…',
+      openInMaps: 'Open in Maps',
       coordinatesLabel: 'Coordinates',
       addressLine1Label: 'Address line 1',
       addressLine2Label: 'Address line 2',

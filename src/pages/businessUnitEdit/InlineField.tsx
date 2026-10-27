@@ -44,6 +44,11 @@ interface InlineFieldProps {
   onCommit: (name: string, value: string) => void;
   /** Optional field-level validation on commit. */
   onValidate?: (name: string, value: string) => void;
+  /**
+   * A secondary action beside the read-mode value (e.g. a tel:/mailto: link). It sits outside
+   * the button, so clicking the value still edits; it shows on row hover or focus.
+   */
+  trailing?: React.ReactNode;
 }
 
 const inputBase =
@@ -84,6 +89,7 @@ export function InlineField({
   maxLength,
   onCommit,
   onValidate,
+  trailing,
 }: InlineFieldProps) {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
@@ -132,6 +138,40 @@ export function InlineField({
       : value.trim()
         ? value
         : null;
+
+  const readButton = (
+    <button
+      type="button"
+      onClick={start}
+      disabled={disabled}
+      className={cn(
+        readButtonClass,
+        WIDTH_CLASS[width],
+        !displayValue && 'text-muted-foreground italic',
+        mono && displayValue && 'font-mono tabular-nums',
+      )}
+    >
+      <span className="whitespace-pre-line">{displayValue ?? promptText}</span>
+      {!disabled && (
+        /* Hover reveals it on a mouse; a touch device has no hover, so there the
+           pencil stays faintly visible — otherwise nothing on the row says it is
+           editable at all. */
+        <Pencil className="text-muted-foreground/60 ml-auto size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-70" />
+      )}
+    </button>
+);
+  // Only rows that carry a secondary action get the wrapper, so every other row's DOM is unchanged.
+  const renderRead = () =>
+    trailing && displayValue ? (
+      <div className={cn('group/row flex items-center gap-1', WIDTH_CLASS[width])}>
+        {readButton}
+        <span className="shrink-0 opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+          {trailing}
+        </span>
+      </div>
+    ) : (
+      readButton
+    );
 
   return (
     <div className="grid grid-cols-1 gap-0.5 py-1.5 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-3">
@@ -220,25 +260,7 @@ export function InlineField({
             />
           )
         ) : (
-          <button
-            type="button"
-            onClick={start}
-            disabled={disabled}
-            className={cn(
-              readButtonClass,
-              WIDTH_CLASS[width],
-              !displayValue && 'text-muted-foreground italic',
-              mono && displayValue && 'font-mono tabular-nums',
-            )}
-          >
-            <span className="whitespace-pre-line">{displayValue ?? promptText}</span>
-            {!disabled && (
-              /* Hover reveals it on a mouse; a touch device has no hover, so there the
-                 pencil stays faintly visible — otherwise nothing on the row says it is
-                 editable at all. */
-              <Pencil className="text-muted-foreground/60 ml-auto size-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-70" />
-            )}
-          </button>
+          renderRead()
         )}
         {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
       </div>
