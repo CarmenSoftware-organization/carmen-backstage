@@ -480,13 +480,13 @@ describe('SubscriptionTable — the State filter matches what the badge shows', 
 // Review M3: spec §8.1 lists BU, Features, and a cluster filter. The values were already on
 // every row (they even shipped in the CSV export) — just never rendered. The BU column now
 // names the contract's single business unit instead of counting them: one contract = one BU.
-describe('SubscriptionTable — BU and Feature Groups columns', () => {
+describe('SubscriptionTable — BU and Modules columns', () => {
   it('renders both column headers with the row values', async () => {
     renderPage();
     await screen.findByText('SUB-0001');
 
     expect(screen.getByText('Business Unit')).toBeInTheDocument();
-    expect(screen.getByText('Feature Groups')).toBeInTheDocument();
+    expect(screen.getByText('Modules')).toBeInTheDocument();
     expect(screen.getByText('BU1')).toBeInTheDocument();     // bu_code
     expect(screen.getByText('Acme BU')).toBeInTheDocument(); // bu_name
     expect(screen.getByText('CORE')).toBeInTheDocument();    // groups[].code
