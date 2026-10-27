@@ -13,6 +13,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { ProviderIconMark } from '../../components/icons/ProviderIcons';
 import type { AiProvider } from '../../types';
 
 const CODE_RE = /^[a-z0-9][a-z0-9_-]{1,49}$/;
@@ -55,6 +56,15 @@ function BoolToggle({ id, checked, onChange, disabled, label, hint }: {
         <Badge variant={checked ? 'success' : 'secondary'}>{checked ? 'ON' : 'OFF'}</Badge>
       </Button>
     </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
+      {children}
+    </section>
   );
 }
 
@@ -130,107 +140,129 @@ export default function AiProviderEditDialog({ open, onOpenChange, provider, nex
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl">
+        <DialogHeader className="border-b px-6 py-4">
+          <DialogTitle className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border bg-background">
+              {iconUrl.trim().startsWith('https://') ? (
+                <img src={iconUrl.trim()} alt="" referrerPolicy="no-referrer" className="h-5 w-5 object-contain" />
+              ) : (
+                <ProviderIconMark iconKey={iconKey === NO_ICON ? null : iconKey} className="h-5 w-5" />
+              )}
+            </span>
             {t(provider ? 'pages.aiProviders.dialogEditTitle' : 'pages.aiProviders.dialogCreateTitle')}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
           {error && (
             <div role="alert" className="rounded-md bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
               {error}
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="ap-code">{t('pages.aiProviders.fieldCode')}</Label>
-            <Input
-              id="ap-code" value={code} onChange={(e) => setCode(e.target.value)}
-              disabled={saving || provider !== null} maxLength={50}
-              className={cn('font-mono', !codeValid && code !== '' && 'border-destructive')}
-            />
-            {!codeValid && code !== '' ? (
-              <p className="text-xs text-destructive">{t('pages.aiProviders.codeInvalid')}</p>
-            ) : (
-              <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldCodeHint')}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ap-label">{t('pages.aiProviders.fieldLabel')}</Label>
-            <Input id="ap-label" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={100} disabled={saving} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ap-icon-key">{t('pages.aiProviders.fieldIconKey')}</Label>
-            <Select value={iconKey} onValueChange={setIconKey} disabled={saving}>
-              <SelectTrigger id="ap-icon-key"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NO_ICON}>{t('pages.aiProviders.iconNone')}</SelectItem>
-                {ICON_KEYS.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ap-icon-url">{t('pages.aiProviders.fieldIconUrl')}</Label>
-            <Input
-              id="ap-icon-url" value={iconUrl} onChange={(e) => setIconUrl(e.target.value)}
-              placeholder="https://" disabled={saving}
-            />
-            <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldIconUrlHint')}</p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ap-url">{t('pages.aiProviders.fieldUrlTemplate')}</Label>
-            <Input
-              id="ap-url" value={urlTemplate} onChange={(e) => setUrlTemplate(e.target.value)}
-              placeholder="https://example.com/search?q={query}" className="font-mono" disabled={saving}
-            />
-            <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldUrlTemplateHint')}</p>
-            {urlTemplate.trim() && (
-              <p className="break-all text-xs">
-                <span className="text-muted-foreground">{t('pages.aiProviders.urlPreview')}: </span>
-                <span className="font-mono">{previewUrl(urlTemplate.trim())}</span>
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ap-prompt">{t('pages.aiProviders.fieldPrompt')}</Label>
-            <Textarea
-              id="ap-prompt" value={prompt} onChange={(e) => setPrompt(e.target.value)}
-              rows={10} className="font-mono" disabled={saving}
-            />
-            <div className="flex items-start justify-between gap-3">
-              <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldPromptHint')}</p>
-              <span className={cn('shrink-0 text-xs', prompt.length > PROMPT_MAX ? 'text-destructive' : 'text-muted-foreground')}>
-                {prompt.length}/{PROMPT_MAX}
-              </span>
+          <Section title={t('pages.aiProviders.sectionIdentity')}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="ap-label">{t('pages.aiProviders.fieldLabel')}</Label>
+                <Input id="ap-label" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={100} disabled={saving} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ap-code">{t('pages.aiProviders.fieldCode')}</Label>
+                <Input
+                  id="ap-code" value={code} onChange={(e) => setCode(e.target.value)}
+                  disabled={saving || provider !== null} maxLength={50}
+                  className={cn('font-mono', !codeValid && code !== '' && 'border-destructive')}
+                />
+                {!codeValid && code !== '' ? (
+                  <p className="text-xs text-destructive">{t('pages.aiProviders.codeInvalid')}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldCodeHint')}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ap-icon-key">{t('pages.aiProviders.fieldIconKey')}</Label>
+                <Select value={iconKey} onValueChange={setIconKey} disabled={saving}>
+                  <SelectTrigger id="ap-icon-key"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_ICON}>{t('pages.aiProviders.iconNone')}</SelectItem>
+                    {ICON_KEYS.map((k) => (
+                      <SelectItem key={k} value={k}>
+                        <span className="flex items-center gap-2">
+                          <ProviderIconMark iconKey={k} className="h-4 w-4" />
+                          {k}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ap-icon-url">{t('pages.aiProviders.fieldIconUrl')}</Label>
+                <Input
+                  id="ap-icon-url" value={iconUrl} onChange={(e) => setIconUrl(e.target.value)}
+                  placeholder="https://" disabled={saving}
+                />
+                <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldIconUrlHint')}</p>
+              </div>
             </div>
-          </div>
+          </Section>
 
-          <BoolToggle
-            id="ap-active" checked={isActive} onChange={setIsActive} disabled={saving}
-            label={t('pages.aiProviders.fieldActive')} hint={t('pages.aiProviders.fieldActiveHint')}
-          />
-          <BoolToggle
-            id="ap-default-bu" checked={defaultBu} onChange={setDefaultBu} disabled={saving}
-            label={t('pages.aiProviders.fieldDefaultBu')} hint={t('pages.aiProviders.fieldDefaultBuHint')}
-          />
+          <Section title={t('pages.aiProviders.sectionLink')}>
+            <div className="space-y-2">
+              <Label htmlFor="ap-url">{t('pages.aiProviders.fieldUrlTemplate')}</Label>
+              <Input
+                id="ap-url" value={urlTemplate} onChange={(e) => setUrlTemplate(e.target.value)}
+                placeholder="https://example.com/search?q={query}" className="font-mono text-sm" disabled={saving}
+              />
+              <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldUrlTemplateHint')}</p>
+              {urlTemplate.trim() && (
+                <p className="break-all rounded-md bg-muted/50 px-3 py-2 text-xs">
+                  <span className="text-muted-foreground">{t('pages.aiProviders.urlPreview')}: </span>
+                  <span className="font-mono">{previewUrl(urlTemplate.trim())}</span>
+                </p>
+              )}
+            </div>
+          </Section>
 
-          <div className="space-y-2">
-            <Label htmlFor="ap-sort">{t('pages.aiProviders.fieldSort')}</Label>
-            <Input
-              id="ap-sort" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}
-              className="w-32" disabled={saving}
-            />
-          </div>
+          <Section title={t('pages.aiProviders.fieldPrompt')}>
+            <div className="space-y-2">
+              <Textarea
+                id="ap-prompt" aria-label={t('pages.aiProviders.fieldPrompt')}
+                value={prompt} onChange={(e) => setPrompt(e.target.value)}
+                rows={8} className="font-mono text-xs leading-relaxed" disabled={saving}
+              />
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldPromptHint')}</p>
+                <span className={cn('shrink-0 text-xs tabular-nums', prompt.length > PROMPT_MAX ? 'text-destructive' : 'text-muted-foreground')}>
+                  {prompt.length}/{PROMPT_MAX}
+                </span>
+              </div>
+            </div>
+          </Section>
+
+          <Section title={t('pages.aiProviders.sectionAvailability')}>
+            <div className="space-y-4">
+              <BoolToggle
+                id="ap-active" checked={isActive} onChange={setIsActive} disabled={saving}
+                label={t('pages.aiProviders.fieldActive')} hint={t('pages.aiProviders.fieldActiveHint')}
+              />
+              <BoolToggle
+                id="ap-default-bu" checked={defaultBu} onChange={setDefaultBu} disabled={saving}
+                label={t('pages.aiProviders.fieldDefaultBu')} hint={t('pages.aiProviders.fieldDefaultBuHint')}
+              />
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="ap-sort">{t('pages.aiProviders.fieldSort')}</Label>
+                <Input
+                  id="ap-sort" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}
+                  className="w-24 text-right tabular-nums" disabled={saving}
+                />
+              </div>
+            </div>
+          </Section>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t px-6 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             {t('common.cancel')}
           </Button>
