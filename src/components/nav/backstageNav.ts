@@ -53,7 +53,8 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   // Deliberately ungated: a switch that could hide itself could never be restored from the UI.
   { path: '/backstage/features', labelKey: 'nav.featureFlags', icon: ToggleLeft, permission: 'feature_flag.manage', groupKey: 'navGroup.backstage' },
   // AI — ต้องอยู่ติดกัน และอยู่ก่อนกลุ่ม Database ที่ต้องเป็นท้ายสุด
-  { path: '/ai-providers', labelKey: 'nav.aiProviders', icon: Sparkles, permission: 'ai_provider.read', groupKey: 'navGroup.ai', feature: 'ai_providers' },
+  // ชื่อเต็ม "Purchase Request AI Providers" ล้นความกว้าง sidebar — หัวกลุ่ม AI บอกส่วนที่เหลือแล้ว
+  { path: '/purchase-request-ai-providers', labelKey: 'nav.aiProvidersShort', icon: Sparkles, permission: 'ai_provider.read', groupKey: 'navGroup.ai', feature: 'ai_providers' },
   // Database — ต้องอยู่ท้ายสุด: ทั้งสองแถวเคยอยู่กลางกลุ่ม Backstage การแยกออกเป็นกลุ่มของตัวเอง
   // โดยทิ้งไว้ตำแหน่งเดิมจะทำให้กลุ่ม Backstage ขาดเป็นสองท่อนและวาดหัวข้อซ้ำสองครั้ง
   // Must stay last: pulling these out mid-group would split Backstage's heading in two.

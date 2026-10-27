@@ -389,13 +389,15 @@ function AppContent() {
               }
             />
             <Route
-              path="/ai-providers"
+              path="/purchase-request-ai-providers"
               element={
                 <PrivateRoute requiredPermission="ai_provider.read" feature="ai_providers">
                   <AiProviderManagement />
                 </PrivateRoute>
               }
             />
+            {/* ชื่อเดิมก่อนผูกกับใบขอซื้อ — บุ๊กมาร์กเก่าต้องไม่ตาย */}
+            <Route path="/ai-providers" element={<Navigate to="/purchase-request-ai-providers" replace />} />
             <Route
               path="/news"
               element={

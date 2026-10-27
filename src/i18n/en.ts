@@ -43,7 +43,8 @@ export const en = {
     featureFlags: 'Feature Flags',
     cronjobs: 'Scheduled Jobs',
     dashboardTemplates: 'Dashboard Templates',
-    aiProviders: 'AI Providers',
+    aiProviders: 'Purchase Request AI Providers',
+    aiProvidersShort: 'Purchase Request',
   },
   navGroup: {
     organization: 'Organization',
@@ -122,7 +123,7 @@ export const en = {
     clusterAdmin: 'Cluster Admin',
     profile: 'Profile',
     dashboardTemplates: 'Dashboard Templates',
-    aiProviders: 'AI Providers',
+    aiProviders: 'Purchase Request AI Providers',
     changelog: 'Changelog',
     new: 'New',
     edit: 'Edit',
@@ -4799,7 +4800,7 @@ export const en = {
       viewWholeSession: 'View this entire session',
     },
     aiProviders: {
-      subtitle: 'AI assistants offered on the purchase request page. Changes apply to every business unit.',
+      subtitle: 'Changes apply to every business unit.',
       add: 'Add provider',
       empty: 'No AI providers yet',
       loadFailed: 'Could not load AI providers: {{detail}}',
