@@ -1,4 +1,5 @@
 import { FileText } from 'lucide-react';
+import { Badge } from '../../../components/ui/badge';
 import { CoverageCard, type CoverageRowItem } from './CoverageCard';
 import { fmtCoverageRange } from '../../licenses/licenseDates';
 import { useI18n } from '../../../hooks/useI18n';
@@ -48,11 +49,26 @@ export function SubscriptionsCard({
         end_date: sub.end_date,
         live: sub.state === 'active',
         primary: sub.subscription_number,
-        secondary: `${fmtCoverageRange(sub.start_date, sub.end_date, t('common.state.noExpiry'))} · ${
-          sub.feature_count === 1
-            ? t('pages.businessUnits.subscriptionRowOne', { count: sub.feature_count })
-            : t('pages.businessUnits.subscriptionRowMany', { count: sub.feature_count })
-        }`,
+        secondary: (
+          <>
+            {fmtCoverageRange(sub.start_date, sub.end_date, t('common.state.noExpiry'))}
+            {/* โมดูลคือสิ่งที่ขายจริง ยอด feature ล้วนบอกไม่ได้ว่าใบนี้ได้อะไร (ผู้ใช้เคาะไว้) · ไม่มีฟิลด์ =
+                backend ยังไม่ส่ง groups จึงถอยไปแสดงยอด feature แทนช่องว่างที่ดูเหมือน "ไม่มีโมดูล" */}
+            {sub.groups ? (
+              sub.groups.length > 0 && (
+                <span className="mt-1 flex flex-wrap gap-1">
+                  {sub.groups.map((g) => (
+                    <Badge key={g.id} variant="outline" title={g.name} className="font-mono text-[11px] font-normal">
+                      {g.code}
+                    </Badge>
+                  ))}
+                </span>
+              )
+            ) : (
+              <> · {t('pages.licenseFeatureGroups.featuresOnly', { count: sub.feature_count })}</>
+            )}
+          </>
+        ),
         href,
         ariaLabel: t('pages.clusterAdmin.openBusinessUnitLicences', { name: bu?.name || buLabel }),
         group: { key: sub.bu_code || sub.bu_name || '?', label: sub.bu_name ? `${buLabel} · ${sub.bu_name}` : buLabel },
