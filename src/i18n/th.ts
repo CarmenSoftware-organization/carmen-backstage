@@ -42,7 +42,8 @@ export const th: Translations = {
     featureFlags: 'สวิตช์ฟีเจอร์',
     cronjobs: 'งานตามเวลา',
     dashboardTemplates: 'แม่แบบแดชบอร์ด',
-    aiProviders: 'AI Providers',
+    aiProviders: 'AI Providers ใบขอซื้อ',
+    aiProvidersShort: 'ใบขอซื้อ',
   },
   navGroup: {
     organization: 'องค์กร',
@@ -110,7 +111,7 @@ export const th: Translations = {
     clusterAdmin: 'ผู้ดูแล Cluster',
     profile: 'โปรไฟล์',
     dashboardTemplates: 'แม่แบบแดชบอร์ด',
-    aiProviders: 'AI Providers',
+    aiProviders: 'AI Providers ใบขอซื้อ',
     changelog: 'บันทึกการเปลี่ยนแปลง',
     new: 'สร้างใหม่',
     edit: 'แก้ไข',
@@ -3779,7 +3780,7 @@ export const th: Translations = {
       viewWholeSession: 'ดูเซสชันนี้ทั้งหมด',
     },
     aiProviders: {
-      subtitle: 'ผู้ช่วย AI ที่เปิดให้ใช้ในหน้าใบขอซื้อ การเปลี่ยนแปลงมีผลกับทุกหน่วยธุรกิจ',
+      subtitle: 'การเปลี่ยนแปลงมีผลกับทุกหน่วยธุรกิจ',
       add: 'เพิ่ม provider',
       empty: 'ยังไม่มี AI provider',
       loadFailed: 'โหลด AI provider ไม่สำเร็จ: {{detail}}',
