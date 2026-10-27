@@ -23,7 +23,7 @@ const SEGMENT_KEYS: Record<string, TKey> = {
   'report-form-groups': 'breadcrumb.formGroups',
   'dashboard-templates': 'breadcrumb.dashboardTemplates',
   'purchase-request-ai-providers': 'breadcrumb.aiProviders',
-  'license-feature-groups': 'breadcrumb.licenseFeatureGroups',
+  'license-modules': 'breadcrumb.licenseFeatureGroups',
   'license-features': 'breadcrumb.licenseFeatures',
   news: 'breadcrumb.news',
   broadcasts: 'breadcrumb.broadcasts',

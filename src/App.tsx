@@ -325,7 +325,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/license-feature-groups"
+              path="/license-modules"
               element={
                 <PrivateRoute requiredPermission="license_feature_group.read" feature="license_feature_groups">
                   <LicenseCatalog tab="bundles" />
@@ -333,7 +333,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/license-feature-groups/new"
+              path="/license-modules/new"
               element={
                 <PrivateRoute requiredPermission="license_feature_group.manage" feature="license_feature_groups">
                   <LicenseFeatureGroupEdit />
@@ -341,7 +341,7 @@ function AppContent() {
               }
             />
             <Route
-              path="/license-feature-groups/:id/edit"
+              path="/license-modules/:id/edit"
               element={
                 <PrivateRoute requiredPermission="license_feature_group.read" feature="license_feature_groups">
                   <LicenseFeatureGroupEdit />
@@ -652,6 +652,8 @@ function AppContent() {
             />
             {/* Console เดิมชื่อ Platform — path เก่า /platform/* (บุ๊กมาร์ก, e2e) ส่งต่อไป /backstage/* */}
             <Route path="/platform/*" element={<LegacyPlatformRedirect />} />
+            {/* "feature group" เปลี่ยนชื่อบนจอเป็น "module" — บุ๊กมาร์ก /license-feature-groups/* เดิมยังต้องเปิดได้ */}
+            <Route path="/license-feature-groups/*" element={<LegacyLicenseModuleRedirect />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
@@ -675,6 +677,13 @@ const SubscriptionEditRedirect: React.FC = () => {
 const LegacyPlatformRedirect: React.FC = () => {
   const { pathname, search, hash } = useLocation();
   const next = pathname.replace(/^\/platform(?=\/|$)/, "/backstage").replace(/\/user-platform(?=\/|$)/, "/user-backstage");
+  return <Navigate to={`${next}${search}${hash}`} replace />;
+};
+
+/** /license-feature-groups/* → /license-modules/* พร้อมคง segment ที่เหลือ (new, :id/edit) และ query/hash */
+const LegacyLicenseModuleRedirect: React.FC = () => {
+  const { pathname, search, hash } = useLocation();
+  const next = pathname.replace(/^\/license-feature-groups(?=\/|$)/, "/license-modules");
   return <Navigate to={`${next}${search}${hash}`} replace />;
 };
 

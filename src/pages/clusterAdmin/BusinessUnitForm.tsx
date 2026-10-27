@@ -639,7 +639,7 @@ const BusinessUnitForm: React.FC = () => {
             licensesSlot={
               <LicenseTypeTabs
                 seatsCount={licenses.licenses.length}
-                featuresCount={buModuleCount}
+                modulesCount={buModuleCount}
                 interfaceCount={interfaceLicenses.licenses.length}
                 manageHref={`/cluster-admin/${clusterId}/licenses`}
                 /* ทุกการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
@@ -655,7 +655,7 @@ const BusinessUnitForm: React.FC = () => {
                     buActive={savedFormData.is_active !== false}
                   />
                 }
-                features={
+                modules={
                   <BuSubscriptionsCard
                     subscriptions={buSubscriptions}
                   />

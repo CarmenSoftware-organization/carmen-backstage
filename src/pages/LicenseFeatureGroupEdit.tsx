@@ -135,7 +135,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
   useUnsavedChanges(hasChanges);
 
   const handleCancel = useCallback(() => {
-    navigate('/license-feature-groups');
+    navigate('/license-modules');
   }, [navigate]);
 
   useGlobalShortcuts({
@@ -300,7 +300,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
           );
         }
         toast.success(t('pages.licenseFeatureGroups.created'));
-        navigate(`/license-feature-groups/${detail.id}/edit`, { replace: true });
+        navigate(`/license-modules/${detail.id}/edit`, { replace: true });
         return;
       }
 
@@ -394,7 +394,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
     <Layout>
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 pb-24 sm:space-y-6">
         <PageHeader
-          backTo="/license-feature-groups"
+          backTo="/license-modules"
           title={
             isNew
               ? t('pages.licenseFeatureGroups.newGroup')

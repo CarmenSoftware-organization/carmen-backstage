@@ -22,7 +22,7 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   // การแทรกรายการกลุ่มอื่นคั่นจะทำให้หัวข้อนี้แตกเป็นสองหัวข้อ
   // Must stay contiguous: Sidebar groups by consecutive runs of the same `groupKey`.
   { path: '/licenses', labelKey: 'nav.licenses', icon: KeyRound, permission: 'subscription.read', groupKey: 'navGroup.licenseManagement', feature: 'licenses' },
-  { path: '/license-feature-groups', labelKey: 'nav.licenseFeatureGroups', icon: LayoutGrid, permission: 'license_feature_group.read', groupKey: 'navGroup.licenseManagement', feature: 'license_feature_groups' },
+  { path: '/license-modules', labelKey: 'nav.licenseFeatureGroups', icon: LayoutGrid, permission: 'license_feature_group.read', groupKey: 'navGroup.licenseManagement', feature: 'license_feature_groups' },
   { path: '/license-features', labelKey: 'nav.licenseFeatures', icon: Tags, permission: 'license_feature.read', groupKey: 'navGroup.licenseManagement', feature: 'license_features' },
   // Content
   { path: '/report-templates', labelKey: 'nav.reportTemplates', icon: FileText, permission: 'report_template.read', groupKey: 'navGroup.content', feature: 'report_templates' },

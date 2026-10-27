@@ -20,7 +20,7 @@ export type LicenseCatalogTab = 'bundles' | 'features';
  * สองเส้นทางถือ `requiredPermission` + `feature` ของตัวเองใน `App.tsx` เหมือนก่อนรวมหน้าทุกประการ
  */
 const TAB_PATH: Record<LicenseCatalogTab, string> = {
-  bundles: '/license-feature-groups',
+  bundles: '/license-modules',
   features: '/license-features',
 };
 
