@@ -2684,6 +2684,7 @@ export const en = {
       viewAll: 'View all',
 
       // --- ClusterAdminLicenses.tsx: SubscriptionsCard / InterfaceLicensesCard (CoverageCard) ---
+      licenseTypesLabel: 'License types',
       licensesSummary: '{{subs}} active {{subs#subscription|subscriptions}} · {{inf}} interface {{inf#licence|licences}} in force',
       coverageSubscriptionsLabel: 'Subscriptions',
       coverageInterfaceLabel: 'Interface licences',

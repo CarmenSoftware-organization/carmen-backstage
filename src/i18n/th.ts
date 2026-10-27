@@ -1990,6 +1990,7 @@ export const th: Translations = {
       viewAll: 'ดูทั้งหมด',
 
       // --- ClusterAdminLicenses.tsx: SubscriptionsCard / InterfaceLicensesCard (CoverageCard) ---
+      licenseTypesLabel: 'ประเภทไลเซนส์',
       licensesSummary: 'สัญญาที่ใช้อยู่ {{subs}} ใบ · ใบสิทธิ์ interface ที่ใช้ได้จริง {{inf}} ใบ',
       coverageSubscriptionsLabel: 'สัญญา',
       coverageInterfaceLabel: 'ใบสิทธิ์ interface',

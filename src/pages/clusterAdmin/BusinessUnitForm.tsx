@@ -31,6 +31,7 @@ import { useLicenseLedger } from '../licenses/useLicenseLedger';
 import BusinessUnitUsersCard from '../businessUnitEdit/BusinessUnitUsersCard';
 import BusinessUnitLicensesCard from '../businessUnitEdit/BusinessUnitLicensesCard';
 import BusinessUnitInterfaceLicensesCard from '../businessUnitEdit/BusinessUnitInterfaceLicensesCard';
+import { LicenseTypeTabs } from './businessUnitForm/LicenseTypeTabs';
 import businessUnitInterfaceLicenseService from '../../services/businessUnitInterfaceLicenseService';
 import { useBusinessUnitSubscriptions } from '../businessUnitEdit/useBusinessUnitSubscriptions';
 import type { BusinessUnitLicense, InterfaceLicense } from '../../types';
@@ -203,6 +204,8 @@ const BusinessUnitForm: React.FC = () => {
     // Overview is the default: leave it out so the plain URL stays the canonical one.
     if (tab === 'overview') next.delete('tab');
     else next.set('tab', tab);
+    // แท็บย่อยประเภทไลเซนส์มีความหมายเฉพาะใต้ Licenses — ไม่พามันติดไปแท็บอื่น
+    if (tab !== 'licenses') next.delete('license');
     // replace, not push — a tab switch is not a navigation step, and stacking them would
     // make Back walk through every tab the user touched instead of leaving the page.
     setSearchParams(next, { replace: true });
@@ -628,25 +631,31 @@ const BusinessUnitForm: React.FC = () => {
             onUploadAvatar={handleUploadAvatar}
             usersSlot={<BusinessUnitUsersCard users={users} canEdit={canEdit} />}
             licensesSlot={
-              <div className="space-y-4">
-                {/* ทั้งสองการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
-                    (`/licenses/*` บังคับ `subscription.read`) `manageHref` จึงชี้ route ไลเซนส์ของ shell เอง
-                    ไม่ส่ง createHref/editHref/subscriptionHref: ปุ่มหรือแถวที่พาไปชนหน้าที่เตะกลับแย่กว่าไม่มี */}
-                {/* ไม่ส่ง clusterSeat: แผ่นป้ายด้านบนบอก 11 / 15 ไปแล้วและเห็นจากทุก tab
-                    การพิมพ์ซ้ำในการ์ดนี้คือตัวเลขเดียวกันสองที่บนจอเดียว */}
-                <BusinessUnitLicensesCard
-                  licenses={licenses.licenses}
-                  loading={licenses.loading}
-                  subscriptions={buSubscriptions}
-                  manageHref={`/cluster-admin/${clusterId}/licenses`}
-                  subscriptionHref={() => undefined}
-                />
-                <BusinessUnitInterfaceLicensesCard
-                  licenses={interfaceLicenses.licenses}
-                  loading={interfaceLicenses.loading}
-                  manageHref={`/cluster-admin/${clusterId}/licenses`}
-                />
-              </div>
+              <LicenseTypeTabs
+                userCount={buSubscriptions.items.length}
+                interfaceCount={interfaceLicenses.licenses.length}
+                /* ทั้งสองการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้
+                   (`/licenses/*` บังคับ `subscription.read`) `manageHref` จึงชี้ route ไลเซนส์ของ shell เอง
+                   ไม่ส่ง createHref/editHref/subscriptionHref: ปุ่มหรือแถวที่พาไปชนหน้าที่เตะกลับแย่กว่าไม่มี
+                   ไม่ส่ง clusterSeat: แผ่นป้ายด้านบนบอก 11 / 15 ไปแล้วและเห็นจากทุก tab
+                   การพิมพ์ซ้ำในการ์ดนี้คือตัวเลขเดียวกันสองที่บนจอเดียว */
+                user={
+                  <BusinessUnitLicensesCard
+                    licenses={licenses.licenses}
+                    loading={licenses.loading}
+                    subscriptions={buSubscriptions}
+                    manageHref={`/cluster-admin/${clusterId}/licenses`}
+                    subscriptionHref={() => undefined}
+                  />
+                }
+                interface={
+                  <BusinessUnitInterfaceLicensesCard
+                    licenses={interfaceLicenses.licenses}
+                    loading={interfaceLicenses.loading}
+                    manageHref={`/cluster-admin/${clusterId}/licenses`}
+                  />
+                }
+              />
             }
             configurationSlot={
               /* ทั้ง tab เป็นของอ่านอย่างเดียว: รูปแบบวันที่ เวลา ตัวเลข และวิธีคิดต้นทุน
