@@ -140,7 +140,7 @@ export const GroupCatalogPanel: React.FC = () => {
         { key: 'is_active', label: t('pages.licenseFeatureGroups.active') },
       ],
     );
-    downloadCSV(csv, `license-feature-groups-${new Date().toISOString().slice(0, 10)}.csv`);
+    downloadCSV(csv, `license-modules-${new Date().toISOString().slice(0, 10)}.csv`);
     toast.success(t('toast.exported'));
   };
 
@@ -191,7 +191,7 @@ export const GroupCatalogPanel: React.FC = () => {
       cell: ({ row }) => (
         <>
           <Link
-            to={`/license-feature-groups/${row.original.id}/edit`}
+            to={`/license-modules/${row.original.id}/edit`}
             className="font-mono text-xs text-primary hover:underline"
             title={row.original.code}
           >
@@ -306,7 +306,7 @@ export const GroupCatalogPanel: React.FC = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={`/license-feature-groups/${row.original.id}/edit`}>
+                <Link to={`/license-modules/${row.original.id}/edit`}>
                   <Pencil className="mr-2 h-4 w-4" />
                   {t('common.action.edit')}
                 </Link>
@@ -356,7 +356,7 @@ export const GroupCatalogPanel: React.FC = () => {
                 {t('common.action.export')}
               </Button>
               <Can permission="license_feature_group.manage">
-                <Button size="sm" onClick={() => navigate('/license-feature-groups/new')}>
+                <Button size="sm" onClick={() => navigate('/license-modules/new')}>
                   <Plus className="mr-2 h-4 w-4" />
                   {t('pages.licenseFeatureGroups.newGroup')}
                 </Button>
@@ -378,7 +378,7 @@ export const GroupCatalogPanel: React.FC = () => {
                 description={t('pages.licenseFeatureGroups.emptyDescription')}
                 action={
                   <Can permission="license_feature_group.manage">
-                    <Button size="sm" onClick={() => navigate('/license-feature-groups/new')}>
+                    <Button size="sm" onClick={() => navigate('/license-modules/new')}>
                       <Plus className="mr-2 h-4 w-4" />
                       {t('pages.licenseFeatureGroups.newGroup')}
                     </Button>

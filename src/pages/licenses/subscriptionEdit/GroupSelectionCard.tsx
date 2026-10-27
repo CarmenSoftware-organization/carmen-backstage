@@ -215,7 +215,7 @@ export function GroupSelectionCard({
       {selectableGroups.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           {t('pages.subscriptions.noGroupsAvailable')}{' '}
-          <Link to="/license-feature-groups" className="text-primary hover:underline">
+          <Link to="/license-modules" className="text-primary hover:underline">
             {t('pages.licenseFeatureGroups.title')}
           </Link>
         </p>
@@ -305,7 +305,7 @@ export function GroupSelectionCard({
         </span>
         {!readOnly && (
           <Button type="button" variant="ghost" size="sm" asChild>
-            <Link to="/license-feature-groups" target="_blank" rel="noreferrer">
+            <Link to="/license-modules" target="_blank" rel="noreferrer">
               <ExternalLink className="mr-2 h-4 w-4" />
               {t('pages.subscriptions.manageGroups')}
             </Link>

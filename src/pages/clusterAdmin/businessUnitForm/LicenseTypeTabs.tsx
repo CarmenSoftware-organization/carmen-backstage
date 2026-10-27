@@ -5,20 +5,25 @@ import { Button } from '../../../components/ui/button';
 import { TabStrip, type TabStripItem } from '../../../components/TabStrip';
 import { useI18n } from '../../../hooks/useI18n';
 
-export type LicenseTypeId = 'seats' | 'features' | 'interface';
+export type LicenseTypeId = 'seats' | 'modules' | 'interface';
 
-const LICENSE_TYPE_IDS: LicenseTypeId[] = ['seats', 'features', 'interface'];
+const LICENSE_TYPE_IDS: LicenseTypeId[] = ['seats', 'modules', 'interface'];
 
-/** อ่าน `?license=` — ค่าที่ไม่รู้จักหรือไม่มีคืน 'seats' (แท็บแรก) */
-const parseLicenseType = (v: string | null): LicenseTypeId =>
-  v && (LICENSE_TYPE_IDS as string[]).includes(v) ? (v as LicenseTypeId) : 'seats';
+/** id เก่าก่อนเปลี่ยนชื่อ feature group → module — ลิงก์ `?license=features` ที่ส่งออกไปแล้วต้องยังเปิดแท็บเดิม */
+const LEGACY_LICENSE_TYPE_IDS: Record<string, LicenseTypeId> = { features: 'modules' };
+
+/** อ่าน `?license=` — แปลง id เก่าก่อน ค่าที่ไม่รู้จักหรือไม่มีคืน 'seats' (แท็บแรก) */
+const parseLicenseType = (raw: string | null): LicenseTypeId => {
+  const v = (raw && LEGACY_LICENSE_TYPE_IDS[raw]) || raw;
+  return v && (LICENSE_TYPE_IDS as string[]).includes(v) ? (v as LicenseTypeId) : 'seats';
+};
 
 interface LicenseTypeTabsProps {
   seatsCount: number;
-  featuresCount: number;
+  modulesCount: number;
   interfaceCount: number;
   seats: ReactNode;
-  features: ReactNode;
+  modules: ReactNode;
   interface: ReactNode;
   /** route ไลเซนส์ของ shell เอง (cluster admin เข้า `/licenses/*` ไม่ได้) — ปุ่มเดียวแทนปุ่มในทุกการ์ด */
   manageHref: string;
@@ -32,14 +37,14 @@ interface LicenseTypeTabsProps {
  * แท็บแรกไม่เขียนลง URL ให้ `?tab=licenses` เปล่า ๆ ยังเป็น URL หลัก — ลิงก์เดิมที่ชี้มาไม่เปลี่ยนความหมาย ·
  * panel ใช้ `hidden` ไม่ unmount: ทุกการ์ดเป็นแค่การแสดงผลของ ledger ที่หน้าแม่โหลดไว้แล้ว
  */
-export function LicenseTypeTabs({ seatsCount, featuresCount, interfaceCount, seats, features, interface: iface, manageHref }: LicenseTypeTabsProps) {
+export function LicenseTypeTabs({ seatsCount, modulesCount, interfaceCount, seats, modules, interface: iface, manageHref }: LicenseTypeTabsProps) {
   const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const active = parseLicenseType(searchParams.get('license'));
 
   const tabs: TabStripItem<LicenseTypeId>[] = [
     { id: 'seats', label: t('pages.clusterAdmin.licenseTypeSeats'), count: seatsCount },
-    { id: 'features', label: t('pages.clusterAdmin.licenseTypeFeatures'), count: featuresCount },
+    { id: 'modules', label: t('pages.clusterAdmin.licenseTypeFeatures'), count: modulesCount },
     { id: 'interface', label: t('pages.clusterAdmin.licenseTypeInterface'), count: interfaceCount },
   ];
 
@@ -66,7 +71,7 @@ export function LicenseTypeTabs({ seatsCount, featuresCount, interfaceCount, sea
         </Button>
       </div>
       <div hidden={active !== 'seats'}>{seats}</div>
-      <div hidden={active !== 'features'}>{features}</div>
+      <div hidden={active !== 'modules'}>{modules}</div>
       <div hidden={active !== 'interface'}>{iface}</div>
     </div>
   );
