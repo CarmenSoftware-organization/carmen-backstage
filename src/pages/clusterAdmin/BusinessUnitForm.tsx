@@ -191,7 +191,6 @@ const BusinessUnitForm: React.FC = () => {
     const errored = clusterBuTabsWithErrors(fieldErrors);
     const base: ClusterBuTab[] = [
       { id: 'overview', label: t('pages.clusterAdmin.overview') },
-      { id: 'people', label: t('pages.clusterAdmin.people'), count: users.buUsers.length },
       { id: 'hotel', label: t('common.section.hotel') },
       { id: 'company', label: t('common.section.company') },
       { id: 'configuration', label: t('common.section.configuration') },
@@ -200,6 +199,7 @@ const BusinessUnitForm: React.FC = () => {
         label: t('pages.businessUnits.licensesTab'),
         count: buSubscriptions.items.length + interfaceLicenses.licenses.length,
       },
+      { id: 'people', label: t('pages.businessUnits.usersLabel'), count: users.buUsers.length },
     ];
     return base.map((tab) => ({ ...tab, hasError: errored.includes(tab.id) }));
   })();
@@ -524,14 +524,6 @@ const BusinessUnitForm: React.FC = () => {
   // Hotel ไม่ซ้ำกับแผ่นป้าย: ป้ายบอกว่าที่ไหน บรรทัดนี้บอกว่าติดต่อยังไง
   const summaries: TabSummary[] = [
     {
-      id: 'people',
-      label: t('pages.clusterAdmin.people'),
-      value: t(
-        users.buUsers.length === 1 ? 'pages.clusterAdmin.userCount' : 'pages.clusterAdmin.userCountPlural',
-        { count: users.buUsers.length },
-      ),
-    },
-    {
       id: 'hotel',
       label: t('common.section.hotel'),
       value:
@@ -560,6 +552,14 @@ const BusinessUnitForm: React.FC = () => {
         subs: buSubscriptions.items.filter((sub) => sub.state === 'active').length,
         inf: interfaceLicenses.licenses.filter((l) => l.in_force).length,
       }),
+    },
+    {
+      id: 'people',
+      label: t('pages.businessUnits.usersLabel'),
+      value: t(
+        users.buUsers.length === 1 ? 'pages.clusterAdmin.userCount' : 'pages.clusterAdmin.userCountPlural',
+        { count: users.buUsers.length },
+      ),
     },
   ];
 

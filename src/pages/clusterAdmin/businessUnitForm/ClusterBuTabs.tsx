@@ -4,13 +4,13 @@ export type ClusterBuTabId = 'overview' | 'people' | 'hotel' | 'company' | 'conf
 
 export const CLUSTER_BU_TAB_IDS: ClusterBuTabId[] = [
   'overview',
-  'people',
   'hotel',
   'company',
   'configuration',
   // ไม่มีฟิลด์ในฟอร์ม จึงไม่มีทางถูก tabsWithErrors เลือก แต่ต้องอยู่ในนี้เพราะ isClusterBuTabId
   // ใช้ตัวเดียวกันตรวจ deep link `?tab=licenses` (แถวสัญญาบนหน้า /cluster-admin/:id/licenses ชี้มาที่นี่)
   'licenses',
+  'people',
 ];
 
 export const isClusterBuTabId = (v: string | null): v is ClusterBuTabId =>
