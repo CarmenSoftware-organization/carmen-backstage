@@ -170,6 +170,11 @@ const BusinessUnitForm: React.FC = () => {
   const interfaceLicenses = useLicenseLedger<InterfaceLicense>(buId, businessUnitInterfaceLicenseService);
   // ผ่าน route ราย cluster ที่ตรวจด้วยสมาชิกภาพ — shell นี้ไม่มี `subscription.read`
   const buSubscriptions = useBusinessUnitSubscriptions(buId, { clusterId });
+  // แท็บย่อย Modules นับ module (กลุ่ม feature) ที่ BU ถือ ไม่ใช่จำนวนสัญญา — ตัวเลขบนแท็บต้องตรงกับชื่อแท็บ
+  // backend ที่ยังไม่ส่ง `groups` (ไม่มีฟิลด์ ≠ ไม่มีกลุ่ม) ตกไปนับสัญญาแทน เพื่อไม่ให้ขึ้น 0 หลอก
+  const buModuleCount = buSubscriptions.items.every((sub) => Array.isArray(sub.groups))
+    ? new Set(buSubscriptions.items.flatMap((sub) => sub.groups!.map((g) => g.id))).size
+    : buSubscriptions.items.length;
 
   // สิทธิ์เท่าเดิมเป๊ะ: ใครเข้า route ได้ก็แก้ได้ (route คุมด้วย ClusterAdminRoute)
   // การเปลี่ยนขอบเขตสิทธิ์เป็นงานคนละชิ้นที่ต้องมีสเปกของตัวเอง — spec §5.3
@@ -634,7 +639,7 @@ const BusinessUnitForm: React.FC = () => {
             licensesSlot={
               <LicenseTypeTabs
                 seatsCount={licenses.licenses.length}
-                featuresCount={buSubscriptions.items.length}
+                featuresCount={buModuleCount}
                 interfaceCount={interfaceLicenses.licenses.length}
                 manageHref={`/cluster-admin/${clusterId}/licenses`}
                 /* ทุกการ์ดอ่านอย่างเดียว — ออก/แก้/ลบทำที่ License Center ซึ่ง shell นี้เข้าไม่ได้

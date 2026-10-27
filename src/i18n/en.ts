@@ -24,7 +24,7 @@ export const en = {
     users: 'Users',
     reportTemplates: 'Report Templates',
     formGroups: 'Form Groups',
-    licenseFeatureGroups: 'License Feature Groups',
+    licenseFeatureGroups: 'License Modules',
     licenseFeatures: 'License Features',
     news: 'News',
     broadcasts: 'Broadcasts',
@@ -100,7 +100,7 @@ export const en = {
     // /report-form-groups ไม่เคยอยู่ใน SEGMENT_KEYS ป้ายจึงมาจาก titleCase() เป็น
     // 'Report Form Groups' ทุกภาษา ค่าใหม่ตรงกับ nav.formGroups และหัวเรื่องของหน้า
     formGroups: 'Form Groups',
-    licenseFeatureGroups: 'License Feature Groups',
+    licenseFeatureGroups: 'License Modules',
     licenseFeatures: 'License Features',
     news: 'News',
     broadcasts: 'Broadcasts',
@@ -1623,15 +1623,15 @@ export const en = {
       // ทูลทิปของการ์ดสรุปที่กดไม่ได้ชั่วคราว — buildAdvance เมิน `states` ทั้งหมดเมื่อ
       // expiringSoon เปิดอยู่ ตัวกรองสถานะจึงต้องบอกว่าทำไมกดไม่ได้ ไม่ใช่กดแล้วเงียบ
       clearExpiringSoonFirst: 'Turn off "Expiring soon" to filter by state',
-      notMigratedToGroups: 'This contract still holds {{count}} {{count#feature|features}} directly and no group yet. Picking a group replaces them.',
-      noGroupsAvailable: 'No licence feature groups exist yet. Create one in',
-      groupsSelectedSummary: '{{groups}} groups selected · {{features}} features in total',
-      manageGroups: 'Manage groups',
+      notMigratedToGroups: 'This contract still holds {{count}} {{count#feature|features}} directly and no module yet. Picking a module replaces them.',
+      noGroupsAvailable: 'No licence modules exist yet. Create one in',
+      groupsSelectedSummary: '{{groups}} modules selected · {{features}} features in total',
+      manageGroups: 'Manage modules',
       interfaceGroupLeftover:
-        'Interface group still on this contract — must move to an interface license; remove it here',
+        'Interface module still on this contract — must move to an interface license; remove it here',
       removeLeftoverGroup: 'Remove',
-      purchasedGroups: 'Purchased groups',
-      groupEntitlementsForBu: 'Licence groups granted to {{code}}',
+      purchasedGroups: 'Purchased modules',
+      groupEntitlementsForBu: 'Licence modules granted to {{code}}',
       // --- authored English for strings that existed only in Thai ---
       // `clearSearch` and `selectedCount` were dropped from this object (fix round 1):
       // both duplicated an existing common.* key's English exactly while carrying different
@@ -1674,7 +1674,7 @@ export const en = {
       noClusterYet: 'No cluster picked yet',
       noPeriodYet: 'No period yet',
       willBeCreatedAs: 'Will be created as',
-      groupsNextStep: 'Entitlement groups are picked once the contract exists.',
+      groupsNextStep: 'Modules are picked once the contract exists.',
       purchasedModules: 'Purchased modules',
       searchNumber: 'Search subscription numbers...',
       clearClusterFilter: 'Clear cluster filter',
@@ -1693,7 +1693,7 @@ export const en = {
       // summarizeBulk. Two whole sentences instead.
       noFeaturesAssignedToBu: 'No features assigned to {{bu}} yet',
       noFeaturesAssignedToThis: 'No features assigned to this subscription yet',
-      searchFeaturesPlaceholder: 'Search modules or features...',
+      searchFeaturesPlaceholder: 'Search feature areas or features...',
       searchFeatures: 'Search features',
       noFeaturesDefined: 'No features defined in the system yet',
       noFeaturesMatch: 'No features match “{{query}}”',
@@ -1742,7 +1742,7 @@ export const en = {
       clusterCode: 'Cluster Code',
       businessUnitName: 'Business Unit Name',
       featureCount: 'Feature Count',
-      featureGroups: 'Feature Groups',
+      featureGroups: 'Modules',
       period: 'Period',
       // "State" is deliberately not common.status.label ("Status") — review I1 in the
       // source: the badge and this filter/column both read the backend-computed `state`
@@ -1808,16 +1808,16 @@ export const en = {
         'Choose which features can still be sold. The catalog itself is generated — only the state is yours to set.',
       key: 'Key',
       label: 'Name',
-      module: 'Module',
+      module: 'Feature area',
       // ป้ายสั้นพอที่จะจบในบรรทัดเดียวของกลุ่มปุ่ม — คำอธิบายเต็มอยู่ใน *Hint ซึ่งเป็น title
       // ของแต่ละปุ่มอยู่แล้ว ป้ายยาว ("Closed to new sales") เคยทำให้กลุ่มปุ่มตัดสองบรรทัด
       // ในทุกแถวของ 76 แถว
       state: {
         active: 'Sellable',
-        activeHint: 'Can be ticked into any feature group',
+        activeHint: 'Can be ticked into any module',
         inactive: 'Closed',
         inactiveHint:
-          'Closed to new sales: groups that already hold it keep it; it cannot be added anywhere new',
+          'Closed to new sales: modules that already hold it keep it; it cannot be added anywhere new',
         hide: 'Hidden',
         hideHint: 'Gone from the catalog entirely; keys already sold become orphans',
       },
@@ -1854,25 +1854,25 @@ export const en = {
      */
     licenseCatalog: {
       title: 'License Catalog',
-      tabBundles: 'Bundles',
+      tabBundles: 'Modules',
       tabFeatures: 'Features',
     },
     licenseFeatureGroups: {
-      title: 'License Feature Groups',
-      subtitle: 'Curated bundles of licence features, used when selling a subscription',
+      title: 'License Modules',
+      subtitle: 'Licence features packaged into sellable modules, used when selling a subscription',
       searchPlaceholder: 'Search by code or name',
-      newGroup: 'New group',
-      editGroup: 'Edit group',
+      newGroup: 'New module',
+      editGroup: 'Edit module',
       code: 'Code',
-      codeHint: 'Cannot be changed after the group is created',
+      codeHint: 'Cannot be changed after the module is created',
       // --- Task B4: ชนิดกลุ่ม standard/interface ---
       kind: 'Kind',
       kindStandard: 'Standard',
       kindInterface: 'Interface',
       kindStandardHint: 'Sold on the main subscription',
       // "licence" spelt American here to match the neighbouring keys in this file.
-      kindInterfaceHint: 'Sold on an interface license (INF), one group per license',
-      kindLocked: 'Set when the group is created — changing it would move sold entitlements between license kinds',
+      kindInterfaceHint: 'Sold on an interface license (INF), one module per license',
+      kindLocked: 'Set when the module is created — changing it would move sold entitlements between license kinds',
       name: 'Name',
       description: 'Description',
       sortOrder: 'Sort order',
@@ -1880,36 +1880,36 @@ export const en = {
       featureCount: 'Features',
       subscriptionCount: 'Subscriptions',
       activeOnly: 'Active only',
-      emptyTitle: 'No feature groups yet',
-      emptyDescription: 'Create a group to bundle licence features for sale.',
-      featuresCard: 'Features in this group',
-      noFeaturesSelected: 'No features in this group yet.',
-      created: 'Group created',
-      updated: 'Group updated',
-      deleted: 'Group deleted',
-      deleteTitle: 'Delete this group?',
-      deleteBody: 'The group and its feature list will be removed. This cannot be undone.',
-      parentAutoAdded: 'Selecting a feature also grants its module, so the saved list can be longer than what you ticked.',
+      emptyTitle: 'No modules yet',
+      emptyDescription: 'Create a module to package licence features for sale.',
+      featuresCard: 'Features in this module',
+      noFeaturesSelected: 'No features in this module yet.',
+      created: 'Module created',
+      updated: 'Module updated',
+      deleted: 'Module deleted',
+      deleteTitle: 'Delete this module?',
+      deleteBody: 'The module and its feature list will be removed. This cannot be undone.',
+      parentAutoAdded: 'Selecting a feature also grants its feature area, so the saved list can be longer than what you ticked.',
       // ── ชั้นวางชุดสิทธิ์ (FeatureGroupCard) ──
       // `featuresOfTotal` ใช้เมื่อโหลดขนาดแค็ตตาล็อกได้ · `featuresOnly` คือขากลับตอนโหลดไม่ได้
       // ซึ่งเป็นตอนเดียวกับที่แถบสัดส่วนหายไป — ตัวเลขที่ไม่มีตัวหารต้องไม่มีแถบด้วย
       featuresOfTotal: '{{count}} of {{total}} features',
       featuresOnly: '{{count}} {{count#feature|features}}',
-      ordinalHint: 'Sort order {{n}} — where this bundle sits on the sales form',
-      ordinalDuplicateHint: 'Sort order {{n}} is shared with another group — the order on the sales form is not decided',
+      ordinalHint: 'Sort order {{n}} — where this module sits on the sales form',
+      ordinalDuplicateHint: 'Sort order {{n}} is shared with another module — the order on the sales form is not decided',
       inUseCount: 'Used by {{count}} contracts',
       inUseCountOne: 'Used by 1 contract',
       inUseNone: 'Not used by any contract',
-      showingCount: '{{shown}} of {{total}} groups',
-      deleteBodyInUse: '{{count}} live {{count#contract|contracts}} {{count#is|are}} on this bundle. Check {{count#it|them}} before deleting — the group and its feature list will be removed. This cannot be undone.',
+      showingCount: '{{shown}} of {{total}} modules',
+      deleteBodyInUse: '{{count}} live {{count#contract|contracts}} {{count#is|are}} on this module. Check {{count#it|them}} before deleting — the module and its feature list will be removed. This cannot be undone.',
       // ── หน้าแก้ไข ──
-      inUseWarningTitle: '{{count}} contracts are on this bundle',
-      inUseWarningTitleOne: '1 contract is on this bundle',
-      inUseWarningBody: 'Those contracts reference this group, so adding or removing a feature affects all of them at once — not just the group.',
-      deactivateWarning: 'Turning this off takes the bundle off the sales form. Check the {{count}} {{count#contract|contracts}} already on it first.',
-      sortOrderHint: 'Where this bundle sits on the sales form — lower comes first',
+      inUseWarningTitle: '{{count}} contracts are on this module',
+      inUseWarningTitleOne: '1 contract is on this module',
+      inUseWarningBody: 'Those contracts reference this module, so adding or removing a feature affects all of them at once — not just the module.',
+      deactivateWarning: 'Turning this off takes the module off the sales form. Check the {{count}} {{count#contract|contracts}} already on it first.',
+      sortOrderHint: 'Where this module sits on the sales form — lower comes first',
       orderOnSalesForm: 'on the sales form',
-      orderDuplicate: 'Another group already holds this order — the order on the sales form is not decided',
+      orderDuplicate: 'Another module already holds this order — the order on the sales form is not decided',
       activeHint: 'Can still be picked when selling a subscription',
       inactiveHint: 'Hidden from the sales form. Contracts already on it are untouched.',
       sellingOn: 'On sale',
@@ -1917,10 +1917,10 @@ export const en = {
       // ── แผงสัดส่วน (GroupCompositionPanel) ──
       // ตัวเลขใหญ่คือยอดที่ **บันทึกจริง** (ลูก + module แม่ที่ถูกเติม) ตัวเดียวกับที่หน้ารายการโชว์
       // ไม่ใช่ยอดที่ติ๊ก — สองยอดนั้นต่างกัน และบรรทัดกระทบยอดข้างล่างคือที่ที่มันเจอกัน (66 กับ 76)
-      compositionTitle: 'Features in this bundle',
+      compositionTitle: 'Features in this module',
       compositionOfCatalog: 'of {{total}} in the catalogue',
       compositionNoDenominator: 'features saved',
-      compositionBreakdown: '{{children}} ticked · {{modules}} parent modules added',
+      compositionBreakdown: '{{children}} ticked · {{modules}} parent feature areas added',
       compositionEmpty: 'Nothing selected yet',
       // ── ตัวเลือกสิทธิ์ (FeatureSelectionCard) ──
       // ห้ามใช้คำเดียวกับปุ่ม All/None ต่อโมดูล: สองปุ่มนี้เคยอยู่คอลัมน์เดียวกันจนกดผิดกันได้
@@ -1969,14 +1969,14 @@ export const en = {
       addSeatLicense: 'Add seat license',
       addInterfaceLicense: 'Add interface license',
       // ค่าหลักของใบสิทธิ์ interface — ป้ายช่องในฟอร์ม หัวคอลัมน์ในตาราง และป้ายบนแผ่นป้ายใบ
-      featureGroup: 'Feature group',
-      selectFeatureGroup: 'Select an interface group',
+      featureGroup: 'Module',
+      selectFeatureGroup: 'Select an interface module',
       // {{state}} คือ contract_state ที่แปลผ่าน common.status.* — ใบยังไม่หมดอายุ แต่สัญญาแม่
       // ตัดสิทธิ์อยู่ ผู้ใช้ต้องรู้ว่าปัญหาอยู่ที่สัญญา ไม่ใช่ที่ใบ
       cappedByContract: 'License dates are valid, but the main contract is {{state}} — interfaces are off until it is renewed',
       // สองบรรทัดใต้ช่องเลือกกลุ่ม — "โหลดไม่ได้" กับ "ไม่มีของให้ขาย" คนละปัญหา คนละทางแก้
-      featureGroupsLoadFailed: 'Could not load feature groups',
-      noSellableInterfaceGroups: 'No active interface group to sell — create one under License Feature Groups first',
+      featureGroupsLoadFailed: 'Could not load modules',
+      noSellableInterfaceGroups: 'No active interface module to sell — create one under License Modules first',
       // PurchaseLicenseTable.tsx (column header + CSV export label) + LicensePurchaseForm.tsx
       // (field Label).
       licenseNumber: 'License Number',
@@ -2686,7 +2686,7 @@ export const en = {
       // --- ClusterAdminLicenses.tsx: SubscriptionsCard / InterfaceLicensesCard (CoverageCard) ---
       licenseTypesLabel: 'License types',
       licenseTypeSeats: 'Seats',
-      licenseTypeFeatures: 'Features',
+      licenseTypeFeatures: 'Modules',
       licenseTypeInterface: 'Interface',
       seatLicensesTitle: 'Seat licenses',
       noSeatLicenses: 'No seat license has been issued for this business unit',
