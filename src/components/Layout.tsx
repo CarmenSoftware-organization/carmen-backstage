@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
-import { BrandMark } from './BrandMark';
+import { BrandLogo, BrandMark } from './BrandMark';
 import { ProductLogo } from './ProductLogo';
 import { Button } from './ui/button';
 import { Menu } from 'lucide-react';
@@ -219,13 +219,20 @@ const Layout: React.FC<LayoutProps> = ({ children, navItems: navItemsProp, heade
                   <ProductLogo className="h-9" />
                 ) : (
                   <>
-                    <BrandMark
-                      name={brand.name}
-                      code={brand.code}
+                    {/* โลโก้แนวนอนแบบเดียวกับ Sidebar ตอนกาง — ไม่มีโลโก้จึงถอยไปสัญลักษณ์จัตุรัส */}
+                    <BrandLogo
                       src={brand.logoUrl}
-                      tone="primary"
-                      size="sm"
-                      className="shadow-xs"
+                      className="h-8"
+                      fallback={
+                        <BrandMark
+                          name={brand.name}
+                          code={brand.code}
+                          src={brand.avatarUrl}
+                          tone="primary"
+                          size="sm"
+                          className="shadow-xs"
+                        />
+                      }
                     />
                     {/* <span> ไม่ใช่ <h1> — ดูเหตุผลที่ Sidebar.tsx */}
                     <span className="hidden truncate text-lg font-bold text-foreground sm:block">

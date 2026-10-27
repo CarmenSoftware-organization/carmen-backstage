@@ -31,7 +31,7 @@ const ClusterAdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   const brand = React.useMemo(
     () =>
       cluster
-        ? { name: cluster.name, code: cluster.code, logoUrl: cluster.avatar?.url }
+        ? { name: cluster.name, code: cluster.code, logoUrl: cluster.logo?.url, avatarUrl: cluster.avatar?.url }
         : PRODUCT_BRAND,
     [cluster],
   );
