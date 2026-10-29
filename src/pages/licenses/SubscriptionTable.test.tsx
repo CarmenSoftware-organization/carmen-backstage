@@ -349,7 +349,7 @@ describe('SubscriptionTable — "Expiring soon" locks and clears the status filt
       expect(parsed.where.AND).toEqual([
         { status: 'active' },
         { start_date: { lte: expect.any(String) } },
-        { end_date: { gte: expect.any(String), lte: expect.any(String) } },
+        { end_date: { gt: expect.any(String), lte: expect.any(String) } },
       ]);
     });
   });
@@ -442,7 +442,7 @@ describe('SubscriptionTable — the State filter matches what the badge shows', 
       expect(parsed.where.AND).toEqual([
         {
           OR: [
-            { OR: [{ status: 'expired' }, { status: 'active', end_date: { lt: expect.any(String) } }] },
+            { OR: [{ status: 'expired' }, { status: 'active', end_date: { lte: expect.any(String) } }] },
           ],
         },
       ]);
@@ -460,7 +460,7 @@ describe('SubscriptionTable — the State filter matches what the badge shows', 
     await waitFor(() => {
       const parsed = JSON.parse(lastCall().advance);
       expect(parsed.where.AND).toEqual([
-        { OR: [{ status: 'active', start_date: { lte: expect.any(String) }, end_date: { gte: expect.any(String) } }] },
+        { OR: [{ status: 'active', start_date: { lte: expect.any(String) }, end_date: { gt: expect.any(String) } }] },
       ]);
     });
     // The raw-column form is gone for good.

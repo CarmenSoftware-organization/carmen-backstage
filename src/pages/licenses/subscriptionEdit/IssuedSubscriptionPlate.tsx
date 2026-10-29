@@ -46,7 +46,9 @@ function remainingOf(
 ): Remaining | null {
   // scheduled: ยังไม่เริ่ม — "เหลือ N วัน" จะนับจากวันที่ยังไม่มีผล ป้ายสถานะบอกเรื่องนี้แล้ว
   if (state === 'inactive' || state === 'scheduled') return null;
-  const endMs = Date.parse(endDate);
+  // end_date นับรวมทั้งวัน (กติกาเดียวกับ backend) — นับถึงสิ้นวันนั้น เหมือน IssuedLicensePlate
+  // end_date is inclusive (same rule as the backend): count to the end of that day.
+  const endMs = Date.parse(endDate) + DAY_MS;
   if (!Number.isFinite(endMs)) return null;
   if (state === 'expired') {
     return {
