@@ -77,5 +77,5 @@
 - [ ] **Step 2:** Same BU with an existing active contract: features unchanged from before the scheduled contract was added.
 - [ ] **Step 3:** `/licenses` subscriptions tab and cluster-admin Subscriptions card show "Scheduled"/"รอเริ่ม" badge for that row, in TH and EN, desktop and 390px.
 - [ ] **Step 4:** Subscriptions summary band: active count did not increase when the scheduled row was added.
-- [ ] **Step 5:** On a BU whose only contract is the scheduled one, try to create an interface licence → refused with the "needs an active main contract" error.
+- [ ] **Step 5:** On a BU whose only contract is the scheduled one, create an interface licence → it is created (create has no main-contract check) and the response shows `in_force: false` and `contract_state: "scheduled"`.
 - [ ] **Step 6:** Clean up the test subscription.
