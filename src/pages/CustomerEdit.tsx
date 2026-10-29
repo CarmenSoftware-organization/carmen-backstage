@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useGlobalShortcuts } from '../components/KeyboardShortcuts';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
 import customerService from '../services/customerService';
@@ -94,8 +94,11 @@ const CustomerEdit: React.FC = () => {
   const { t } = useI18n();
   const isNew = !id;
   const { hasPermission } = useAuth();
+  // ลิงก์ "Create customer" จากคิว license intake ส่ง ?ar_number= มา — prefill เฉพาะโหมดสร้างใหม่
+  const [searchParams] = useSearchParams();
+  const prefillAr = isNew ? (searchParams.get('ar_number') ?? '').trim() : '';
 
-  const [formData, setFormData] = useState<CustomerFormData>(emptyForm());
+  const [formData, setFormData] = useState<CustomerFormData>(() => ({ ...emptyForm(), ar_number: prefillAr }));
   const [savedFormData, setSavedFormData] = useState<CustomerFormData>(emptyForm());
   const [loading, setLoading] = useState(!isNew);
   const [editing, setEditing] = useState(isNew);
