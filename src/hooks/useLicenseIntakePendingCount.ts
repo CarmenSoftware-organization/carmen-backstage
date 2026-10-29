@@ -21,18 +21,19 @@ export function useLicenseIntakePendingCount(enabled: boolean): number {
   useEffect(() => {
     if (!enabled) return;
 
+    let alive = true;
     const load = () => {
       const generation = ++generationRef.current;
       licenseIntakeService
         .getSummary()
         .then((res) => {
-          if (generation !== generationRef.current) return;
+          if (!alive || generation !== generationRef.current) return;
           const summary = res?.data ?? res;
           const n = Number(summary?.pending);
           setPending(Number.isFinite(n) && n > 0 ? n : 0);
         })
         .catch((err: unknown) => {
-          if (generation !== generationRef.current) return;
+          if (!alive || generation !== generationRef.current) return;
           devLog('license intake pending count failed', err);
         });
     };
@@ -40,7 +41,7 @@ export function useLicenseIntakePendingCount(enabled: boolean): number {
     load();
     window.addEventListener(LICENSE_INTAKES_CHANGED_EVENT, load);
     return () => {
-      generationRef.current++;
+      alive = false;
       window.removeEventListener(LICENSE_INTAKES_CHANGED_EVENT, load);
     };
   }, [enabled]);
