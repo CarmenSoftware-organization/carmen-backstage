@@ -11,7 +11,8 @@ export function licenseStatus(lic: ClusterLicense, now: Date = new Date()): Clus
   if (lic.cancelled_at) return 'cancelled';
   const t = now.getTime();
   if (Date.parse(lic.start_date) > t) return 'scheduled';
-  if (Date.parse(lic.end_date) <= t) return 'expired';
+  // end_date นับรวมทั้งวัน (ตรงกับ v_cluster_bu_cap) / end_date is an inclusive calendar day
+  if (Date.parse(lic.end_date) + 86_400_000 <= t) return 'expired';
   return 'active';
 }
 
