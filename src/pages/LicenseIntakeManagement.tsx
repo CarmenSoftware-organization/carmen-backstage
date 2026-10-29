@@ -115,6 +115,13 @@ const LicenseIntakeManagement: React.FC = () => {
     filter: {},
   });
 
+  // DataTable อ่าน defaultSort เป็นค่าเริ่มต้นครั้งเดียว — คำนวณจาก sort ที่กู้คืนมา
+  // เพื่อให้ลูกศรหัวคอลัมน์ตรงกับลำดับแถวจริงหลังรีโหลด ('' = ผู้ใช้ล้างการเรียง)
+  const [initialSort] = useState<{ id: string; desc: boolean } | undefined>(() => {
+    const [id, dir] = storedSort.split(':');
+    return id ? { id, desc: dir !== 'asc' } : undefined;
+  });
+
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   // กัน response เก่าทับใหม่เมื่อกดแถบสถานะ/พิมพ์ค้นหารัว ๆ
@@ -398,7 +405,7 @@ const LicenseIntakeManagement: React.FC = () => {
                       perpage={paginate.perpage}
                       onPaginateChange={handlePaginateChange}
                       onSortChange={handleSortChange}
-                      defaultSort={{ id: 'created_at', desc: true }}
+                      defaultSort={initialSort}
                     />
                   </>
                 )}
