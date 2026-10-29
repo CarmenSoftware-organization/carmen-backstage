@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useGlobalShortcuts } from '../components/KeyboardShortcuts';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -22,7 +22,7 @@ import { normalizeAudit } from '../utils/audit';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 import { useI18n } from '../hooks/useI18n';
 import { Skeleton } from '../components/ui/skeleton';
-import type { Cluster, BusinessUnitConfig, TenantCurrency, BusinessUnitLicense, InterfaceLicense } from '../types';
+import type { Cluster, BusinessUnitConfig, TenantCurrency, BusinessUnit, BusinessUnitLicense, InterfaceLicense } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { UNRESOLVED_CLUSTER_ID, BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import TenantMigrationCard from '../components/TenantMigrationCard';
@@ -45,6 +45,7 @@ import BusinessUnitInterfaceLicensesCard from './businessUnitEdit/BusinessUnitIn
 import { useBusinessUnitSubscriptions } from './businessUnitEdit/useBusinessUnitSubscriptions';
 import BusinessUnitDebugSheet from './businessUnitEdit/BusinessUnitDebugSheet';
 import BusinessUnitDocument from './businessUnitEdit/BusinessUnitDocument';
+import BusinessUnitCustomerCard from './businessUnitEdit/BusinessUnitCustomerCard';
 import { HeroName } from './businessUnitEdit/HeroName';
 import { toSeatPool } from '../utils/seatPool';
 import { isBuTabId, tabsWithErrors, type BuTab, type BuTabId } from './businessUnitEdit/BusinessUnitTabs';
@@ -78,6 +79,9 @@ const BusinessUnitEdit: React.FC = () => {
   // `normalizeAudit()` gets the real record. `rawResponse` above can be the `{ data }`
   // envelope, not the record itself, so it isn't safe to feed straight into normalizeAudit.
   const [buRecord, setBuRecord] = useState<unknown>(null);
+  // `undefined` = this caller cannot see the field (cluster admin) → no customer UI at all;
+  // `null` = visible and no customer is linked. Never collapse the two.
+  const buCustomer = (buRecord as BusinessUnit | null)?.customer;
   const [logoUrl, setLogoUrl] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -86,6 +90,12 @@ const BusinessUnitEdit: React.FC = () => {
     cluster_id: searchParams.get('cluster_id') || '',
   });
   const [docVersion, setDocVersion] = useState<number | undefined>(undefined);
+  // fetchBusinessUnit({ keepForm }) runs from the Customer card's async handler, so it must read
+  // the latest form/saved snapshots, not the ones captured when the handler was created.
+  const formDataRef = useRef(formData);
+  const savedFormDataRef = useRef(savedFormData);
+  formDataRef.current = formData;
+  savedFormDataRef.current = savedFormData;
   const [poolChangeConfirm, setPoolChangeConfirm] = useState(false);
   // Deep-linkable: ?tab= survives a reload and can be shared/bookmarked. Seeded from the URL
   // once — the state is the authority afterwards, so an unknown value degrades to General.
@@ -307,9 +317,15 @@ const BusinessUnitEdit: React.FC = () => {
     return String(val) || fallback;
   };
 
-  const fetchBusinessUnit = async () => {
+  // `keepForm`: the Customer card applies on its own button and bumps the BU's doc_version, so
+  // the page refetches without a skeleton and must not clobber edits. Same rule as
+  // ApplicationEdit.fetchApplication({ keepForm: true }): with unsaved edits the form keeps them
+  // and its doc_version advances only when the server's form fields still equal `savedFormData`
+  // (the base the edits were made on) — otherwise the old version stays so the next Save hits the
+  // 409 conflict path instead of a lost update. With no unsaved edits the form is re-seeded.
+  const fetchBusinessUnit = async (opts: { keepForm?: boolean } = {}) => {
     try {
-      setLoading(true);
+      if (!opts.keepForm) setLoading(true);
       const data = await businessUnitService.getById(id!);
       setRawResponse(data);
       const bu = data.data || data;
@@ -367,6 +383,17 @@ const BusinessUnitEdit: React.FC = () => {
         database_pool_name: bu.database_pool?.name || '',
         config: Array.isArray(bu.config) ? bu.config : [],
       };
+      if (opts.keepForm) {
+        const dirty = JSON.stringify(formDataRef.current) !== JSON.stringify(savedFormDataRef.current);
+        if (!dirty) {
+          setFormData(loaded);
+          setSavedFormData(loaded);
+          setDocVersion(getDocVersion(bu));
+        } else if (JSON.stringify(loaded) === JSON.stringify(savedFormDataRef.current)) {
+          setDocVersion(getDocVersion(bu));
+        }
+        return;
+      }
       setFormData(loaded);
       setSavedFormData(loaded);
       setDocVersion(getDocVersion(bu));
@@ -377,7 +404,7 @@ const BusinessUnitEdit: React.FC = () => {
     } catch (err: unknown) {
       setError(t('toast.loadFailed', { entity: t('entity.businessUnit.lower') }) + ': ' + getErrorDetail(err, t));
     } finally {
-      setLoading(false);
+      if (!opts.keepForm) setLoading(false);
     }
   };
 
@@ -809,6 +836,16 @@ const BusinessUnitEdit: React.FC = () => {
           tabs={tabs}
           activeTab={currentTab}
           onTabChange={handleTabChange}
+          customerSlot={
+            !isNew && buCustomer !== undefined ? (
+              <BusinessUnitCustomerCard
+                key={`customer-${id}`}
+                buId={id!}
+                customer={buCustomer}
+                onChanged={() => fetchBusinessUnit({ keepForm: true })}
+              />
+            ) : null
+          }
           brandingSlot={
             !isNew ? (
               <BusinessUnitBrandingCard

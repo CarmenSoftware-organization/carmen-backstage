@@ -1015,6 +1015,14 @@ export const en = {
       noMatch: 'No users match "{{query}}"',
       typeToSearch: 'Type to search users',
     },
+    customerPicker: {
+      defaultPlaceholder: 'Search customers by AR number or company',
+      clearSelectedAria: 'Clear selected customer {{name}}',
+      searchingEllipsis: 'Searching…',
+      noMatch: 'No customers match "{{query}}"',
+      typeToSearch: 'Type to search customers',
+      inactive: 'Inactive',
+    },
     imageUpload: {
       uploadAriaLabel: 'Upload image',
       // ImageUpload.tsx has exactly one real importer today — src/pages/NewsEdit.tsx:319
@@ -2843,6 +2851,22 @@ export const en = {
       taxGroupDescription: 'Registration numbers used on documents',
       dateAndTimeGroupDescription: 'How dates and times are displayed',
       maxUsersLabel: 'Max users',
+      customerTitle: 'Customer (AR)',
+      customerDescription: 'The accounting customer this business unit is billed under.',
+      customerNone: 'No customer',
+      customerAssign: 'Assign customer',
+      customerChange: 'Change',
+      customerRemove: 'Remove',
+      customerPickerLabel: 'Customer',
+      customerApply: 'Apply',
+      customerCancel: 'Cancel',
+      customerLinkedToast: 'Linked to customer {{customer}}',
+      customerUnlinkedToast: 'Customer removed',
+      customerMoveTitle: 'Move to another customer',
+      customerMoveDescription: 'This business unit is linked to {{from}}. It will be unlinked from it and linked to {{to}}.',
+      customerRemoveTitle: 'Remove customer',
+      customerRemoveDescription: 'Unlink this business unit from {{customer}}? The customer itself is not changed.',
+      customerMovePartial: 'Unlinked from {{from}}, but linking to the new customer failed. The business unit now has no customer.',
       // One/Many pair for the "From N active license(s) · change these in the Users tab" hint
       // under the read-only Max users value — an English-only plural the source built with a
       // ternary (`activeLicenseCount === 1 ? 'license' : 'licenses'`), same hazard class as

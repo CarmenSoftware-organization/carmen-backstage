@@ -1337,6 +1337,14 @@ export interface Customer {
 }
 
 /** `summary` ของ list — ทั้งทะเบียน ไม่ผ่านตัวกรองของคำขอ · อาจไม่มา (backend คำนวณล้ม) */
+/** ตัวเลือกใน CustomerPicker */
+export interface CustomerOption {
+  id: string;
+  ar_number: string;
+  company_name?: string | null;
+  status: CustomerStatus;
+}
+
 export interface CustomerSummary {
   all: number;
   active: number;
