@@ -39,6 +39,7 @@ export const en = {
     backstageMigrations: 'Backstage Migrations',
     sqlWorkbench: 'SQL Workbench',
     customers: 'Customers',
+    licenseIntakes: 'License Intakes',
     databasePools: 'Database Pools',
     cluster: 'Cluster',
     featureFlags: 'Feature Flags',
@@ -119,6 +120,7 @@ export const en = {
     // เติมตอนตรวจเบราว์เซอร์ slice 9b — route /platform/database-pools ไม่เคยอยู่ใน
     // SEGMENT_KEYS ป้ายจึงมาจาก titleCase() เป็นอังกฤษทุกภาษา (ช่องว่างแบบเดียวกับ analytics)
     customers: 'Customers',
+    licenseIntakes: 'License Intakes',
     databasePools: 'Database Pools',
     backstageConfig: 'Backstage Config',
     emailSettings: 'Email Settings',

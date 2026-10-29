@@ -66,6 +66,8 @@ const DatabasePoolManagement = lazy(() => import("./pages/DatabasePoolManagement
 const DatabasePoolEdit = lazy(() => import("./pages/DatabasePoolEdit"));
 const CustomerManagement = lazy(() => import("./pages/CustomerManagement"));
 const CustomerEdit = lazy(() => import("./pages/CustomerEdit"));
+const LicenseIntakeManagement = lazy(() => import("./pages/LicenseIntakeManagement"));
+const LicenseIntakeDetail = lazy(() => import("./pages/LicenseIntakeDetail"));
 const CronJobManagement = lazy(() => import("./pages/cronjobs/CronJobManagement"));
 const CronJobEdit = lazy(() => import("./pages/cronjobs/CronJobEdit"));
 const FeatureFlagManagement = lazy(() => import("./pages/FeatureFlagManagement"));
@@ -573,6 +575,22 @@ function AppContent() {
               element={
                 <PrivateRoute requiredPermission="customer.read" feature="customers">
                   <CustomerEdit />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/license-intakes"
+              element={
+                <PrivateRoute requiredPermission="subscription.read" feature="license_intakes">
+                  <LicenseIntakeManagement />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/license-intakes/:id"
+              element={
+                <PrivateRoute requiredPermission="subscription.read" feature="license_intakes">
+                  <LicenseIntakeDetail />
                 </PrivateRoute>
               }
             />

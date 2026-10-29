@@ -48,6 +48,11 @@ export interface NavItem {
    * Falls back to a top-level row when the parent was filtered out.
    */
   parentPath?: string;
+  /**
+   * คีย์ใน `counts` ของ Sidebar — วาดป้ายตัวเลขเมื่อค่ามากกว่า 0
+   * Key into Sidebar's `counts`; a badge is drawn only while the count is > 0.
+   */
+  countKey?: string;
 }
 
 interface NavRow {
@@ -107,6 +112,8 @@ interface SidebarProps {
    * (see Layout.tsx) — that copy is `hidden md:flex`, so it never overlaps with this one.
    */
   headerSlot?: React.ReactNode;
+  /** Live numbers for `NavItem.countKey` rows (e.g. pending license intakes). */
+  counts?: Record<string, number>;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -118,10 +125,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   brandTo = '/dashboard',
   brand = PRODUCT_BRAND,
   headerSlot,
+  counts,
 }) => {
   const location = useLocation();
   const { t } = useI18n();
   const isProduct = isProductBrand(brand);
+  const countOf = (item: NavItem): number => (item.countKey ? counts?.[item.countKey] ?? 0 : 0);
 
   const isActive = (path: string): boolean => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
@@ -141,6 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const NavLink: React.FC<{ item: NavItem; showLabel: boolean; nested?: boolean }> = ({ item, showLabel, nested }) => {
     const Icon = item.icon;
     const active = isActive(item.path);
+    const count = countOf(item);
 
     // ฟีเจอร์ที่ยังไม่พร้อม: คงรายการไว้ให้เห็นว่ามีอะไรกำลังมา แต่ไม่ใช่ลิงก์ — ไม่ใช่แค่ปิด
     // ด้วย CSS เพราะ `<Link>` ที่ pointer-events ถูกปิดยังโฟกัสด้วยแป้นพิมพ์และกด Enter ได้อยู่
@@ -184,6 +194,19 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
         <Icon className={cn('h-4 w-4 shrink-0 transition-transform duration-200', !active && 'group-hover:scale-110')} />
         {showLabel && <span className="truncate">{t(item.labelKey)}</span>}
+        {count > 0 &&
+          (showLabel ? (
+            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px]" aria-label={String(count)}>
+              {count > 99 ? '99+' : count}
+            </Badge>
+          ) : (
+            <span
+              aria-label={String(count)}
+              className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
+            >
+              {count > 99 ? '99+' : count}
+            </span>
+          ))}
       </Link>
     );
   };
@@ -369,6 +392,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     const renderLink = (row: NavItem, nested: boolean) => {
                       const Icon = row.icon;
                       const active = isActive(row.path);
+                      const count = countOf(row);
                       return (
                         <Link
                           key={row.path}
@@ -388,6 +412,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                           )}
                           <Icon className={cn('h-4 w-4 shrink-0 transition-transform duration-200', !active && 'group-hover:scale-110')} />
                           <span>{t(row.labelKey)}</span>
+                          {count > 0 && (
+                            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px]" aria-label={String(count)}>
+                              {count > 99 ? '99+' : count}
+                            </Badge>
+                          )}
                         </Link>
                       );
                     };

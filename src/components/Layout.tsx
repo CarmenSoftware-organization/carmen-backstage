@@ -18,6 +18,7 @@ import VersionStamp from './VersionStamp';
 import { buildBackstageNav } from './nav/backstageNav';
 import { useFeatureFlags } from '../context/FeatureFlagContext';
 import { Skeleton } from './ui/skeleton';
+import { useLicenseIntakePendingCount } from '../hooks/useLicenseIntakePendingCount';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -106,6 +107,12 @@ const Layout: React.FC<LayoutProps> = ({ children, navItems: navItemsProp, heade
 
   // Same reasoning as the nav fallback: the brand mark is the most prominent element in the
   // chrome, and /dashboard is a page PrivateRoute bounces a membership-only cluster admin out of.
+  // Pending-intake badge (backstage nav only). Gated on subscription.read — the same key as the
+  // endpoint — because an ungranted call answers 401 and logs the user out.
+  const intakeBadgeEnabled =
+    !navItemsProp && hasBackstageAuthority && hasPermission('subscription.read') && flagOf('license_intakes') !== 'hide';
+  const licenseIntakesPending = useLicenseIntakePendingCount(intakeBadgeEnabled);
+
   const brandDestination = brandTo ?? (hasBackstageAuthority ? '/dashboard' : '/cluster-admin');
 
   const getFullName = (): string => {
@@ -167,6 +174,7 @@ const Layout: React.FC<LayoutProps> = ({ children, navItems: navItemsProp, heade
           brandTo={brandDestination}
           brand={brand}
           headerSlot={headerSlot}
+          counts={{ licenseIntakesPending }}
         />
       ) : (
         <aside

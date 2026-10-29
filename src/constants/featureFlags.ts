@@ -57,6 +57,7 @@ export const FEATURE_CATALOG: readonly FeatureDefinition[] = [
   { key: 'licenses', labelKey: 'nav.licenses', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
   { key: 'license_feature_groups', labelKey: 'nav.licenseFeatureGroups', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
   { key: 'license_features', labelKey: 'nav.licenseFeatures', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
+  { key: 'license_intakes', labelKey: 'nav.licenseIntakes', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
   // Content
   { key: 'report_templates', labelKey: 'nav.reportTemplates', groupKey: 'navGroup.content', defaultState: 'active' },
   { key: 'report_form_groups', labelKey: 'nav.formGroups', groupKey: 'navGroup.content', defaultState: 'active' },

@@ -1365,6 +1365,113 @@ export interface CustomerWriteInput {
   note: string | null;
 }
 
+// ==================== License intake queue (tb_license_intake) ====================
+
+export type LicenseIntakeStatus = 'pending' | 'confirmed' | 'rejected';
+
+/** กลุ่มที่ใบขายอ้างด้วย code — `missing` เมื่อกลุ่มถูกลบหรือหาไม่เจอแล้ว */
+export interface LicenseIntakeGroup {
+  code: string;
+  name?: string | null;
+  kind?: string | null;
+  missing?: boolean;
+}
+
+/** แถวในคิว (list) — ไม่มี raw_payload */
+export interface LicenseIntake {
+  id: string;
+  status: LicenseIntakeStatus;
+  doc_version?: number;
+  source_sale_id?: string;
+  ar_number?: string;
+  customer_id?: string | null;
+  customer_hint?: Record<string, unknown> | null;
+  seats?: number | null;
+  module_group_codes?: string[];
+  interface_group_codes?: string[];
+  start_date?: string;
+  end_date?: string;
+  note?: string | null;
+  business_unit_id?: string | null;
+  confirmed_by_id?: string | null;
+  confirmed_at?: string | null;
+  rejected_by_id?: string | null;
+  rejected_at?: string | null;
+  reject_reason?: string | null;
+  overlap_warning_shown?: boolean | null;
+  created_at?: string;
+  updated_at?: string | null;
+  customer?: { id: string; ar_number: string; name?: string | null } | null;
+  business_unit?: { id: string; code: string; name: string } | null;
+  module_groups?: LicenseIntakeGroup[];
+  interface_groups?: LicenseIntakeGroup[];
+}
+
+export interface LicenseIntakeSuggestedBu {
+  id: string;
+  code: string;
+  name: string;
+  cluster_id?: string;
+  cluster_name?: string | null;
+}
+
+/** แถวที่การยืนยันสร้างขึ้น อ่านผ่าน carrier FK */
+export interface LicenseIntakeProduced {
+  subscriptions?: { id: string; subscription_number?: string | null }[];
+  seats?: { id: string; license_number?: string | null }[];
+  interfaces?: { id: string; license_number?: string | null; group_code?: string | null }[];
+}
+
+/** `GET /license-intakes/:id` */
+export interface LicenseIntakeDetail extends LicenseIntake {
+  raw_payload?: Record<string, unknown>;
+  suggested_business_units?: LicenseIntakeSuggestedBu[];
+  produced?: LicenseIntakeProduced;
+  confirmed_by?: { id: string; name?: string | null } | null;
+  rejected_by?: { id: string; name?: string | null } | null;
+}
+
+/** `GET /license-intakes/summary` */
+export interface LicenseIntakeSummary {
+  pending: number;
+  confirmed: number;
+  rejected: number;
+}
+
+interface LicenseIntakeBuLicenseRow {
+  id: string;
+  number?: string | null;
+  start_date?: string;
+  end_date?: string;
+  state?: string;
+  /** ทับซ้อนกับช่วงของใบขายเฉพาะชนิดเดียวกัน */
+  overlaps?: boolean;
+}
+
+/** `GET /license-intakes/:id/business-units/:buId/licenses` */
+export interface LicenseIntakeBuLicenses {
+  business_unit?: { id: string; code: string; name: string; customer_id?: string | null };
+  seats?: (LicenseIntakeBuLicenseRow & { licensed_users?: number | null })[];
+  subscriptions?: (LicenseIntakeBuLicenseRow & { groups?: { code: string; name?: string | null }[] })[];
+  interfaces?: (LicenseIntakeBuLicenseRow & { group?: { code: string; name?: string | null } | null })[];
+  any_overlap?: boolean;
+}
+
+export interface LicenseIntakesResponse extends ApiListResponse<LicenseIntake> {
+  summary?: LicenseIntakeSummary;
+}
+
+export interface LicenseIntakeConfirmInput {
+  business_unit_id: string;
+  doc_version: number;
+  overlap_warning_shown: boolean;
+}
+
+export interface LicenseIntakeRejectInput {
+  reason: string;
+  doc_version: number;
+}
+
 // ==================== Backstage Config (tb_backstage_config) ====================
 
 /**
