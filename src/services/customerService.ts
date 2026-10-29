@@ -7,6 +7,8 @@ const defaultSearchFields = ['ar_number', 'company_name', 'tax_no'];
 
 const BASE = '/api-system/backstage/customers';
 
+const seg = (v: string) => encodeURIComponent(v);
+
 /**
  * Backstage customers (AR) — ลูกค้าหนึ่งรายผูกได้หลาย business unit
  *
@@ -20,7 +22,7 @@ const customerService = {
   },
 
   getById: async (id: string) => {
-    const response = await api.get(`${BASE}/${id}`);
+    const response = await api.get(`${BASE}/${seg(id)}`);
     return response.data;
   },
 
@@ -30,22 +32,22 @@ const customerService = {
   },
 
   update: async (id: string, data: CustomerWriteInput & { doc_version: number }) => {
-    const response = await api.put(`${BASE}/${id}`, data);
+    const response = await api.put(`${BASE}/${seg(id)}`, data);
     return response.data;
   },
 
   delete: async (id: string) => {
-    const response = await api.delete(`${BASE}/${id}`);
+    const response = await api.delete(`${BASE}/${seg(id)}`);
     return response.data;
   },
 
   linkBusinessUnit: async (id: string, buId: string) => {
-    const response = await api.put(`${BASE}/${id}/business-units/${buId}`);
+    const response = await api.put(`${BASE}/${seg(id)}/business-units/${seg(buId)}`);
     return response.data;
   },
 
   unlinkBusinessUnit: async (id: string, buId: string) => {
-    const response = await api.delete(`${BASE}/${id}/business-units/${buId}`);
+    const response = await api.delete(`${BASE}/${seg(id)}/business-units/${seg(buId)}`);
     return response.data;
   },
 };

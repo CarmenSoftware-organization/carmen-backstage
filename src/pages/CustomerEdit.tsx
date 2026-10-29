@@ -54,6 +54,8 @@ const emptyForm = (): CustomerFormData => ({
 
 const AR_MAX = 30;
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const readAddress = (raw: unknown): Record<AddressKey, string> => {
   const out = emptyAddress();
   if (raw && typeof raw === 'object') {
@@ -137,6 +139,12 @@ const CustomerEdit: React.FC = () => {
    */
   const fetchCustomer = useCallback(async (opts: { keepForm?: boolean } = {}) => {
     if (!id) return;
+    // id ที่ไม่ใช่ UUID ไม่มีทางเป็นลูกค้า — ไม่ยิงคำขอ (กัน path แปลก ๆ ไปถึง backend)
+    if (!UUID_RE.test(id)) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     const mine = ++reqId.current;
     try {
       if (!opts.keepForm) setLoading(true);

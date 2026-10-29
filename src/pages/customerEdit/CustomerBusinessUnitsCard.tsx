@@ -13,6 +13,7 @@ import customerService from '../../services/customerService';
 import { fetchAllBusinessUnits } from '../../utils/fetchAllBusinessUnits';
 import { devLog, parseApiError, isNotFoundError } from '../../utils/errorParser';
 import { useI18n } from '../../hooks/useI18n';
+import { useAuth } from '../../context/AuthContext';
 import { customerErrorKind, linkedElsewhereCustomer } from './customerErrors';
 import type { BusinessUnit, CustomerBusinessUnit } from '../../types';
 
@@ -29,6 +30,9 @@ interface Props {
  */
 export default function CustomerBusinessUnitsCard({ customerId, businessUnits, onChanged }: Props) {
   const { t } = useI18n();
+  const { hasPermission } = useAuth();
+  // รายการ BU ใช้แค่ตัวผูก ซึ่งอยู่ใน <Can customer.manage> — ผู้ที่ไม่มีสิทธิ์ไม่ต้องโหลด
+  const canLink = hasPermission('customer.manage');
   const [allBus, setAllBus] = useState<BusinessUnit[]>([]);
   const [busLoading, setBusLoading] = useState(true);
   const [busFailed, setBusFailed] = useState(false);
@@ -37,13 +41,17 @@ export default function CustomerBusinessUnitsCard({ customerId, businessUnits, o
   const [unlinkTarget, setUnlinkTarget] = useState<CustomerBusinessUnit | null>(null);
 
   useEffect(() => {
+    if (!canLink) {
+      setBusLoading(false);
+      return;
+    }
     let active = true;
     fetchAllBusinessUnits({ label: 'CustomerBusinessUnitsCard' })
       .then((list) => { if (active) setAllBus(list); })
       .catch((err) => { devLog('Failed to load business units for customer link:', err); if (active) setBusFailed(true); })
       .finally(() => { if (active) setBusLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [canLink]);
 
   const linkedIds = useMemo(() => new Set(businessUnits.map((b) => b.id)), [businessUnits]);
   const options = useMemo(

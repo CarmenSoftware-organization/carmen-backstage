@@ -65,13 +65,17 @@ const CustomerManagement: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // กัน response เก่าทับใหม่เมื่อกดแถบสถานะ/พิมพ์ค้นหารัว ๆ
+  const reqId = useRef(0);
 
   useGlobalShortcuts({ onSearch: () => searchInputRef.current?.focus() });
 
   const fetchCustomers = useCallback(async (params: PaginateParams = paginate) => {
+    const mine = ++reqId.current;
     try {
       setLoading(true);
       const data = await customerService.getAll(params);
+      if (mine !== reqId.current) return;
       setRawResponse(data);
       const list = data.data ?? [];
       setItems(list);
@@ -80,10 +84,11 @@ const CustomerManagement: React.FC = () => {
       if (data.summary) setSummary(data.summary);
       setError('');
     } catch (err: unknown) {
+      if (mine !== reqId.current) return;
       setError(t('pages.customers.loadFailed', { detail: getErrorDetail(err, t) }));
       devLog('Error fetching customers:', err);
     } finally {
-      setLoading(false);
+      if (mine === reqId.current) setLoading(false);
     }
   }, [paginate, t]);
 

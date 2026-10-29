@@ -563,7 +563,7 @@ function AppContent() {
             <Route
               path="/customers/new"
               element={
-                <PrivateRoute requiredPermission="customer.read" feature="customers">
+                <PrivateRoute requiredPermission="customer.manage" feature="customers">
                   <CustomerEdit />
                 </PrivateRoute>
               }
