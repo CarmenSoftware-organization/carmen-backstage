@@ -52,6 +52,7 @@ export const FEATURE_CATALOG: readonly FeatureDefinition[] = [
   { key: 'tenant_seeds', labelKey: 'nav.tenantSeeds', groupKey: 'navGroup.organization', defaultState: 'active' },
   { key: 'tenant_imports', labelKey: 'nav.dataImport', groupKey: 'navGroup.organization', defaultState: 'active' },
   { key: 'users', labelKey: 'nav.users', groupKey: 'navGroup.organization', defaultState: 'active' },
+  { key: 'customers', labelKey: 'nav.customers', groupKey: 'navGroup.organization', defaultState: 'active' },
   // License management
   { key: 'licenses', labelKey: 'nav.licenses', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
   { key: 'license_feature_groups', labelKey: 'nav.licenseFeatureGroups', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },

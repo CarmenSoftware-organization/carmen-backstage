@@ -64,6 +64,8 @@ const EmailSettingManagement = lazy(() => import("./pages/EmailSettingManagement
 const BackstageConfigManagement = lazy(() => import("./pages/BackstageConfigManagement"));
 const DatabasePoolManagement = lazy(() => import("./pages/DatabasePoolManagement"));
 const DatabasePoolEdit = lazy(() => import("./pages/DatabasePoolEdit"));
+const CustomerManagement = lazy(() => import("./pages/CustomerManagement"));
+const CustomerEdit = lazy(() => import("./pages/CustomerEdit"));
 const CronJobManagement = lazy(() => import("./pages/cronjobs/CronJobManagement"));
 const CronJobEdit = lazy(() => import("./pages/cronjobs/CronJobEdit"));
 const FeatureFlagManagement = lazy(() => import("./pages/FeatureFlagManagement"));
@@ -547,6 +549,30 @@ function AppContent() {
               element={
                 <PrivateRoute requiredPermission="backstage_config.read" feature="backstage_config">
                   <BackstageConfigManagement />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <PrivateRoute requiredPermission="customer.read" feature="customers">
+                  <CustomerManagement />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/customers/new"
+              element={
+                <PrivateRoute requiredPermission="customer.read" feature="customers">
+                  <CustomerEdit />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/customers/:id/edit"
+              element={
+                <PrivateRoute requiredPermission="customer.read" feature="customers">
+                  <CustomerEdit />
                 </PrivateRoute>
               }
             />
