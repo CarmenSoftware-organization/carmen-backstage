@@ -168,6 +168,9 @@ export interface PresignedImage {
 export interface BusinessUnit {
   id: string;
   cluster_id?: string;
+  /** ส่งมาเฉพาะผู้เรียกระดับ backstage ทั้งระบบ — คีย์หายไปสำหรับ cluster admin ห้ามอ่านเป็น "ไม่มีลูกค้า" */
+  customer_id?: string | null;
+  customer?: { id: string; ar_number: string; company_name?: string | null; status: CustomerStatus } | null;
   code: string;
   name: string;
   logo?: PresignedImage | null;   // resolved presigned brand logo (list + detail)
@@ -1298,6 +1301,68 @@ export interface DatabasePoolWriteInput {
   password?: string;
   is_active: boolean;
   note?: string;
+}
+
+// ==================== Customer (tb_customer) ====================
+
+export type CustomerStatus = 'active' | 'inactive';
+
+/** BU ที่ผูกกับลูกค้า — มากับ `GET /backstage/customers/:id` เฉพาะ BU ที่ยังไม่ถูกลบ */
+export interface CustomerBusinessUnit {
+  id: string;
+  code: string;
+  name: string;
+  cluster_id: string;
+  cluster_name?: string | null;
+  is_active: boolean;
+}
+
+/** ลูกค้า (AR) — สำเนาอ้างอิงของโปรไฟล์บัญชีลูกหนี้ ผูกกับ BU ได้หลายตัว */
+export interface Customer {
+  id: string;
+  doc_version?: number;
+  ar_number: string;
+  company_name?: string | null;
+  tax_no?: string | null;
+  /** free-form object ฝั่ง backend — FE ใช้ key ที่รู้จักเท่านั้น */
+  billing_address?: Record<string, unknown> | null;
+  status: CustomerStatus;
+  note?: string | null;
+  /** list: มากับทุกแถว · detail: เท่ากับจำนวน `business_units` */
+  bu_count?: number;
+  /** detail เท่านั้น */
+  business_units?: CustomerBusinessUnit[];
+  created_at?: string;
+  updated_at?: string | null;
+}
+
+/** `summary` ของ list — ทั้งทะเบียน ไม่ผ่านตัวกรองของคำขอ · อาจไม่มา (backend คำนวณล้ม) */
+/** ตัวเลือกใน CustomerPicker */
+export interface CustomerOption {
+  id: string;
+  ar_number: string;
+  company_name?: string | null;
+  status: CustomerStatus;
+}
+
+export interface CustomerSummary {
+  all: number;
+  active: number;
+  inactive: number;
+}
+
+export interface CustomersResponse extends ApiListResponse<Customer> {
+  summary?: CustomerSummary;
+}
+
+/** สิ่งที่ส่งไปเขียน — ไม่ใช่รูปที่อ่านกลับมา */
+export interface CustomerWriteInput {
+  ar_number: string;
+  company_name: string | null;
+  tax_no: string | null;
+  billing_address: Record<string, unknown> | null;
+  status: CustomerStatus;
+  note: string | null;
 }
 
 // ==================== Backstage Config (tb_backstage_config) ====================

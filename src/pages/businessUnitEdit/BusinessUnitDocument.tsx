@@ -64,6 +64,8 @@ interface BusinessUnitDocumentProps {
   activeTab: BuTabId;
   onTabChange: (tab: BuTabId) => void;
   brandingSlot?: React.ReactNode;
+  /** ลูกค้า (AR) ของ BU — แสดงเฉพาะเมื่อผู้เรียกมองเห็นฟิลด์ customer */
+  customerSlot?: React.ReactNode;
   advancedExtraSlot?: React.ReactNode;
   usersSlot?: React.ReactNode;
   licensesSlot?: React.ReactNode;
@@ -107,6 +109,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
     activeTab,
     onTabChange,
     brandingSlot,
+    customerSlot,
     advancedExtraSlot,
     usersSlot,
     licensesSlot,
@@ -277,6 +280,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
             currenciesFailed={currenciesFailed}
             showCurrencyField={!isNew}
           />
+          {customerSlot}
           {brandingSlot}
         </>
       )}

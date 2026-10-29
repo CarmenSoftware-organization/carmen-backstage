@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Network, Building2, Users, FileText, Newspaper, Megaphone, AppWindow,
   ShieldCheck, ShieldAlert, UserCog, DatabaseZap, Database, DatabaseBackup, LayoutGrid, Mail, FileSpreadsheet,
-  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles
+  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles, Receipt
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TKey } from '../../i18n/types';
@@ -18,6 +18,7 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   { path: '/tenant-seeds', labelKey: 'nav.tenantSeeds', icon: Sprout, permission: 'tenant_seed.read', groupKey: 'navGroup.organization', feature: 'tenant_seeds', parentPath: '/business-units' },
   { path: '/tenant-imports', labelKey: 'nav.dataImport', icon: FileSpreadsheet, permission: 'data_import.manage', groupKey: 'navGroup.organization', feature: 'tenant_imports', parentPath: '/business-units' },
   { path: '/users', labelKey: 'nav.users', icon: Users, permission: 'user.read', groupKey: 'navGroup.organization', feature: 'users' },
+  { path: '/customers', labelKey: 'nav.customers', icon: Receipt, permission: 'customer.read', groupKey: 'navGroup.organization', feature: 'customers' },
   // License management — ต้องอยู่ติดกัน: Sidebar จัดกลุ่มจากแถวที่ groupKey ซ้ำกันติด ๆ
   // การแทรกรายการกลุ่มอื่นคั่นจะทำให้หัวข้อนี้แตกเป็นสองหัวข้อ
   // Must stay contiguous: Sidebar groups by consecutive runs of the same `groupKey`.
