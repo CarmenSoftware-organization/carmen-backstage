@@ -11,14 +11,20 @@ import type { SubscriptionState } from '../../../types';
  * สูตรของ backend เป๊ะ ๆ:
  * - `status='inactive'` → `'inactive'`
  * - `status='expired'`  → `'expired'` **โดยไม่สนใจ `end_date`**
- * - `status='active'`   → `'expired'` ถ้า `end_date < now` มิฉะนั้น `'active'`
+ * - `status='active'`   → `'expired'` ถ้า `end_date < now`, `'scheduled'` ถ้า `start_date > now`
+ *   มิฉะนั้น `'active'`
  *
  * ซ้อน `OR` ได้เพราะ `advance.where` ถูกยัดเป็น Prisma `WhereInput` ดิบโดยไม่ผ่านการแปลงใด ๆ
  * (contract §8.1)
  */
 function stateClause(state: SubscriptionState, iso: string): Record<string, unknown> {
   if (state === 'inactive') return { status: 'inactive' };
-  if (state === 'active') return { status: 'active', end_date: { gte: iso } };
+  if (state === 'active') {
+    return { status: 'active', start_date: { lte: iso }, end_date: { gte: iso } };
+  }
+  if (state === 'scheduled') {
+    return { status: 'active', start_date: { gt: iso }, end_date: { gte: iso } };
+  }
   return { OR: [{ status: 'expired' }, { status: 'active', end_date: { lt: iso } }] };
 }
 
@@ -83,6 +89,7 @@ export function buildAdvance(
     // เท่ากับ stateClause('active') + กรอบเวลาปลายทาง — เขียนแยกเพราะ `gte` ตัวเดียวกันถูกใช้ทั้ง
     // เป็นเส้นแบ่ง active/expired และเป็นขอบล่างของช่วง "ใกล้หมดอายุ"
     and.push({ status: 'active' });
+    and.push({ start_date: { lte: iso } });
     and.push({ end_date: { gte: iso, lte: until.toISOString() } });
   } else if (states.length > 0) {
     // OR เสมอแม้เลือกค่าเดียว — รูปเดียวกันทุกกรณีอ่านง่ายกว่าและ Prisma รับ OR ที่มีสมาชิกเดียวได้

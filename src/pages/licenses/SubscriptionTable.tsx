@@ -37,7 +37,7 @@ import { readStoredPerpage } from '../../utils/pageRange';
 
 // สถานะที่แสดงผล (`state`) ชุดเดียวกับที่ badge ในตารางและการ์ด summary ใช้ — ไม่ใช่ `status` ดิบ
 // การกรองแปลงกลับเป็นเงื่อนไขบนคอลัมน์จริงใน `buildAdvance`
-const STATE_OPTIONS: SubscriptionState[] = ['active', 'inactive', 'expired'];
+const STATE_OPTIONS: SubscriptionState[] = ['active', 'scheduled', 'inactive', 'expired'];
 // คอลัมน์ Days Left เรียงด้วย end_date บนสาย — ดู handleSortChange
 const DAYS_LEFT_SORT_ID = 'days_left';
 // เกินนี้ยุบเป็น +N — เซลล์ต้องสูงเท่าแถวอื่น ไม่ใช่ห่อเป็นก้อนสามบรรทัดเมื่อใบไหนถือหลายกลุ่ม
@@ -102,8 +102,8 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
   // Single lookup for every place `state`/`s` (a raw SubscriptionState value) is rendered —
   // the row badge, the filter buttons, the active-filter chips, and the CSV export — so a
   // state can never be named two different ways on the same screen (review I1). `|| s`
-  // is a genuine fallback, not a hidden missing key: the three union members ('active',
-  // 'inactive', 'expired' — src/types/index.ts:1244) all resolve via common.status.*, and
+  // is a genuine fallback, not a hidden missing key: the union members ('active',
+  // 'scheduled', 'inactive', 'expired' — src/types/index.ts) all resolve via common.status.*, and
   // this only fires for a value outside that union (translate() returns '' on a miss).
   const stateLabel = useCallback((s: string) => t(`common.status.${s}` as TKey) || s, [t]);
   const navigate = useNavigate();

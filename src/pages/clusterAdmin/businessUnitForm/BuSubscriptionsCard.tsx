@@ -82,7 +82,7 @@ export function BuSubscriptionsCard({ subscriptions, now = new Date() }: BuSubsc
                       code={m.code}
                       muted={!live}
                       when={
-                        // SubscriptionState ไม่มี scheduled — ใบที่ยังไม่ถึงวันเริ่มดูจากวันที่ตรง ๆ
+                        // ใบที่ยังไม่ถึงวันเริ่ม (state 'scheduled') บอกวันเริ่มแทนวันสิ้นสุด
                         Date.parse(m.sub.start_date) > now.getTime()
                           ? t('pages.clusterAdmin.moduleFrom', { date: fmtDate(m.sub.start_date) })
                           : isPerpetual(m.sub.end_date)
@@ -92,7 +92,7 @@ export function BuSubscriptionsCard({ subscriptions, now = new Date() }: BuSubsc
                       badges={
                         <>
                           {soon && <Badge variant="warning">{t('common.state.daysLeft', { count: daysLeft(m.sub.end_date, now) })}</Badge>}
-                          {!live && <Badge variant={m.sub.state === 'expired' ? 'destructive' : 'secondary'}>{t(`common.status.${m.sub.state}`)}</Badge>}
+                          {!live && <Badge variant={m.sub.state === 'expired' ? 'destructive' : m.sub.state === 'scheduled' ? 'info' : 'secondary'}>{t(`common.status.${m.sub.state}`)}</Badge>}
                         </>
                       }
                     />
