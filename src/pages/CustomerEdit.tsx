@@ -99,7 +99,8 @@ const CustomerEdit: React.FC = () => {
   const prefillAr = isNew ? (searchParams.get('ar_number') ?? '').trim() : '';
 
   const [formData, setFormData] = useState<CustomerFormData>(() => ({ ...emptyForm(), ar_number: prefillAr }));
-  const [savedFormData, setSavedFormData] = useState<CustomerFormData>(emptyForm());
+  // baseline เดียวกับ formData ตอนเริ่ม — ไม่งั้นหน้านี้ "ยังไม่บันทึก" ตั้งแต่เปิด และ Cancel ทิ้ง prefill
+  const [savedFormData, setSavedFormData] = useState<CustomerFormData>(() => ({ ...emptyForm(), ar_number: prefillAr }));
   const [loading, setLoading] = useState(!isNew);
   const [editing, setEditing] = useState(isNew);
   const [saving, setSaving] = useState(false);

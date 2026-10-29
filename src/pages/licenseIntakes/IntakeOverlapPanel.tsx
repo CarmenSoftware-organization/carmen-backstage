@@ -7,6 +7,13 @@ import { useI18n } from '../../hooks/useI18n';
 import type { LicenseIntakeBuLicenses } from '../../types';
 import { periodOf } from './format';
 
+const STATE_LABEL_KEYS = {
+  active: 'common.status.active',
+  scheduled: 'common.status.scheduled',
+  expired: 'common.status.expired',
+  inactive: 'common.status.inactive',
+} as const;
+
 interface RowProps {
   title: React.ReactNode;
   sub?: React.ReactNode;
@@ -32,7 +39,7 @@ const LicenseRow: React.FC<RowProps> = ({ title, sub, start, end, state, overlap
       </span>
       <span className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-muted-foreground">{periodOf(start, end)}</span>
-        {state && <Badge variant="outline">{state}</Badge>}
+        {state && <Badge variant="outline">{state in STATE_LABEL_KEYS ? t(STATE_LABEL_KEYS[state as keyof typeof STATE_LABEL_KEYS]) : state}</Badge>}
         {overlaps && <Badge variant="warning">{t('pages.licenseIntakes.overlapFlag')}</Badge>}
       </span>
     </li>
