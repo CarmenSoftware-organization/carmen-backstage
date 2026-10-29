@@ -4,12 +4,15 @@ import type { SubscriptionState } from '../../../types';
 
 const NOW = new Date('2026-08-18T00:00:00.000Z');
 const ISO = NOW.toISOString();
+// end_date นับรวมทั้งวัน — เส้นแบ่ง active/expired อยู่ที่ now - 1 วัน
+const CUT = new Date(NOW.getTime() - 86_400_000).toISOString();
 
 // เงื่อนไขที่ควรได้ต่อ 1 state — ต้องตรงกับ deriveSubscriptionState ของ backend เป๊ะ
 // (phase-b-backend-contract.md §2): status='expired' เป็น expired โดยไม่สนใจ end_date
-const ACTIVE = { status: 'active', end_date: { gte: ISO } };
+const ACTIVE = { status: 'active', start_date: { lte: ISO }, end_date: { gt: CUT } };
 const INACTIVE = { status: 'inactive' };
-const EXPIRED = { OR: [{ status: 'expired' }, { status: 'active', end_date: { lt: ISO } }] };
+const SCHEDULED = { status: 'active', start_date: { gt: ISO }, end_date: { gt: CUT } };
+const EXPIRED = { OR: [{ status: 'expired' }, { status: 'active', end_date: { lte: CUT } }] };
 
 const filters = (over: Partial<SubscriptionFilters> = {}): SubscriptionFilters => ({
   search: '',
@@ -68,10 +71,10 @@ describe('buildAdvance — state filter is translated to status + end_date', () 
     });
   });
 
-  it('keeps the picked order and covers every state when all three are selected', () => {
-    const all: SubscriptionState[] = ['active', 'expired', 'inactive'];
+  it('keeps the picked order and covers every state when all four are selected', () => {
+    const all: SubscriptionState[] = ['active', 'scheduled', 'expired', 'inactive'];
     expect(parse(advance({ states: all }))).toEqual({
-      where: { AND: [{ OR: [ACTIVE, EXPIRED, INACTIVE] }] },
+      where: { AND: [{ OR: [ACTIVE, SCHEDULED, EXPIRED, INACTIVE] }] },
     });
   });
 
@@ -133,7 +136,8 @@ describe('buildAdvance — expiring soon', () => {
       where: {
         AND: [
           { status: 'active' },
-          { end_date: { gte: ISO, lte: until.toISOString() } },
+          { start_date: { lte: ISO } },
+          { end_date: { gt: CUT, lte: until.toISOString() } },
         ],
       },
     });
@@ -146,15 +150,16 @@ describe('buildAdvance — expiring soon', () => {
         AND: [
           { subscription_number: { contains: 'SUB-9', mode: 'insensitive' } },
           { status: 'active' },
-          { end_date: { gte: ISO, lte: until.toISOString() } },
+          { start_date: { lte: ISO } },
+          { end_date: { gt: CUT, lte: until.toISOString() } },
         ],
       },
     });
   });
 
-  it('never expires-soon a row whose end_date already passed (lower bound is now, not open)', () => {
+  it('never expires-soon a row whose end day already passed (lower bound is now - 1 day, not open)', () => {
     const parsed = parse(advance({ expiringSoon: true }));
     const endClause = parsed.where.AND.find((c: Record<string, unknown>) => 'end_date' in c);
-    expect(endClause.end_date.gte).toBe(ISO);
+    expect(endClause.end_date.gt).toBe(CUT);
   });
 });

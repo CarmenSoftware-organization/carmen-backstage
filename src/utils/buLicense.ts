@@ -6,8 +6,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const MIGRATED_PREFIX = 'migrated';
 
 /**
- * สถานะของใบ ณ เวลาหนึ่ง — ขอบเขตนับรวมทั้งสองด้าน (วันเริ่มและวันหมดอายุยังถือว่าคุ้มครอง)
- * ให้ตรงกับ view `v_business_unit_seat` ที่ใช้ `now() >= start_date AND now() <= end_date`
+ * สถานะของใบ ณ เวลาหนึ่ง — วันหมดอายุนับรวมทั้งวัน (คุ้มครองจนพ้นวันนั้น)
+ * ให้ตรงกับ view `v_business_unit_seat` ที่ใช้ `now() >= start_date AND now() < end_date + 1 day`
  * @param lic - ใบที่ตรวจ / The licence
  * @param now - เวลาอ้างอิง (เทสต์ส่งเข้ามา) / Reference time
  * @returns สถานะ / The status
@@ -15,7 +15,7 @@ const MIGRATED_PREFIX = 'migrated';
 export function licenseStatus(lic: BusinessUnitLicense, now: Date = new Date()): BuLicenseStatus {
   const t = now.getTime();
   if (t < new Date(lic.start_date).getTime()) return 'scheduled';
-  if (t > new Date(lic.end_date).getTime()) return 'expired';
+  if (t >= new Date(lic.end_date).getTime() + DAY_MS) return 'expired';
   return 'active';
 }
 

@@ -31,13 +31,15 @@ export interface SubscriptionSectionProps {
 // 'success' badge; both other states keep the source's original 'secondary' fallback
 // (the pre-existing code only ever checked `=== 'active'`, so 'expired' and 'inactive'
 // must render identically to each other, not get distinct variants).
-const STATE_VARIANT: Record<SubscriptionState, 'success' | 'secondary'> = {
+const STATE_VARIANT: Record<SubscriptionState, 'success' | 'secondary' | 'info'> = {
   active: 'success',
+  scheduled: 'info',
   expired: 'secondary',
   inactive: 'secondary',
 };
 const STATE_LABEL_KEYS: Record<SubscriptionState, TKey> = {
   active: 'common.status.active',
+  scheduled: 'common.status.scheduled',
   expired: 'common.status.expired',
   inactive: 'common.status.inactive',
 };

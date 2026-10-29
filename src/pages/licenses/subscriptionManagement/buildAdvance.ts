@@ -11,15 +11,22 @@ import type { SubscriptionState } from '../../../types';
  * สูตรของ backend เป๊ะ ๆ:
  * - `status='inactive'` → `'inactive'`
  * - `status='expired'`  → `'expired'` **โดยไม่สนใจ `end_date`**
- * - `status='active'`   → `'expired'` ถ้า `end_date < now` มิฉะนั้น `'active'`
+ * - `status='active'`   → `'expired'` ถ้า `now >= end_date + 1 วัน` (end_date นับรวมทั้งวัน),
+ *   `'scheduled'` ถ้า `start_date > now`
+ *   มิฉะนั้น `'active'`
  *
  * ซ้อน `OR` ได้เพราะ `advance.where` ถูกยัดเป็น Prisma `WhereInput` ดิบโดยไม่ผ่านการแปลงใด ๆ
  * (contract §8.1)
  */
-function stateClause(state: SubscriptionState, iso: string): Record<string, unknown> {
+function stateClause(state: SubscriptionState, iso: string, endCutIso: string): Record<string, unknown> {
   if (state === 'inactive') return { status: 'inactive' };
-  if (state === 'active') return { status: 'active', end_date: { gte: iso } };
-  return { OR: [{ status: 'expired' }, { status: 'active', end_date: { lt: iso } }] };
+  if (state === 'active') {
+    return { status: 'active', start_date: { lte: iso }, end_date: { gt: endCutIso } };
+  }
+  if (state === 'scheduled') {
+    return { status: 'active', start_date: { gt: iso }, end_date: { gt: endCutIso } };
+  }
+  return { OR: [{ status: 'expired' }, { status: 'active', end_date: { lte: endCutIso } }] };
 }
 
 export interface SubscriptionFilters {
@@ -77,16 +84,20 @@ export function buildAdvance(
   }
 
   const iso = now.toISOString();
+  // end_date นับรวมทั้งวัน: ยังไม่หมดอายุตราบที่ end_date > now - 1 วัน (กติกาเดียวกับ backend)
+  // end_date is inclusive: not expired while end_date > now - 1 day (same rule as the backend).
+  const endCutIso = new Date(now.getTime() - 86_400_000).toISOString();
 
   if (expiringSoon) {
     const until = new Date(now.getTime() + expiringSoonDays * 86_400_000);
     // เท่ากับ stateClause('active') + กรอบเวลาปลายทาง — เขียนแยกเพราะ `gte` ตัวเดียวกันถูกใช้ทั้ง
     // เป็นเส้นแบ่ง active/expired และเป็นขอบล่างของช่วง "ใกล้หมดอายุ"
     and.push({ status: 'active' });
-    and.push({ end_date: { gte: iso, lte: until.toISOString() } });
+    and.push({ start_date: { lte: iso } });
+    and.push({ end_date: { gt: endCutIso, lte: until.toISOString() } });
   } else if (states.length > 0) {
     // OR เสมอแม้เลือกค่าเดียว — รูปเดียวกันทุกกรณีอ่านง่ายกว่าและ Prisma รับ OR ที่มีสมาชิกเดียวได้
-    and.push({ OR: states.map((s) => stateClause(s, iso)) });
+    and.push({ OR: states.map((s) => stateClause(s, iso, endCutIso)) });
   }
 
   return and.length > 0 ? JSON.stringify({ where: { AND: and } }) : '';

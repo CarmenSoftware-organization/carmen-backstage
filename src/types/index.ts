@@ -1575,7 +1575,7 @@ export type SubscriptionStatus = 'active' | 'inactive' | 'expired';
  * (row ของ list และ detail) ห้าม frontend คำนวณเอง (swagger: "The frontend must not
  * recompute this from status/end_date — use this field directly")
  */
-export type SubscriptionState = 'active' | 'expired' | 'inactive';
+export type SubscriptionState = 'active' | 'scheduled' | 'expired' | 'inactive';
 
 export interface Subscription {
   id: string;
@@ -1891,7 +1891,7 @@ export interface InterfaceLicense {
   /** มาจาก backend เท่านั้น — ห้ามคำนวณเอง ดู doc ด้านบน */
   in_force: boolean;
   /** สถานะของสัญญาที่ใบนี้อ้างอิง แยกจาก `state` ของตัวใบ */
-  contract_state: 'active' | 'expired' | 'inactive' | 'none';
+  contract_state: 'active' | 'scheduled' | 'expired' | 'inactive' | 'none';
   created_at?: string | null;
   created_by_id?: string | null;
   updated_at?: string | null;
