@@ -226,7 +226,7 @@ const LicenseIntakeManagement: React.FC = () => {
       interfaces: groupNames(item.interface_groups),
       start_date: dayOf(item.start_date),
       end_date: dayOf(item.end_date),
-      created_at: fmtDate(item.created_at),
+      created_at: fmtDate(item.created_at ?? item.audit?.created?.at),
     }));
     const csv = generateCSV(rows, [
       { key: 'source_sale_id', label: t('pages.licenseIntakes.columnSaleId') },
@@ -319,7 +319,7 @@ const LicenseIntakeManagement: React.FC = () => {
       {
         accessorKey: 'created_at',
         header: t('pages.licenseIntakes.columnReceived'),
-        cell: ({ row }) => <span className="tabular-nums text-xs">{fmtDate(row.original.created_at)}</span>,
+        cell: ({ row }) => <span className="tabular-nums text-xs">{fmtDate(row.original.created_at ?? row.original.audit?.created?.at)}</span>,
       },
     ];
   }, [t, statusLabel]);

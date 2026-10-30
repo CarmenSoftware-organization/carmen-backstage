@@ -94,7 +94,7 @@ const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) =
           <Row label={t('pages.licenseIntakes.note')}>
             {intake.note ? <span className="whitespace-pre-wrap">{intake.note}</span> : '-'}
           </Row>
-          <Row label={t('pages.licenseIntakes.columnReceived')}>{fmtDateTime(intake.created_at)}</Row>
+          <Row label={t('pages.licenseIntakes.columnReceived')}>{fmtDateTime(intake.created_at ?? intake.audit?.created?.at)}</Row>
         </dl>
       </CardContent>
     </Card>

@@ -1401,6 +1401,8 @@ export interface LicenseIntake {
   overlap_warning_shown?: boolean | null;
   created_at?: string;
   updated_at?: string | null;
+  // `@EnrichAuditUsers()` ย้าย created_at ไปไว้ที่ audit.created.at — อ่าน `created_at ?? audit?.created?.at`
+  audit?: Audit;
   customer?: { id: string; ar_number: string; name?: string | null } | null;
   business_unit?: { id: string; code: string; name: string } | null;
   module_groups?: LicenseIntakeGroup[];
