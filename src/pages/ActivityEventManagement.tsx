@@ -321,7 +321,7 @@ const ActivityEventManagement: React.FC = () => {
                     </div>
                     {/* เลือกจากรายการ ไม่ใช่พิมพ์เอง — code ที่พิมพ์ผิดหนึ่งตัวให้ผลเป็น
                         "ไม่พบ event" โดยไม่มีอะไรบอกว่าพิมพ์ผิด และหน้า /analytics
-                        ก็ใช้ <Select> ชุดเดียวกันนี้อยู่แล้ว */}
+                        ก็เลือกจาก picker แบบเดียวกัน */}
                     <div className="space-y-2">
                       <Label htmlFor="f-bu">{t('entity.businessUnit.title')}</Label>
                       <BusinessUnitCodePicker

@@ -138,7 +138,7 @@ const UsageAnalytics: React.FC = () => {
           <CardContent className="flex flex-wrap items-end gap-3 p-4">
             <DateRangeFilter value={range} onChange={setRange} />
 
-            <div className="space-y-2">
+            <div className="w-full space-y-2 sm:w-auto">
               <Label htmlFor="filter-bu">{t('entity.businessUnit.title')}</Label>
               <BusinessUnitCodePicker
                 id="filter-bu"

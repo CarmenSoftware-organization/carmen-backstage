@@ -104,6 +104,9 @@ export const BusinessUnitCodePicker: React.FC<BusinessUnitCodePickerProps> = ({
       ref={wrapperRef}
       className={cn('min-w-0', className)}
       onFocus={() => { if (!value) setOpen(true); }}
+      // พิมพ์แล้ว BusinessUnitPicker เปิด dropdown ซ้ำโดยไม่มี focus event ใหม่
+      onKeyDownCapture={(e) => { if (!value && e.key !== 'Escape') setOpen(true); }}
+      onInputCapture={() => { if (!value) setOpen(true); }}
     >
       <BusinessUnitPicker
         id={id}
