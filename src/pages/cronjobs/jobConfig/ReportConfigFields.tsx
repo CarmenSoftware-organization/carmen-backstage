@@ -1,15 +1,11 @@
-import { useEffect, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { BusinessUnitMultiSelect } from '../../../components/BusinessUnitMultiSelect';
+import { ReportTemplatePicker } from '../../../components/ReportTemplatePicker';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { Skeleton } from '../../../components/ui/skeleton';
 import { useI18n } from '../../../hooks/useI18n';
-import reportTemplateService, { type ReportTemplate } from '../../../services/reportTemplateService';
-import { devLog } from '../../../utils/errorParser';
-import { fetchAllPages, type PagedResponse } from '../../../utils/fetchAllPages';
 import type { ReportJobConfig } from '../../../types';
 import UserIdsField from './UserIdsField';
 import type { JobConfigFieldsProps } from './index';
@@ -26,35 +22,11 @@ export default function ReportConfigFields({
   value, onChange, readOnly,
 }: JobConfigFieldsProps<ReportJobConfig>) {
   const { t } = useI18n();
-  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
-  const [loadingTemplates, setLoadingTemplates] = useState(true);
-  const [templatesError, setTemplatesError] = useState('');
 
   // C2 fix: recipients must be user ids, not free-text email strings — report.go
   // (executeViewerURL/dispatchNotification) passes cfg.Recipients straight through as
   // audience.user_ids, so an email string here would never resolve to anyone. Uses the
   // same UserIdsField as NotificationConfigFields.tsx so the two fields behave identically.
-
-  useEffect(() => {
-    let ignore = false;
-    (async () => {
-      try {
-        setLoadingTemplates(true);
-        const items = await fetchAllPages<ReportTemplate>(
-          (page, perpage) => reportTemplateService.getAll({ page, perpage }) as Promise<PagedResponse<ReportTemplate>>,
-          { label: 'ReportConfigFields.templates' },
-        );
-        if (!ignore) setTemplates(items);
-      } catch (err) {
-        devLog('Failed to load report templates:', err);
-        if (!ignore) setTemplatesError(t('cronjob.config.templateIdLoadFailed'));
-      } finally {
-        if (!ignore) setLoadingTemplates(false);
-      }
-    })();
-    return () => { ignore = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const filterEntries = Object.entries(value.filters ?? {});
   const setFilterEntries = (entries: [string, string][]) => {
@@ -82,26 +54,13 @@ export default function ReportConfigFields({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label>{t('cronjob.config.templateId')}</Label>
-        {loadingTemplates ? (
-          <Skeleton className="h-9 w-full" />
-        ) : templatesError ? (
-          <p className="text-sm text-destructive">{templatesError}</p>
-        ) : (
-          <Select
-            value={value.template_id ?? ''}
-            onValueChange={(template_id) => onChange({ ...value, template_id })}
-            disabled={readOnly}
-          >
-            <SelectTrigger><SelectValue placeholder={t('cronjob.config.templateIdPlaceholder')} /></SelectTrigger>
-            <SelectContent>
-              {templates.map((tpl) => (
-                <SelectItem key={tpl.id} value={tpl.id}>
-                  {tpl.name} — {tpl.report_group}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <ReportTemplatePicker
+          value={value.template_id ?? ''}
+          onChange={(template_id) => onChange({ ...value, template_id })}
+          disabled={readOnly}
+          placeholder={t('cronjob.config.templateIdPlaceholder')}
+          ariaLabel={t('cronjob.config.templateId')}
+        />
       </div>
 
       <div className="space-y-2">
