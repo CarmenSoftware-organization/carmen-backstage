@@ -104,18 +104,22 @@ export function BuSwitcher({
   }, [open]);
 
   const query = search.trim();
-  const { results, loading, loadingMore, error, loadMoreError, hasMore, total, loadMore, refresh } =
+  const { results, loading, loadingMore, error, loadMoreError, hasMore, total, resultsQuery, loadMore, refresh } =
     useBusinessUnitSearch(query, open);
+  // results เป็นของคำค้นที่ debounce แล้ว ส่วน `query` เป็นคำค้นสด — ช่วงที่ต่างกัน (หรือกำลังโหลด) แถวที่เห็นเป็นของคำค้นเก่า
+  // จึงไม่แสดงและไม่ให้ Enter เลือก (ใน SQL Workbench เลือกผิดแถว = ต่อผิด tenant)
+  const stale = query !== resultsQuery;
+  const pending = loading || stale;
 
   const { sections, flat } = useMemo(() => {
     const sections: Section[] = [];
-    let items = results;
-    if (!query) {
+    let items = pending ? [] : results;
+    if (!query && !stale) {
       // `open` is a dep so recents re-read from storage each time the palette opens.
       const recents = open ? readRecent() : [];
       if (recents.length) {
         const recentSet = new Set(recents.map((r) => r.code));
-        items = results.filter((b) => !recentSet.has(b.code));
+        items = items.filter((b) => !recentSet.has(b.code));
         sections.push({
           key: 'recent',
           label: t('switcher.recent'),
@@ -126,7 +130,7 @@ export function BuSwitcher({
     }
     sections.push({ key: 'results', label: null, items });
     return { sections, flat: sections.flatMap((s) => s.items) };
-  }, [results, query, open, t]);
+  }, [results, pending, stale, query, open, t]);
 
   // Keep the active index in range and scrolled into view.
   useEffect(() => {
@@ -178,6 +182,7 @@ export function BuSwitcher({
       if (flat.length) setActive((i) => (i - 1 + flat.length) % flat.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
+      if (pending) return;
       // ⌘/Ctrl+Enter = ยืนยันทั้งชุด · Enter เปล่า = สลับติ๊กแถวที่อยู่
       if (multiple && (e.metaKey || e.ctrlKey)) {
         confirmMany();
@@ -217,7 +222,7 @@ export function BuSwitcher({
             autoComplete="off"
             spellCheck={false}
           />
-          {total !== null && (
+          {!pending && total !== null && (
             <span className="text-muted-foreground shrink-0 font-mono text-[11px]">
               {t('switcher.buCount', { count: total })}
             </span>
@@ -233,7 +238,7 @@ export function BuSwitcher({
           onScroll={handleListScroll}
           className="max-h-[52vh] overflow-y-auto p-1.5"
         >
-          {!loading && !error && flat.length === 0 && (
+          {!pending && !error && flat.length === 0 && (
             <div className="text-muted-foreground px-4 py-10 text-center text-sm">
               {t('switcher.buNoMatches', { search: query })}
               <br />
@@ -310,12 +315,12 @@ export function BuSwitcher({
               })}
             </div>
           ))}
-          {loading && (
+          {pending && (
             <div className="text-muted-foreground flex items-center gap-2 px-4 py-4 text-sm">
               <Loader2 className="size-3.5 animate-spin" /> {t('switcher.loadingBus')}
             </div>
           )}
-          {!loading && error && (
+          {!pending && error && (
             <div className="flex items-center justify-between gap-2 px-4 py-4 text-sm">
               <span className="text-destructive">{error}</span>
               <Button variant="ghost" size="sm" className="h-7" onClick={refresh}>

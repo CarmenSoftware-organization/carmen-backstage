@@ -68,8 +68,8 @@ describe('BuSwitcher', () => {
     await setup();
     await user.type(screen.getByLabelText('Search business units'), 'beta');
     await waitFor(() => expect(getAll).toHaveBeenLastCalledWith(expect.objectContaining({ search: 'beta', sort: 'code:asc' })));
-    await waitFor(() => expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument());
-    expect(screen.getByText('Beta Thailand')).toBeInTheDocument();
+    await screen.findByText('Beta Thailand');
+    expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument();
   });
 
   it('lists BUs flat (no cluster grouping) and shows the server total', async () => {
@@ -90,9 +90,21 @@ describe('BuSwitcher', () => {
     const { onSelect } = await setup();
     const input = screen.getByLabelText('Search business units');
     await user.type(input, 'singapore');
-    await waitFor(() => expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument());
+    await screen.findByText('Acme Singapore');
+    expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument();
     await user.keyboard('{Enter}');
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ code: 'ACME-SG' }));
+  });
+
+  it('does not select a stale row while the typed query is still debouncing', async () => {
+    const user = userEvent.setup();
+    const { onSelect } = await setup();
+    await user.type(screen.getByLabelText('Search business units'), 'beta{Enter}');
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument();
+    await screen.findByText('Beta Thailand');
+    await user.keyboard('{Enter}');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ code: 'BETA-TH' }));
   });
 
   it('marks the currently connected BU', async () => {
