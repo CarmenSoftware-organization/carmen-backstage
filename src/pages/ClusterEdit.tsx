@@ -469,9 +469,9 @@ const ClusterEdit: React.FC = () => {
           {/* Plate skeleton — marks, name, identifiers, the two licence rails, the strip. */}
           <Skeleton className="h-5 w-24" />
           <Card className="overflow-hidden p-0">
-            <div className="flex gap-4 p-4 sm:p-5">
+            <div className="flex flex-col gap-4 p-4 sm:flex-row sm:p-5">
               <div className="flex shrink-0 items-center gap-2.5">
-                <Skeleton className="h-12 w-20 rounded-md" />
+                <Skeleton className="h-12 w-48 rounded-md" />
                 <Skeleton className="h-12 w-12 rounded-full" />
               </div>
               <div className="flex-1 space-y-2">
