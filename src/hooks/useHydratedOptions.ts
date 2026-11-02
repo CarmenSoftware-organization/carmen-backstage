@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PagedPage } from './usePagedSearch';
 
 /** จำนวนค่าสูงสุดต่อ request ตอน hydrate */
@@ -35,7 +35,9 @@ export async function hydrateByKeys<T>(
 
 /**
  * แปลงคีย์ที่เลือกไว้ (อาจอยู่นอกหน้าแรกของรายการค้นหา) เป็นแถวเต็ม
- * ดึงเฉพาะคีย์ที่ยังไม่อยู่ใน `byKey` · `pending` = ยังรอผล · `missing` = ไม่พบหรือ chunk พัง
+ * ดึงเฉพาะคีย์ที่ยังไม่อยู่ใน `byKey` และยังไม่เคยยืนยันว่า missing
+ * `pending` คำนวณระหว่าง render (คีย์ที่ไม่อยู่ใน byKey/missing) — ไม่มีเฟรมที่คีย์ไม่อยู่ในสถานะใดเลย
+ * `missing` = ไม่พบหรือ chunk พัง · สะสมไว้ ไม่ถูก reset/refetch ตอน `keys` เปลี่ยนเรื่องอื่น
  *
  * `fetchByKeys` ไม่ต้อง stable — เก็บไว้ใน ref; effect ผูกกับเนื้อหาของ `keys` เท่านั้น
  */
@@ -46,9 +48,9 @@ export function useHydratedOptions<T>(
 ): { byKey: Map<string, T>; pending: Set<string>; missing: Set<string> } {
   const [byKey, setByKey] = useState<Map<string, T>>(() => new Map());
   const [missing, setMissing] = useState<Set<string>>(() => new Set());
-  const [inflight, setInflight] = useState<Set<string>>(() => new Set());
   const generationRef = useRef(0);
   const byKeyRef = useRef(byKey);
+  const missingRef = useRef(missing);
   const keyOfRef = useRef(keyOf);
   const fetchRef = useRef(fetchByKeys);
   keyOfRef.current = keyOf;
@@ -58,29 +60,29 @@ export function useHydratedOptions<T>(
 
   useEffect(() => {
     const wanted = JSON.parse(signature) as string[];
-    const toFetch = wanted.filter((k) => !byKeyRef.current.has(k));
-    if (toFetch.length === 0) {
-      generationRef.current++;
-      setInflight(new Set());
-      setMissing(new Set());
-      return;
-    }
+    const toFetch = wanted.filter((k) => !byKeyRef.current.has(k) && !missingRef.current.has(k));
+    if (toFetch.length === 0) return;
     const generation = ++generationRef.current;
-    setInflight(new Set(toFetch));
-    setMissing(new Set());
     fetchRef
       .current(toFetch)
       .catch(() => ({ rows: [] as T[], failed: true }))
       .then(({ rows }) => {
         if (generation !== generationRef.current) return;
-        const next = new Map(byKeyRef.current);
-        for (const r of rows) next.set(keyOfRef.current(r), r);
-        byKeyRef.current = next;
-        setByKey(next);
-        setMissing(new Set(toFetch.filter((k) => !next.has(k))));
-        setInflight(new Set());
+        const nextByKey = new Map(byKeyRef.current);
+        for (const r of rows) nextByKey.set(keyOfRef.current(r), r);
+        const nextMissing = new Set(missingRef.current);
+        for (const k of toFetch) if (!nextByKey.has(k)) nextMissing.add(k);
+        byKeyRef.current = nextByKey;
+        missingRef.current = nextMissing;
+        setByKey(nextByKey);
+        setMissing(nextMissing);
       });
   }, [signature]);
 
-  return { byKey, pending: inflight, missing };
+  const pending = useMemo(
+    () => new Set((JSON.parse(signature) as string[]).filter((k) => !byKey.has(k) && !missing.has(k))),
+    [signature, byKey, missing],
+  );
+
+  return { byKey, pending, missing };
 }
