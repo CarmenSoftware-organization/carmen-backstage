@@ -134,14 +134,17 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
     />
   );
 
+  /* Logo slot is 4:1. Empty, it holds the full 4:1 footprint; filled, the height stays put and the
+   * width follows the image's own ratio — a square logo gets a square frame, not a 4:1 box with
+   * empty bands. The 4:1 width is the ceiling, so a wider-than-4:1 logo shrinks to fit inside it. */
   const frameClass = compact
     ? shape === 'square'
       ? 'h-12 w-12 rounded-full'
-      : 'h-12 w-20 rounded-md'
+      : 'h-12 w-auto min-w-12 max-w-48 rounded-md'
     : shape === 'square'
       ? 'h-20 w-20 rounded-full'
-      : 'h-20 w-auto max-w-[160px] rounded-md';
-  const fitClass = shape === 'square' ? 'object-cover' : 'object-contain';
+      : 'h-20 w-auto min-w-20 max-w-80 rounded-md';
+  const imgClass = shape === 'square' ? 'h-full w-full object-cover' : 'h-full w-auto max-w-full object-contain';
 
   /* Two different empty states, on purpose. A square slot falls back to initials — a real
    * identity the platform can keep using forever — so it renders solid and finished. A logo has
@@ -154,7 +157,7 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
           <img
             src={value}
             alt={label}
-            className={cn('h-full w-full', fitClass)}
+            className={imgClass}
             onError={() => setBroken(true)}
           />
         </div>
@@ -175,7 +178,7 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
       <div
         className={cn(
           'flex shrink-0 items-center justify-center rounded-md border border-dashed bg-muted/30',
-          compact ? 'h-12 w-20' : 'h-20 w-[160px]',
+          compact ? 'h-12 w-48' : 'h-20 w-80',
         )}
       >
         <ImagePlus className={cn('text-muted-foreground/70', compact ? 'h-4 w-4' : 'h-5 w-5')} aria-hidden />
@@ -237,7 +240,8 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
   return (
     <div className="space-y-2">
       <div className="text-sm font-medium">{label}</div>
-      <div className="flex items-center gap-3">
+      {/* wrap: a 320px logo slot beside the upload button doesn't fit a 390px phone */}
+      <div className="flex flex-wrap items-center gap-3">
         {renderPreview()}
         {!disabled && (
           <div className="space-y-1.5">

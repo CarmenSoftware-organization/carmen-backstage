@@ -171,7 +171,7 @@ export function ClusterPlate({
          *  muted band returns to say the rails are a different kind of fact from the name. */}
         <Card ref={plateRef} className="overflow-hidden p-0">
           <div className="lg:flex lg:items-stretch">
-            <div className="flex min-w-0 gap-4 p-4 sm:p-5 lg:flex-1">
+            <div className="flex min-w-0 flex-col gap-4 p-4 sm:flex-row sm:p-5 lg:flex-1">
               <div className="flex shrink-0 items-start gap-2.5">
                 <BrandingImageUpload
                   compact
