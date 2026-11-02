@@ -213,7 +213,7 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   const nothing = rows.length === 0;
 
   return (
-    <div {...ta.wrapperProps} className={cn('relative min-w-0', className)}>
+    <div {...ta.getWrapperProps({ className: cn('relative min-w-0', className) })}>
       <div
         className={cn(
           'flex min-h-9 w-full items-center gap-1 rounded-md border bg-transparent px-2 py-1.5 text-sm shadow-xs focus-within:outline-hidden focus-within:ring-1 focus-within:ring-ring',
@@ -223,7 +223,7 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
       >
         <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <input
-          {...ta.inputProps}
+          {...ta.getInputProps()}
           id={id}
           type="text"
           value={query}

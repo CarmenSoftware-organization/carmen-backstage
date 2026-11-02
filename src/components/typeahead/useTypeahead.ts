@@ -32,8 +32,8 @@ export interface UseTypeaheadOptions<T> {
  *
  * ```tsx
  * const ta = useTypeahead({ items, getKey, onPick, disabled, onOpenChange, ...pagedSearch });
- * <div {...ta.wrapperProps}>
- *   <input {...ta.inputProps} value={q} onChange={(e) => { setQ(e.target.value); ta.setOpen(true); }} />
+ * <div {...ta.getWrapperProps({ className: 'relative' })}>
+ *   <input {...ta.getInputProps({ onKeyDown: backspaceRemovesChip })} value={q} onChange={(e) => { setQ(e.target.value); ta.setOpen(true); }} />
  *   {ta.open && (
  *     <div {...ta.listProps}>
  *       {items.map((it, i) => <button type="button" key={getKey(it)} {...ta.getOptionProps(it, i)}>...</button>)}
@@ -42,7 +42,11 @@ export interface UseTypeaheadOptions<T> {
  * </div>
  * ```
  * - Render the dropdown only while `ta.open`. Items must be the rows actually visible, in order.
- * - Multi-select: pass `closeOnPick: false`; the dropdown stays open after a pick.
+ * - Multi-select: pass `closeOnPick: false` (stays open after a pick) AND `isSelected` (checked state), because
+ *   `aria-selected` otherwise defaults to the active row.
+ * - `getInputProps(user)` / `getWrapperProps(user)` take your own props and chain handlers: yours runs first and the
+ *   hook's is skipped if you call `e.preventDefault()`. Refs are merged. Always pass your onFocus/onBlur/onKeyDown
+ *   through them, never spread after them.
  * - `ta.setOpen(false)` after your own custom close paths; `ta.requestFocus()` to focus the input
  *   once it mounts in the same commit (dropped otherwise, so a rejected clear never focuses late).
  * - Escape: while open it is consumed (preventDefault) and closes only the dropdown; while closed it passes
@@ -177,28 +181,52 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
     }
   };
 
-  const wrapperProps = {
-    ref: wrapperRef,
-    onBlur: (e: React.FocusEvent<HTMLElement>) => {
-      const next = e.relatedTarget as Node | null;
-      if (next && wrapperRef.current && !wrapperRef.current.contains(next)) setOpen(false);
-    },
+  const hookBlur = (e: React.FocusEvent<HTMLElement>) => {
+    const next = e.relatedTarget as Node | null;
+    if (next && wrapperRef.current && !wrapperRef.current.contains(next)) setOpen(false);
   };
 
-  const inputProps = {
-    ref: inputRef,
+  const mergeRefs = <E,>(own: React.RefObject<E | null>, user?: React.Ref<E>) => (node: E | null) => {
+    own.current = node;
+    if (typeof user === 'function') user(node);
+    else if (user) (user as React.RefObject<E | null>).current = node;
+  };
+
+  /** Props for the wrapper element. Your handlers run first; preventDefault() skips the hook's. */
+  const getWrapperProps = (user: React.HTMLAttributes<HTMLElement> & { ref?: React.Ref<HTMLDivElement> } = {}) => ({
+    ...user,
+    ref: mergeRefs(wrapperRef, user.ref),
+    onBlur: (e: React.FocusEvent<HTMLElement>) => {
+      user.onBlur?.(e);
+      if (!e.defaultPrevented) hookBlur(e);
+    },
+  });
+
+  /** Props for the search input. Your handlers run first; preventDefault() skips the hook's. */
+  const getInputProps = (user: React.InputHTMLAttributes<HTMLInputElement> & { ref?: React.Ref<HTMLInputElement> } = {}) => ({
+    ...user,
+    ref: mergeRefs(inputRef, user.ref),
     role: 'combobox' as const,
     'aria-expanded': visibleOpen,
     'aria-controls': visibleOpen ? listId : undefined,
     'aria-activedescendant': activeIndex >= 0 ? optionId(activeIndex) : undefined,
     'aria-autocomplete': 'list' as const,
-    onFocus: () => setOpen(true),
-    onKeyDown,
-  };
+    onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+      user.onFocus?.(e);
+      if (!e.defaultPrevented) setOpen(true);
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+      user.onKeyDown?.(e);
+      if (!e.defaultPrevented) onKeyDown(e);
+    },
+  });
 
   const listProps = {
     id: listId,
     role: 'listbox' as const,
+    // Keep focus in the input when pressing anywhere in the list (status text, padding): otherwise focus moves to
+    // the surrounding Dialog/Sheet content and the focusout handler would close the dropdown. Buttons still click.
+    onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
     onScroll: (e: React.UIEvent<HTMLElement>) => {
       // A failed next page waits for its Retry button instead of re-firing on every scroll
       if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore?.();
@@ -213,8 +241,6 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
       tabIndex: -1,
       'aria-selected': isSelected ? isSelected(item) : index === activeIndex,
       'aria-disabled': disabledItem || undefined,
-      // keep focus in the input so aria-activedescendant stays meaningful
-      onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
       onClick: () => pick(item),
       onMouseMove: () => {
         if (!disabledItem && index !== activeIndex) setActiveKey(getKey(item));
@@ -222,5 +248,5 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
     };
   };
 
-  return { open: visibleOpen, setOpen, activeIndex, wrapperRef, inputRef, listId, wrapperProps, inputProps, listProps, getOptionProps, requestFocus };
+  return { open: visibleOpen, setOpen, activeIndex, wrapperRef, inputRef, listId, getWrapperProps, getInputProps, listProps, getOptionProps, requestFocus };
 }
