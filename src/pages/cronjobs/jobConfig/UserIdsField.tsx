@@ -36,7 +36,9 @@ export default function UserIdsField({ value, onChange, disabled, id, error }: U
   // Users picked from search results already carry a name — remember them so their chips
   // render at once instead of being re-fetched (and flashing a skeleton) by hydration.
   const [picked, setPicked] = useState<UserOption[]>([]);
-  const { byKey, pending } = useHydratedOptions<UserOption>(value, keyOfUser, fetchUsersByIds, { known: picked });
+  const { byKey, pending, failed, retry } = useHydratedOptions<UserOption>(value, keyOfUser, fetchUsersByIds, {
+    known: picked,
+  });
   const options: UserOption[] = value.map((uid) => byKey.get(uid) ?? { id: uid, name: '' });
 
   return (
@@ -44,6 +46,8 @@ export default function UserIdsField({ value, onChange, disabled, id, error }: U
       id={id}
       value={options}
       pendingIds={pending}
+      failedIds={failed}
+      onRetryFailed={retry}
       disabled={disabled}
       error={error}
       onChange={(next) => {

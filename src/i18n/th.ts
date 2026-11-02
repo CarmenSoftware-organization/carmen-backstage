@@ -775,6 +775,7 @@ export const th: Translations = {
       clearSelectedAria: 'ล้างผู้ใช้ที่เลือก {{name}}',
       loadingMore: 'กำลังโหลดเพิ่ม…',
       unknownUser: 'ไม่ทราบผู้ใช้',
+      loadFailed: 'โหลดไม่สำเร็จ',
     },
     // ใช้ร่วมกันระหว่าง UserMultiSelect.tsx กับ UserPicker.tsx — ทั้งสองไฟล์ใช้ useUserSearch
     // และแสดงข้อความ dropdown เหมือนกันเป๊ะ
@@ -794,6 +795,7 @@ export const th: Translations = {
       allHeading: 'Business unit ทั้งหมด',
       loadingMore: 'กำลังโหลดเพิ่ม…',
       notFound: 'ไม่พบ',
+      loadFailed: 'โหลดไม่สำเร็จ',
     },
     clusterPicker: {
       defaultPlaceholder: 'ค้นหาคลัสเตอร์ด้วยชื่อหรือรหัส',
@@ -803,6 +805,7 @@ export const th: Translations = {
       typeToSearch: 'พิมพ์เพื่อค้นหาคลัสเตอร์',
       loadingMore: 'กำลังโหลดเพิ่ม…',
       notFound: 'ไม่พบ',
+      loadFailed: 'โหลดไม่สำเร็จ',
     },
     customerPicker: {
       defaultPlaceholder: 'ค้นหาลูกค้าด้วยเลข AR หรือชื่อบริษัท',

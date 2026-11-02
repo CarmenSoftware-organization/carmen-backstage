@@ -1011,6 +1011,7 @@ export const en = {
       clearSelectedAria: 'Clear selected user {{name}}',
       loadingMore: 'Loading more…',
       unknownUser: 'Unknown user',
+      loadFailed: 'Couldn’t load',
     },
     // Shared between UserMultiSelect.tsx and UserPicker.tsx — both wrap useUserSearch and
     // render byte-identical dropdown copy.
@@ -1030,6 +1031,7 @@ export const en = {
       allHeading: 'All business units',
       loadingMore: 'Loading more…',
       notFound: 'Not found',
+      loadFailed: 'Couldn’t load',
     },
     clusterPicker: {
       defaultPlaceholder: 'Search clusters by name or code',
@@ -1039,6 +1041,7 @@ export const en = {
       typeToSearch: 'Type to search clusters',
       loadingMore: 'Loading more…',
       notFound: 'Not found',
+      loadFailed: 'Couldn’t load',
     },
     customerPicker: {
       defaultPlaceholder: 'Search customers by AR number or company',
