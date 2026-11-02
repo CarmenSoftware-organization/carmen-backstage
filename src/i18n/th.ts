@@ -2379,7 +2379,6 @@ export const th: Translations = {
       typeView: 'View',
       typeProcedure: 'Stored Procedure',
       typeFunction: 'Function',
-      loadBuFailed: 'โหลดหน่วยธุรกิจไม่สำเร็จ',
       executeFailed: 'รัน SQL ไม่สำเร็จ',
       selectBuFirst: 'กรุณาเลือกหน่วยธุรกิจก่อน',
       invalidSql: 'SQL ไม่ถูกต้อง',

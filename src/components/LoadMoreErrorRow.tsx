@@ -12,7 +12,7 @@ export const LoadMoreErrorRow: React.FC<{ message: string; onRetry: () => void; 
   const { t } = useI18n();
   return (
     <div role="presentation" className={cn('flex items-center justify-between gap-2 border-t px-3 py-2 text-xs text-destructive', className)}>
-      <span className="min-w-0 truncate" aria-live="polite">{message}</span>
+      <span className="min-w-0 truncate">{message}</span>
       <button
         type="button"
         onClick={onRetry}

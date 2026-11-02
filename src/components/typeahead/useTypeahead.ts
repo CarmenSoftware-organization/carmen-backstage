@@ -152,7 +152,9 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
     for (let step = 0; step < n; step += 1) {
       i = i < 0 ? (dir === 1 ? 0 : n - 1) : (i + dir + n) % n;
       if (!isDisabled?.(items[i])) {
-        keyboardMoveRef.current = true;
+        // Only flag a real move: the scroll effect clears the flag, and it never runs when the active row stays put
+        // (e.g. a single enabled row), which would leave it set and let the next hover scroll the list.
+        if (i !== activeIndex) keyboardMoveRef.current = true;
         setActiveKey(getKey(items[i]));
         return;
       }

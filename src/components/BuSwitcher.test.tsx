@@ -123,6 +123,31 @@ describe('BuSwitcher', () => {
     expect(screen.getAllByText('BETA-TH')).toHaveLength(1);
   });
 
+  it('drops a deleted recent after validation, and keeps recents when the validation request fails', async () => {
+    const stored = [
+      { id: '3', code: 'BETA-TH', name: 'Old Beta', cluster_name: 'Beta' },
+      { id: '9', code: 'GONE-XX', name: 'Deleted BU', cluster_name: null },
+    ];
+    localStorage.setItem('sqlwb_recent_bus_v2', JSON.stringify(stored));
+    const view = await setup();
+    // rendered from storage first; then the server says GONE-XX no longer exists and refreshes BETA-TH's name
+    await waitFor(() => expect(screen.queryByText('GONE-XX')).not.toBeInTheDocument());
+    const kept = JSON.parse(localStorage.getItem('sqlwb_recent_bus_v2') || '[]');
+    expect(kept).toHaveLength(1);
+    expect(kept[0]).toMatchObject({ code: 'BETA-TH', name: 'Beta Thailand' });
+    expect(view.onSelect).not.toHaveBeenCalled();
+
+    // a failing hydrate must never drop anything
+    localStorage.setItem('sqlwb_recent_bus_v2', JSON.stringify(stored));
+    getAll.mockImplementation(async ({ advance }: { advance?: string }) => {
+      if (advance) throw new Error('boom');
+      return { data: BUS, paginate: { total: BUS.length } };
+    });
+    await setup();
+    await waitFor(() => expect(getAll).toHaveBeenCalledWith(expect.objectContaining({ advance: expect.any(String) })));
+    expect(JSON.parse(localStorage.getItem('sqlwb_recent_bus_v2') || '[]')).toHaveLength(2);
+  });
+
   it('ignores legacy bare-code recents', async () => {
     localStorage.setItem('sqlwb_recent_bus', JSON.stringify(['BETA-TH']));
     await setup();

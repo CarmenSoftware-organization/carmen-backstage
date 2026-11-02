@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { useBusinessUnitSearch, type BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
 import { useI18n } from '../hooks/useI18n';
 import { useTypeahead } from './typeahead/useTypeahead';
-import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
+import { TypeaheadAnnouncer, TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 
 interface BusinessUnitPickerProps {
   value: BusinessUnitOption | null;
@@ -146,6 +146,23 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
 
   const offset = suggestedShown.length;
 
+  const statusProps = {
+    loading: canSearch && loading,
+    error: canSearch ? (searchError || undefined) : undefined,
+    empty: nothing,
+    searchingLabel: t('components.businessUnitPicker.searchingEllipsis'),
+    emptyLabel: !canSearch
+      ? t('components.businessUnitPicker.noSuggested')
+      : query
+        ? t('components.businessUnitPicker.noMatch', { query })
+        : t('components.businessUnitPicker.typeToSearch'),
+  };
+  const footerProps = {
+    loadingMore,
+    loadMoreError: loadMoreError || undefined,
+    loadingMoreLabel: t('components.businessUnitPicker.loadingMore'),
+  };
+
   return (
     <div {...ta.getWrapperProps({ className: 'relative' })}>
       <div
@@ -171,6 +188,7 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
         />
       </div>
 
+      <TypeaheadAnnouncer open={ta.open} status={statusProps} footer={otherResults.length > 0 ? footerProps : undefined} />
       {ta.open && (
         <div
           {...ta.listProps}
@@ -202,26 +220,9 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
               </button>
             );
           })}
-          <TypeaheadStatus
-            loading={canSearch && loading}
-            error={canSearch ? (searchError || undefined) : undefined}
-            empty={nothing}
-            searchingLabel={t('components.businessUnitPicker.searchingEllipsis')}
-            emptyLabel={
-              !canSearch
-                ? t('components.businessUnitPicker.noSuggested')
-                : query
-                  ? t('components.businessUnitPicker.noMatch', { query })
-                  : t('components.businessUnitPicker.typeToSearch')
-            }
-          />
+          <TypeaheadStatus {...statusProps} />
           {otherResults.length > 0 && (
-            <TypeaheadFooter
-              loadingMore={loadingMore}
-              loadMoreError={loadMoreError || undefined}
-              onRetry={loadMore}
-              loadingMoreLabel={t('components.businessUnitPicker.loadingMore')}
-            />
+            <TypeaheadFooter {...footerProps} onRetry={loadMore} />
           )}
         </div>
       )}

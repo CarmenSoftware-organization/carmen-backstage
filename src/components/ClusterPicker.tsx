@@ -3,7 +3,7 @@ import { Search, X, RotateCw } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useClusterSearch, toClusterOption, type ClusterOption } from '../hooks/useClusterSearch';
 import { useTypeahead } from './typeahead/useTypeahead';
-import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
+import { TypeaheadAnnouncer, TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 import { hydrateByKeys, useHydratedOptions } from '../hooks/useHydratedOptions';
 import clusterService from '../services/clusterService';
 import { useI18n } from '../hooks/useI18n';
@@ -212,6 +212,19 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
 
   const nothing = rows.length === 0;
 
+  const statusProps = {
+    loading,
+    error: searchError ?? undefined,
+    empty: nothing,
+    searchingLabel: t('components.clusterPicker.searchingEllipsis'),
+    emptyLabel: query ? t('components.clusterPicker.noMatch', { query }) : t('components.clusterPicker.typeToSearch'),
+  };
+  const footerProps = {
+    loadingMore,
+    loadMoreError: loadMoreError ?? undefined,
+    loadingMoreLabel: t('components.clusterPicker.loadingMore'),
+  };
+
   return (
     <div {...ta.getWrapperProps({ className: cn('relative min-w-0', className) })}>
       <div
@@ -239,6 +252,11 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
         />
       </div>
 
+      <TypeaheadAnnouncer
+        open={ta.open}
+        status={canSearch ? statusProps : undefined}
+        footer={resultsShown.length > 0 ? footerProps : undefined}
+      />
       {ta.open && (
         <div
           {...ta.listProps}
@@ -266,21 +284,10 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
             </React.Fragment>
           ))}
           {canSearch && (
-            <TypeaheadStatus
-              loading={loading}
-              error={searchError ?? undefined}
-              empty={nothing}
-              searchingLabel={t('components.clusterPicker.searchingEllipsis')}
-              emptyLabel={query ? t('components.clusterPicker.noMatch', { query }) : t('components.clusterPicker.typeToSearch')}
-            />
+            <TypeaheadStatus {...statusProps} />
           )}
           {resultsShown.length > 0 && (
-            <TypeaheadFooter
-              loadingMore={loadingMore}
-              loadMoreError={loadMoreError ?? undefined}
-              onRetry={loadMore}
-              loadingMoreLabel={t('components.clusterPicker.loadingMore')}
-            />
+            <TypeaheadFooter {...footerProps} onRetry={loadMore} />
           )}
         </div>
       )}

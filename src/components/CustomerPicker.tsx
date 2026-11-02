@@ -5,7 +5,7 @@ import { useCustomerSearch } from '../hooks/useCustomerSearch';
 import type { CustomerOption } from '../types';
 import { useI18n } from '../hooks/useI18n';
 import { useTypeahead } from './typeahead/useTypeahead';
-import { TypeaheadStatus } from './typeahead/TypeaheadStatus';
+import { TypeaheadAnnouncer, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 
 interface CustomerPickerProps {
   value: CustomerOption | null;
@@ -95,6 +95,14 @@ export const CustomerPicker: React.FC<CustomerPickerProps> = ({
     );
   }
 
+  const statusProps = {
+    loading,
+    error: searchError || undefined,
+    empty: rows.length === 0,
+    searchingLabel: t('components.customerPicker.searchingEllipsis'),
+    emptyLabel: query ? t('components.customerPicker.noMatch', { query }) : t('components.customerPicker.typeToSearch'),
+  };
+
   return (
     <div {...ta.getWrapperProps({ className: 'relative' })}>
       <div
@@ -122,6 +130,7 @@ export const CustomerPicker: React.FC<CustomerPickerProps> = ({
         />
       </div>
 
+      <TypeaheadAnnouncer open={ta.open} status={statusProps} />
       {ta.open && (
         <div
           {...ta.listProps}
@@ -147,13 +156,7 @@ export const CustomerPicker: React.FC<CustomerPickerProps> = ({
               )}
             </button>
           ))}
-          <TypeaheadStatus
-            loading={loading}
-            error={searchError || undefined}
-            empty={rows.length === 0}
-            searchingLabel={t('components.customerPicker.searchingEllipsis')}
-            emptyLabel={query ? t('components.customerPicker.noMatch', { query }) : t('components.customerPicker.typeToSearch')}
-          />
+          <TypeaheadStatus {...statusProps} />
         </div>
       )}
     </div>
