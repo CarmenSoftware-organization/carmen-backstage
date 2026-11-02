@@ -62,7 +62,6 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   value, onChange, canSearch, pinned = EMPTY_PINNED, id, placeholder, disabled = false, ariaLabel, className, onOpenChange,
 }) => {
   const { t } = useI18n();
-  const effectivePlaceholder = placeholder ?? t('components.clusterPicker.defaultPlaceholder');
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<ClusterOption | null>(null);
@@ -93,6 +92,10 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   }, []);
 
   const pinnedMatch = pinned.find((p) => p.value === value) ?? null;
+  // pinned '' (เช่น "All clusters") ไม่ใช่ chip — แสดงเป็น placeholder ของช่องค้นหา
+  const effectivePlaceholder = value === '' && pinnedMatch
+    ? pinnedMatch.label
+    : (placeholder ?? t('components.clusterPicker.defaultPlaceholder'));
   const hydrateKeys = value && !pinnedMatch ? [value] : [];
   const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(hydrateKeys, keyOfOption, fetchByIds);
 
@@ -159,7 +162,7 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     inputRef.current?.focus();
   };
 
-  const showChip = !!pinnedMatch || !!value;
+  const showChip = !!value;
 
   // ทุกสถานะที่ dropdown มองไม่เห็น (disabled / แสดง chip) ต้องรายงานปิด — ไม่พึ่งเหตุการณ์คลิก/คีย์
   useEffect(() => {
@@ -169,7 +172,7 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   if (showChip) {
     const title = pinnedMatch ? pinnedMatch.label : (resolved?.name ?? value);
     const sub = resolved ? resolved.code : null;
-    const canClear = !disabled && !(pinnedMatch && pinnedMatch.value === '');
+    const canClear = !disabled;
     return (
       <div className={cn('min-w-0', className)}>
         <div
