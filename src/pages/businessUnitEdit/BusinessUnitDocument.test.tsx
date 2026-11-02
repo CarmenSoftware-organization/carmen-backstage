@@ -48,7 +48,6 @@ const setup = (overrides: Partial<React.ComponentProps<typeof BusinessUnitDocume
       formData={initialFormData}
       fieldErrors={{}}
       clusterName="-"
-      clusters={[]}
       defaultCurrency={null}
       getCalculationMethodLabel={(m) => m}
       canEdit

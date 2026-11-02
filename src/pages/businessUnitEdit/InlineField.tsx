@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { CharacterCountInput } from '../../components/ui/character-count-input';
@@ -24,12 +24,29 @@ const WIDTH_CLASS: Record<InlineWidth, string> = {
   full: 'max-w-full',
 };
 
+export interface InlineEditorContext {
+  /** The in-progress value (equals the saved value when editing starts). */
+  value: string;
+  /** Update the in-progress value without committing. */
+  setValue: (v: string) => void;
+  /** Commit and leave edit mode. Pass `next` when the value was only just chosen (state is not flushed yet). */
+  commit: (next?: string) => void;
+  /** Discard the in-progress value and leave edit mode. */
+  cancel: () => void;
+  /** The editor reports whether it has its own popup open, so Escape closes that first instead of cancelling the edit. */
+  setBusy: (busy: boolean) => void;
+}
+
 interface InlineFieldProps {
   name: string;
   label: string;
   value: string;
   type?: 'text' | 'number' | 'email' | 'textarea' | 'select';
   options?: InlineOption[];
+  /** Replaces the built-in edit control. Commit semantics are the editor's: call `ctx.commit`/`ctx.cancel`. */
+  renderEditor?: (ctx: InlineEditorContext) => React.ReactNode;
+  /** Read-mode text when `renderEditor` is set (replaces the `options` lookup). Falls back to the raw value. */
+  readLabel?: string;
   mono?: boolean;
   /** Control width, sized to the data it holds. Defaults to 'sm'. */
   width?: InlineWidth;
@@ -80,6 +97,8 @@ export function InlineField({
   value,
   type = 'text',
   options,
+  renderEditor,
+  readLabel,
   mono,
   width = 'sm',
   placeholder,
@@ -100,15 +119,44 @@ export function InlineField({
     setDraft(value);
     setEditing(true);
   };
-  const commit = () => {
+  const commitValue = (v: string) => {
     setEditing(false);
-    if (draft !== value) onCommit(name, draft);
-    onValidate?.(name, draft);
+    if (v !== value) onCommit(name, v);
+    onValidate?.(name, v);
   };
+  const commit = () => commitValue(draft);
   const cancel = () => {
     setDraft(value);
     setEditing(false);
   };
+  // Custom editors (renderEditor): leave edit mode on an outside press or an unhandled Escape,
+  // the way the built-in select closes on blur. Escape is skipped while the editor's own popup
+  // is open (it closes that first) and when something nearer already handled it.
+  const busyRef = useRef(false);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const customEditing = editing && !!renderEditor;
+  useEffect(() => {
+    if (!customEditing) {
+      busyRef.current = false;
+      return;
+    }
+    const onDown = (e: MouseEvent) => {
+      if (editorRef.current && !editorRef.current.contains(e.target as Node)) cancel();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented || busyRef.current) return;
+      e.preventDefault();
+      cancel();
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cancel only reads `value` and stable setters
+  }, [customEditing, value]);
+
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && type !== 'textarea') {
       e.preventDefault();
@@ -132,8 +180,9 @@ export function InlineField({
 
   const promptText = placeholder || t('pages.businessUnits.setFieldPlaceholder', { field: label.toLowerCase() });
   // Selects store the option value (e.g. a UUID); show its human label in read mode.
-  const displayValue =
-    type === 'select'
+  const displayValue = renderEditor
+    ? readLabel?.trim() || (value.trim() ? value : null)
+    : type === 'select'
       ? (options?.find((o) => o.value === value)?.label ?? (value.trim() ? value : null))
       : value.trim()
         ? value
@@ -186,7 +235,19 @@ export function InlineField({
       </span>
       <div className="min-w-0">
         {editing ? (
-          type === 'select' ? (
+          renderEditor ? (
+            <div ref={editorRef} className={WIDTH_CLASS[width]}>
+              {renderEditor({
+                value: draft,
+                setValue: setDraft,
+                commit: (next) => commitValue(typeof next === 'string' ? next : draft),
+                cancel,
+                setBusy: (busy) => {
+                  busyRef.current = busy;
+                },
+              })}
+            </div>
+          ) : type === 'select' ? (
             <select
               // eslint-disable-next-line jsx-a11y/no-autofocus -- edit-in-place: focus the field the user just opened
               autoFocus

@@ -8,7 +8,7 @@ import { ActivityTrailSheet } from '../components/activityTrail/ActivityTrailShe
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
 import businessUnitService from '../services/businessUnitService';
 import clusterService from '../services/clusterService';
-import { fetchAllClusters } from '../hooks/useAllClusters';
+import { useHydratedOptions, hydrateByKeys } from '../hooks/useHydratedOptions';
 import currencyService from '../services/currencyService';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader } from '../components/ui/card';
@@ -50,6 +50,15 @@ import { HeroName } from './businessUnitEdit/HeroName';
 import { toSeatPool } from '../utils/seatPool';
 import { isBuTabId, tabsWithErrors, type BuTab, type BuTabId } from './businessUnitEdit/BusinessUnitTabs';
 
+// The seat pool needs users_count / total_max_license_users, which ClusterOption does not carry,
+// so the current cluster is hydrated whole — one id-scoped request instead of the full list.
+const keyOfCluster = (c: Cluster) => c.id;
+const fetchFullClustersByIds = (ids: string[]) =>
+  hydrateByKeys<Cluster>(ids, 'id', async ({ advance, perpage }) => {
+    const res = await clusterService.getAll({ page: 1, perpage, advance });
+    return { data: (res.data || []) as Cluster[], paginate: res.paginate };
+  });
+
 const BU_NOTE_PERMISSIONS = { view: 'bu_note.view', manage: 'bu_note.manage' } as const;
 
 const BusinessUnitEdit: React.FC = () => {
@@ -64,7 +73,6 @@ const BusinessUnitEdit: React.FC = () => {
     ...initialFormData,
     cluster_id: searchParams.get('cluster_id') || '',
   });
-  const [clusters, setClusters] = useState<Cluster[]>([]);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -140,7 +148,12 @@ const BusinessUnitEdit: React.FC = () => {
   // Seat pool is the cluster's, not this BU's — `total_max_license_users` is a backend
   // aggregate across every BU in the cluster. 0/null/absent = 0 seats (never "unlimited"),
   // so a cluster with members and no seat licence reads "n / 0" and over-quota.
-  const currentCluster = clusters.find((c) => c.id === formData.cluster_id);
+  const { byKey: clusterById } = useHydratedOptions<Cluster>(
+    formData.cluster_id ? [formData.cluster_id] : [],
+    keyOfCluster,
+    fetchFullClustersByIds,
+  );
+  const currentCluster = formData.cluster_id ? clusterById.get(formData.cluster_id) : undefined;
   const clusterSeat = currentCluster
     ? toSeatPool(currentCluster.users_count, currentCluster.total_max_license_users)
     : undefined;
@@ -286,7 +299,6 @@ const BusinessUnitEdit: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchClusters();
     if (!isNew) {
       fetchBusinessUnit();
     }
@@ -302,14 +314,6 @@ const BusinessUnitEdit: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.code, isNew]);
-
-  const fetchClusters = async () => {
-    try {
-      setClusters(await fetchAllClusters());
-    } catch (err) {
-      devLog('Failed to load clusters:', err);
-    }
-  };
 
   const toJsonString = (val: unknown, fallback: string): string => {
     if (val === null || val === undefined) return fallback;
@@ -685,9 +689,9 @@ const BusinessUnitEdit: React.FC = () => {
     await doSave();
   };
 
-  // Helper to get cluster name from clusters array
+  // Helper to get the cluster name from the hydrated current cluster
   const getClusterName = (clusterId: string): string => {
-    const cluster = clusters.find(c => c.id === clusterId);
+    const cluster = clusterId === formData.cluster_id ? currentCluster : undefined;
     return cluster ? cluster.name : clusterId || '-';
   };
 
@@ -811,7 +815,6 @@ const BusinessUnitEdit: React.FC = () => {
           clusterName={getClusterName(formData.cluster_id)}
           logoUrl={logoUrl}
           avatarUrl={avatarUrl}
-          clusters={clusters}
           defaultCurrency={defaultCurrency}
           currencies={currencies}
           currenciesLoading={currenciesLoading}
