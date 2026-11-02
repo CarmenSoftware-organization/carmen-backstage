@@ -22,6 +22,8 @@ interface BusinessUnitDocumentProps {
   formData: BusinessUnitFormData;
   fieldErrors: Record<string, string>;
   clusterName: string;
+  /** The page's hydrated row for `formData.cluster_id` — the cluster picker reuses it instead of re-fetching. */
+  currentClusterOption?: ClusterOption | null;
   logoUrl?: string;
   avatarUrl?: string;
   defaultCurrency: DefaultCurrency | null;
@@ -83,6 +85,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
     formData: f,
     fieldErrors,
     clusterName,
+    currentClusterOption = null,
     logoUrl,
     avatarUrl,
     defaultCurrency,
@@ -272,6 +275,12 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
                 renderEditor: (ctx) => (
                   <ClusterPicker
                     value={ctx.value}
+                    knownOption={currentClusterOption}
+                    // The editor mounts only because the user just clicked the field to edit it —
+                    // focus belongs in its search box, as the built-in inline editors do.
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
+                    autoFocus
+                    invalid={!!fieldErrors.cluster_id}
                     canSearch
                     ariaLabel={t('common.label.cluster')}
                     onOpenChange={ctx.setBusy}

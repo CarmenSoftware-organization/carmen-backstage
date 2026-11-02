@@ -8,6 +8,7 @@ import { ActivityTrailSheet } from '../components/activityTrail/ActivityTrailShe
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
 import businessUnitService from '../services/businessUnitService';
 import clusterService from '../services/clusterService';
+import { toClusterOption } from '../hooks/useClusterSearch';
 import { useHydratedOptions, hydrateByKeys } from '../hooks/useHydratedOptions';
 import currencyService from '../services/currencyService';
 import { Button } from '../components/ui/button';
@@ -154,6 +155,11 @@ const BusinessUnitEdit: React.FC = () => {
     fetchFullClustersByIds,
   );
   const currentCluster = formData.cluster_id ? clusterById.get(formData.cluster_id) : undefined;
+  // The picker would hydrate the same id for its chip — hand it the row already held here.
+  const currentClusterOption = useMemo(
+    () => (currentCluster ? toClusterOption(currentCluster) : null),
+    [currentCluster],
+  );
   const clusterSeat = currentCluster
     ? toSeatPool(currentCluster.users_count, currentCluster.total_max_license_users)
     : undefined;
@@ -813,6 +819,7 @@ const BusinessUnitEdit: React.FC = () => {
           formData={formData}
           fieldErrors={fieldErrors}
           clusterName={getClusterName(formData.cluster_id)}
+          currentClusterOption={currentClusterOption}
           logoUrl={logoUrl}
           avatarUrl={avatarUrl}
           defaultCurrency={defaultCurrency}

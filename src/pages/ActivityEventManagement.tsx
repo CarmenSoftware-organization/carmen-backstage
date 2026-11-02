@@ -74,7 +74,8 @@ const ActivityEventManagement: React.FC = () => {
 
   const buPickerOpenRef = useRef(false);
   // Sheet ปิดอยู่ตอน cold load → picker ยังไม่ mount ต้อง hydrate ชื่อเองเพื่อให้ chip แสดงชื่อ
-  const { option: buHydrated } = useBusinessUnitByCode(buCode);
+  // option ที่ picker แจ้งมาแล้ว = ไม่ดึงซ้ำ · กลับกัน picker รับแถวที่หน้า hydrate ไว้ผ่าน knownOption
+  const { option: buHydrated } = useBusinessUnitByCode(buCode, buOption);
   const { appOptions } = useAnalyticsFilterOptions();
 
   const [events, setEvents] = useState<ActivityEvent[]>([]);
@@ -327,6 +328,7 @@ const ActivityEventManagement: React.FC = () => {
                       <BusinessUnitCodePicker
                         id="f-bu"
                         value={buCode}
+                        knownOption={buHydrated}
                         onChange={(code, option) => {
                           const changed = code !== buCode;
                           setBuCode(code);

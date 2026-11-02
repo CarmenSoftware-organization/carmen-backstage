@@ -103,6 +103,7 @@ export function SubscriptionCreateForm({
               value={formData.cluster_id}
               onChange={onClusterChange}
               canSearch={canSearchClusters}
+              invalid={!!fieldErrors.cluster_id}
               placeholder={t('common.state.selectACluster')}
             />
             {fieldErrors.cluster_id && <p className="text-destructive text-xs">{fieldErrors.cluster_id}</p>}

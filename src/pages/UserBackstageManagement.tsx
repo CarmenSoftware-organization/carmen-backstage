@@ -11,6 +11,7 @@ import userRoleService from "../services/userRoleService";
 import roleService from "../services/roleService";
 import { fetchAllPages, type PagedResponse } from "../utils/fetchAllPages";
 import { ClusterPicker, useClusterById } from "../components/ClusterPicker";
+import type { ClusterOption } from "../hooks/useClusterSearch";
 import { parseApiError } from '../utils/errorParser';
 
 import { Button } from "../components/ui/button";
@@ -85,7 +86,9 @@ const UserBackstageManagement: React.FC = () => {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   // Name for the active-filter chip while the Sheet (and its picker) is closed, incl. a persisted filter on cold load.
-  const scopeCluster = useClusterById(scopeFilter === 'backstage' ? '' : scopeFilter);
+  // option ที่ picker แจ้งมาแล้ว = ไม่ดึงซ้ำ · กลับกัน picker รับแถวนี้ผ่าน knownOption
+  const [scopeOption, setScopeOption] = useState<ClusterOption | null>(null);
+  const scopeCluster = useClusterById(scopeFilter === 'backstage' ? '' : scopeFilter, scopeOption);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useGlobalShortcuts({
@@ -524,7 +527,11 @@ const UserBackstageManagement: React.FC = () => {
                           { value: 'backstage', label: t('pages.userBackstage.backstageWide') },
                         ]}
                         onOpenChange={(o) => { clusterPickerOpenRef.current = o; }}
-                        onChange={(id) => { if (id !== scopeFilter) handleScopeFilter(id); }}
+                        knownOption={scopeCluster.option}
+                        onChange={(id, option) => {
+                          setScopeOption(option);
+                          if (id !== scopeFilter) handleScopeFilter(id);
+                        }}
                       />
                     </div>
 

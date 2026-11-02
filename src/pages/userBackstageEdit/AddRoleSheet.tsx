@@ -165,7 +165,7 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
                   setClusterId(id);
                   setFieldErrors((prev) => ({ ...prev, cluster_id: '' }));
                 }}
-                className={fieldErrors.cluster_id ? '[&>div]:border-destructive' : ''}
+                invalid={!!fieldErrors.cluster_id}
               />
               {fieldErrors.cluster_id && <p className="text-destructive text-xs">{fieldErrors.cluster_id}</p>}
             </div>

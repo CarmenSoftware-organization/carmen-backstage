@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { UserMultiSelect } from '../../../components/UserMultiSelect';
 import { displayName } from '../../../hooks/useUserSearch';
 import { hydrateByKeys, useHydratedOptions } from '../../../hooks/useHydratedOptions';
@@ -14,7 +15,9 @@ interface UserIdsFieldProps {
 
 const toOption = (u: User): UserOption => ({ id: u.id, name: displayName(u), email: u.email });
 
-const fetchUsersByIds = (ids: string[]) =>
+const keyOfUser = (u: UserOption) => u.id;
+
+const fetchUsersByIds =(ids: string[]) =>
   hydrateByKeys<UserOption>(ids, 'id', async ({ advance, perpage }) => {
     const response = await userService.getAll({ page: 1, perpage, advance });
     return {
@@ -30,7 +33,10 @@ const fetchUsersByIds = (ids: string[]) =>
  * from the emitted array unless the user removes them.
  */
 export default function UserIdsField({ value, onChange, disabled, id, error }: UserIdsFieldProps) {
-  const { byKey, pending } = useHydratedOptions<UserOption>(value, (u) => u.id, fetchUsersByIds);
+  // Users picked from search results already carry a name — remember them so their chips
+  // render at once instead of being re-fetched (and flashing a skeleton) by hydration.
+  const [picked, setPicked] = useState<UserOption[]>([]);
+  const { byKey, pending } = useHydratedOptions<UserOption>(value, keyOfUser, fetchUsersByIds, { known: picked });
   const options: UserOption[] = value.map((uid) => byKey.get(uid) ?? { id: uid, name: '' });
 
   return (
@@ -45,6 +51,14 @@ export default function UserIdsField({ value, onChange, disabled, id, error }: U
         const nextIds = new Set(next.map((u) => u.id));
         const kept = value.filter((uid) => nextIds.has(uid));
         const keptSet = new Set(kept);
+        const added = next.filter((u) => !keptSet.has(u.id) && u.name);
+        if (added.length > 0) {
+          setPicked((prev) => {
+            const have = new Set(prev.map((u) => u.id));
+            const fresh = added.filter((u) => !have.has(u.id));
+            return fresh.length > 0 ? [...prev, ...fresh] : prev;
+          });
+        }
         onChange([...kept, ...next.map((u) => u.id).filter((uid) => !keptSet.has(uid))]);
       }}
     />

@@ -138,7 +138,8 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
   // ชื่อ cluster ของ chip — option ล่าสุดจาก picker ถ้ามี ไม่งั้น hydrate จาก id ที่เก็บไว้เอง
   // (picker อยู่ใน Sheet ที่ unmount ตอนปิด จึงไม่มีใครแจ้งชื่อตอน cold load) · ส่ง '' เมื่อไม่มีสิทธิ์อ่าน
   const [clusterOption, setClusterOption] = useState<ClusterOption | null>(null);
-  const hydratedCluster = useClusterById(canReadClusters ? clusterFilter : '');
+  // option ที่ picker แจ้งมาแล้ว = ไม่ดึงซ้ำ · กลับกัน picker รับแถวนี้ผ่าน knownOption
+  const hydratedCluster = useClusterById(canReadClusters ? clusterFilter : '', clusterOption);
   // Escape ขณะ dropdown ของ picker เปิดอยู่ ต้องปิดแค่ dropdown ไม่ปิด Sheet — ใช้ ref ไม่ใช่ state
   const clusterPickerOpenRef = useRef(false);
 
@@ -656,6 +657,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                         <ClusterPicker
                           id="cluster-filter"
                           value={clusterFilter}
+                          knownOption={hydratedCluster.option}
                           canSearch={canReadClusters}
                           pinned={[{ value: '', label: t('pages.subscriptions.allClusters') }]}
                           onOpenChange={(o) => { clusterPickerOpenRef.current = o; }}
