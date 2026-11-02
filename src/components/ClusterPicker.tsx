@@ -160,6 +160,12 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   };
 
   const showChip = !!pinnedMatch || !!value;
+
+  // ทุกสถานะที่ dropdown มองไม่เห็น (disabled / แสดง chip) ต้องรายงานปิด — ไม่พึ่งเหตุการณ์คลิก/คีย์
+  useEffect(() => {
+    if (disabled || showChip) changeOpen(false);
+  }, [disabled, showChip, changeOpen]);
+
   if (showChip) {
     const title = pinnedMatch ? pinnedMatch.label : (resolved?.name ?? value);
     const sub = resolved ? resolved.code : null;
