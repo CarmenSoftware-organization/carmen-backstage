@@ -18,6 +18,8 @@ interface BusinessUnitCodePickerProps {
   className?: string;
   /** แจ้งเมื่อ dropdown เปิด/ปิด — ให้ Sheet/Dialog ที่ครอบอยู่กัน Escape ไม่ให้ปิดทั้งชั้น */
   onOpenChange?: (open: boolean) => void;
+  /** option ที่หน้าถืออยู่แล้วสำหรับ `value` (เช่น hydrate ไว้เองตอน Sheet ปิด) — code ตรงกัน = picker ไม่ดึงซ้ำ */
+  knownOption?: BusinessUnitOption | null;
 }
 
 const toOption = (b: BusinessUnit): BusinessUnitOption => ({
@@ -36,7 +38,11 @@ const fetchByCodes = (codes: string[]) =>
 const keyOfOption = (o: BusinessUnitOption) => o.code;
 
 /** hydrate BU จาก code เดียว — ใช้ใน picker และหน้าที่ต้องแสดงชื่อตอน picker ยังไม่ mount (เช่นอยู่ใน Sheet ที่ปิด) */
-export function useBusinessUnitByCode(code: string): {
+export function useBusinessUnitByCode(
+  code: string,
+  /** แถวที่ผู้เรียกถืออยู่แล้ว (เช่น option ที่ picker แจ้งมา) — code ตรงกัน = ไม่ยิง request */
+  known?: BusinessUnitOption | null,
+): {
   option: BusinessUnitOption | null;
   missing: boolean;
 } {
@@ -44,6 +50,7 @@ export function useBusinessUnitByCode(code: string): {
     code ? [code] : [],
     keyOfOption,
     fetchByCodes,
+    { known: known ? [known] : null },
   );
   const option = code ? (byKey.get(code) ?? null) : null;
   return { option, missing: !!code && !option && missing.has(code) };
@@ -54,11 +61,13 @@ export function useBusinessUnitByCode(code: string): {
  * code ที่ hydrate ไม่เจอจะ**คงค่าไว้**และแสดงเป็น code + ข้อความ not-found (ไม่ reset เป็น All)
  */
 export const BusinessUnitCodePicker: React.FC<BusinessUnitCodePickerProps> = ({
-  value, onChange, canSearch, id, placeholder, disabled, className, onOpenChange,
+  value, onChange, canSearch, id, placeholder, disabled, className, onOpenChange, knownOption,
 }) => {
   const { t } = useI18n();
   const [picked, setPicked] = useState<BusinessUnitOption | null>(null);
-  const { option: hydrated, missing: hydrationMissing } = useBusinessUnitByCode(value);
+  const pickedHere = picked && picked.code === value ? picked : null;
+  const knownHere = knownOption && knownOption.code === value ? knownOption : null;
+  const { option: hydrated, missing: hydrationMissing } = useBusinessUnitByCode(value, pickedHere ?? knownHere);
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -67,7 +76,6 @@ export const BusinessUnitCodePicker: React.FC<BusinessUnitCodePickerProps> = ({
   const reportedRef = useRef('');
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const pickedHere = picked && picked.code === value ? picked : null;
   const resolved = value ? (pickedHere ?? hydrated) : null;
   const isMissing = !pickedHere && hydrationMissing;
 

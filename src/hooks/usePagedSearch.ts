@@ -24,7 +24,10 @@ export interface PagedSearchResult<T> {
   loading: boolean;
   /** กำลังโหลดหน้าถัดไป (lazy load ตอนเลื่อนถึงท้ายรายการ) */
   loadingMore: boolean;
+  /** หน้าแรกของคำค้นปัจจุบันพัง (ไม่มีแถวให้แสดง) */
   error: string;
+  /** หน้าถัดไปพัง — แถวที่โหลดแล้วยังอยู่ และ `hasMore` คงเดิมให้ `loadMore` ลองใหม่ได้ */
+  loadMoreError: string;
   hasMore: boolean;
   /** โหลดหน้าถัดไป — ไม่ทำอะไรถ้ากำลังโหลดอยู่หรือไม่มีหน้าเหลือ */
   loadMore: () => void;
@@ -53,6 +56,7 @@ export function usePagedSearch<T extends { id: string }>(
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [loadMoreError, setLoadMoreError] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   // generation ทิ้งคำตอบของคำค้นเก่า — ทั้งหน้าแรกและ loadMore ที่ค้างอยู่ตอนคำค้นเปลี่ยน
@@ -81,9 +85,13 @@ export function usePagedSearch<T extends { id: string }>(
         })
         .catch((err: unknown) => {
           if (generation !== generationRef.current) return;
-          setError(parseApiError(err).message);
-          setHasMore(false);
-          if (page === 1) {
+          const message = parseApiError(err).message;
+          if (page > 1) {
+            // เก็บแถวเดิมไว้ · hasMore คงเดิม เพื่อให้ loadMore (เลื่อนอีกครั้ง / ปุ่มลองใหม่) ยิงซ้ำได้
+            setLoadMoreError(message);
+          } else {
+            setError(message);
+            setHasMore(false);
             resultsRef.current = [];
             setResults([]);
             // หน้าแรกพังต้องลองใหม่ได้: ลืมว่าเคยดึงคำค้นนี้
@@ -112,17 +120,18 @@ export function usePagedSearch<T extends { id: string }>(
     setLoadingMore(false);
     setHasMore(false);
     setError('');
+    setLoadMoreError('');
     void run(debouncedQuery, 1, generation);
   }, [debouncedQuery, enabled, refreshTick, run]);
 
   const loadMore = useCallback(() => {
     if (!enabled || busyRef.current || !hasMore) return;
     setLoadingMore(true);
-    setError('');
+    setLoadMoreError('');
     void run(debouncedQuery, pageRef.current + 1, generationRef.current);
   }, [enabled, hasMore, debouncedQuery, run]);
 
   const refresh = useCallback(() => setRefreshTick((n) => n + 1), []);
 
-  return { results, loading, loadingMore, error, hasMore, loadMore, refresh };
+  return { results, loading, loadingMore, error, loadMoreError, hasMore, loadMore, refresh };
 }

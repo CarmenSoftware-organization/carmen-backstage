@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Search, X } from 'lucide-react';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -6,6 +6,7 @@ import { Skeleton } from './ui/skeleton';
 import { cn } from '../lib/utils';
 import { useBusinessUnitSearch, type BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
 import { isNearBottom } from '../hooks/usePagedSearch';
+import { LoadMoreErrorRow } from './LoadMoreErrorRow';
 import { hydrateByKeys, useHydratedOptions } from '../hooks/useHydratedOptions';
 import businessUnitService from '../services/businessUnitService';
 import type { BusinessUnit } from '../types';
@@ -47,11 +48,27 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
   const [open, setOpenState] = useState(false);
   const onOpenChangeRef = useRef(onOpenChange);
   onOpenChangeRef.current = onOpenChange;
+  const openRef = useRef(false);
+  // จุดเดียวที่สถานะเปิดเปลี่ยน — รายงานเฉพาะเมื่อค่าเปลี่ยนจริง (แบบเดียวกับ ClusterPicker.changeOpen)
   const setOpen = useCallback((next: boolean) => {
+    if (openRef.current === next) return;
+    openRef.current = next;
     setOpenState(next);
     onOpenChangeRef.current?.(next);
   }, []);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // disabled ขณะ dropdown เปิด (เช่น Ctrl+S ระหว่างเปิด) → dropdown หายไป ต้องรายงานปิด
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled, setOpen]);
+  // ถอด component ขณะ dropdown เปิด → ปลดการกัน Escape ของผู้ครอบ
+  useEffect(() => () => {
+    if (openRef.current) {
+      openRef.current = false;
+      onOpenChangeRef.current?.(false);
+    }
+  }, []);
 
   const keyOf = useCallback(
     (b: BusinessUnitOption) => (keyBy === 'code' ? b.code : b.id),
@@ -59,8 +76,12 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
   );
 
   const {
-    results, loading, loadingMore, hasMore, loadMore, error,
+    results, loading, loadingMore, hasMore, loadMore, error, loadMoreError,
   } = useBusinessUnitSearch(search, open && !disabled);
+
+  // แถวที่ติ๊กจากผลค้นหา — จำไว้เพื่อให้ chip มีชื่อทันทีแม้ผลค้นหาจะเปลี่ยนไปแล้ว (ไม่ต้อง hydrate ซ้ำ)
+  const [pickedRows, setPickedRows] = useState<BusinessUnitOption[]>([]);
+  const known = useMemo(() => [...pickedRows, ...results], [pickedRows, results]);
 
   const { byKey, pending, missing } = useHydratedOptions<BusinessUnitOption>(
     value,
@@ -73,6 +94,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
           paginate: res.paginate,
         };
       }),
+    { known },
   );
 
   useEffect(() => {
@@ -97,14 +119,19 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
     };
   }, [open, setOpen]);
 
-  const toggleKey = (key: string) => {
+  const toggleKey = (key: string, row?: BusinessUnitOption) => {
     if (disabled) return;
-    if (value.includes(key)) onChange(value.filter((v) => v !== key));
-    else onChange([...value, key]);
+    if (value.includes(key)) {
+      onChange(value.filter((v) => v !== key));
+    } else {
+      if (row) setPickedRows((prev) => (prev.some((p) => keyOf(p) === key) ? prev : [...prev, row]));
+      onChange([...value, key]);
+    }
   };
 
   const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore) loadMore();
+    // หน้าถัดไปพัง → รอปุ่ม Retry ไม่ยิงซ้ำทุกครั้งที่เลื่อน
+    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore();
   };
 
   const renderChip = (key: string) => {
@@ -130,13 +157,18 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
       );
     }
 
-    const label = bu ? `${bu.code} - ${bu.name}` : key;
+    // ไม่พบ: code แสดงตามเดิม · id ย่อแบบเดียวกับ user (`Not found · <8 ตัวแรก>`) ไม่โชว์ UUID เต็ม
+    const label = bu
+      ? `${bu.code} - ${bu.name}`
+      : isMissing && keyBy === 'id'
+        ? `${t('components.businessUnitPicker.notFound')} · ${key.slice(0, 8)}`
+        : key;
     return (
       <Badge
         key={key}
         variant="secondary"
         className={cn('text-xs gap-1 pr-1', isMissing && 'text-muted-foreground')}
-        title={isMissing ? t('components.businessUnitPicker.notFound') : undefined}
+        title={isMissing ? `${t('components.businessUnitPicker.notFound')} · ${key}` : undefined}
       >
         {label}
         {!disabled && (
@@ -197,7 +229,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
                       <input
                         type="checkbox"
                         checked={value.includes(keyOf(bu))}
-                        onChange={() => toggleKey(keyOf(bu))}
+                        onChange={() => toggleKey(keyOf(bu), bu)}
                         className="h-4 w-4 rounded border-input"
                       />
                       <span className="text-sm">{bu.code} - {bu.name}</span>
@@ -207,6 +239,9 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
                     <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.businessUnitPicker.loadingMore')}
                     </div>
+                  )}
+                  {!loadingMore && loadMoreError && (
+                    <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} className="border-t-0" />
                   )}
                 </>
               )}

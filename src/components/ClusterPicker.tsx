@@ -3,6 +3,7 @@ import { Search, X, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useClusterSearch, toClusterOption, type ClusterOption } from '../hooks/useClusterSearch';
 import { isNearBottom } from '../hooks/usePagedSearch';
+import { LoadMoreErrorRow } from './LoadMoreErrorRow';
 import { hydrateByKeys, useHydratedOptions } from '../hooks/useHydratedOptions';
 import clusterService from '../services/clusterService';
 import { useI18n } from '../hooks/useI18n';
@@ -28,6 +29,12 @@ interface ClusterPickerProps {
   className?: string;
   /** แจ้งสถานะเปิดจริงของ dropdown — ให้ Dialog/Sheet ที่ครอบอยู่กัน Escape ไม่ให้ปิดทั้งชั้น */
   onOpenChange?: (open: boolean) => void;
+  /** option ที่หน้าถืออยู่แล้วสำหรับ `value` (เช่น hydrate ไว้เองตอน Sheet ปิด) — ตรงกับ id = picker ไม่ดึงซ้ำ */
+  knownOption?: ClusterOption | null;
+  /** ช่องนี้มี error — `aria-invalid` + ขอบสี destructive */
+  invalid?: boolean;
+  /** โฟกัสช่องค้นหาตอน mount (เช่นแก้ inline ที่เพิ่งกดเข้าโหมดแก้) */
+  autoFocus?: boolean;
 }
 
 const EMPTY_PINNED: PinnedRow[] = [];
@@ -41,8 +48,17 @@ export const fetchClustersByIds = (ids: string[]) =>
 export const keyOfOption = (o: ClusterOption) => o.id;
 
 /** hydrate cluster จาก id เดียว — ใช้ใน picker และหน้าที่ต้องแสดงชื่อตอน picker ยังไม่ mount (เช่นอยู่ใน Sheet ที่ปิด) · id '' = ไม่ยิง request */
-export function useClusterById(id: string): { option: ClusterOption | null; pending: boolean; missing: boolean } {
-  const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(id ? [id] : [], keyOfOption, fetchClustersByIds);
+export function useClusterById(
+  id: string,
+  /** แถวที่ผู้เรียกถืออยู่แล้ว (เช่น option ที่ picker เพิ่งแจ้งมา) — ตรงกับ id = ไม่ยิง request */
+  known?: ClusterOption | null,
+): { option: ClusterOption | null; pending: boolean; missing: boolean } {
+  const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(
+    id ? [id] : [],
+    keyOfOption,
+    fetchClustersByIds,
+    { known: known ? [known] : null },
+  );
   const option = id ? (byKey.get(id) ?? null) : null;
   return {
     option,
@@ -71,6 +87,7 @@ const ClusterRowButton: React.FC<{ c: ClusterOption; onPick: (c: ClusterOption) 
  */
 export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   value, onChange, canSearch, pinned = EMPTY_PINNED, id, placeholder, disabled = false, ariaLabel, className, onOpenChange,
+  knownOption, invalid = false, autoFocus = false,
 }) => {
   const { t } = useI18n();
   const [query, setQuery] = useState('');
@@ -107,9 +124,11 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   const effectivePlaceholder = value === '' && pinnedMatch
     ? pinnedMatch.label
     : (placeholder ?? t('components.clusterPicker.defaultPlaceholder'));
-  const { option: hydrated, pending: hydPending, missing: hydMissing } = useClusterById(pinnedMatch ? '' : value);
-
   const pickedHere = picked && picked.id === value ? picked : null;
+  const knownHere = knownOption && knownOption.id === value ? knownOption : null;
+  const { option: hydrated, pending: hydPending, missing: hydMissing } =
+    useClusterById(pinnedMatch ? '' : value, pickedHere ?? knownHere);
+
   const resolved = value && !pinnedMatch ? (pickedHere ?? hydrated) : null;
   const isPending = !!value && !pinnedMatch && !resolved && hydPending;
   const isMissing = !!value && !pinnedMatch && !resolved && hydMissing;
@@ -122,12 +141,22 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     onChangeRef.current(value, resolved);
   }, [value, pinnedMatch, resolved]);
 
-  const { results, loading, loadingMore, hasMore, loadMore, error: searchError } =
+  const { results, loading, loadingMore, hasMore, loadMore, error: searchError, loadMoreError } =
     useClusterSearch(query, open && !disabled && canSearch);
 
   const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore) loadMore();
+    // หน้าถัดไปพัง → รอปุ่ม Retry ไม่ยิงซ้ำทุกครั้งที่เลื่อน
+    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore();
   };
+
+  // ช่องค้นหา unmount อยู่ตอนแสดง chip — ขอโฟกัสไว้แล้วทำหลังช่องค้นหา mount
+  const [focusPending, setFocusPending] = useState(autoFocus);
+  const showChip = !!value;
+  useEffect(() => {
+    if (!focusPending || showChip || disabled) return;
+    inputRef.current?.focus();
+    setFocusPending(false);
+  }, [focusPending, showChip, disabled]);
 
   useEffect(() => {
     if (!open) return;
@@ -169,10 +198,8 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     reportedRef.current = '';
     onChange('', null);
     setQuery('');
-    inputRef.current?.focus();
+    setFocusPending(true);
   };
-
-  const showChip = !!value;
 
   // ทุกสถานะที่ dropdown มองไม่เห็น (disabled / แสดง chip) ต้องรายงานปิด — ไม่พึ่งเหตุการณ์คลิก/คีย์
   useEffect(() => {
@@ -180,14 +207,20 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   }, [disabled, showChip, changeOpen]);
 
   if (showChip) {
-    const title = pinnedMatch ? pinnedMatch.label : (resolved?.name ?? value);
+    // id ที่หาไม่เจอ: ย่อแบบเดียวกับ user (`Not found · <8 ตัวแรก>`) ไม่โชว์ UUID เต็ม
+    const title = pinnedMatch
+      ? pinnedMatch.label
+      : (resolved?.name ?? (isMissing ? `${t('components.clusterPicker.notFound')} · ${value.slice(0, 8)}` : value));
     const sub = resolved ? resolved.code : null;
     const canClear = !disabled;
     return (
       <div className={cn('min-w-0', className)}>
         <div
+          aria-invalid={invalid || undefined}
+          title={isMissing ? value : undefined}
           className={cn(
-            'flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-xs',
+            'flex min-h-9 w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-1.5 text-sm shadow-xs',
+            invalid ? 'border-destructive' : 'border-input',
             disabled && 'bg-muted/50',
             (isMissing || isPending) && 'text-muted-foreground',
           )}
@@ -207,9 +240,6 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
             </button>
           )}
         </div>
-        {isMissing && (
-          <p className="mt-1 text-xs text-muted-foreground">{t('components.clusterPicker.notFound')}</p>
-        )}
       </div>
     );
   }
@@ -222,7 +252,8 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     <div ref={wrapperRef} className={cn('relative min-w-0', className)}>
       <div
         className={cn(
-          'flex min-h-9 w-full items-center gap-1 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm shadow-xs focus-within:outline-hidden focus-within:ring-1 focus-within:ring-ring',
+          'flex min-h-9 w-full items-center gap-1 rounded-md border bg-transparent px-2 py-1.5 text-sm shadow-xs focus-within:outline-hidden focus-within:ring-1 focus-within:ring-ring',
+          invalid ? 'border-destructive' : 'border-input',
           disabled && 'bg-muted/50 cursor-not-allowed',
         )}
       >
@@ -240,6 +271,7 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
           onFocus={() => changeOpen(true)}
           placeholder={effectivePlaceholder}
           aria-label={ariaLabel}
+          aria-invalid={invalid || undefined}
           className="min-w-0 flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
         />
       </div>
@@ -286,6 +318,7 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.clusterPicker.loadingMore')}
                 </div>
               )}
+              {!loadingMore && loadMoreError && <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />}
             </div>
           )}
           {!loading && !searchError && nothing && canSearch && (

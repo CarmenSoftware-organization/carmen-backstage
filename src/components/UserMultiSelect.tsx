@@ -3,6 +3,7 @@ import { Search, X, Loader2 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Skeleton } from './ui/skeleton';
 import { isNearBottom } from '../hooks/usePagedSearch';
+import { LoadMoreErrorRow } from './LoadMoreErrorRow';
 import { cn } from '../lib/utils';
 import { useUserSearch } from '../hooks/useUserSearch';
 import type { UserOption } from '../types';
@@ -36,7 +37,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const {
-    results, loading, loadingMore, hasMore, loadMore, error: searchError,
+    results, loading, loadingMore, hasMore, loadMore, error: searchError, loadMoreError,
   } = useUserSearch(query, open);
 
   const selectedIds = new Set(value.map((u) => u.id));
@@ -142,7 +143,8 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
       {open && !disabled && (
         <div
           onScroll={(e) => {
-            if (isNearBottom(e.currentTarget) && hasMore && !loadingMore) loadMore();
+            // หน้าถัดไปพัง → รอปุ่ม Retry ไม่ยิงซ้ำทุกครั้งที่เลื่อน
+            if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore();
           }}
           className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover shadow-md max-h-64 overflow-y-auto"
         >
@@ -197,6 +199,9 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
             <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.userPicker.loadingMore')}
             </div>
+          )}
+          {!loading && !searchError && !loadingMore && loadMoreError && (
+            <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />
           )}
         </div>
       )}

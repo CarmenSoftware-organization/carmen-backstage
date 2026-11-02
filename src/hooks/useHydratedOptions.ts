@@ -4,15 +4,23 @@ import type { PagedPage } from './usePagedSearch';
 /** จำนวนค่าสูงสุดต่อ request ตอน hydrate */
 export const HYDRATE_CHUNK = 100;
 
+export interface HydrateResult<T> {
+  rows: T[];
+  /** มีอย่างน้อยหนึ่ง chunk พัง */
+  failed: boolean;
+  /** คีย์ของ chunk ที่พัง — ยังไม่รู้ว่ามีจริงหรือไม่ (ลองใหม่ได้) · ไม่ส่งมา + failed = ถือว่าคีย์ที่ไม่ได้คืนมาพังทั้งหมด */
+  failedKeys?: string[];
+}
+
 /**
  * ดึงแถวตามชุดคีย์ (id หรือ code) ผ่าน `advance` ทีละ HYDRATE_CHUNK ด้วย Promise.allSettled
- * chunk ที่พัง → `failed: true` (แถวของ chunk นั้นหายไป ให้ผู้เรียกถือเป็น missing)
+ * chunk ที่พัง → `failed: true` + คีย์ของ chunk นั้นอยู่ใน `failedKeys`
  */
 export async function hydrateByKeys<T>(
   keys: string[],
   field: 'id' | 'code',
   fetchPage: (args: { advance: string; perpage: number }) => Promise<PagedPage<T>>,
-): Promise<{ rows: T[]; failed: boolean }> {
+): Promise<HydrateResult<T>> {
   const unique = Array.from(new Set(keys));
   const chunks: string[][] = [];
   for (let i = 0; i < unique.length; i += HYDRATE_CHUNK) chunks.push(unique.slice(i, i + HYDRATE_CHUNK));
@@ -25,64 +33,125 @@ export async function hydrateByKeys<T>(
     ),
   );
   const rows: T[] = [];
-  let failed = false;
-  for (const s of settled) {
+  const failedKeys: string[] = [];
+  settled.forEach((s, i) => {
     if (s.status === 'fulfilled') rows.push(...(s.value.data || []));
-    else failed = true;
-  }
-  return { rows, failed };
+    else failedKeys.push(...chunks[i]);
+  });
+  return { rows, failed: failedKeys.length > 0, failedKeys };
+}
+
+export interface HydratedOptionsConfig<T> {
+  /**
+   * แถวที่ผู้เรียกถืออยู่แล้ว (เช่นผลค้นหาที่เพิ่งเลือก) — รวมเข้า `byKey` ระหว่าง render
+   * และไม่ถูกดึงซ้ำ · ถ้าแถวหลุดจาก `known` ทีหลังโดยยังไม่เคย hydrate คีย์นั้นจะถูกดึงตามปกติ
+   */
+  known?: ReadonlyArray<T | null | undefined> | null;
 }
 
 /**
  * แปลงคีย์ที่เลือกไว้ (อาจอยู่นอกหน้าแรกของรายการค้นหา) เป็นแถวเต็ม
- * ดึงเฉพาะคีย์ที่ยังไม่อยู่ใน `byKey` และยังไม่เคยยืนยันว่า missing
- * `pending` คำนวณระหว่าง render (คีย์ที่ไม่อยู่ใน byKey/missing) — ไม่มีเฟรมที่คีย์ไม่อยู่ในสถานะใดเลย
- * `missing` = ไม่พบหรือ chunk พัง · สะสมไว้ ไม่ถูก reset/refetch ตอน `keys` เปลี่ยนเรื่องอื่น
+ * ดึงเฉพาะคีย์ที่ยังไม่อยู่ใน `byKey`/`known` และยังไม่เคยยืนยันว่าไม่มีจริง
+ * `pending` คำนวณระหว่าง render — ไม่มีเฟรมที่คีย์ไม่อยู่ในสถานะใดเลย
+ * `missing` = ใช้แสดงผลเป็น not-found: ไม่พบจริง (สะสมไว้ ไม่ดึงซ้ำ) **หรือ** chunk พัง
+ * `failed` = เฉพาะส่วนที่ chunk พัง — ลองใหม่เมื่อ `keys` เปลี่ยนหรือ remount
  *
- * `fetchByKeys` ไม่ต้อง stable — เก็บไว้ใน ref; effect ผูกกับเนื้อหาของ `keys` เท่านั้น
+ * `fetchByKeys` ไม่ต้อง stable — เก็บไว้ใน ref; effect ผูกกับเนื้อหาของ `keys`
+ * (และชุดคีย์ที่ยัง resolve ไม่ได้ เพื่อดึงคีย์ที่หลุดจาก `known`)
  */
 export function useHydratedOptions<T>(
   keys: string[],
   keyOf: (row: T) => string,
-  fetchByKeys: (keys: string[]) => Promise<{ rows: T[]; failed: boolean }>,
-): { byKey: Map<string, T>; pending: Set<string>; missing: Set<string> } {
-  const [byKey, setByKey] = useState<Map<string, T>>(() => new Map());
-  const [missing, setMissing] = useState<Set<string>>(() => new Set());
+  fetchByKeys: (keys: string[]) => Promise<HydrateResult<T>>,
+  config?: HydratedOptionsConfig<T>,
+): { byKey: Map<string, T>; pending: Set<string>; missing: Set<string>; failed: Set<string> } {
+  const [byKeyState, setByKey] = useState<Map<string, T>>(() => new Map());
+  const [notFound, setNotFound] = useState<Set<string>>(() => new Set());
+  const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const generationRef = useRef(0);
-  const byKeyRef = useRef(byKey);
-  const missingRef = useRef(missing);
+  const byKeyRef = useRef(byKeyState);
+  const notFoundRef = useRef(notFound);
+  const failedRef = useRef(failed);
   const keyOfRef = useRef(keyOf);
   const fetchRef = useRef(fetchByKeys);
+  const lastSignatureRef = useRef<string | null>(null);
   keyOfRef.current = keyOf;
   fetchRef.current = fetchByKeys;
 
   const signature = JSON.stringify(Array.from(new Set(keys)).sort());
+  const wanted = useMemo(() => JSON.parse(signature) as string[], [signature]);
+
+  // รวม `known` เข้ากับแถวที่ hydrate แล้ว (เฉพาะคีย์ที่ต้องการ) — คำนวณระหว่าง render
+  const known = config?.known;
+  let byKey = byKeyState;
+  if (known && known.length > 0) {
+    const wantedSet = new Set(wanted);
+    let merged: Map<string, T> | null = null;
+    for (const row of known) {
+      if (!row) continue;
+      const k = keyOf(row);
+      if (!wantedSet.has(k) || byKeyState.has(k)) continue;
+      if (!merged) merged = new Map(byKeyState);
+      merged.set(k, row);
+    }
+    if (merged) byKey = merged;
+  }
+  const mergedRef = useRef(byKey);
+  mergedRef.current = byKey;
+
+  const unresolvedSig = JSON.stringify(
+    wanted.filter((k) => !byKey.has(k) && !notFound.has(k) && !failed.has(k)),
+  );
 
   useEffect(() => {
-    const wanted = JSON.parse(signature) as string[];
-    const toFetch = wanted.filter((k) => !byKeyRef.current.has(k) && !missingRef.current.has(k));
+    // คีย์เปลี่ยน → คีย์ที่ chunk เคยพังลองใหม่ด้วย · แค่ known เปลี่ยน → ดึงเฉพาะที่ยัง resolve ไม่ได้
+    const keysChanged = lastSignatureRef.current !== signature;
+    lastSignatureRef.current = signature;
+    const toFetch = (JSON.parse(signature) as string[]).filter(
+      (k) =>
+        !mergedRef.current.has(k) &&
+        !notFoundRef.current.has(k) &&
+        (keysChanged || !failedRef.current.has(k)),
+    );
     if (toFetch.length === 0) return;
     const generation = ++generationRef.current;
     fetchRef
       .current(toFetch)
-      .catch(() => ({ rows: [] as T[], failed: true }))
-      .then(({ rows }) => {
+      .catch((): HydrateResult<T> => ({ rows: [], failed: true, failedKeys: toFetch }))
+      .then((res) => {
         if (generation !== generationRef.current) return;
         const nextByKey = new Map(byKeyRef.current);
-        for (const r of rows) nextByKey.set(keyOfRef.current(r), r);
-        const nextMissing = new Set(missingRef.current);
-        for (const k of toFetch) if (!nextByKey.has(k)) nextMissing.add(k);
+        for (const r of res.rows) nextByKey.set(keyOfRef.current(r), r);
+        const failedKeys = new Set(res.failedKeys ?? (res.failed ? toFetch : []));
+        const nextNotFound = new Set(notFoundRef.current);
+        const nextFailed = new Set(failedRef.current);
+        for (const k of toFetch) {
+          nextFailed.delete(k);
+          if (nextByKey.has(k)) continue;
+          if (failedKeys.has(k)) nextFailed.add(k);
+          else nextNotFound.add(k);
+        }
         byKeyRef.current = nextByKey;
-        missingRef.current = nextMissing;
+        notFoundRef.current = nextNotFound;
+        failedRef.current = nextFailed;
         setByKey(nextByKey);
-        setMissing(nextMissing);
+        setNotFound(nextNotFound);
+        setFailed(nextFailed);
       });
-  }, [signature]);
+  }, [signature, unresolvedSig]);
 
   const pending = useMemo(
-    () => new Set((JSON.parse(signature) as string[]).filter((k) => !byKey.has(k) && !missing.has(k))),
-    [signature, byKey, missing],
+    () => new Set(wanted.filter((k) => !byKey.has(k) && !notFound.has(k) && !failed.has(k))),
+    [wanted, byKey, notFound, failed],
   );
 
-  return { byKey, pending, missing };
+  // สำหรับแสดงผล: chunk พัง = แสดงเหมือนหาไม่เจอ (แต่ยังลองใหม่ได้)
+  const missing = useMemo(() => {
+    if (failed.size === 0) return notFound;
+    const out = new Set(notFound);
+    failed.forEach((k) => out.add(k));
+    return out;
+  }, [notFound, failed]);
+
+  return { byKey, pending, missing, failed };
 }
