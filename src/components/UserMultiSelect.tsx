@@ -67,7 +67,11 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
     if (e.key === 'Backspace' && !query && value.length > 0) {
       e.preventDefault();
       removeUser(value[value.length - 1].id);
-    } else if (e.key === 'Escape') {
+    } else if (e.key === 'Escape' && open) {
+      // Marks the Escape as handled so page-level shortcuts (useGlobalShortcuts skips
+      // defaultPrevented — e.g. CronJobEdit's cancel → navigate) don't also fire. React's
+      // root listener runs before the window listener, so this lands first.
+      e.preventDefault();
       setOpen(false);
     }
   };
