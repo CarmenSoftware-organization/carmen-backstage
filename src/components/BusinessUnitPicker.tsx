@@ -19,15 +19,30 @@ interface BusinessUnitPickerProps {
   disabled?: boolean;
   id?: string;
   ariaLabel?: string;
+  /** คืนเหตุผล (ข้อความสั้น) เมื่อแถวนี้ต้องแสดงแต่กดไม่ได้ เช่น "ผูกอยู่แล้ว" · คืน null = เลือกได้ */
+  getDisabledReason?: (b: BusinessUnitOption) => string | null;
+  /** เปลี่ยนค่าเมื่อต้องการให้ดึงผลค้นหาใหม่ (เช่นหลังผูก BU แล้วสถานะแถวเปลี่ยน) */
+  refreshKey?: number;
 }
+
+/** ระยะ (px) จากท้ายรายการที่เริ่มโหลดหน้าถัดไป */
+const LOAD_MORE_THRESHOLD_PX = 48;
 
 const optionLabel = (b: BusinessUnitOption) => `${b.code} · ${b.name}`;
 
-const OptionButton: React.FC<{ b: BusinessUnitOption; onPick: (b: BusinessUnitOption) => void }> = ({ b, onPick }) => (
+const OptionButton: React.FC<{
+  b: BusinessUnitOption;
+  onPick: (b: BusinessUnitOption) => void;
+  disabledReason?: string | null;
+}> = ({ b, onPick, disabledReason }) => (
   <button
     type="button"
     onClick={() => onPick(b)}
-    className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+    disabled={!!disabledReason}
+    className={cn(
+      'flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm',
+      disabledReason ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent hover:text-accent-foreground',
+    )}
   >
     <span className="flex min-w-0 flex-col">
       <span className="truncate">{b.name}</span>
@@ -36,6 +51,7 @@ const OptionButton: React.FC<{ b: BusinessUnitOption; onPick: (b: BusinessUnitOp
         {b.cluster_name ? ` · ${b.cluster_name}` : ''}
       </span>
     </span>
+    {disabledReason && <span className="shrink-0 text-xs text-muted-foreground">{disabledReason}</span>}
   </button>
 );
 
@@ -52,6 +68,8 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
   disabled = false,
   id,
   ariaLabel,
+  getDisabledReason,
+  refreshKey,
 }) => {
   const { t } = useI18n();
   const effectivePlaceholder = placeholder ?? t('components.businessUnitPicker.defaultPlaceholder');
@@ -62,7 +80,24 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
 
   const changeOpen = useCallback((next: boolean) => setOpen(next), []);
 
-  const { results, loading, error: searchError } = useBusinessUnitSearch(query, open && !disabled && canSearch);
+  const {
+    results, loading, loadingMore, hasMore, loadMore, refresh, error: searchError,
+  } = useBusinessUnitSearch(query, open && !disabled && canSearch);
+
+  // ข้ามรอบแรก — ผลค้นหาโหลดเองตอนเปิด dropdown อยู่แล้ว
+  const lastRefreshKeyRef = useRef(refreshKey);
+  useEffect(() => {
+    if (lastRefreshKeyRef.current === refreshKey) return;
+    lastRefreshKeyRef.current = refreshKey;
+    refresh();
+  }, [refreshKey, refresh]);
+
+  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight <= LOAD_MORE_THRESHOLD_PX && hasMore && !loadingMore) {
+      loadMore();
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -83,6 +118,7 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
   }, [open, changeOpen]);
 
   const select = (b: BusinessUnitOption) => {
+    if (getDisabledReason?.(b)) return;
     onChange(b);
     setQuery('');
     changeOpen(false);
@@ -104,7 +140,10 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
       >
         <span className="flex min-w-0 flex-col">
           <span className="truncate">{value.name}</span>
-          <span className="truncate font-mono text-xs text-muted-foreground">{value.code}</span>
+          <span className="truncate font-mono text-xs text-muted-foreground">
+            {value.code}
+            {value.cluster_name ? ` · ${value.cluster_name}` : ''}
+          </span>
         </span>
         {!disabled && (
           <button
@@ -155,7 +194,10 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
       </div>
 
       {open && !disabled && (
-        <div className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-input bg-popover shadow-md">
+        <div
+          onScroll={handleListScroll}
+          className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-input bg-popover shadow-md"
+        >
           {suggestedShown.length > 0 && (
             <div>
               <div className="px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">
@@ -164,7 +206,7 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
               <ul className="pb-1">
                 {suggestedShown.map((b) => (
                   <li key={b.id}>
-                    <OptionButton b={b} onPick={select} />
+                    <OptionButton b={b} onPick={select} disabledReason={getDisabledReason?.(b)} />
                   </li>
                 ))}
               </ul>
@@ -188,10 +230,15 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
               <ul className="py-1">
                 {otherResults.map((b) => (
                   <li key={b.id}>
-                    <OptionButton b={b} onPick={select} />
+                    <OptionButton b={b} onPick={select} disabledReason={getDisabledReason?.(b)} />
                   </li>
                 ))}
               </ul>
+              {loadingMore && (
+                <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.businessUnitPicker.loadingMore')}
+                </div>
+              )}
             </div>
           )}
           {!loading && !searchError && nothing && (
