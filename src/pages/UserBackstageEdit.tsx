@@ -11,7 +11,9 @@ import userBackstageService from "../services/userBackstageService";
 import userRoleService from "../services/userRoleService";
 import roleService from "../services/roleService";
 import { fetchAllPages, type PagedResponse } from "../utils/fetchAllPages";
-import { fetchAllClusters } from "../hooks/useAllClusters";
+import { fetchClustersByIds, keyOfOption } from "../components/ClusterPicker";
+import { useHydratedOptions } from "../hooks/useHydratedOptions";
+import type { ClusterOption } from "../hooks/useClusterSearch";
 import { getErrorDetail, parseApiError } from "../utils/errorParser";
 import { normalizeAudit, type AuditActor } from "../utils/audit";
 import { Badge } from "../components/ui/badge";
@@ -85,7 +87,6 @@ const UserBackstageEdit: React.FC = () => {
 
   const [roleAssignments, setRoleAssignments] = useState<UserRoleAssignment[]>([]);
   const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
-  const [clusterOptions, setClusterOptions] = useState<{ id: string; name: string }[]>([]);
   // Grant provenance keyed by assignment id, and whether it was obtainable at all — see
   // `loadProvenance`. The two are separate so a row can distinguish "we asked and this
   // grant has no recorded actor" from "we never got to ask".
@@ -94,9 +95,15 @@ const UserBackstageEdit: React.FC = () => {
 
   const [deleteRoleAssignment, setDeleteRoleAssignment] = useState<UserRoleAssignment | null>(null);
 
+  // Names for the cluster ids in the user's assignments only — hydrated by id, never the whole cluster list.
+  const assignedClusterIds = useMemo(
+    () => roleAssignments.flatMap((a) => (a.scope.type === 'cluster' ? [a.scope.cluster_id] : [])),
+    [roleAssignments],
+  );
+  const { byKey: clusterByKey } = useHydratedOptions<ClusterOption>(assignedClusterIds, keyOfOption, fetchClustersByIds);
   const clusterName = useCallback(
-    (id: string) => clusterOptions.find((c) => c.id === id)?.name || id,
-    [clusterOptions],
+    (id: string) => clusterByKey.get(id)?.name || id,
+    [clusterByKey],
   );
 
   /**
@@ -150,10 +157,6 @@ const UserBackstageEdit: React.FC = () => {
           { label: "UserBackstageEdit.roles" },
         );
         setRoleOptions(roles.map((x) => ({ id: x.id, name: x.name })));
-      } catch { /* ignore */ }
-      try {
-        const clusters = await fetchAllClusters();
-        setClusterOptions(clusters.map((x) => ({ id: x.id, name: x.name })));
       } catch { /* ignore */ }
     } catch (err: unknown) {
       setError(t('pages.userBackstage.loadUserFailed', { detail: getErrorDetail(err, t) }));
@@ -303,7 +306,6 @@ const UserBackstageEdit: React.FC = () => {
                 <AddRoleSheet
                   userId={userId!}
                   roleOptions={roleOptions}
-                  clusterOptions={clusterOptions}
                   onAdded={() => { loadAssignments(userId!); loadProvenance(userId!, userEmail); }}
                 />
               </Can>

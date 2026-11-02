@@ -15,6 +15,8 @@ import { DataTable } from '../components/ui/data-table';
 import { TableSkeleton } from '../components/TableSkeleton';
 import { EmptyState } from '../components/EmptyState';
 import { SearchInput } from '../components/SearchInput';
+import { BusinessUnitCodePicker, useBusinessUnitByCode } from '../components/BusinessUnitCodePicker';
+import type { BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
 import { DevDebugSheet } from '../components/ui/dev-debug-sheet';
 import { DateRangeFilter } from '../components/analytics/DateRangeFilter';
 import { EventDetailSheet } from './activityEvents/EventDetailSheet';
@@ -64,12 +66,17 @@ const ActivityEventManagement: React.FC = () => {
   const [userId, setUserId] = useState('');
   const [eventType, setEventType] = useState(searchParams.get('event_type') || '');
   const [buCode, setBuCode] = useState(searchParams.get('bu_code') || '');
+  const [buOption, setBuOption] = useState<BusinessUnitOption | null>(null);
   const [appId, setAppId] = useState(searchParams.get('app_id') || '');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  const { buOptions, appOptions } = useAnalyticsFilterOptions();
+  const buPickerOpenRef = useRef(false);
+  // Sheet ปิดอยู่ตอน cold load → picker ยังไม่ mount ต้อง hydrate ชื่อเองเพื่อให้ chip แสดงชื่อ
+  // option ที่ picker แจ้งมาแล้ว = ไม่ดึงซ้ำ · กลับกัน picker รับแถวที่หน้า hydrate ไว้ผ่าน knownOption
+  const { option: buHydrated } = useBusinessUnitByCode(buCode, buOption);
+  const { appOptions } = useAnalyticsFilterOptions();
 
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -249,7 +256,7 @@ const ActivityEventManagement: React.FC = () => {
     sessionId && { label: t('pages.activityEvents.chipSession', { value: sessionId.slice(0, 8) }), clear: () => { setSessionId(''); flushSessionId(''); resetPage(); } },
     userId && { label: t('pages.activityEvents.chipUser', { value: userId.slice(0, 8) }), clear: () => { setUserId(''); flushUserId(''); resetPage(); } },
     eventType && { label: t('pages.activityEvents.chipType', { value: eventTypeLabel(eventType) }), clear: () => { setEventType(''); resetPage(); } },
-    buCode && { label: t('pages.activityEvents.chipBu', { value: optionLabel(buOptions, buCode) }), clear: () => { setBuCode(''); resetPage(); } },
+    buCode && { label: t('pages.activityEvents.chipBu', { value: (buOption ?? buHydrated)?.name ?? buCode }), clear: () => { setBuCode(''); setBuOption(null); resetPage(); } },
     appId && { label: t('pages.activityEvents.chipApp', { value: optionLabel(appOptions, appId) }), clear: () => { setAppId(''); resetPage(); } },
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
@@ -291,7 +298,10 @@ const ActivityEventManagement: React.FC = () => {
                     {t('common.label.filters')}
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="w-full sm:max-w-md">
+                <SheetContent
+                  className="w-full sm:max-w-md"
+                  onEscapeKeyDown={(e) => { if (buPickerOpenRef.current) e.preventDefault(); }}
+                >
                   <SheetHeader>
                     <SheetTitle>{t('common.label.filters')}</SheetTitle>
                     <SheetDescription>
@@ -312,16 +322,24 @@ const ActivityEventManagement: React.FC = () => {
                     </div>
                     {/* เลือกจากรายการ ไม่ใช่พิมพ์เอง — code ที่พิมพ์ผิดหนึ่งตัวให้ผลเป็น
                         "ไม่พบ event" โดยไม่มีอะไรบอกว่าพิมพ์ผิด และหน้า /analytics
-                        ก็ใช้ <Select> ชุดเดียวกันนี้อยู่แล้ว */}
+                        ก็เลือกจาก picker แบบเดียวกัน */}
                     <div className="space-y-2">
                       <Label htmlFor="f-bu">{t('entity.businessUnit.title')}</Label>
-                      <Select value={buCode || 'all'} onValueChange={(v) => { setBuCode(v === 'all' ? '' : v); resetPage(); }}>
-                        <SelectTrigger id="f-bu"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t('common.option.all')}</SelectItem>
-                          {buOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <BusinessUnitCodePicker
+                        id="f-bu"
+                        value={buCode}
+                        knownOption={buHydrated}
+                        onChange={(code, option) => {
+                          const changed = code !== buCode;
+                          setBuCode(code);
+                          setBuOption(option);
+                          if (changed) resetPage();
+                        }}
+                        onOpenChange={(o) => { buPickerOpenRef.current = o; }}
+                        canSearch
+                        placeholder={t('common.option.all')}
+                        className="w-full"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="f-app">{t('common.label.application')}</Label>

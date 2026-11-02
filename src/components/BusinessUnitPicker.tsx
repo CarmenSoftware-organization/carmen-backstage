@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useBusinessUnitSearch, type BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
+import { isNearBottom } from '../hooks/usePagedSearch';
+import { LoadMoreErrorRow } from './LoadMoreErrorRow';
 import { useI18n } from '../hooks/useI18n';
 
 interface BusinessUnitPickerProps {
@@ -24,9 +26,6 @@ interface BusinessUnitPickerProps {
   /** เปลี่ยนค่าเมื่อต้องการให้ดึงผลค้นหาใหม่ (เช่นหลังผูก BU แล้วสถานะแถวเปลี่ยน) */
   refreshKey?: number;
 }
-
-/** ระยะ (px) จากท้ายรายการที่เริ่มโหลดหน้าถัดไป */
-const LOAD_MORE_THRESHOLD_PX = 48;
 
 const optionLabel = (b: BusinessUnitOption) => `${b.code} · ${b.name}`;
 
@@ -81,8 +80,16 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
   const changeOpen = useCallback((next: boolean) => setOpen(next), []);
 
   const {
-    results, loading, loadingMore, hasMore, loadMore, refresh, error: searchError,
+    results, loading, loadingMore, hasMore, loadMore, refresh, error: searchError, loadMoreError,
   } = useBusinessUnitSearch(query, open && !disabled && canSearch);
+
+  // ช่องค้นหา unmount อยู่ตอนแสดงค่าที่เลือก — ขอโฟกัสไว้แล้วทำหลังช่องค้นหา mount
+  const [focusPending, setFocusPending] = useState(false);
+  useEffect(() => {
+    if (!focusPending || value || disabled) return;
+    inputRef.current?.focus();
+    setFocusPending(false);
+  }, [focusPending, value, disabled]);
 
   // ข้ามรอบแรก — ผลค้นหาโหลดเองตอนเปิด dropdown อยู่แล้ว
   const lastRefreshKeyRef = useRef(refreshKey);
@@ -93,8 +100,7 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
   }, [refreshKey, refresh]);
 
   const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    if (el.scrollHeight - el.scrollTop - el.clientHeight <= LOAD_MORE_THRESHOLD_PX && hasMore && !loadingMore) {
+    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) {
       loadMore();
     }
   };
@@ -127,7 +133,7 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
   const clearSelection = () => {
     onChange(null);
     setQuery('');
-    inputRef.current?.focus();
+    setFocusPending(true);
   };
 
   if (value) {
@@ -239,6 +245,7 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.businessUnitPicker.loadingMore')}
                 </div>
               )}
+              {!loadingMore && loadMoreError && <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />}
             </div>
           )}
           {!loading && !searchError && nothing && (

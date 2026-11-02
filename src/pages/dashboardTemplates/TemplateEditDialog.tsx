@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import dashboardTemplateService from '../../services/dashboardTemplateService';
@@ -42,9 +42,14 @@ export default function TemplateEditDialog({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Escape ขณะ dropdown ของ BU picker เปิดอยู่ ต้องปิดแค่ dropdown ไม่ปิด dialog
+  // ใช้ ref ไม่ใช่ state: Radix เรียก onEscapeKeyDown ผ่าน callback ที่ closure อาจค้างค่าเก่า
+  const buPickerOpenRef = useRef({ allow: false, deny: false });
+
   // reset ทุกครั้งที่เปิด — ค่าเริ่มมาจาก template ที่กำลังแก้ (ถ้ามี)
   useEffect(() => {
     if (!open) return;
+    buPickerOpenRef.current = { allow: false, deny: false };
     setDatasetId(template?.dataset_id ?? '');
     setWidgetType(template?.widget_type ?? '');
     setTitleEn(template?.title_i18n?.en ?? template?.title ?? '');
@@ -128,7 +133,13 @@ export default function TemplateEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-xl"
+        onEscapeKeyDown={(e) => {
+          const o = buPickerOpenRef.current;
+          if (o.allow || o.deny) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             {t(template ? 'pages.dashboardTemplates.dialogEditTitle' : 'pages.dashboardTemplates.dialogCreateTitle')}
@@ -202,11 +213,17 @@ export default function TemplateEditDialog({
               <div className="space-y-2">
                 <Label>{t('pages.dashboardTemplates.fieldAllowBu')}</Label>
                 <p className="text-xs text-muted-foreground">{t('pages.dashboardTemplates.fieldAllowBuHint')}</p>
-                <BusinessUnitMultiSelect keyBy="code" value={allowBu} onChange={setAllowBu} disabled={saving} />
+                <BusinessUnitMultiSelect
+                  keyBy="code" value={allowBu} onChange={setAllowBu} disabled={saving}
+                  onOpenChange={(v) => { buPickerOpenRef.current.allow = v; }}
+                />
               </div>
               <div className="space-y-2">
                 <Label>{t('pages.dashboardTemplates.fieldDenyBu')}</Label>
-                <BusinessUnitMultiSelect keyBy="code" value={denyBu} onChange={setDenyBu} disabled={saving} />
+                <BusinessUnitMultiSelect
+                  keyBy="code" value={denyBu} onChange={setDenyBu} disabled={saving}
+                  onOpenChange={(v) => { buPickerOpenRef.current.deny = v; }}
+                />
               </div>
             </>
           )}

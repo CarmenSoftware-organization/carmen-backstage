@@ -25,7 +25,8 @@ import { buildAdvance, type SubscriptionFilters } from './subscriptionManagement
 import { isExpiringSoon } from '../../utils/subscriptionState';
 import { daysLeft, isPerpetual } from './licenseDates';
 import { useAuth } from '../../context/AuthContext';
-import { useAllClusters } from '../../hooks/useAllClusters';
+import { ClusterPicker, useClusterById } from '../../components/ClusterPicker';
+import type { ClusterOption } from '../../hooks/useClusterSearch';
 import { auditColumns } from '../../components/auditColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { useI18n } from '../../hooks/useI18n';
@@ -134,7 +135,13 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
   // ระบบโดยที่หน้าเจ้าของคำขอห้ามไม่ได้
   const { hasPermission } = useAuth();
   const canReadClusters = hasPermission('cluster.read');
-  const { clusters, error: clustersError } = useAllClusters(canReadClusters);
+  // ชื่อ cluster ของ chip — option ล่าสุดจาก picker ถ้ามี ไม่งั้น hydrate จาก id ที่เก็บไว้เอง
+  // (picker อยู่ใน Sheet ที่ unmount ตอนปิด จึงไม่มีใครแจ้งชื่อตอน cold load) · ส่ง '' เมื่อไม่มีสิทธิ์อ่าน
+  const [clusterOption, setClusterOption] = useState<ClusterOption | null>(null);
+  // option ที่ picker แจ้งมาแล้ว = ไม่ดึงซ้ำ · กลับกัน picker รับแถวนี้ผ่าน knownOption
+  const hydratedCluster = useClusterById(canReadClusters ? clusterFilter : '', clusterOption);
+  // Escape ขณะ dropdown ของ picker เปิดอยู่ ต้องปิดแค่ dropdown ไม่ปิด Sheet — ใช้ ref ไม่ใช่ state
+  const clusterPickerOpenRef = useRef(false);
 
   const [paginate, setPaginate] = useState<PaginateParams>({
     page: storedPage,
@@ -603,7 +610,11 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                     )}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-sm p-4 sm:p-6">
+                <SheetContent
+                  side="right"
+                  className="w-full sm:max-w-sm p-4 sm:p-6"
+                  onEscapeKeyDown={(e) => { if (clusterPickerOpenRef.current) e.preventDefault(); }}
+                >
                   <SheetHeader>
                     <SheetTitle>{t('common.label.filters')}</SheetTitle>
                     <SheetDescription>{t('pages.subscriptions.filterDescription')}</SheetDescription>
@@ -643,20 +654,18 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                     {canReadClusters && (
                       <div className="space-y-3">
                         <Label htmlFor="cluster-filter" className="text-sm font-medium">{t('common.label.cluster')}</Label>
-                        <select
+                        <ClusterPicker
                           id="cluster-filter"
                           value={clusterFilter}
-                          onChange={(e) => handleClusterFilter(e.target.value)}
-                          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
-                        >
-                          <option value="">{t('pages.subscriptions.allClusters')}</option>
-                          {clusters.map((c) => (
-                            <option key={c.id} value={c.id}>{c.code} - {c.name}</option>
-                          ))}
-                        </select>
-                        {clustersError && (
-                          <p className="text-xs text-destructive" role="alert">{clustersError}</p>
-                        )}
+                          knownOption={hydratedCluster.option}
+                          canSearch={canReadClusters}
+                          pinned={[{ value: '', label: t('pages.subscriptions.allClusters') }]}
+                          onOpenChange={(o) => { clusterPickerOpenRef.current = o; }}
+                          onChange={(id, option) => {
+                            setClusterOption(option);
+                            if (id !== clusterFilter) handleClusterFilter(id);
+                          }}
+                        />
                       </div>
                     )}
                     <div className="space-y-3">
@@ -706,7 +715,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                 )}
                 {clusterFilter && (
                   <Badge variant="secondary" className="text-xs gap-1 pr-1">
-                    {clusters.find((c) => c.id === clusterFilter)?.name ?? clusterFilter}
+                    {((clusterOption?.id === clusterFilter ? clusterOption : null) ?? hydratedCluster.option)?.name ?? clusterFilter}
                     <button
                       onClick={() => handleClusterFilter('')}
                       className="ml-0.5 hover:text-foreground"

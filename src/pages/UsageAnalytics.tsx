@@ -17,6 +17,7 @@ import { StatCards } from './usageAnalytics/StatCards';
 import { TopList } from './usageAnalytics/TopList';
 import { UsageChart } from './usageAnalytics/UsageChart';
 import analyticsService from '../services/analyticsService';
+import { BusinessUnitCodePicker } from '../components/BusinessUnitCodePicker';
 import { useAnalyticsFilterOptions } from '../hooks/useAnalyticsFilterOptions';
 import { presetRange, ymdInTz, type DateRange } from '../utils/analyticsRange';
 import { parseApiError } from '../utils/errorParser';
@@ -37,7 +38,7 @@ const UsageAnalytics: React.FC = () => {
   const [error, setError] = useState('');
   const [rawResponse, setRawResponse] = useState<unknown>(null);
 
-  const { buOptions, appOptions } = useAnalyticsFilterOptions();
+  const { appOptions } = useAnalyticsFilterOptions();
 
   const fetchOverview = useCallback(async () => {
     setLoading(true);
@@ -133,19 +134,20 @@ const UsageAnalytics: React.FC = () => {
           }
         />
 
-        <Card>
+        <Card className="overflow-visible">
           <CardContent className="flex flex-wrap items-end gap-3 p-4">
             <DateRangeFilter value={range} onChange={setRange} />
 
-            <div className="space-y-2">
+            <div className="w-full space-y-2 sm:w-auto">
               <Label htmlFor="filter-bu">{t('entity.businessUnit.title')}</Label>
-              <Select value={buCode || 'all'} onValueChange={(v) => setBuCode(v === 'all' ? '' : v)}>
-                <SelectTrigger id="filter-bu" className="w-[200px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('common.option.all')}</SelectItem>
-                  {buOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <BusinessUnitCodePicker
+                id="filter-bu"
+                value={buCode}
+                onChange={(code) => setBuCode(code)}
+                canSearch
+                placeholder={t('common.option.all')}
+                className="w-full sm:w-[200px]"
+              />
             </div>
 
             <div className="space-y-2">

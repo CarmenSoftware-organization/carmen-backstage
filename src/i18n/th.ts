@@ -773,6 +773,8 @@ export const th: Translations = {
       defaultPlaceholder: 'ค้นหาผู้ใช้ด้วยชื่อผู้ใช้หรืออีเมล',
       disabledLabel: 'ไม่พร้อมใช้งาน',
       clearSelectedAria: 'ล้างผู้ใช้ที่เลือก {{name}}',
+      loadingMore: 'กำลังโหลดเพิ่ม…',
+      unknownUser: 'ไม่ทราบผู้ใช้',
     },
     // ใช้ร่วมกันระหว่าง UserMultiSelect.tsx กับ UserPicker.tsx — ทั้งสองไฟล์ใช้ useUserSearch
     // และแสดงข้อความ dropdown เหมือนกันเป๊ะ
@@ -791,6 +793,16 @@ export const th: Translations = {
       suggestedHeading: 'แนะนำสำหรับลูกค้ารายนี้',
       allHeading: 'Business unit ทั้งหมด',
       loadingMore: 'กำลังโหลดเพิ่ม…',
+      notFound: 'ไม่พบ',
+    },
+    clusterPicker: {
+      defaultPlaceholder: 'ค้นหาคลัสเตอร์ด้วยชื่อหรือรหัส',
+      clearSelectedAria: 'ล้างคลัสเตอร์ที่เลือก {{name}}',
+      searchingEllipsis: 'กำลังค้นหา…',
+      noMatch: 'ไม่พบคลัสเตอร์ที่ตรงกับ "{{query}}"',
+      typeToSearch: 'พิมพ์เพื่อค้นหาคลัสเตอร์',
+      loadingMore: 'กำลังโหลดเพิ่ม…',
+      notFound: 'ไม่พบ',
     },
     customerPicker: {
       defaultPlaceholder: 'ค้นหาลูกค้าด้วยเลข AR หรือชื่อบริษัท',
@@ -4157,9 +4169,6 @@ export const th: Translations = {
       message: 'ข้อความ',
       category: 'หมวดหมู่',
       userIds: 'ผู้ใช้ที่รับการแจ้งเตือน',
-      userIdsLoadFailed: 'โหลดรายชื่อผู้ใช้ไม่สำเร็จ',
-      userIdsNoneSelected: 'ยังไม่ได้เลือกผู้ใช้',
-      userIdsNoneFound: 'ไม่พบผู้ใช้',
       userIdsEmptyMeansAll: 'เว้นว่างไว้เพื่อแจ้งเตือนผู้ใช้ทุกคน',
       userIdsRequiredHint: 'จำเป็นต้องระบุ — เลือกผู้ใช้อย่างน้อยหนึ่งคน ไม่งั้นการรันจะล้มเหลว',
       templateId: 'เทมเพลตรายงาน',

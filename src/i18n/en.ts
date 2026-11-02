@@ -1009,6 +1009,8 @@ export const en = {
       defaultPlaceholder: 'Search users by username or email',
       disabledLabel: 'Unavailable',
       clearSelectedAria: 'Clear selected user {{name}}',
+      loadingMore: 'Loading more…',
+      unknownUser: 'Unknown user',
     },
     // Shared between UserMultiSelect.tsx and UserPicker.tsx — both wrap useUserSearch and
     // render byte-identical dropdown copy.
@@ -1027,6 +1029,16 @@ export const en = {
       suggestedHeading: 'Suggested for this customer',
       allHeading: 'All business units',
       loadingMore: 'Loading more…',
+      notFound: 'Not found',
+    },
+    clusterPicker: {
+      defaultPlaceholder: 'Search clusters by name or code',
+      clearSelectedAria: 'Clear selected cluster {{name}}',
+      searchingEllipsis: 'Searching…',
+      noMatch: 'No clusters match "{{query}}"',
+      typeToSearch: 'Type to search clusters',
+      loadingMore: 'Loading more…',
+      notFound: 'Not found',
     },
     customerPicker: {
       defaultPlaceholder: 'Search customers by AR number or company',
@@ -5185,9 +5197,6 @@ export const en = {
       message: 'Message',
       category: 'Category',
       userIds: 'Recipient users',
-      userIdsLoadFailed: 'Failed to load users',
-      userIdsNoneSelected: 'No users selected',
-      userIdsNoneFound: 'No users found',
       userIdsEmptyMeansAll: 'Leave empty to notify every user.',
       // I2 fix: notification.go rejects an empty user_ids with "notification job config
       // missing user_ids" — a new key rather than editing userIdsEmptyMeansAll.

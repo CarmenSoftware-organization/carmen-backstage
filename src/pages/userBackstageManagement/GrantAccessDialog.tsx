@@ -8,7 +8,7 @@ import { UserPicker } from '../../components/UserPicker';
 import userBackstageService from '../../services/userBackstageService';
 import roleService from '../../services/roleService';
 import { fetchAllPages, type PagedResponse } from '../../utils/fetchAllPages';
-import { fetchAllClusters } from '../../hooks/useAllClusters';
+import { ClusterPicker } from '../../components/ClusterPicker';
 import { parseApiError } from '../../utils/errorParser';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,7 +31,6 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
   const { t } = useI18n();
   const [user, setUser] = useState<UserOption | null>(null);
   const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
-  const [clusterOptions, setClusterOptions] = useState<{ id: string; name: string }[]>([]);
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
   const [scopeType, setScopeType] = useState<'backstage' | 'cluster'>('backstage');
   const [clusterId, setClusterId] = useState('');
@@ -63,10 +62,6 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
         );
         setRoleOptions(roles.map((x) => ({ id: x.id, name: x.name })));
       } catch { /* the dialog still works with an empty list; the toast on submit explains */ }
-      try {
-        const clusters = await fetchAllClusters();
-        setClusterOptions(clusters.map((x) => ({ id: x.id, name: x.name })));
-      } catch { /* same */ }
     })();
   }, [open]);
 
@@ -179,18 +174,15 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
           {scopeType === 'cluster' && (
             <div className="space-y-2">
               <Label htmlFor="grant_cluster">{t('pages.userBackstage.clusterLabel')}</Label>
-              <select
+              <ClusterPicker
                 id="grant_cluster"
                 value={clusterId}
-                onChange={(e) => { setClusterId(e.target.value); setConflictRoleIds([]); }}
+                canSearch={true}
+                placeholder={t('pages.userBackstage.selectCluster')}
+                onOpenChange={(o) => { pickerOpenRef.current = o; }}
+                onChange={(id) => { if (id !== clusterId) { setClusterId(id); setConflictRoleIds([]); } }}
                 disabled={saving}
-                className={selectClassName}
-              >
-                <option value="">{t('pages.userBackstage.selectCluster')}</option>
-                {clusterOptions.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              />
             </div>
           )}
         </div>

@@ -1,12 +1,15 @@
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { useState } from 'react';
 import { Copy } from 'lucide-react';
+import { ClusterPicker } from '../../components/ClusterPicker';
+import type { ClusterOption } from '../../hooks/useClusterSearch';
 import { useI18n } from '../../hooks/useI18n';
-import type { Cluster, BusinessUnitConfig, TenantCurrency } from '../../types';
+import type { BusinessUnitConfig, TenantCurrency } from '../../types';
 import type { BusinessUnitFormData, DefaultCurrency } from './types';
 import { BU_ALIAS_MAX } from './types';
-import { InlineField, type InlineOption, type InlineWidth } from './InlineField';
+import { InlineField, type InlineEditorContext, type InlineOption, type InlineWidth } from './InlineField';
 import { ReadOnlyText, Group } from './shared';
 import CalculationSettingsSection from './sections/CalculationSettingsSection';
 import NumberFormatsSection from './sections/NumberFormatsSection';
@@ -19,9 +22,10 @@ interface BusinessUnitDocumentProps {
   formData: BusinessUnitFormData;
   fieldErrors: Record<string, string>;
   clusterName: string;
+  /** The page's hydrated row for `formData.cluster_id` — the cluster picker reuses it instead of re-fetching. */
+  currentClusterOption?: ClusterOption | null;
   logoUrl?: string;
   avatarUrl?: string;
-  clusters: Cluster[];
   defaultCurrency: DefaultCurrency | null;
   currencies?: TenantCurrency[] | null;
   currenciesLoading?: boolean;
@@ -81,9 +85,9 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
     formData: f,
     fieldErrors,
     clusterName,
+    currentClusterOption = null,
     logoUrl,
     avatarUrl,
-    clusters,
     defaultCurrency,
     currencies,
     currenciesLoading,
@@ -121,7 +125,15 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
   // renders a read-only branch when `editing` is false, so gating here disables
   // every control they own (DB credentials, calculation method, config rows).
   const sectionField = { formData: f, editing: canEdit, fieldErrors, onChange, onBlur, onFocus };
-  const clusterOptions: InlineOption[] = clusters.map((c) => ({ value: c.id, label: c.name }));
+  // The picker reports the option it resolved or the user picked; the label must follow a pick
+  // immediately (the page's hydrated name only catches up a render later).
+  const [clusterOption, setClusterOption] = useState<ClusterOption | null>(null);
+  const clusterReadLabel =
+    clusterOption && clusterOption.id === f.cluster_id
+      ? clusterOption.name
+      : clusterName && clusterName !== '-' && clusterName !== f.cluster_id
+        ? clusterName
+        : undefined;
 
   const inline = (
     name: keyof BusinessUnitFormData,
@@ -134,6 +146,8 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
       validate?: boolean;
       required?: boolean;
       maxLength?: number;
+      renderEditor?: (ctx: InlineEditorContext) => React.ReactNode;
+      readLabel?: string;
     },
   ) => (
     <InlineField
@@ -149,6 +163,8 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
       maxLength={opts?.maxLength}
       error={fieldErrors[name]}
       disabled={!canEdit}
+      renderEditor={opts?.renderEditor}
+      readLabel={opts?.readLabel}
       onCommit={onCommit}
       onValidate={opts?.validate ? onValidate : undefined}
     />
@@ -226,7 +242,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
 
       {activeTab === 'general' && (
         <>
-          <Card className="overflow-hidden p-0 [&>div:first-child]:border-t-0">
+          <Card className="overflow-visible p-0 [&>div:first-child]:border-t-0">
             {/* `cluster_id` and `name` (the latter in the header) are the two fields
                 validateRequired() enforces — they are the only ones marked required.
                 `code` used to be a third, but it is no longer a field the user sets: the
@@ -250,7 +266,34 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
                 </div>
               )}
               {inline('alias_name', t('common.field.alias'), { width: 'xs', validate: true, maxLength: BU_ALIAS_MAX })}
-              {inline('cluster_id', t('common.label.cluster'), { type: 'select', options: clusterOptions, required: true })}
+              {/* BU Edit is only reachable with cluster.update / cluster.create (App.tsx route guards), the
+                  same authority the old full cluster-list load ran under, so search is always allowed. */}
+              {inline('cluster_id', t('common.label.cluster'), {
+                type: 'select',
+                required: true,
+                readLabel: clusterReadLabel,
+                renderEditor: (ctx) => (
+                  <ClusterPicker
+                    value={ctx.value}
+                    knownOption={currentClusterOption}
+                    // The editor mounts only because the user just clicked the field to edit it —
+                    // focus belongs in its search box, as the built-in inline editors do.
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
+                    autoFocus
+                    invalid={!!fieldErrors.cluster_id}
+                    canSearch
+                    ariaLabel={t('common.label.cluster')}
+                    onOpenChange={ctx.setBusy}
+                    onChange={(id, opt) => {
+                      if (opt) setClusterOption(opt);
+                      // The picker echoes the id once after hydrating a saved value; that is not an edit.
+                      if (id === ctx.value) return;
+                      if (id) ctx.commit(id);
+                      else ctx.setValue('');
+                    }}
+                  />
+                ),
+              })}
               {/* Read-only since Task 3.5 — this used to be a typed-in ceiling; it is now a sum of
                   this BU's dated license rows, edited only in the User Licenses card. Not an
                   InlineField: there is nothing here to click into edit mode. */}

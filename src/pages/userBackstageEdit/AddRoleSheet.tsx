@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
 import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from '../../components/ui/sheet';
+import { ClusterPicker } from '../../components/ClusterPicker';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
 import userRoleService from '../../services/userRoleService';
@@ -19,7 +20,6 @@ const selectClassName =
 interface AddRoleSheetProps {
   userId: string;
   roleOptions: { id: string; name: string }[];
-  clusterOptions: { id: string; name: string }[];
   /** Called after a successful grant so the page can refetch its assignments. */
   onAdded: () => void;
 }
@@ -30,7 +30,7 @@ interface AddRoleSheetProps {
  * matches the registry page, where granting happens in its own surface.
  */
 export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
-  userId, roleOptions, clusterOptions, onAdded,
+  userId, roleOptions, onAdded,
 }) => {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -38,6 +38,8 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
   const [scopeType, setScopeType] = useState<'backstage' | 'cluster'>('backstage');
   const [clusterId, setClusterId] = useState('');
   const [saving, setSaving] = useState(false);
+  // Escape while the cluster dropdown is open must close only the dropdown, not the Sheet — a ref, not state.
+  const clusterPickerOpenRef = useRef(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // No saved baseline to diff against — "dirty" means the open form has been touched.
@@ -89,14 +91,24 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
   });
 
   return (
-    <Sheet open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        clusterPickerOpenRef.current = false;
+        if (next) setOpen(true); else close();
+      }}
+    >
       <SheetTrigger asChild>
         <Button variant="outline" size="sm">
           <Plus className="mr-2 h-4 w-4" />
           {t('pages.userBackstage.addRole')}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full p-4 sm:max-w-sm sm:p-6">
+      <SheetContent
+        side="right"
+        className="w-full p-4 sm:max-w-sm sm:p-6"
+        onEscapeKeyDown={(e) => { if (clusterPickerOpenRef.current) e.preventDefault(); }}
+      >
         <SheetHeader>
           <SheetTitle>{t('pages.userBackstage.addRole')}</SheetTitle>
           <SheetDescription>{t('pages.userBackstage.addRoleDescription')}</SheetDescription>
@@ -142,16 +154,19 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
           {scopeType === 'cluster' && (
             <div className="space-y-2">
               <Label htmlFor="cluster_id">{t('pages.userBackstage.clusterFieldLabel')}</Label>
-              <select
+              <ClusterPicker
                 id="cluster_id"
                 value={clusterId}
-                onChange={(e) => { setClusterId(e.target.value); setFieldErrors((prev) => ({ ...prev, cluster_id: '' })); }}
-                onBlur={() => setFieldErrors((prev) => ({ ...prev, cluster_id: clusterId ? '' : t('pages.userBackstage.clusterRequired') }))}
-                className={`${selectClassName} ${fieldErrors.cluster_id ? 'border-destructive' : ''}`}
-              >
-                <option value="">{t('pages.userBackstage.selectCluster')}</option>
-                {clusterOptions.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-              </select>
+                canSearch={true}
+                placeholder={t('pages.userBackstage.selectCluster')}
+                onOpenChange={(o) => { clusterPickerOpenRef.current = o; }}
+                onChange={(id) => {
+                  if (id === clusterId) return;
+                  setClusterId(id);
+                  setFieldErrors((prev) => ({ ...prev, cluster_id: '' }));
+                }}
+                invalid={!!fieldErrors.cluster_id}
+              />
               {fieldErrors.cluster_id && <p className="text-destructive text-xs">{fieldErrors.cluster_id}</p>}
             </div>
           )}

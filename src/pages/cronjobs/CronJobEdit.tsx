@@ -470,7 +470,7 @@ const CronJobEdit: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="overflow-visible">
             <CardHeader>
               <CardTitle className="text-base">{t('cronjob.section.typeConfig')}</CardTitle>
             </CardHeader>
