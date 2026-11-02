@@ -795,6 +795,15 @@ export const th: Translations = {
       loadingMore: 'กำลังโหลดเพิ่ม…',
       notFound: 'ไม่พบ',
     },
+    clusterPicker: {
+      defaultPlaceholder: 'ค้นหาคลัสเตอร์ด้วยชื่อหรือรหัส',
+      clearSelectedAria: 'ล้างคลัสเตอร์ที่เลือก {{name}}',
+      searchingEllipsis: 'กำลังค้นหา…',
+      noMatch: 'ไม่พบคลัสเตอร์ที่ตรงกับ "{{query}}"',
+      typeToSearch: 'พิมพ์เพื่อค้นหาคลัสเตอร์',
+      loadingMore: 'กำลังโหลดเพิ่ม…',
+      notFound: 'ไม่พบ',
+    },
     customerPicker: {
       defaultPlaceholder: 'ค้นหาลูกค้าด้วยเลข AR หรือชื่อบริษัท',
       clearSelectedAria: 'ล้างลูกค้าที่เลือก {{name}}',

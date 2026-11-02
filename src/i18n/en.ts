@@ -1031,6 +1031,15 @@ export const en = {
       loadingMore: 'Loading more…',
       notFound: 'Not found',
     },
+    clusterPicker: {
+      defaultPlaceholder: 'Search clusters by name or code',
+      clearSelectedAria: 'Clear selected cluster {{name}}',
+      searchingEllipsis: 'Searching…',
+      noMatch: 'No clusters match "{{query}}"',
+      typeToSearch: 'Type to search clusters',
+      loadingMore: 'Loading more…',
+      notFound: 'Not found',
+    },
     customerPicker: {
       defaultPlaceholder: 'Search customers by AR number or company',
       clearSelectedAria: 'Clear selected customer {{name}}',
