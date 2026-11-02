@@ -25,7 +25,7 @@ import { buildAdvance, type SubscriptionFilters } from './subscriptionManagement
 import { isExpiringSoon } from '../../utils/subscriptionState';
 import { daysLeft, isPerpetual } from './licenseDates';
 import { useAuth } from '../../context/AuthContext';
-import { ClusterPicker } from '../../components/ClusterPicker';
+import { ClusterPicker, useClusterById } from '../../components/ClusterPicker';
 import type { ClusterOption } from '../../hooks/useClusterSearch';
 import { auditColumns } from '../../components/auditColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
@@ -135,8 +135,10 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
   // ระบบโดยที่หน้าเจ้าของคำขอห้ามไม่ได้
   const { hasPermission } = useAuth();
   const canReadClusters = hasPermission('cluster.read');
-  // ชื่อ cluster ของ chip — เก็บ option ล่าสุดจาก picker (hydrate แล้วแจ้งกลับมาตอน cold load)
+  // ชื่อ cluster ของ chip — option ล่าสุดจาก picker ถ้ามี ไม่งั้น hydrate จาก id ที่เก็บไว้เอง
+  // (picker อยู่ใน Sheet ที่ unmount ตอนปิด จึงไม่มีใครแจ้งชื่อตอน cold load) · ส่ง '' เมื่อไม่มีสิทธิ์อ่าน
   const [clusterOption, setClusterOption] = useState<ClusterOption | null>(null);
+  const hydratedCluster = useClusterById(canReadClusters ? clusterFilter : '');
   // Escape ขณะ dropdown ของ picker เปิดอยู่ ต้องปิดแค่ dropdown ไม่ปิด Sheet — ใช้ ref ไม่ใช่ state
   const clusterPickerOpenRef = useRef(false);
 
@@ -711,7 +713,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                 )}
                 {clusterFilter && (
                   <Badge variant="secondary" className="text-xs gap-1 pr-1">
-                    {clusterOption?.id === clusterFilter ? clusterOption.name : clusterFilter}
+                    {((clusterOption?.id === clusterFilter ? clusterOption : null) ?? hydratedCluster.option)?.name ?? clusterFilter}
                     <button
                       onClick={() => handleClusterFilter('')}
                       className="ml-0.5 hover:text-foreground"

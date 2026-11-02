@@ -40,6 +40,17 @@ const fetchByIds = (ids: string[]) =>
   });
 const keyOfOption = (o: ClusterOption) => o.id;
 
+/** hydrate cluster จาก id เดียว — ใช้ใน picker และหน้าที่ต้องแสดงชื่อตอน picker ยังไม่ mount (เช่นอยู่ใน Sheet ที่ปิด) · id '' = ไม่ยิง request */
+export function useClusterById(id: string): { option: ClusterOption | null; pending: boolean; missing: boolean } {
+  const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(id ? [id] : [], keyOfOption, fetchByIds);
+  const option = id ? (byKey.get(id) ?? null) : null;
+  return {
+    option,
+    pending: !!id && !option && pending.has(id),
+    missing: !!id && !option && missing.has(id),
+  };
+}
+
 const ClusterRowButton: React.FC<{ c: ClusterOption; onPick: (c: ClusterOption) => void }> = ({ c, onPick }) => (
   <button
     type="button"
@@ -96,13 +107,12 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   const effectivePlaceholder = value === '' && pinnedMatch
     ? pinnedMatch.label
     : (placeholder ?? t('components.clusterPicker.defaultPlaceholder'));
-  const hydrateKeys = value && !pinnedMatch ? [value] : [];
-  const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(hydrateKeys, keyOfOption, fetchByIds);
+  const { option: hydrated, pending: hydPending, missing: hydMissing } = useClusterById(pinnedMatch ? '' : value);
 
   const pickedHere = picked && picked.id === value ? picked : null;
-  const resolved = value && !pinnedMatch ? (pickedHere ?? byKey.get(value) ?? null) : null;
-  const isPending = !!value && !pinnedMatch && !resolved && pending.has(value);
-  const isMissing = !!value && !pinnedMatch && !resolved && missing.has(value);
+  const resolved = value && !pinnedMatch ? (pickedHere ?? hydrated) : null;
+  const isPending = !!value && !pinnedMatch && !resolved && hydPending;
+  const isMissing = !!value && !pinnedMatch && !resolved && hydMissing;
 
   // hydrate เสร็จ → แจ้งชื่อหนึ่งครั้งต่อ id · ไม่แจ้งเมื่อ missing
   useEffect(() => {
