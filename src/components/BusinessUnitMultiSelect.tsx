@@ -23,6 +23,8 @@ interface BusinessUnitMultiSelectProps {
    * `value` is compared and written against.
    */
   keyBy?: 'id' | 'code';
+  /** Notifies the parent when the results dropdown opens or closes, so a surrounding Dialog can keep Escape from closing it while the dropdown is open. */
+  onOpenChange?: (open: boolean) => void;
 }
 
 const toOption = (b: BusinessUnit): BusinessUnitOption => ({
@@ -38,11 +40,17 @@ const toOption = (b: BusinessUnit): BusinessUnitOption => ({
  * show names. A value that can't be found stays in `value` and renders as a muted chip.
  */
 export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = ({
-  value, onChange, disabled, keyBy = 'id',
+  value, onChange, disabled, keyBy = 'id', onOpenChange,
 }) => {
   const { t } = useI18n();
   const [search, setSearch] = useState('');
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState(false);
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const setOpen = useCallback((next: boolean) => {
+    setOpenState(next);
+    onOpenChangeRef.current?.(next);
+  }, []);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const keyOf = useCallback(
@@ -73,7 +81,13 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key !== 'Escape') return;
+      // Marks the Escape as handled so page-level shortcuts (useGlobalShortcuts skips
+      // defaultPrevented) don't also cancel. A surrounding Radix Dialog dismisses on a
+      // capture-phase listener that runs before this one — it guards via onEscapeKeyDown
+      // and the onOpenChange prop (see TemplateEditDialog).
+      e.preventDefault();
+      setOpen(false);
     };
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('keydown', onKeyDown);
@@ -81,7 +95,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [open]);
+  }, [open, setOpen]);
 
   const toggleKey = (key: string) => {
     if (disabled) return;
