@@ -375,7 +375,7 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
     await user.click(await screen.findByLabelText('Scope'));
-    await user.click(await screen.findByRole('button', { name: 'Backstage-wide' }));
+    await user.click(await screen.findByRole('option', { name: 'Backstage-wide' }));
 
     await waitFor(() => {
       const call = asMock(userBackstageService.getAll).mock.calls.at(-1)?.[0];
@@ -391,7 +391,7 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
     await user.click(await screen.findByLabelText('Scope'));
-    await user.click(await screen.findByRole('button', { name: /Acme/ }));
+    await user.click(await screen.findByRole('option', { name: /Acme/ }));
 
     await waitFor(() => {
       const call = asMock(userBackstageService.getAll).mock.calls.at(-1)?.[0];
@@ -407,7 +407,7 @@ describe('UserBackstageManagement — role/scope/status filters', () => {
     await user.click(screen.getByRole('button', { name: /filters/i }));
     await user.click(await screen.findByRole('button', { name: 'Support Admin' }));
     await user.click(screen.getByLabelText('Scope'));
-    await user.click(await screen.findByRole('button', { name: 'Backstage-wide' }));
+    await user.click(await screen.findByRole('option', { name: 'Backstage-wide' }));
     await user.click(screen.getByRole('button', { name: 'Active' }));
 
     await waitFor(() => {

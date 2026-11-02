@@ -332,7 +332,7 @@ const SuperAdminManagement: React.FC = () => {
               placeholder={t('pages.superAdmins.pickerPlaceholder')}
               ariaLabel={t('pages.superAdmins.pickerAria')}
               disabled={adding}
-              onDropdownOpenChange={(v) => {
+              onOpenChange={(v) => {
                 pickerOpenRef.current = v;
               }}
             />

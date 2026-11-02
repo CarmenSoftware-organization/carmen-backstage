@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BusinessUnitPicker } from './BusinessUnitPicker';
 import type { BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
 import { hydrateByKeys, useHydratedOptions } from '../hooks/useHydratedOptions';
@@ -83,10 +83,7 @@ export const BusinessUnitCodePicker: React.FC<BusinessUnitCodePickerProps> = ({
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-  const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
   const reportedRef = useRef('');
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const resolved = value ? (pickedHere ?? hydrated) : null;
   const isMissing = !pickedHere && hydrationMissing;
@@ -99,43 +96,20 @@ export const BusinessUnitCodePicker: React.FC<BusinessUnitCodePickerProps> = ({
     onChangeRef.current(value, resolved);
   }, [value, resolved]);
 
-  // ติดตามสถานะเปิดของ dropdown แบบประมาณ (โฟกัสเข้า = เปิด · Escape/คลิกนอก/โฟกัสออก = ปิด)
-  const setOpen = useCallback((open: boolean) => onOpenChangeRef.current?.(open), []);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    const onDown = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('mousedown', onDown);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.removeEventListener('mousedown', onDown);
-      setOpen(false);
-    };
-  }, [setOpen]);
-
   const pickerValue: BusinessUnitOption | null = value
     ? (resolved ?? { id: value, code: value, name: value })
     : null;
 
   return (
-    <div
-      ref={wrapperRef}
-      className={cn('min-w-0', className)}
-      onFocus={() => { if (!value) setOpen(true); }}
-      // พิมพ์แล้ว BusinessUnitPicker เปิด dropdown ซ้ำโดยไม่มี focus event ใหม่
-      onKeyDownCapture={(e) => { if (!value && e.key !== 'Escape') setOpen(true); }}
-      onInputCapture={() => { if (!value) setOpen(true); }}
-    >
+    <div className={cn('min-w-0', className)}>
       <BusinessUnitPicker
         id={id}
         value={pickerValue}
         canSearch={canSearch}
         placeholder={placeholder}
         disabled={disabled}
+        onOpenChange={onOpenChange}
         onChange={(next) => {
-          setOpen(false);
           if (next) {
             setPicked(next);
             reportedRef.current = next.code;

@@ -120,7 +120,7 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
               ariaLabel={t('pages.userBackstage.userPickerAria')}
               value={user}
               onChange={setUser}
-              onDropdownOpenChange={(o) => { pickerOpenRef.current = o; }}
+              onOpenChange={(o) => { pickerOpenRef.current = o; }}
               disabled={saving}
             />
           </div>

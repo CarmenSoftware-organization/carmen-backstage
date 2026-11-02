@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, RotateCw, Search, X } from 'lucide-react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Check, RotateCw, Search, X } from 'lucide-react';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Skeleton } from './ui/skeleton';
 import { cn } from '../lib/utils';
 import { useBusinessUnitSearch, type BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
-import { isNearBottom } from '../hooks/usePagedSearch';
-import { LoadMoreErrorRow } from './LoadMoreErrorRow';
 import { hydrateByKeys, useHydratedOptions } from '../hooks/useHydratedOptions';
 import businessUnitService from '../services/businessUnitService';
 import type { BusinessUnit } from '../types';
 import { useI18n } from '../hooks/useI18n';
+import { useTypeahead } from './typeahead/useTypeahead';
+import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 
 interface BusinessUnitMultiSelectProps {
   value: string[];
@@ -45,30 +45,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
 }) => {
   const { t } = useI18n();
   const [search, setSearch] = useState('');
-  const [open, setOpenState] = useState(false);
-  const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
-  const openRef = useRef(false);
-  // จุดเดียวที่สถานะเปิดเปลี่ยน — รายงานเฉพาะเมื่อค่าเปลี่ยนจริง (แบบเดียวกับ ClusterPicker.changeOpen)
-  const setOpen = useCallback((next: boolean) => {
-    if (openRef.current === next) return;
-    openRef.current = next;
-    setOpenState(next);
-    onOpenChangeRef.current?.(next);
-  }, []);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  // disabled ขณะ dropdown เปิด (เช่น Ctrl+S ระหว่างเปิด) → dropdown หายไป ต้องรายงานปิด
-  useEffect(() => {
-    if (disabled) setOpen(false);
-  }, [disabled, setOpen]);
-  // ถอด component ขณะ dropdown เปิด → ปลดการกัน Escape ของผู้ครอบ
-  useEffect(() => () => {
-    if (openRef.current) {
-      openRef.current = false;
-      onOpenChangeRef.current?.(false);
-    }
-  }, []);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const keyOf = useCallback(
     (b: BusinessUnitOption) => (keyBy === 'code' ? b.code : b.id),
@@ -77,7 +54,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
 
   const {
     results, loading, loadingMore, hasMore, loadMore, error, loadMoreError,
-  } = useBusinessUnitSearch(search, open && !disabled);
+  } = useBusinessUnitSearch(search, searchOpen && !disabled);
 
   // แถวที่ติ๊กจากผลค้นหา — จำไว้เพื่อให้ chip มีชื่อทันทีแม้ผลค้นหาจะเปลี่ยนไปแล้ว (ไม่ต้อง hydrate ซ้ำ)
   const [pickedRows, setPickedRows] = useState<BusinessUnitOption[]>([]);
@@ -97,27 +74,18 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
     { known },
   );
 
-  useEffect(() => {
-    if (!open) return;
-    const onMouseDown = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      // Marks the Escape as handled so page-level shortcuts (useGlobalShortcuts skips
-      // defaultPrevented) don't also cancel. A surrounding Radix Dialog dismisses on a
-      // capture-phase listener that runs before this one — it guards via onEscapeKeyDown
-      // and the onOpenChange prop (see TemplateEditDialog).
-      e.preventDefault();
-      setOpen(false);
-    };
-    document.addEventListener('mousedown', onMouseDown);
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', onMouseDown);
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open, setOpen]);
+  const rows = !loading && !error ? results : [];
+
+  const ta = useTypeahead<BusinessUnitOption>({
+    items: rows,
+    getKey: (b) => b.id,
+    isSelected: (b) => value.includes(keyOf(b)),
+    onPick: (b) => toggleKey(keyOf(b), b),
+    closeOnPick: false,
+    disabled,
+    onOpenChange: (o) => { setSearchOpen(o); onOpenChange?.(o); },
+    hasMore, loadingMore, loadMoreError: loadMoreError || undefined, loadMore,
+  });
 
   const toggleKey = (key: string, row?: BusinessUnitOption) => {
     if (disabled) return;
@@ -127,11 +95,6 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
       if (row) setPickedRows((prev) => (prev.some((p) => keyOf(p) === key) ? prev : [...prev, row]));
       onChange([...value, key]);
     }
-  };
-
-  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // หน้าถัดไปพัง → รอปุ่ม Retry ไม่ยิงซ้ำทุกครั้งที่เลื่อน
-    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore();
   };
 
   const renderChip = (key: string) => {
@@ -200,7 +163,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
   };
 
   return (
-    <div ref={wrapperRef} className="relative space-y-2">
+    <div {...ta.getWrapperProps({ className: 'relative space-y-2' })}>
       <div className="flex flex-wrap gap-1.5">
         {value.length === 0 ? (
           <span className="text-xs text-muted-foreground">{t('components.businessUnitMultiSelect.noneSelected')}</span>
@@ -214,50 +177,57 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              {...ta.getInputProps()}
               placeholder={t('common.state.searchBusinessUnits')}
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-              onFocus={() => setOpen(true)}
+              onChange={(e) => { setSearch(e.target.value); ta.setOpen(true); }}
               className="pl-9"
               aria-label={t('common.state.searchBusinessUnitsAria')}
             />
           </div>
 
-          {open && (
+          {ta.open && (
             <div
-              onScroll={handleListScroll}
+              {...ta.listProps}
+              aria-multiselectable
               className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-input bg-popover shadow-md divide-y"
             >
-              {loading ? (
-                <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.businessUnitPicker.searchingEllipsis')}
-                </div>
-              ) : error ? (
-                <p className="px-3 py-4 text-sm text-destructive">{error}</p>
-              ) : results.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">{t('common.state.noBusinessUnitsFound')}</p>
-              ) : (
-                <>
-                  {results.map((bu) => (
-                    <label key={bu.id} className="flex items-center gap-2 px-3 py-2 hover:bg-muted/50 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={value.includes(keyOf(bu))}
-                        onChange={() => toggleKey(keyOf(bu), bu)}
-                        className="h-4 w-4 rounded border-input"
-                      />
-                      <span className="text-sm">{bu.code} - {bu.name}</span>
-                    </label>
-                  ))}
-                  {loadingMore && (
-                    <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.businessUnitPicker.loadingMore')}
-                    </div>
-                  )}
-                  {!loadingMore && loadMoreError && (
-                    <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} className="border-t-0" />
-                  )}
-                </>
+              {rows.map((bu, i) => {
+                const checked = value.includes(keyOf(bu));
+                return (
+                  <div
+                    key={bu.id}
+                    {...ta.getOptionProps(bu, i)}
+                    className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 data-[active]:bg-accent data-[active]:text-accent-foreground"
+                  >
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'flex h-4 w-4 shrink-0 items-center justify-center rounded border border-input',
+                        checked && 'border-primary bg-primary text-primary-foreground',
+                      )}
+                    >
+                      {checked && <Check className="h-3 w-3" />}
+                    </span>
+                    <span>{bu.code} - {bu.name}</span>
+                  </div>
+                );
+              })}
+              <TypeaheadStatus
+                loading={loading}
+                error={error || undefined}
+                empty={rows.length === 0}
+                searchingLabel={t('components.businessUnitPicker.searchingEllipsis')}
+                emptyLabel={t('common.state.noBusinessUnitsFound')}
+              />
+              {rows.length > 0 && (
+                <TypeaheadFooter
+                  loadingMore={loadingMore}
+                  loadMoreError={loadMoreError || undefined}
+                  onRetry={loadMore}
+                  loadingMoreLabel={t('components.businessUnitPicker.loadingMore')}
+                  className="border-t-0"
+                />
               )}
             </div>
           )}

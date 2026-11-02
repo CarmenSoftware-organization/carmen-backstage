@@ -1,5 +1,5 @@
 // src/pages/BackstageMigrationManagement.tsx
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import {
   Database, RefreshCw, Loader2, Play, Wrench, ChevronDown, ChevronRight, ScanSearch, Sprout,
@@ -20,18 +20,17 @@ import {
 } from '../components/ui/select';
 import backstageMigrationService from '../services/backstageMigrationService';
 import backstageSeedService from '../services/backstageSeedService';
-import { fetchAllBusinessUnits } from '../utils/fetchAllBusinessUnits';
+import type { BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
 import { BuSwitcher } from '../components/BuSwitcher';
 import { OpRow } from './backstageMigration/OpRow';
 import { RunConsole } from './backstageMigration/RunConsole';
 import { useRunLog, splitRaw } from './backstageMigration/runLog';
 import { cn } from '../lib/utils';
 import { migrationStatusCode } from '../utils/migrationError';
-import { devLog, parseApiError } from '../utils/errorParser';
+import { parseApiError } from '../utils/errorParser';
 import { useI18n } from '../hooks/useI18n';
 import type { TFunction } from '../i18n/types';
 import type {
-  BusinessUnit,
   BackstageMigrationStatus,
   BackstageMigrationResolveAction,
   BackstageSeedOp,
@@ -137,10 +136,8 @@ export const BackstageMigrationManagement: React.FC = () => {
 
   // op ที่ต้องเลือก BU ก่อน: pickBuFor คือตัวที่ dialog กำลังถามให้ · pickedBus คือคำตอบที่รอยืนยัน
   // (เลือกได้หลายตัว แล้วรันไล่ทีละตัว — ดู runOpBatch)
-  const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
   const [pickBuFor, setPickBuFor] = useState<BackstageSeedOp | null>(null);
-  const [pickedBus, setPickedBus] = useState<BusinessUnit[]>([]);
-  const buLoadedRef = useRef(false);
+  const [pickedBus, setPickedBus] = useState<BusinessUnitOption[]>([]);
 
   // สมุดบันทึกเล่มเดียวของทั้งหน้า — deploy, resolve และทุก op เขียนลงที่นี่
   const { runs, startRun, appendLines, finishRun, clearRuns } = useRunLog();
@@ -168,19 +165,6 @@ export const BackstageMigrationManagement: React.FC = () => {
       const ops = (await backstageSeedService.getCatalog()).filter((o) => !HIDDEN_OPS.has(o.id));
       setCatalog(ops);
       setCatalogError(null);
-
-      // โหลดรายชื่อ BU เฉพาะเมื่อทะเบียนบอกว่ามี op ที่ต้องถาม และโหลดครั้งเดียวต่อการเปิดหน้า —
-      // fetchStatus ถูกเรียกซ้ำหลังทุกการรัน การดึง BU 200 รายการทุกครั้งเป็นการเสียเปล่า
-      if (!buLoadedRef.current && ops.some((o) => buParamOf(o))) {
-        buLoadedRef.current = true;
-        try {
-          setBusinessUnits(await fetchAllBusinessUnits({ label: 'BackstageMigration.bus' }));
-        } catch (err) {
-          // ไม่ทำให้ทั้งหน้าพัง — op อื่นยังกดได้ ส่วนตัวที่ต้องเลือก BU จะบอกเองตอนกดว่าไม่มีให้เลือก
-          buLoadedRef.current = false;
-          devLog('backstageSeed:businessUnits', err);
-        }
-      }
     } catch (err) {
       // นำหน้าด้วยข้อความที่แปลแล้ว แต่คงรายละเอียดดิบไว้ — ผู้อ่านหน้านี้คือ super-admin ที่
       // "Cannot GET /api-system/backstage/seeds/catalog" บอกได้ทันทีว่า backend ยังไม่ deploy
@@ -259,7 +243,7 @@ export const BackstageMigrationManagement: React.FC = () => {
    */
   const runOnce = useCallback(async (
     op: BackstageSeedOp,
-    bu?: BusinessUnit | null,
+    bu?: BusinessUnitOption | null,
   ): Promise<{ ok: boolean; exitCode?: number }> => {
     const opLabel = t(`pages.backstageMigration.ops.${opKey(op.id)}.label` as never);
     // ป้ายในสมุดต้องบอกด้วยว่ารันกับ BU ไหน — สมุดเก็บหลายรายการ ถ้าเห็นแต่ชื่อ op เหมือนกันสามแถว
@@ -293,11 +277,11 @@ export const BackstageMigrationManagement: React.FC = () => {
    * ตัวที่ล้มไม่หยุดทั้งชุด — เจตนา: ผู้ใช้เลือกมาห้า BU เพราะอยากให้ครบห้า การหยุดที่ตัวที่สอง
    * ทิ้งงานค้างสามตัวโดยไม่มีใครรู้ ผลรายตัวยังแยกดูได้จากคอนโซล
    */
-  const runOpBatch = useCallback(async (op: BackstageSeedOp, bus: BusinessUnit[]): Promise<void> => {
+  const runOpBatch = useCallback(async (op: BackstageSeedOp, bus: BusinessUnitOption[]): Promise<void> => {
     setRunningOp(op.id);
     try {
       // ไม่มี BU = op ที่ไม่ได้ทำงานราย BU — รันรอบเดียวโดยไม่ส่ง param
-      const targets: (BusinessUnit | null)[] = bus.length > 0 ? bus : [null];
+      const targets: (BusinessUnitOption | null)[] = bus.length > 0 ? bus : [null];
       const results: { ok: boolean; exitCode?: number }[] = [];
       for (const bu of targets) {
         results.push(await runOnce(op, bu));
@@ -672,15 +656,12 @@ export const BackstageMigrationManagement: React.FC = () => {
       <BuSwitcher
         open={pickBuFor !== null}
         onOpenChange={(open) => { if (!open) setPickBuFor(null); }}
-        businessUnits={businessUnits}
         currentCode=""
         multiple
         // โหมด multiple ไม่เรียก onSelect — prop ยังบังคับตาม type ของคอมโพเนนต์ที่หน้าอื่นใช้
         onSelect={() => {}}
-        onSelectMany={(codes) => {
+        onSelectMany={(bus) => {
           const op = pickBuFor;
-          const byCode = new Map(businessUnits.map((b) => [b.code, b]));
-          const bus = codes.map((c) => byCode.get(c)).filter((b): b is BusinessUnit => Boolean(b));
           setPickBuFor(null);
           if (!op || bus.length === 0) return;
           setPickedBus(bus);

@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useBusinessUnitSearch, type BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
-import { isNearBottom } from '../hooks/usePagedSearch';
-import { LoadMoreErrorRow } from './LoadMoreErrorRow';
 import { useI18n } from '../hooks/useI18n';
+import { useTypeahead } from './typeahead/useTypeahead';
+import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 
 interface BusinessUnitPickerProps {
   value: BusinessUnitOption | null;
@@ -25,24 +25,14 @@ interface BusinessUnitPickerProps {
   getDisabledReason?: (b: BusinessUnitOption) => string | null;
   /** เปลี่ยนค่าเมื่อต้องการให้ดึงผลค้นหาใหม่ (เช่นหลังผูก BU แล้วสถานะแถวเปลี่ยน) */
   refreshKey?: number;
+  /** Reports the dropdown's real open state so a surrounding Dialog/Sheet can guard Escape. */
+  onOpenChange?: (open: boolean) => void;
 }
 
 const optionLabel = (b: BusinessUnitOption) => `${b.code} · ${b.name}`;
 
-const OptionButton: React.FC<{
-  b: BusinessUnitOption;
-  onPick: (b: BusinessUnitOption) => void;
-  disabledReason?: string | null;
-}> = ({ b, onPick, disabledReason }) => (
-  <button
-    type="button"
-    onClick={() => onPick(b)}
-    disabled={!!disabledReason}
-    className={cn(
-      'flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm',
-      disabledReason ? 'cursor-not-allowed opacity-60' : 'hover:bg-accent hover:text-accent-foreground',
-    )}
-  >
+const OptionBody: React.FC<{ b: BusinessUnitOption; disabledReason?: string | null }> = ({ b, disabledReason }) => (
+  <>
     <span className="flex min-w-0 flex-col">
       <span className="truncate">{b.name}</span>
       <span className="truncate font-mono text-xs text-muted-foreground">
@@ -51,8 +41,16 @@ const OptionButton: React.FC<{
       </span>
     </span>
     {disabledReason && <span className="shrink-0 text-xs text-muted-foreground">{disabledReason}</span>}
-  </button>
+  </>
 );
+
+const optionClass = (disabledReason: string | null | undefined) =>
+  cn(
+    'flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm',
+    disabledReason
+      ? 'cursor-not-allowed opacity-60'
+      : 'hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground',
+  );
 
 /**
  * Single-BU typeahead (clone of CustomerPicker) with a "suggested" group on top.
@@ -69,27 +67,16 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
   ariaLabel,
   getDisabledReason,
   refreshKey,
+  onOpenChange,
 }) => {
   const { t } = useI18n();
   const effectivePlaceholder = placeholder ?? t('components.businessUnitPicker.defaultPlaceholder');
   const [query, setQuery] = useState('');
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const changeOpen = useCallback((next: boolean) => setOpen(next), []);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const {
     results, loading, loadingMore, hasMore, loadMore, refresh, error: searchError, loadMoreError,
-  } = useBusinessUnitSearch(query, open && !disabled && canSearch);
-
-  // ช่องค้นหา unmount อยู่ตอนแสดงค่าที่เลือก — ขอโฟกัสไว้แล้วทำหลังช่องค้นหา mount
-  const [focusPending, setFocusPending] = useState(false);
-  useEffect(() => {
-    if (!focusPending || value || disabled) return;
-    inputRef.current?.focus();
-    setFocusPending(false);
-  }, [focusPending, value, disabled]);
+  } = useBusinessUnitSearch(query, searchOpen && !disabled && canSearch);
 
   // ข้ามรอบแรก — ผลค้นหาโหลดเองตอนเปิด dropdown อยู่แล้ว
   const lastRefreshKeyRef = useRef(refreshKey);
@@ -99,41 +86,33 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
     refresh();
   }, [refreshKey, refresh]);
 
-  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) {
-      loadMore();
-    }
-  };
+  const q = query.trim().toLowerCase();
+  const suggestedShown = suggested.filter(
+    (b) => !q || b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q),
+  );
+  const suggestedIds = new Set(suggested.map((b) => b.id));
+  const otherResults = canSearch && !loading && !searchError ? results.filter((b) => !suggestedIds.has(b.id)) : [];
+  const rows = [...suggestedShown, ...otherResults];
+  const nothing = rows.length === 0;
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) changeOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open, changeOpen]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') changeOpen(false);
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, changeOpen]);
-
-  const select = (b: BusinessUnitOption) => {
-    if (getDisabledReason?.(b)) return;
-    onChange(b);
-    setQuery('');
-    changeOpen(false);
-  };
+  const ta = useTypeahead<BusinessUnitOption>({
+    items: rows,
+    getKey: (b) => b.id,
+    isDisabled: (b) => !!getDisabledReason?.(b),
+    onPick: (b) => {
+      onChange(b);
+      setQuery('');
+    },
+    disabled,
+    hidden: !!value,
+    onOpenChange: (o) => { setSearchOpen(o); onOpenChange?.(o); },
+    hasMore, loadingMore, loadMoreError: loadMoreError || undefined, loadMore,
+  });
 
   const clearSelection = () => {
     onChange(null);
     setQuery('');
-    setFocusPending(true);
+    ta.requestFocus();
   };
 
   if (value) {
@@ -165,16 +144,10 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
     );
   }
 
-  const q = query.trim().toLowerCase();
-  const suggestedShown = suggested.filter(
-    (b) => !q || b.name.toLowerCase().includes(q) || b.code.toLowerCase().includes(q),
-  );
-  const suggestedIds = new Set(suggested.map((b) => b.id));
-  const otherResults = results.filter((b) => !suggestedIds.has(b.id));
-  const nothing = suggestedShown.length === 0 && otherResults.length === 0;
+  const offset = suggestedShown.length;
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div {...ta.getWrapperProps({ className: 'relative' })}>
       <div
         className={cn(
           'flex min-h-9 w-full items-center gap-1 rounded-md border border-input bg-transparent px-2 py-1.5 text-sm shadow-xs focus-within:outline-hidden focus-within:ring-1 focus-within:ring-ring',
@@ -183,79 +156,72 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
       >
         <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <input
-          ref={inputRef}
+          {...ta.getInputProps()}
           id={id}
           type="text"
           value={query}
           disabled={disabled}
           onChange={(e) => {
             setQuery(e.target.value);
-            changeOpen(true);
+            ta.setOpen(true);
           }}
-          onFocus={() => changeOpen(true)}
           placeholder={effectivePlaceholder}
           aria-label={ariaLabel}
-          className="flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
+          className="min-w-0 flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
         />
       </div>
 
-      {open && !disabled && (
+      {ta.open && (
         <div
-          onScroll={handleListScroll}
+          {...ta.listProps}
           className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-input bg-popover shadow-md"
         >
           {suggestedShown.length > 0 && (
-            <div>
-              <div className="px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">
-                {t('components.businessUnitPicker.suggestedHeading')}
-              </div>
-              <ul className="pb-1">
-                {suggestedShown.map((b) => (
-                  <li key={b.id}>
-                    <OptionButton b={b} onPick={select} disabledReason={getDisabledReason?.(b)} />
-                  </li>
-                ))}
-              </ul>
+            <div role="presentation" className="px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">
+              {t('components.businessUnitPicker.suggestedHeading')}
             </div>
           )}
-          {canSearch && loading && (
-            <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.businessUnitPicker.searchingEllipsis')}
+          {suggestedShown.map((b, i) => {
+            const reason = getDisabledReason?.(b);
+            return (
+              <button type="button" key={b.id} {...ta.getOptionProps(b, i)} className={optionClass(reason)}>
+                <OptionBody b={b} disabledReason={reason} />
+              </button>
+            );
+          })}
+          {otherResults.length > 0 && suggestedShown.length > 0 && (
+            <div role="presentation" className="border-t px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">
+              {t('components.businessUnitPicker.allHeading')}
             </div>
           )}
-          {canSearch && !loading && searchError && (
-            <div className="px-3 py-4 text-sm text-destructive">{searchError}</div>
-          )}
-          {canSearch && !loading && !searchError && otherResults.length > 0 && (
-            <div>
-              {suggestedShown.length > 0 && (
-                <div className="border-t px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground">
-                  {t('components.businessUnitPicker.allHeading')}
-                </div>
-              )}
-              <ul className="py-1">
-                {otherResults.map((b) => (
-                  <li key={b.id}>
-                    <OptionButton b={b} onPick={select} disabledReason={getDisabledReason?.(b)} />
-                  </li>
-                ))}
-              </ul>
-              {loadingMore && (
-                <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.businessUnitPicker.loadingMore')}
-                </div>
-              )}
-              {!loadingMore && loadMoreError && <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />}
-            </div>
-          )}
-          {!loading && !searchError && nothing && (
-            <div className="px-3 py-4 text-sm text-muted-foreground">
-              {!canSearch
+          {otherResults.map((b, i) => {
+            const reason = getDisabledReason?.(b);
+            return (
+              <button type="button" key={b.id} {...ta.getOptionProps(b, offset + i)} className={optionClass(reason)}>
+                <OptionBody b={b} disabledReason={reason} />
+              </button>
+            );
+          })}
+          <TypeaheadStatus
+            loading={canSearch && loading}
+            error={canSearch ? (searchError || undefined) : undefined}
+            empty={nothing}
+            searchingLabel={t('components.businessUnitPicker.searchingEllipsis')}
+            emptyLabel={
+              !canSearch
                 ? t('components.businessUnitPicker.noSuggested')
                 : query
                   ? t('components.businessUnitPicker.noMatch', { query })
-                  : t('components.businessUnitPicker.typeToSearch')}
-            </div>
+                  : t('components.businessUnitPicker.typeToSearch')
+            }
+          />
+          {otherResults.length > 0 && (
+            <TypeaheadFooter
+              loadingMore={loadingMore}
+              loadMoreError={loadMoreError || undefined}
+              onRetry={loadMore}
+              loadingMoreLabel={t('components.businessUnitPicker.loadingMore')}
+            />
           )}
         </div>
       )}

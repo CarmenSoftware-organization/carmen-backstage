@@ -29,6 +29,10 @@ export interface PagedSearchResult<T> {
   /** หน้าถัดไปพัง — แถวที่โหลดแล้วยังอยู่ และ `hasMore` คงเดิมให้ `loadMore` ลองใหม่ได้ */
   loadMoreError: string;
   hasMore: boolean;
+  /** จำนวนทั้งหมดของคำค้นปัจจุบัน (จาก paginate.total ของหน้าแรก) · null = ไม่ทราบ */
+  total: number | null;
+  /** คำค้น (หลัง debounce) ที่ `results` ชุดปัจจุบันเป็นของ — ต่างจากคำค้นสดที่ผู้ใช้พิมพ์ = ผลยังเป็นของคำค้นเก่า */
+  resultsQuery: string;
   /** โหลดหน้าถัดไป — ไม่ทำอะไรถ้ากำลังโหลดอยู่หรือไม่มีหน้าเหลือ */
   loadMore: () => void;
   /** ล้างผลแล้วดึงหน้าแรกของคำค้นเดิมใหม่ */
@@ -58,6 +62,8 @@ export function usePagedSearch<T extends { id: string }>(
   const [error, setError] = useState('');
   const [loadMoreError, setLoadMoreError] = useState('');
   const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState<number | null>(null);
+  const [resultsQuery, setResultsQuery] = useState('');
   const [refreshTick, setRefreshTick] = useState(0);
   // generation ทิ้งคำตอบของคำค้นเก่า — ทั้งหน้าแรกและ loadMore ที่ค้างอยู่ตอนคำค้นเปลี่ยน
   const generationRef = useRef(0);
@@ -82,6 +88,10 @@ export function usePagedSearch<T extends { id: string }>(
           // total ไม่มี = ไม่รู้ → หน้าเต็มแปลว่าอาจยังมีต่อ
           setHasMore(typeof total === 'number' ? page * pageSize < total : list.length === pageSize);
           pageRef.current = page;
+          if (page === 1) {
+            setTotal(typeof total === 'number' ? total : null);
+            setResultsQuery(search);
+          }
         })
         .catch((err: unknown) => {
           if (generation !== generationRef.current) return;
@@ -92,6 +102,8 @@ export function usePagedSearch<T extends { id: string }>(
           } else {
             setError(message);
             setHasMore(false);
+            setTotal(null);
+            setResultsQuery(search);
             resultsRef.current = [];
             setResults([]);
             // หน้าแรกพังต้องลองใหม่ได้: ลืมว่าเคยดึงคำค้นนี้
@@ -119,6 +131,7 @@ export function usePagedSearch<T extends { id: string }>(
     setLoading(true);
     setLoadingMore(false);
     setHasMore(false);
+    setTotal(null);
     setError('');
     setLoadMoreError('');
     void run(debouncedQuery, 1, generation);
@@ -133,5 +146,5 @@ export function usePagedSearch<T extends { id: string }>(
 
   const refresh = useCallback(() => setRefreshTick((n) => n + 1), []);
 
-  return { results, loading, loadingMore, error, loadMoreError, hasMore, loadMore, refresh };
+  return { results, loading, loadingMore, error, loadMoreError, hasMore, total, resultsQuery, loadMore, refresh };
 }
