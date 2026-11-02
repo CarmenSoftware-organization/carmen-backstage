@@ -16,7 +16,7 @@ import { validateField } from '../../utils/validation';
 import { getErrorDetail, devLog, isNotFoundError, parseApiError, licenseActionErrorMessage } from '../../utils/errorParser';
 import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../../utils/docVersion';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
-import { useAllClusters } from '../../hooks/useAllClusters';
+import type { ClusterOption } from '../../hooks/useClusterSearch';
 import { fetchAllBusinessUnits } from '../../utils/fetchAllBusinessUnits';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
 import { useAuth } from '../../context/AuthContext';
@@ -115,8 +115,9 @@ const SubscriptionForm: React.FC = () => {
   const [rawResponse, setRawResponse] = useState<unknown>(null);
 
   // Cluster picker — only needed to create a subscription. An existing one shows its cluster
-  // read-only from `detail`, so nothing is fetched for that case (`enabled = isNew`).
-  const { clusters, loading: clustersLoading, error: clustersError } = useAllClusters(isNew);
+  // read-only from `detail`, so nothing is fetched for that case (`canSearch = isNew`).
+  // The picker's last option is held so the draft plate can show the name.
+  const [clusterOption, setClusterOption] = useState<ClusterOption | null>(null);
 
   const [clusterBus, setClusterBus] = useState<BusinessUnit[]>([]);
   const [clusterBusLoading, setClusterBusLoading] = useState(false);
@@ -131,7 +132,7 @@ const SubscriptionForm: React.FC = () => {
   // What the draft plate draws. Both resolve out of lists that are still loading on first paint,
   // so both are legitimately `undefined` for a moment — the plate renders that as "not picked yet",
   // which is also the truthful answer before anything is picked.
-  const draftCluster = clusters.find((c) => c.id === formData.cluster_id);
+  const draftCluster = clusterOption && clusterOption.id === formData.cluster_id ? clusterOption : undefined;
   const draftBu = clusterBus.find((b) => b.id === formData.business_unit_id);
 
   const hasChanges = !isNew && (
@@ -214,6 +215,15 @@ const SubscriptionForm: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError('');
+  };
+
+  // The picker also calls this once after hydrating a pre-selected id — an unchanged id must not
+  // touch formData (no new object, no error reset). A real change behaves as handleChange did.
+  const handleClusterChange = (id: string, option: ClusterOption | null) => {
+    setClusterOption(option);
+    if (id === formData.cluster_id) return;
+    setFormData((prev) => ({ ...prev, cluster_id: id }));
     setError('');
   };
 
@@ -485,9 +495,8 @@ const SubscriptionForm: React.FC = () => {
                   formData={formData}
                   fieldErrors={fieldErrors}
                   saving={saving}
-                  clusters={clusters}
-                  clustersLoading={clustersLoading}
-                  clustersError={clustersError}
+                  canSearchClusters={isNew}
+                  onClusterChange={handleClusterChange}
                   clusterBus={clusterBus}
                   clusterBusLoading={clusterBusLoading}
                   formRef={formRef}

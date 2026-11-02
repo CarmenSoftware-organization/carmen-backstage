@@ -5,7 +5,9 @@ import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import Can from '../../../components/Can';
 import { useI18n } from '../../../hooks/useI18n';
-import type { BusinessUnit, Cluster } from '../../../types';
+import { ClusterPicker } from '../../../components/ClusterPicker';
+import type { ClusterOption } from '../../../hooks/useClusterSearch';
+import type { BusinessUnit } from '../../../types';
 import type { SubscriptionFormData } from '../subscriptionEdit/SubscriptionInfoCard';
 import { monthEndOptions, yearOf } from './subscriptionTerm';
 
@@ -19,10 +21,10 @@ export interface SubscriptionCreateFormProps {
   formData: SubscriptionFormData;
   fieldErrors: Record<string, string>;
   saving: boolean;
-  /** Candidate clusters for the picker, and why the list is empty when it failed to load. */
-  clusters: Cluster[];
-  clustersLoading?: boolean;
-  clustersError?: string;
+  /** Whether the cluster picker may search (today's gate for the cluster fetch). */
+  canSearchClusters: boolean;
+  /** Fires on a user pick and once after a pre-selected id resolves (with the option, to learn its name). */
+  onClusterChange: (id: string, option: ClusterOption | null) => void;
   /** The chosen cluster's business units — the roster a contract can be issued against. */
   clusterBus: BusinessUnit[];
   clusterBusLoading?: boolean;
@@ -55,9 +57,8 @@ export function SubscriptionCreateForm({
   formData,
   fieldErrors,
   saving,
-  clusters,
-  clustersLoading,
-  clustersError,
+  canSearchClusters,
+  onClusterChange,
   clusterBus,
   clusterBusLoading,
   formRef,
@@ -84,15 +85,9 @@ export function SubscriptionCreateForm({
     timeZone: 'UTC',
   });
 
-  // A cluster the caller pre-selected (`?cluster_id=…` from Cluster Edit) may not be in the list
-  // yet while it is still loading — synthesise a placeholder option so `<select value=…>` does not
-  // silently fall back to the first real option instead.
-  const selectedCluster = clusters.find((c) => c.id === formData.cluster_id);
-  const missingCurrentClusterId = !selectedCluster && formData.cluster_id ? formData.cluster_id : null;
-
   return (
     <form ref={formRef} onSubmit={onSubmit} className="space-y-4">
-      <Card>
+      <Card className="overflow-visible">
         <div>
           <h2 className="text-base font-semibold leading-none tracking-tight">
             {t('pages.subscriptions.issuedTo')}
@@ -103,30 +98,14 @@ export function SubscriptionCreateForm({
         <div className="flex flex-wrap gap-4">
           <div className="w-full space-y-2 sm:w-72">
             <Label htmlFor="cluster_id">{t('common.label.cluster')} *</Label>
-            <select
+            <ClusterPicker
               id="cluster_id"
-              name="cluster_id"
               value={formData.cluster_id}
-              onChange={onChange}
-              aria-invalid={!!fieldErrors.cluster_id}
-              className={selectClassName}
-            >
-              <option value="">{t('common.state.selectACluster')}</option>
-              {missingCurrentClusterId && (
-                <option value={missingCurrentClusterId}>
-                  {clustersLoading ? t('common.busy.loadingEllipsis') : missingCurrentClusterId}
-                </option>
-              )}
-              {clusters.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.code} - {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={onClusterChange}
+              canSearch={canSearchClusters}
+              placeholder={t('common.state.selectACluster')}
+            />
             {fieldErrors.cluster_id && <p className="text-destructive text-xs">{fieldErrors.cluster_id}</p>}
-            {clustersError && (
-              <p className="text-destructive text-xs" role="alert">{clustersError}</p>
-            )}
           </div>
 
           <div className="w-full space-y-2 sm:w-72">

@@ -140,8 +140,8 @@ describe('SubscriptionForm — create mode reads cluster_id from the query param
     });
     renderAt('/licenses/subscriptions/new?cluster_id=c1');
 
-    const select = (await screen.findByLabelText(/cluster/i)) as HTMLSelectElement;
-    expect(select.value).toBe('c1');
+    // the picker hydrates c1 by id and shows its name as the chip
+    expect((await screen.findAllByText('Acme Cluster')).length).toBeGreaterThan(0);
   });
 });
 
@@ -398,40 +398,23 @@ describe('SubscriptionForm — not found', () => {
   });
 });
 
-// Review M7: the picker used a flat `perpage: 200`, so cluster #201 was simply unreachable —
-// no error, no hint, while the BU roster in this very same file already paged properly. Both
-// now go through `fetchAllPages`.
-describe('SubscriptionForm — the cluster picker is paged, not capped', () => {
-  it('keeps fetching pages until paginate.total is covered', async () => {
-    const page1 = Array.from({ length: 100 }, (_, i) => ({
-      id: `c${i}`, code: `C${i}`, name: `Cluster ${i}`, is_active: true,
-    }));
-    const page2 = [{ id: 'c201', code: 'C201', name: 'Cluster 201', is_active: true }];
-    asMock(clusterService.getAll).mockImplementation(async ({ page }: { page: number }) => ({
-      data: page === 1 ? page1 : page2,
-      paginate: { total: 101, page, perpage: 100 },
-    }));
+// The cluster picker searches server-side, 20 per page, only once opened — it no longer loads
+// every cluster up front (the old fetchAllPages walk).
+describe('SubscriptionForm — the cluster picker is lazy', () => {
+  it('fetches nothing on mount, then searches page 1 (20 per page) when opened', async () => {
+    asMock(clusterService.getAll).mockResolvedValue({
+      data: [{ id: 'c2', code: 'CLS2', name: 'Beta Cluster', is_active: true }],
+      paginate: { total: 1, page: 1, perpage: 20 },
+    });
 
     renderAt('/licenses/subscriptions/new');
 
-    const select = (await screen.findByLabelText(/cluster/i)) as HTMLSelectElement;
-    // The 101st cluster is selectable — under the old flat request it never arrived.
-    await waitFor(() =>
-      expect(within(select).getByRole('option', { name: 'C201 - Cluster 201' })).toBeInTheDocument(),
-    );
-    expect(clusterService.getAll).toHaveBeenCalledTimes(2);
-    expect(asMock(clusterService.getAll).mock.calls[0][0]).toEqual({ page: 1, perpage: 100, sort: 'name:asc' });
-    expect(asMock(clusterService.getAll).mock.calls[1][0]).toEqual({ page: 2, perpage: 100, sort: 'name:asc' });
-  });
+    const input = await screen.findByLabelText(/cluster/i);
+    expect(clusterService.getAll).not.toHaveBeenCalled();
 
-  it('says why the picker is empty when the cluster list fails to load', async () => {
-    asMock(clusterService.getAll).mockRejectedValue(new Error('network down'));
-
-    renderAt('/licenses/subscriptions/new');
-
-    // ข้อความย้ายเข้าพจนานุกรมแล้ว (`pages.licenses.loadFailedPrefix`) — เทสต์ไม่ห่อ
-    // I18nProvider จึงได้ค่า en ตาม fallback ที่ `useI18n()` ตั้งใจคืน
-    expect(await screen.findByText(/Failed to load clusters/)).toBeInTheDocument();
+    await userEvent.setup().click(input);
+    expect(await screen.findByText('Beta Cluster')).toBeInTheDocument();
+    expect(asMock(clusterService.getAll).mock.calls[0][0]).toMatchObject({ page: 1, perpage: 20, sort: 'name:asc' });
   });
 
   it('does not fetch clusters at all when editing an existing subscription', async () => {

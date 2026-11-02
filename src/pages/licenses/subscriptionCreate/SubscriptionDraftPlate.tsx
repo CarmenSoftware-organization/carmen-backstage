@@ -43,7 +43,7 @@ export function termLabel(term: Term, t: TFunction): string {
 
 export interface SubscriptionDraftPlateProps {
   /** The cluster currently picked, once it resolves out of the picker's list. */
-  cluster?: Cluster;
+  cluster?: Pick<Cluster, 'code' | 'name'>;
   /** The business unit currently picked, out of that cluster's roster. */
   bu?: BusinessUnit;
   /** `'YYYY-MM-DD'`, straight off the form. */

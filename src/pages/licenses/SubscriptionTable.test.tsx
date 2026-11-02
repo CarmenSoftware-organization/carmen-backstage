@@ -517,7 +517,8 @@ describe('SubscriptionTable — cluster filter', () => {
     await screen.findByText('SUB-0001');
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
-    await user.selectOptions(await screen.findByLabelText('Cluster'), 'c2');
+    await user.click(await screen.findByLabelText('Cluster'));
+    await user.click(await screen.findByRole('button', { name: /Beta Cluster/ }));
 
     await waitFor(() => {
       const parsed = JSON.parse(lastCall().advance);
@@ -531,15 +532,16 @@ describe('SubscriptionTable — cluster filter', () => {
     await waitFor(() => expect(lastCall().advance).toBe(''));
   });
 
-  it('lists every cluster the loader returned', async () => {
+  it('lists the clusters the server search returned, after All clusters', async () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('SUB-0001');
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
-    const select = await screen.findByLabelText('Cluster');
-    expect(within(select).getByRole('option', { name: 'ACME - Acme Cluster' })).toBeInTheDocument();
-    expect(within(select).getByRole('option', { name: 'BETA - Beta Cluster' })).toBeInTheDocument();
+    await user.click(await screen.findByLabelText('Cluster'));
+    expect(await screen.findByRole('button', { name: /Acme Cluster/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Beta Cluster/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All clusters' })).toBeInTheDocument();
   });
 
   // Same reasoning as review C1: a request the user is not allowed to make is a request that
