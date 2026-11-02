@@ -21,7 +21,7 @@ vi.mock('../../services/clusterService', () => ({
 }));
 
 // Stubbed as a single button: the picker's own search/typeahead behavior is
-// UserPicker's responsibility (covered by its own tests) — this dialog only needs
+// UserPicker's responsibility (it has no dedicated test file of its own) — this dialog only needs
 // to prove it wires the selected UserOption through to the submit payload.
 const fixedUser: UserOption = { id: 'user-1', name: 'Jane Doe', email: 'jane@example.com' };
 vi.mock('../../components/UserPicker', () => ({

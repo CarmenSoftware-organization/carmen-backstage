@@ -56,7 +56,7 @@ export default function ReportConfigFields({
         <Label>{t('cronjob.config.templateId')}</Label>
         <ReportTemplatePicker
           value={value.template_id ?? ''}
-          onChange={(template_id) => onChange({ ...value, template_id })}
+          onChange={(template_id) => onChange({ ...value, template_id: template_id || undefined })}
           disabled={readOnly}
           placeholder={t('cronjob.config.templateIdPlaceholder')}
           ariaLabel={t('cronjob.config.templateId')}

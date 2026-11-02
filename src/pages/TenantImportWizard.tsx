@@ -78,12 +78,10 @@ export default function TenantImportWizard() {
 
   useEffect(() => {
     (async () => {
-      const [catalogResult] = await Promise.allSettled([preconfigImportService.getSteps()]);
-
-      if (catalogResult.status === 'fulfilled') {
-        setSteps(catalogResult.value);
-      } else {
-        const message = parseApiError(catalogResult.reason).message;
+      try {
+        setSteps(await preconfigImportService.getSteps());
+      } catch (err) {
+        const message = parseApiError(err).message;
         toast.error(message);
         setCatalogError(message);
       }
