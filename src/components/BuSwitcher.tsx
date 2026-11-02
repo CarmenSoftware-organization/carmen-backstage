@@ -67,7 +67,9 @@ async function validateRecents(): Promise<boolean> {
     'code',
     async ({ advance, perpage }) => {
       const res = await businessUnitService.getAll({ page: 1, perpage, advance });
-      return { data: (res.data || []) as BusinessUnit[], paginate: res.paginate };
+      // A 200 without a data array is not proof the BUs are gone — treat it as a failed chunk so they're kept.
+      if (!Array.isArray(res?.data)) throw new Error('BU lookup returned no data array');
+      return { data: res.data as BusinessUnit[], paginate: res.paginate };
     },
   );
   const byCode = new Map(rows.map((b) => [b.code, b]));
