@@ -2,7 +2,7 @@ import { usePagedSearch, type PagedPage, type PagedSearchResult } from './usePag
 import userService from '../services/userService';
 import type { User, UserOption } from '../types';
 
-const displayName = (u: User): string => {
+export const displayName = (u: User): string => {
   const parts = [u.firstname, u.middlename, u.lastname].filter(Boolean);
   return parts.length ? parts.join(' ') : (u.name || u.email || u.id);
 };
