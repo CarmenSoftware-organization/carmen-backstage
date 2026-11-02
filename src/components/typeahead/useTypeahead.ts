@@ -7,7 +7,7 @@ export interface UseTypeaheadOptions<T> {
   items: T[];
   getKey: (item: T) => string;
   isDisabled?: (item: T) => boolean;
-  /** `aria-selected` for an option; defaults to "is the active row" */
+  /** `aria-selected` for an option (checked state); defaults to "is the active row". The cursor is always `data-active`. */
   isSelected?: (item: T) => boolean;
   onPick: (item: T) => void;
   /** Close the dropdown after a pick. Default true; multi-select passes false. */
@@ -44,6 +44,10 @@ export interface UseTypeaheadOptions<T> {
  * - Render the dropdown only while `ta.open`. Items must be the rows actually visible, in order.
  * - Multi-select: pass `closeOnPick: false` (stays open after a pick) AND `isSelected` (checked state), because
  *   `aria-selected` otherwise defaults to the active row.
+ * - Style the cursor with `data-[active]:bg-accent data-[active]:text-accent-foreground` (set on the active option in
+ *   every picker); `aria-selected` is the checked state in multi-selects, so never highlight with it there.
+ * - Enter: while the dropdown is open it is always consumed (preventDefault, so a host <form> never submits) and picks
+ *   only when an enabled row is active; while closed it passes through untouched.
  * - `getInputProps(user)` / `getWrapperProps(user)` take your own props and chain handlers: yours runs first and the
  *   hook's is skipped if you call `e.preventDefault()`. Refs are merged. Always pass your onFocus/onBlur/onKeyDown
  *   through them, never spread after them.
@@ -133,8 +137,11 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
   const activeIndex = visibleOpen && activeKey !== null ? items.findIndex((it) => getKey(it) === activeKey) : -1;
   const optionId = (index: number) => `${listId}-opt-${index}`;
 
+  // Scroll the active row into view on keyboard moves only: hover-driven scrolling could reach the bottom and fire loadMore
+  const keyboardMoveRef = useRef(false);
   useEffect(() => {
-    if (activeIndex < 0) return;
+    if (activeIndex < 0 || !keyboardMoveRef.current) return;
+    keyboardMoveRef.current = false;
     document.getElementById(`${listId}-opt-${activeIndex}`)?.scrollIntoView?.({ block: 'nearest' });
   }, [activeIndex, listId]);
 
@@ -145,6 +152,7 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
     for (let step = 0; step < n; step += 1) {
       i = i < 0 ? (dir === 1 ? 0 : n - 1) : (i + dir + n) % n;
       if (!isDisabled?.(items[i])) {
+        keyboardMoveRef.current = true;
         setActiveKey(getKey(items[i]));
         return;
       }
@@ -168,10 +176,11 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
         else move(e.key === 'ArrowDown' ? 1 : -1);
         break;
       case 'Enter':
-        // Swallow Enter only when it actually picks, so forms still submit otherwise
-        if (visibleOpen && activeIndex >= 0 && !isDisabled?.(items[activeIndex])) {
+        // While the dropdown is open Enter never reaches the host <form>; it picks only when an enabled row is active.
+        // While closed it passes through untouched.
+        if (visibleOpen) {
           e.preventDefault();
-          pick(items[activeIndex]);
+          if (activeIndex >= 0 && !isDisabled?.(items[activeIndex])) pick(items[activeIndex]);
         }
         break;
       case 'Tab':
@@ -240,6 +249,8 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
       role: 'option' as const,
       tabIndex: -1,
       'aria-selected': isSelected ? isSelected(item) : index === activeIndex,
+      // The keyboard/hover cursor. Style with `data-[active]:`; aria-selected means "checked" when isSelected is passed.
+      'data-active': index === activeIndex ? '' : undefined,
       'aria-disabled': disabledItem || undefined,
       onClick: () => pick(item),
       onMouseMove: () => {

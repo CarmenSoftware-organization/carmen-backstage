@@ -49,7 +49,7 @@ const optionClass = (disabledReason: string | null | undefined) =>
     'flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm',
     disabledReason
       ? 'cursor-not-allowed opacity-60'
-      : 'hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground',
+      : 'hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground',
   );
 
 /**

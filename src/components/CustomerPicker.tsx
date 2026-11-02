@@ -132,7 +132,7 @@ export const CustomerPicker: React.FC<CustomerPickerProps> = ({
               type="button"
               key={c.id}
               {...ta.getOptionProps(c, i)}
-              className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+              className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground"
             >
               <span className="flex min-w-0 flex-col">
                 <span className="truncate font-mono">{c.ar_number}</span>

@@ -65,7 +65,6 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
     if (selectedIds.has(u.id)) return;
     onChange([...value, u]);
     setQuery('');
-    ta.inputRef.current?.focus();
   };
 
   const removeUser = (idToRemove: string) => {
@@ -162,6 +161,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
       {ta.open && (
         <div
           {...ta.listProps}
+          aria-multiselectable
           className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover shadow-md max-h-64 overflow-y-auto"
         >
           {rows.map((u, i) => {
@@ -172,7 +172,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                 key={u.id}
                 {...ta.getOptionProps(u, i)}
                 className={cn(
-                  'w-full text-left px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between gap-2',
+                  'w-full text-left px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground flex items-center justify-between gap-2',
                   alreadySelected && 'opacity-50 cursor-not-allowed',
                 )}
               >

@@ -146,7 +146,7 @@ export const UserPicker: React.FC<UserPickerProps> = ({
                 key={u.id}
                 {...ta.getOptionProps(u, i)}
                 className={cn(
-                  'flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground',
+                  'flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground data-[active]:bg-accent data-[active]:text-accent-foreground',
                   isDisabled && 'cursor-not-allowed opacity-50',
                 )}
               >

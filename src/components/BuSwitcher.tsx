@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, Loader2, Search, Star } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 import { Badge } from './ui/badge';
@@ -94,6 +94,11 @@ export function BuSwitcher({
   // ติ๊กไว้เป็น object (key ด้วย code) เพื่อให้คงอยู่ข้ามการเปลี่ยนคำค้น
   const [checked, setChecked] = useState<BusinessUnitOption[]>([]);
   const rowRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const baseId = useId();
+  const listId = `${baseId}-list`;
+  const optId = (i: number) => `${baseId}-opt-${i}`;
+  // Scroll only after arrow-key moves: hover-driven scrolling could reach the bottom and fire loadMore
+  const keyboardMoveRef = useRef(false);
 
   // Reset the query (and any pending multi-selection) each time the palette opens.
   useEffect(() => {
@@ -141,6 +146,8 @@ export function BuSwitcher({
     setActive(0);
   }, [search, loading]);
   useEffect(() => {
+    if (!keyboardMoveRef.current) return;
+    keyboardMoveRef.current = false;
     rowRefs.current[active]?.scrollIntoView({ block: 'nearest' });
   }, [active]);
 
@@ -176,24 +183,28 @@ export function BuSwitcher({
   const onInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      keyboardMoveRef.current = true;
       if (flat.length) setActive((i) => (i + 1) % flat.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
+      keyboardMoveRef.current = true;
       if (flat.length) setActive((i) => (i - 1 + flat.length) % flat.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (pending) return;
-      // ⌘/Ctrl+Enter = ยืนยันทั้งชุด · Enter เปล่า = สลับติ๊กแถวที่อยู่
+      // ⌘/Ctrl+Enter = ยืนยันทั้งชุด — ไม่ขึ้นกับผลค้นหา จึงใช้ได้เสมอเมื่อมีที่ติ๊กไว้
       if (multiple && (e.metaKey || e.ctrlKey)) {
         confirmMany();
         return;
       }
+      // Enter เปล่า = สลับติ๊กแถวที่อยู่ — ระหว่าง pending แถวผลลัพธ์จาก server เป็นของคำค้นเก่า จึงเลือกได้เฉพาะแถว Recent
+      if (pending && active >= recentCount) return;
       const bu = flat[active];
       if (bu) select(bu);
     }
     // Escape is handled by Radix Dialog (closes the palette).
   };
 
+  const recentCount = sections.find((sec) => sec.recent)?.items.length ?? 0;
   let flatIndex = -1;
 
   return (
@@ -211,8 +222,8 @@ export function BuSwitcher({
             type="text"
             role="combobox"
             aria-expanded="true"
-            aria-controls="bu-switcher-list"
-            aria-activedescendant={flat[active] ? `bu-opt-${active}` : undefined}
+            aria-controls={listId}
+            aria-activedescendant={flat[active] ? optId(active) : undefined}
             aria-label={t('common.state.searchBusinessUnitsAria')}
             className="placeholder:text-muted-foreground flex-1 bg-transparent text-[15px] outline-hidden"
             placeholder={t('switcher.searchBuPlaceholder')}
@@ -231,7 +242,7 @@ export function BuSwitcher({
 
         {/* list */}
         <div
-          id="bu-switcher-list"
+          id={listId}
           role="listbox"
           aria-multiselectable={multiple || undefined}
           aria-label={t('switcher.buList')}
@@ -239,10 +250,12 @@ export function BuSwitcher({
           className="max-h-[52vh] overflow-y-auto p-1.5"
         >
           {!pending && !error && flat.length === 0 && (
-            <div className="text-muted-foreground px-4 py-10 text-center text-sm">
-              {t('switcher.buNoMatches', { search: query })}
-              <br />
-              {t('switcher.buNoMatchesHint')}
+            <div role="presentation" className="text-muted-foreground px-4 py-10 text-center text-sm">
+              <div aria-live="polite">
+                {t('switcher.buNoMatches', { search: query })}
+                <br />
+                {t('switcher.buNoMatchesHint')}
+              </div>
             </div>
           )}
           {sections.map((section) => (
@@ -262,7 +275,7 @@ export function BuSwitcher({
                 return (
                   <button
                     key={bu.id}
-                    id={`bu-opt-${idx}`}
+                    id={optId(idx)}
                     ref={(el) => {
                       rowRefs.current[idx] = el;
                     }}
@@ -316,21 +329,23 @@ export function BuSwitcher({
             </div>
           ))}
           {pending && (
-            <div className="text-muted-foreground flex items-center gap-2 px-4 py-4 text-sm">
-              <Loader2 className="size-3.5 animate-spin" /> {t('switcher.loadingBus')}
+            <div role="presentation" className="text-muted-foreground flex items-center gap-2 px-4 py-4 text-sm">
+              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              <span aria-live="polite">{t('switcher.loadingBus')}</span>
             </div>
           )}
           {!pending && error && (
-            <div className="flex items-center justify-between gap-2 px-4 py-4 text-sm">
-              <span className="text-destructive">{error}</span>
+            <div role="presentation" className="flex items-center justify-between gap-2 px-4 py-4 text-sm">
+              <span className="text-destructive" aria-live="polite">{error}</span>
               <Button variant="ghost" size="sm" className="h-7" onClick={refresh}>
                 {t('common.action.retry')}
               </Button>
             </div>
           )}
           {loadingMore && (
-            <div className="text-muted-foreground flex items-center gap-2 border-t px-3 py-2 text-xs">
-              <Loader2 className="size-3.5 animate-spin" /> {t('switcher.loadingMoreBus')}
+            <div role="presentation" className="text-muted-foreground flex items-center gap-2 border-t px-3 py-2 text-xs">
+              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              <span aria-live="polite">{t('switcher.loadingMoreBus')}</span>
             </div>
           )}
           {!loadingMore && loadMoreError && <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />}

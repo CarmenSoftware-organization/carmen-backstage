@@ -198,7 +198,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
                   <div
                     key={bu.id}
                     {...ta.getOptionProps(bu, i)}
-                    className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 aria-selected:bg-muted/50"
+                    className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 data-[active]:bg-accent data-[active]:text-accent-foreground"
                   >
                     <span
                       aria-hidden

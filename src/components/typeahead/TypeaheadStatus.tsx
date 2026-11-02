@@ -18,13 +18,26 @@ interface TypeaheadStatusProps {
 export const TypeaheadStatus: React.FC<TypeaheadStatusProps> = ({ loading, error, empty, searchingLabel, emptyLabel }) => {
   if (loading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> {searchingLabel}
+      <div role="presentation" className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+        <span aria-live="polite">{searchingLabel}</span>
       </div>
     );
   }
-  if (error) return <div className="px-3 py-4 text-sm text-destructive">{error}</div>;
-  if (empty) return <div className="px-3 py-4 text-sm text-muted-foreground">{emptyLabel}</div>;
+  if (error) {
+    return (
+      <div role="presentation" className="px-3 py-4 text-sm text-destructive">
+        <span aria-live="polite">{error}</span>
+      </div>
+    );
+  }
+  if (empty) {
+    return (
+      <div role="presentation" className="px-3 py-4 text-sm text-muted-foreground">
+        <span aria-live="polite">{emptyLabel}</span>
+      </div>
+    );
+  }
   return null;
 };
 
@@ -40,8 +53,9 @@ interface TypeaheadFooterProps {
 export const TypeaheadFooter: React.FC<TypeaheadFooterProps> = ({ loadingMore, loadMoreError, onRetry, loadingMoreLabel, className }) => {
   if (loadingMore) {
     return (
-      <div className={cn('flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground', className)}>
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> {loadingMoreLabel}
+      <div role="presentation" className={cn('flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground', className)}>
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+        <span aria-live="polite">{loadingMoreLabel}</span>
       </div>
     );
   }
