@@ -7,7 +7,7 @@ import { useUserSearch } from '../hooks/useUserSearch';
 import type { UserOption } from '../types';
 import { useI18n } from '../hooks/useI18n';
 import { useTypeahead } from './typeahead/useTypeahead';
-import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
+import { TypeaheadAnnouncer, TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 
 interface UserMultiSelectProps {
   value: UserOption[];
@@ -77,6 +77,19 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
       e.preventDefault();
       removeUser(value[value.length - 1].id);
     }
+  };
+
+  const statusProps = {
+    loading,
+    error: searchError || undefined,
+    empty: rows.length === 0,
+    searchingLabel: t('components.userSearch.searchingEllipsis'),
+    emptyLabel: query ? t('components.userSearch.noMatch', { query }) : t('components.userSearch.typeToSearch'),
+  };
+  const footerProps = {
+    loadingMore,
+    loadMoreError: loadMoreError || undefined,
+    loadingMoreLabel: t('components.userPicker.loadingMore'),
   };
 
   return (
@@ -158,6 +171,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
         </div>
       </div>
 
+      <TypeaheadAnnouncer open={ta.open} status={statusProps} footer={rows.length > 0 ? footerProps : undefined} />
       {ta.open && (
         <div
           {...ta.listProps}
@@ -188,20 +202,9 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
               </button>
             );
           })}
-          <TypeaheadStatus
-            loading={loading}
-            error={searchError || undefined}
-            empty={rows.length === 0}
-            searchingLabel={t('components.userSearch.searchingEllipsis')}
-            emptyLabel={query ? t('components.userSearch.noMatch', { query }) : t('components.userSearch.typeToSearch')}
-          />
+          <TypeaheadStatus {...statusProps} />
           {rows.length > 0 && (
-            <TypeaheadFooter
-              loadingMore={loadingMore}
-              loadMoreError={loadMoreError || undefined}
-              onRetry={loadMore}
-              loadingMoreLabel={t('components.userPicker.loadingMore')}
-            />
+            <TypeaheadFooter {...footerProps} onRetry={loadMore} />
           )}
         </div>
       )}

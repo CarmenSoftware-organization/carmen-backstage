@@ -7,7 +7,7 @@ import {
   type ReportTemplateOption,
 } from '../hooks/useReportTemplateSearch';
 import { useTypeahead } from './typeahead/useTypeahead';
-import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
+import { TypeaheadAnnouncer, TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 import { hydrateByKeys, useHydratedOptions } from '../hooks/useHydratedOptions';
 import reportTemplateService, { type ReportTemplate } from '../services/reportTemplateService';
 import { useI18n } from '../hooks/useI18n';
@@ -137,6 +137,18 @@ export const ReportTemplatePicker: React.FC<ReportTemplatePickerProps> = ({
   }
 
   const nothing = rows.length === 0;
+  const statusProps = {
+    loading,
+    error: searchError ?? undefined,
+    empty: nothing,
+    searchingLabel: t('components.reportTemplatePicker.searchingEllipsis'),
+    emptyLabel: query ? t('components.reportTemplatePicker.noMatch', { query }) : t('components.reportTemplatePicker.typeToSearch'),
+  };
+  const footerProps = {
+    loadingMore,
+    loadMoreError: loadMoreError ?? undefined,
+    loadingMoreLabel: t('components.reportTemplatePicker.loadingMore'),
+  };
 
   return (
     <div {...ta.getWrapperProps({ className: cn('relative min-w-0', className) })}>
@@ -165,6 +177,7 @@ export const ReportTemplatePicker: React.FC<ReportTemplatePickerProps> = ({
         />
       </div>
 
+      <TypeaheadAnnouncer open={ta.open} status={statusProps} footer={rows.length > 0 ? footerProps : undefined} />
       {ta.open && (
         <div
           {...ta.listProps}
@@ -183,20 +196,9 @@ export const ReportTemplatePicker: React.FC<ReportTemplatePickerProps> = ({
               </span>
             </button>
           ))}
-          <TypeaheadStatus
-            loading={loading}
-            error={searchError ?? undefined}
-            empty={nothing}
-            searchingLabel={t('components.reportTemplatePicker.searchingEllipsis')}
-            emptyLabel={query ? t('components.reportTemplatePicker.noMatch', { query }) : t('components.reportTemplatePicker.typeToSearch')}
-          />
+          <TypeaheadStatus {...statusProps} />
           {rows.length > 0 && (
-            <TypeaheadFooter
-              loadingMore={loadingMore}
-              loadMoreError={loadMoreError ?? undefined}
-              onRetry={loadMore}
-              loadingMoreLabel={t('components.reportTemplatePicker.loadingMore')}
-            />
+            <TypeaheadFooter {...footerProps} onRetry={loadMore} />
           )}
         </div>
       )}

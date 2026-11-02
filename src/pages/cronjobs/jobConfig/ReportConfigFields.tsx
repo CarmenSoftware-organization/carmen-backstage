@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { Plus, X } from 'lucide-react';
 import { BusinessUnitMultiSelect } from '../../../components/BusinessUnitMultiSelect';
 import { ReportTemplatePicker } from '../../../components/ReportTemplatePicker';
@@ -19,9 +20,10 @@ const FORMATS = ['pdf', 'excel', 'csv', 'json'];
  * need, and a half-filled `schedule_config` would mislead whoever reads it next.
  */
 export default function ReportConfigFields({
-  value, onChange, readOnly,
+  value, onChange, readOnly, fieldErrors,
 }: JobConfigFieldsProps<ReportJobConfig>) {
   const { t } = useI18n();
+  const templateId = useId();
 
   // C2 fix: recipients must be user ids, not free-text email strings — report.go
   // (executeViewerURL/dispatchNotification) passes cfg.Recipients straight through as
@@ -53,8 +55,10 @@ export default function ReportConfigFields({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>{t('cronjob.config.templateId')}</Label>
+        <Label htmlFor={templateId}>{t('cronjob.config.templateId')}</Label>
         <ReportTemplatePicker
+          id={templateId}
+          invalid={!!fieldErrors?.template_id}
           value={value.template_id ?? ''}
           onChange={(template_id) => onChange({ ...value, template_id: template_id || undefined })}
           disabled={readOnly}

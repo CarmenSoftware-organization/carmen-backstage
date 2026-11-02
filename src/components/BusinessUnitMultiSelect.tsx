@@ -10,7 +10,7 @@ import businessUnitService from '../services/businessUnitService';
 import type { BusinessUnit } from '../types';
 import { useI18n } from '../hooks/useI18n';
 import { useTypeahead } from './typeahead/useTypeahead';
-import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
+import { TypeaheadAnnouncer, TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 
 interface BusinessUnitMultiSelectProps {
   value: string[];
@@ -162,6 +162,19 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
     );
   };
 
+  const statusProps = {
+    loading,
+    error: error || undefined,
+    empty: rows.length === 0,
+    searchingLabel: t('components.businessUnitPicker.searchingEllipsis'),
+    emptyLabel: t('common.state.noBusinessUnitsFound'),
+  };
+  const footerProps = {
+    loadingMore,
+    loadMoreError: loadMoreError || undefined,
+    loadingMoreLabel: t('components.businessUnitPicker.loadingMore'),
+  };
+
   return (
     <div {...ta.getWrapperProps({ className: 'relative space-y-2' })}>
       <div className="flex flex-wrap gap-1.5">
@@ -186,6 +199,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
             />
           </div>
 
+          <TypeaheadAnnouncer open={ta.open} status={statusProps} footer={rows.length > 0 ? footerProps : undefined} />
           {ta.open && (
             <div
               {...ta.listProps}
@@ -213,21 +227,9 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
                   </div>
                 );
               })}
-              <TypeaheadStatus
-                loading={loading}
-                error={error || undefined}
-                empty={rows.length === 0}
-                searchingLabel={t('components.businessUnitPicker.searchingEllipsis')}
-                emptyLabel={t('common.state.noBusinessUnitsFound')}
-              />
+              <TypeaheadStatus {...statusProps} />
               {rows.length > 0 && (
-                <TypeaheadFooter
-                  loadingMore={loadingMore}
-                  loadMoreError={loadMoreError || undefined}
-                  onRetry={loadMore}
-                  loadingMoreLabel={t('components.businessUnitPicker.loadingMore')}
-                  className="border-t-0"
-                />
+                <TypeaheadFooter {...footerProps} onRetry={loadMore} className="border-t-0" />
               )}
             </div>
           )}

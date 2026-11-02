@@ -3498,7 +3498,6 @@ export const en = {
       typeView: 'View',
       typeProcedure: 'Stored Procedure',
       typeFunction: 'Function',
-      loadBuFailed: 'Failed to load business units',
       executeFailed: 'Failed to execute SQL',
       selectBuFirst: 'Select a business unit first',
       invalidSql: 'Invalid SQL',
