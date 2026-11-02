@@ -2610,6 +2610,7 @@ export const th: Translations = {
         seedBackstageRolePermission: { label: 'สิทธิ์ตามบทบาทของ Backstage', desc: 'การผูกบทบาท Backstage เข้ากับสิทธิ์' },
         seedReportTemplateUpload: { label: 'แม่แบบรายงาน', desc: 'อัปโหลดแม่แบบรายงานตั้งต้น' },
         seedLicenseFeature: { label: 'ฟีเจอร์ที่ขายได้', desc: 'แค็ตตาล็อกฟีเจอร์ของระบบไลเซนส์' },
+        seedSystemUser: { label: 'ผู้ใช้ระบบ', desc: 'บัญชีเครื่องของ license-master (ล็อกอินไม่ได้) — รันก่อนรายการอนุญาต API ของแอป' },
         seedApplicationApi: { label: 'รายการอนุญาต API ของแอป', desc: 'แอปไหน (x-app-id) เรียก API ตัวไหนได้บ้าง' },
         checkPermission: { label: 'ตรวจสิทธิ์ของแอป', desc: 'หาสิทธิ์ที่โค้ดประกาศแต่ฐานข้อมูลไม่มี และในทางกลับกัน' },
         checkBackstagePermission: { label: 'ตรวจสิทธิ์ของ Backstage', desc: 'อย่างเดียวกันกับสิทธิ์ระดับ Backstage' },

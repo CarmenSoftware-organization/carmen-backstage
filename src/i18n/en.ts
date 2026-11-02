@@ -3747,6 +3747,7 @@ export const en = {
         seedBackstageRolePermission: { label: 'Backstage role permissions', desc: 'Bindings between Backstage roles and permissions' },
         seedReportTemplateUpload: { label: 'Report templates', desc: 'Uploads the default report templates' },
         seedLicenseFeature: { label: 'Licensable features', desc: 'The licensing feature catalog' },
+        seedSystemUser: { label: 'System user', desc: 'The license-master machine account (cannot sign in) — run before the App API allowlist' },
         seedApplicationApi: { label: 'App API allowlist', desc: 'Which x-app-id may call which API' },
         checkPermission: { label: 'Check app permissions', desc: 'Finds permissions the code declares but the database lacks, and the reverse' },
         checkBackstagePermission: { label: 'Check Backstage permissions', desc: 'The same, for Backstage-level permissions' },
