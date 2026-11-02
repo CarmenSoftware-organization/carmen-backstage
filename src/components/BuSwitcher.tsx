@@ -9,6 +9,9 @@ import { buHueColor, buInitials } from '../utils/buHue';
 import { useI18n } from '../hooks/useI18n';
 import { useBusinessUnitSearch, type BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
 import { isNearBottom } from '../hooks/usePagedSearch';
+import { hydrateByKeys } from '../hooks/useHydratedOptions';
+import businessUnitService from '../services/businessUnitService';
+import type { BusinessUnit } from '../types';
 
 const RECENT_KEY = 'sqlwb_recent_bus_v2';
 const RECENT_MAX = 5;
@@ -49,6 +52,47 @@ function writeRecent(bus: BusinessUnitOption[]) {
   } catch {
     /* ignore quota / disabled storage */
   }
+}
+
+/**
+ * Check stored recents against the server: drop the BUs it says are gone and refresh name / cluster_name.
+ * Rewrites storage from its *current* content (a BU picked while the request was in flight is kept) and
+ * returns whether anything changed. A failed chunk leaves its codes exactly as stored: never drop on error.
+ */
+async function validateRecents(): Promise<boolean> {
+  const stored = readRecent();
+  if (stored.length === 0) return false;
+  const { rows, failedKeys = [] } = await hydrateByKeys<BusinessUnit>(
+    stored.map((r) => r.code),
+    'code',
+    async ({ advance, perpage }) => {
+      const res = await businessUnitService.getAll({ page: 1, perpage, advance });
+      return { data: (res.data || []) as BusinessUnit[], paginate: res.paginate };
+    },
+  );
+  const byCode = new Map(rows.map((b) => [b.code, b]));
+  const failed = new Set(failedKeys);
+  let changed = false;
+  const next: BusinessUnitOption[] = [];
+  for (const r of readRecent()) {
+    const fresh = byCode.get(r.code);
+    if (fresh) {
+      const entry = { ...r, name: fresh.name, cluster_name: fresh.cluster_name ?? null };
+      if (entry.name !== r.name || entry.cluster_name !== (r.cluster_name ?? null)) changed = true;
+      next.push(entry);
+    } else if (failed.has(r.code) || !stored.some((s) => s.code === r.code)) {
+      next.push(r); // request failed, or added after we asked: not ours to judge
+    } else {
+      changed = true; // the server does not know this BU any more
+    }
+  }
+  if (!changed) return false;
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore quota / disabled storage */
+  }
+  return true;
 }
 
 interface Section {
@@ -99,6 +143,8 @@ export function BuSwitcher({
   const optId = (i: number) => `${baseId}-opt-${i}`;
   // Scroll only after arrow-key moves: hover-driven scrolling could reach the bottom and fire loadMore
   const keyboardMoveRef = useRef(false);
+  // Bumped when validated recents were rewritten in storage, so the Recent section re-reads them
+  const [recentVersion, setRecentVersion] = useState(0);
 
   // Reset the query (and any pending multi-selection) each time the palette opens.
   useEffect(() => {
@@ -106,6 +152,22 @@ export function BuSwitcher({
       setSearch('');
       setChecked([]);
     }
+  }, [open]);
+
+  // Once per open: recents render from storage right away; this only removes / updates rows after it resolves.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    validateRecents()
+      .then((changed) => {
+        if (changed && !cancelled) setRecentVersion((v) => v + 1);
+      })
+      .catch(() => {
+        /* keep recents as stored */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
 
   const query = search.trim();
@@ -120,7 +182,7 @@ export function BuSwitcher({
     const sections: Section[] = [];
     let items = pending ? [] : results;
     if (!query && !stale) {
-      // `open` is a dep so recents re-read from storage each time the palette opens.
+      // `open` / `recentVersion` are deps so recents re-read from storage on each open and after validation.
       const recents = open ? readRecent() : [];
       if (recents.length) {
         const recentSet = new Set(recents.map((r) => r.code));
@@ -135,7 +197,9 @@ export function BuSwitcher({
     }
     sections.push({ key: 'results', label: null, items });
     return { sections, flat: sections.flatMap((s) => s.items) };
-  }, [results, pending, stale, query, open, t]);
+    // recentVersion is a re-read trigger for readRecent() (storage, not React state)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results, pending, stale, query, open, recentVersion, t]);
 
   // Keep the active index in range and scrolled into view.
   useEffect(() => {
@@ -183,12 +247,17 @@ export function BuSwitcher({
   const onInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      keyboardMoveRef.current = true;
-      if (flat.length) setActive((i) => (i + 1) % flat.length);
+      // Flag only a real move: the scroll effect never runs (and so never clears the flag) when the row stays put
+      if (flat.length > 1) {
+        keyboardMoveRef.current = true;
+        setActive((i) => (i + 1) % flat.length);
+      }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      keyboardMoveRef.current = true;
-      if (flat.length) setActive((i) => (i - 1 + flat.length) % flat.length);
+      if (flat.length > 1) {
+        keyboardMoveRef.current = true;
+        setActive((i) => (i - 1 + flat.length) % flat.length);
+      }
     } else if (e.key === 'Enter') {
       e.preventDefault();
       // ⌘/Ctrl+Enter = ยืนยันทั้งชุด — ไม่ขึ้นกับผลค้นหา จึงใช้ได้เสมอเมื่อมีที่ติ๊กไว้
@@ -196,22 +265,35 @@ export function BuSwitcher({
         confirmMany();
         return;
       }
-      // Enter เปล่า = สลับติ๊กแถวที่อยู่ — ระหว่าง pending แถวผลลัพธ์จาก server เป็นของคำค้นเก่า จึงเลือกได้เฉพาะแถว Recent
-      if (pending && active >= recentCount) return;
+      // Enter เปล่า = สลับติ๊กแถวที่อยู่ — ระหว่าง pending `flat` มีแต่แถว Recent (ผลลัพธ์ของคำค้นเก่าไม่ถูกแสดง)
       const bu = flat[active];
       if (bu) select(bu);
     }
     // Escape is handled by Radix Dialog (closes the palette).
   };
 
-  const recentCount = sections.find((sec) => sec.recent)?.items.length ?? 0;
   let flatIndex = -1;
+
+  const noMatches = !pending && !error && flat.length === 0;
+  const announcement = pending
+    ? t('switcher.loadingBus')
+    : error
+      ? error
+      : noMatches
+        ? `${t('switcher.buNoMatches', { search: query })} ${t('switcher.buNoMatchesHint')}`
+        : loadingMore
+          ? t('switcher.loadingMoreBus')
+          : (loadMoreError ?? '');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="top-[12vh] max-w-xl translate-y-0 gap-0 overflow-hidden p-0 [&>button]:hidden">
         <DialogTitle className="sr-only">{t('switcher.switchBu')}</DialogTitle>
         <DialogDescription className="sr-only">{t('switcher.chooseBu')}</DialogDescription>
+        {/* The one live region: always mounted, outside the listbox (a region that mounts already filled is not announced) */}
+        <span role="status" aria-live="polite" className="sr-only">
+          {announcement}
+        </span>
 
         {/* search */}
         <div className="flex items-center gap-3 border-b px-4 py-3.5">
@@ -249,9 +331,9 @@ export function BuSwitcher({
           onScroll={handleListScroll}
           className="max-h-[52vh] overflow-y-auto p-1.5"
         >
-          {!pending && !error && flat.length === 0 && (
+          {noMatches && (
             <div role="presentation" className="text-muted-foreground px-4 py-10 text-center text-sm">
-              <div aria-live="polite">
+              <div>
                 {t('switcher.buNoMatches', { search: query })}
                 <br />
                 {t('switcher.buNoMatchesHint')}
@@ -331,12 +413,12 @@ export function BuSwitcher({
           {pending && (
             <div role="presentation" className="text-muted-foreground flex items-center gap-2 px-4 py-4 text-sm">
               <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-              <span aria-live="polite">{t('switcher.loadingBus')}</span>
+              <span>{t('switcher.loadingBus')}</span>
             </div>
           )}
           {!pending && error && (
             <div role="presentation" className="flex items-center justify-between gap-2 px-4 py-4 text-sm">
-              <span className="text-destructive" aria-live="polite">{error}</span>
+              <span className="text-destructive">{error}</span>
               <Button variant="ghost" size="sm" className="h-7" onClick={refresh}>
                 {t('common.action.retry')}
               </Button>
@@ -345,7 +427,7 @@ export function BuSwitcher({
           {loadingMore && (
             <div role="presentation" className="text-muted-foreground flex items-center gap-2 border-t px-3 py-2 text-xs">
               <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-              <span aria-live="polite">{t('switcher.loadingMoreBus')}</span>
+              <span>{t('switcher.loadingMoreBus')}</span>
             </div>
           )}
           {!loadingMore && loadMoreError && <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />}
