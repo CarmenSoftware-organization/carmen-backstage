@@ -435,7 +435,7 @@ const NewsEdit: React.FC = () => {
 
             {/* Publish rail */}
             <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-4 lg:self-start">
-              <Card>
+              <Card className="overflow-visible">
                 <CardHeader>
                   <CardTitle>{t('pages.news.publish')}</CardTitle>
                   <CardDescription>{t('pages.news.publishDescription')}</CardDescription>
