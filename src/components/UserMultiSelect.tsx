@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Search, X, Loader2, RotateCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, X, RotateCw } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Skeleton } from './ui/skeleton';
-import { isNearBottom } from '../hooks/usePagedSearch';
-import { LoadMoreErrorRow } from './LoadMoreErrorRow';
 import { cn } from '../lib/utils';
 import { useUserSearch } from '../hooks/useUserSearch';
 import type { UserOption } from '../types';
 import { useI18n } from '../hooks/useI18n';
+import { useTypeahead } from './typeahead/useTypeahead';
+import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 
 interface UserMultiSelectProps {
   value: UserOption[];
@@ -21,6 +21,8 @@ interface UserMultiSelectProps {
   /** id ที่โหลดชื่อไม่สำเร็จ (เครือข่าย/5xx) — แสดง "โหลดไม่สำเร็จ" + ปุ่มลองใหม่ แทน "ไม่ทราบผู้ใช้" */
   failedIds?: ReadonlySet<string>;
   onRetryFailed?: () => void;
+  /** Reports the dropdown's real open state so a surrounding Dialog/Sheet can guard Escape. */
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
@@ -33,57 +35,53 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   pendingIds,
   failedIds,
   onRetryFailed,
+  onOpenChange,
 }) => {
   const { t } = useI18n();
   const effectivePlaceholder = placeholder ?? t('components.userMultiSelect.defaultPlaceholder');
   const [query, setQuery] = useState('');
-  const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const {
     results, loading, loadingMore, hasMore, loadMore, error: searchError, loadMoreError,
-  } = useUserSearch(query, open);
+  } = useUserSearch(query, searchOpen && !disabled);
+  const rows = !loading && !searchError ? results : [];
 
   const selectedIds = new Set(value.map((u) => u.id));
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  const ta = useTypeahead<UserOption>({
+    items: rows,
+    getKey: (u) => u.id,
+    isDisabled: (u) => selectedIds.has(u.id),
+    isSelected: (u) => selectedIds.has(u.id),
+    onPick: (u) => addUser(u),
+    closeOnPick: false,
+    disabled,
+    onOpenChange: (o) => { setSearchOpen(o); onOpenChange?.(o); },
+    hasMore, loadingMore, loadMoreError: loadMoreError || undefined, loadMore,
+  });
 
   const addUser = (u: UserOption) => {
     if (selectedIds.has(u.id)) return;
     onChange([...value, u]);
     setQuery('');
-    inputRef.current?.focus();
+    ta.inputRef.current?.focus();
   };
 
   const removeUser = (idToRemove: string) => {
     onChange(value.filter((u) => u.id !== idToRemove));
   };
 
+  // Backspace in an empty input removes the last chip. Everything else (arrows, Enter, Tab, Escape) is the hook's.
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !query && value.length > 0) {
       e.preventDefault();
       removeUser(value[value.length - 1].id);
-    } else if (e.key === 'Escape' && open) {
-      // Marks the Escape as handled so page-level shortcuts (useGlobalShortcuts skips
-      // defaultPrevented — e.g. CronJobEdit's cancel → navigate) don't also fire. React's
-      // root listener runs before the window listener, so this lands first.
-      e.preventDefault();
-      setOpen(false);
     }
   };
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div {...ta.getWrapperProps({ className: 'relative' })}>
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
         className={cn(
@@ -91,7 +89,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
           error ? 'border-destructive' : 'border-input',
           disabled && 'bg-muted/50 cursor-not-allowed',
         )}
-        onClick={() => !disabled && inputRef.current?.focus()}
+        onClick={() => !disabled && ta.inputRef.current?.focus()}
       >
         {value.map((u) => {
           const isPending = pendingIds?.has(u.id) ?? false;
@@ -145,85 +143,65 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
         <div className="flex flex-1 min-w-[160px] items-center gap-1">
           <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <input
-            ref={inputRef}
+            {...ta.getInputProps({ onKeyDown: handleKeyDown })}
             id={id}
             type="text"
             value={query}
             disabled={disabled}
             onChange={(e) => {
               setQuery(e.target.value);
-              setOpen(true);
+              ta.setOpen(true);
             }}
-            onFocus={() => setOpen(true)}
-            onKeyDown={handleKeyDown}
             placeholder={value.length === 0 ? effectivePlaceholder : ''}
-            className="flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
+            aria-invalid={error || undefined}
+            className="min-w-0 flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground"
           />
         </div>
       </div>
 
-      {open && !disabled && (
+      {ta.open && (
         <div
-          onScroll={(e) => {
-            // หน้าถัดไปพัง → รอปุ่ม Retry ไม่ยิงซ้ำทุกครั้งที่เลื่อน
-            if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore();
-          }}
+          {...ta.listProps}
           className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover shadow-md max-h-64 overflow-y-auto"
         >
-          {loading && (
-            <div className="px-3 py-4 text-sm text-muted-foreground flex items-center gap-2">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.userSearch.searchingEllipsis')}
-            </div>
-          )}
-          {!loading && searchError && (
-            <div className="px-3 py-4 text-sm text-destructive">{searchError}</div>
-          )}
-          {!loading && !searchError && results.length === 0 && (
-            <div className="px-3 py-4 text-sm text-muted-foreground">
-              {query
-                ? t('components.userSearch.noMatch', { query })
-                : t('components.userSearch.typeToSearch')}
-            </div>
-          )}
-          {!loading && !searchError && results.length > 0 && (
-            <ul className="py-1">
-              {results.map((u) => {
-                const alreadySelected = selectedIds.has(u.id);
-                return (
-                  <li key={u.id}>
-                    <button
-                      type="button"
-                      onClick={() => addUser(u)}
-                      disabled={alreadySelected}
-                      className={cn(
-                        'w-full text-left px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2',
-                        alreadySelected && 'opacity-50 cursor-not-allowed',
-                      )}
-                    >
-                      <span className="flex flex-col min-w-0">
-                        <span className="truncate">{u.name}</span>
-                        {u.email && (
-                          <span className="text-xs text-muted-foreground truncate">{u.email}</span>
-                        )}
-                      </span>
-                      {alreadySelected && (
-                        <span className="text-xs text-muted-foreground shrink-0">
-                          {t('components.userMultiSelect.alreadySelected')}
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          {loadingMore && (
-            <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.userPicker.loadingMore')}
-            </div>
-          )}
-          {!loading && !searchError && !loadingMore && loadMoreError && (
-            <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />
+          {rows.map((u, i) => {
+            const alreadySelected = selectedIds.has(u.id);
+            return (
+              <button
+                type="button"
+                key={u.id}
+                {...ta.getOptionProps(u, i)}
+                className={cn(
+                  'w-full text-left px-3 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground flex items-center justify-between gap-2',
+                  alreadySelected && 'opacity-50 cursor-not-allowed',
+                )}
+              >
+                <span className="flex flex-col min-w-0">
+                  <span className="truncate">{u.name}</span>
+                  {u.email && <span className="text-xs text-muted-foreground truncate">{u.email}</span>}
+                </span>
+                {alreadySelected && (
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {t('components.userMultiSelect.alreadySelected')}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          <TypeaheadStatus
+            loading={loading}
+            error={searchError || undefined}
+            empty={rows.length === 0}
+            searchingLabel={t('components.userSearch.searchingEllipsis')}
+            emptyLabel={query ? t('components.userSearch.noMatch', { query }) : t('components.userSearch.typeToSearch')}
+          />
+          {rows.length > 0 && (
+            <TypeaheadFooter
+              loadingMore={loadingMore}
+              loadMoreError={loadMoreError || undefined}
+              onRetry={loadMore}
+              loadingMoreLabel={t('components.userPicker.loadingMore')}
+            />
           )}
         </div>
       )}
