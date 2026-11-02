@@ -131,9 +131,11 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
   const clusterReadLabel =
     clusterOption && clusterOption.id === f.cluster_id
       ? clusterOption.name
-      : clusterName && clusterName !== '-' && clusterName !== f.cluster_id
-        ? clusterName
-        : undefined;
+      : currentClusterOption && currentClusterOption.id === f.cluster_id
+        ? currentClusterOption.name
+        : clusterName && clusterName !== '-' && clusterName !== f.cluster_id
+          ? clusterName
+          : undefined;
 
   const inline = (
     name: keyof BusinessUnitFormData,
@@ -272,10 +274,14 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
                 type: 'select',
                 required: true,
                 readLabel: clusterReadLabel,
+                // Clicking the field means "pick a cluster": the editor opens straight into the
+                // search list (one click, like the old <select>) instead of a chip the user must
+                // clear first. The current cluster's name is the placeholder; Escape / outside
+                // click cancels the edit, so the saved value is untouched until a row is picked.
                 renderEditor: (ctx) => (
                   <ClusterPicker
-                    value={ctx.value}
-                    knownOption={currentClusterOption}
+                    value=""
+                    placeholder={clusterReadLabel ?? (ctx.value || undefined)}
                     // The editor mounts only because the user just clicked the field to edit it —
                     // focus belongs in its search box, as the built-in inline editors do.
                     // eslint-disable-next-line jsx-a11y/no-autofocus
@@ -285,11 +291,10 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
                     ariaLabel={t('common.label.cluster')}
                     onOpenChange={ctx.setBusy}
                     onChange={(id, opt) => {
+                      if (!id) return;
                       if (opt) setClusterOption(opt);
-                      // The picker echoes the id once after hydrating a saved value; that is not an edit.
-                      if (id === ctx.value) return;
-                      if (id) ctx.commit(id);
-                      else ctx.setValue('');
+                      if (id === ctx.value) ctx.cancel();
+                      else ctx.commit(id);
                     }}
                   />
                 ),

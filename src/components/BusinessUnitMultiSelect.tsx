@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, RotateCw, Search, X } from 'lucide-react';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Skeleton } from './ui/skeleton';
@@ -83,7 +83,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
   const [pickedRows, setPickedRows] = useState<BusinessUnitOption[]>([]);
   const known = useMemo(() => [...pickedRows, ...results], [pickedRows, results]);
 
-  const { byKey, pending, missing } = useHydratedOptions<BusinessUnitOption>(
+  const { byKey, pending, missing, failed, retry: retryHydrate } = useHydratedOptions<BusinessUnitOption>(
     value,
     keyOf,
     (keys) =>
@@ -138,6 +138,8 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
     const bu = byKey.get(key);
     const isPending = pending.has(key);
     const isMissing = !bu && missing.has(key);
+    // โหลดไม่สำเร็จ (เครือข่าย/5xx) ≠ ไม่พบจริง — บอกต่างกันและให้กดลองใหม่ได้
+    const isFailed = isMissing && failed.has(key);
 
     if (isPending && keyBy === 'id') {
       return (
@@ -158,19 +160,31 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
     }
 
     // ไม่พบ: code แสดงตามเดิม · id ย่อแบบเดียวกับ user (`Not found · <8 ตัวแรก>`) ไม่โชว์ UUID เต็ม
+    const missingLabel = t(isFailed ? 'components.businessUnitPicker.loadFailed' : 'components.businessUnitPicker.notFound');
     const label = bu
       ? `${bu.code} - ${bu.name}`
       : isMissing && keyBy === 'id'
-        ? `${t('components.businessUnitPicker.notFound')} · ${key.slice(0, 8)}`
+        ? `${missingLabel} · ${key.slice(0, 8)}`
         : key;
     return (
       <Badge
         key={key}
         variant="secondary"
         className={cn('text-xs gap-1 pr-1', isMissing && 'text-muted-foreground')}
-        title={isMissing ? `${t('components.businessUnitPicker.notFound')} · ${key}` : undefined}
+        title={isMissing ? `${missingLabel} · ${key}` : undefined}
       >
         {label}
+        {isFailed && (
+          <button
+            type="button"
+            onClick={retryHydrate}
+            className="ml-0.5 hover:text-foreground"
+            aria-label={t('common.action.retry')}
+            title={t('common.action.retry')}
+          >
+            <RotateCw className="h-3 w-3" />
+          </button>
+        )}
         {!disabled && (
           <button
             type="button"

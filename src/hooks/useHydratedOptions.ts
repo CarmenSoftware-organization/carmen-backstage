@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PagedPage } from './usePagedSearch';
 
 /** จำนวนค่าสูงสุดต่อ request ตอน hydrate */
@@ -54,7 +54,8 @@ export interface HydratedOptionsConfig<T> {
  * ดึงเฉพาะคีย์ที่ยังไม่อยู่ใน `byKey`/`known` และยังไม่เคยยืนยันว่าไม่มีจริง
  * `pending` คำนวณระหว่าง render — ไม่มีเฟรมที่คีย์ไม่อยู่ในสถานะใดเลย
  * `missing` = ใช้แสดงผลเป็น not-found: ไม่พบจริง (สะสมไว้ ไม่ดึงซ้ำ) **หรือ** chunk พัง
- * `failed` = เฉพาะส่วนที่ chunk พัง — ลองใหม่เมื่อ `keys` เปลี่ยนหรือ remount
+ * `failed` = เฉพาะส่วนที่ chunk พัง — ลองใหม่เมื่อ `keys` เปลี่ยน, remount หรือเรียก `retry()`
+ *   ผู้แสดงผลควรแยก failed ("โหลดไม่สำเร็จ" + ปุ่มลองใหม่) ออกจาก not-found จริง
  *
  * `fetchByKeys` ไม่ต้อง stable — เก็บไว้ใน ref; effect ผูกกับเนื้อหาของ `keys`
  * (และชุดคีย์ที่ยัง resolve ไม่ได้ เพื่อดึงคีย์ที่หลุดจาก `known`)
@@ -64,7 +65,13 @@ export function useHydratedOptions<T>(
   keyOf: (row: T) => string,
   fetchByKeys: (keys: string[]) => Promise<HydrateResult<T>>,
   config?: HydratedOptionsConfig<T>,
-): { byKey: Map<string, T>; pending: Set<string>; missing: Set<string>; failed: Set<string> } {
+): {
+  byKey: Map<string, T>;
+  pending: Set<string>;
+  missing: Set<string>;
+  failed: Set<string>;
+  retry: () => void;
+} {
   const [byKeyState, setByKey] = useState<Map<string, T>>(() => new Map());
   const [notFound, setNotFound] = useState<Set<string>>(() => new Set());
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
@@ -153,5 +160,13 @@ export function useHydratedOptions<T>(
     return out;
   }, [notFound, failed]);
 
-  return { byKey, pending, missing, failed };
+  // ล้างชุดที่ chunk พัง → คีย์กลับเป็น pending และ effect ดึงใหม่ (unresolvedSig เปลี่ยน)
+  const retry = useCallback(() => {
+    if (failedRef.current.size === 0) return;
+    const empty = new Set<string>();
+    failedRef.current = empty;
+    setFailed(empty);
+  }, []);
+
+  return { byKey, pending, missing, failed, retry };
 }

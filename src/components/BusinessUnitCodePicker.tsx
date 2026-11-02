@@ -45,15 +45,22 @@ export function useBusinessUnitByCode(
 ): {
   option: BusinessUnitOption | null;
   missing: boolean;
+  failed: boolean;
+  retry: () => void;
 } {
-  const { byKey, missing } = useHydratedOptions<BusinessUnitOption>(
+  const { byKey, missing, failed, retry } = useHydratedOptions<BusinessUnitOption>(
     code ? [code] : [],
     keyOfOption,
     fetchByCodes,
     { known: known ? [known] : null },
   );
   const option = code ? (byKey.get(code) ?? null) : null;
-  return { option, missing: !!code && !option && missing.has(code) };
+  return {
+    option,
+    missing: !!code && !option && missing.has(code),
+    failed: !!code && !option && failed.has(code),
+    retry,
+  };
 }
 
 /**
@@ -67,7 +74,12 @@ export const BusinessUnitCodePicker: React.FC<BusinessUnitCodePickerProps> = ({
   const [picked, setPicked] = useState<BusinessUnitOption | null>(null);
   const pickedHere = picked && picked.code === value ? picked : null;
   const knownHere = knownOption && knownOption.code === value ? knownOption : null;
-  const { option: hydrated, missing: hydrationMissing } = useBusinessUnitByCode(value, pickedHere ?? knownHere);
+  const {
+    option: hydrated,
+    missing: hydrationMissing,
+    failed: hydrationFailed,
+    retry: retryHydrate,
+  } = useBusinessUnitByCode(value, pickedHere ?? knownHere);
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -136,7 +148,18 @@ export const BusinessUnitCodePicker: React.FC<BusinessUnitCodePickerProps> = ({
         }}
       />
       {isMissing && (
-        <p className="mt-1 text-xs text-muted-foreground">{t('components.businessUnitPicker.notFound')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {hydrationFailed ? (
+            <>
+              {t('components.businessUnitPicker.loadFailed')} ·{' '}
+              <button type="button" onClick={retryHydrate} className="underline hover:text-foreground">
+                {t('common.action.retry')}
+              </button>
+            </>
+          ) : (
+            t('components.businessUnitPicker.notFound')
+          )}
+        </p>
       )}
     </div>
   );

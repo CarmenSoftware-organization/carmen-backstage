@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, RotateCw } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Skeleton } from './ui/skeleton';
 import { isNearBottom } from '../hooks/usePagedSearch';
@@ -18,6 +18,9 @@ interface UserMultiSelectProps {
   id?: string;
   /** id ที่ยังรอ hydrate ชื่อ — แสดงเป็น skeleton chip (ยังลบได้) */
   pendingIds?: ReadonlySet<string>;
+  /** id ที่โหลดชื่อไม่สำเร็จ (เครือข่าย/5xx) — แสดง "โหลดไม่สำเร็จ" + ปุ่มลองใหม่ แทน "ไม่ทราบผู้ใช้" */
+  failedIds?: ReadonlySet<string>;
+  onRetryFailed?: () => void;
 }
 
 export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
@@ -28,6 +31,8 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   error = false,
   id,
   pendingIds,
+  failedIds,
+  onRetryFailed,
 }) => {
   const { t } = useI18n();
   const effectivePlaceholder = placeholder ?? t('components.userMultiSelect.defaultPlaceholder');
@@ -92,7 +97,10 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
           const isPending = pendingIds?.has(u.id) ?? false;
           // ไม่มีชื่อและไม่ได้รอ hydrate = หาผู้ใช้ไม่เจอ → chip จางพร้อมปุ่มลบ (ห้ามทิ้งค่าที่เลือกไว้)
           const isUnknown = !u.name && !isPending;
-          const label = isUnknown ? `${t('components.userPicker.unknownUser')} · ${u.id.slice(0, 8)}` : u.name;
+          const isFailed = isUnknown && (failedIds?.has(u.id) ?? false);
+          const label = isUnknown
+            ? `${t(isFailed ? 'components.userPicker.loadFailed' : 'components.userPicker.unknownUser')} · ${u.id.slice(0, 8)}`
+            : u.name;
           return (
             <Badge
               key={u.id}
@@ -103,6 +111,20 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                 <Skeleton className="h-3 w-20" />
               ) : (
                 <span className={cn('max-w-[160px] truncate', isUnknown && 'italic')}>{label}</span>
+              )}
+              {isFailed && onRetryFailed && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRetryFailed();
+                  }}
+                  className="ml-0.5 rounded hover:text-foreground"
+                  aria-label={t('common.action.retry')}
+                  title={t('common.action.retry')}
+                >
+                  <RotateCw className="h-3 w-3" />
+                </button>
               )}
               {!disabled && (
                 <button

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Search, X, Loader2, RotateCw } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useClusterSearch, toClusterOption, type ClusterOption } from '../hooks/useClusterSearch';
 import { isNearBottom } from '../hooks/usePagedSearch';
@@ -52,8 +52,8 @@ export function useClusterById(
   id: string,
   /** แถวที่ผู้เรียกถืออยู่แล้ว (เช่น option ที่ picker เพิ่งแจ้งมา) — ตรงกับ id = ไม่ยิง request */
   known?: ClusterOption | null,
-): { option: ClusterOption | null; pending: boolean; missing: boolean } {
-  const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(
+): { option: ClusterOption | null; pending: boolean; missing: boolean; failed: boolean; retry: () => void } {
+  const { byKey, pending, missing, failed, retry } = useHydratedOptions<ClusterOption>(
     id ? [id] : [],
     keyOfOption,
     fetchClustersByIds,
@@ -64,6 +64,9 @@ export function useClusterById(
     option,
     pending: !!id && !option && pending.has(id),
     missing: !!id && !option && missing.has(id),
+    // โหลดไม่สำเร็จ (เครือข่าย/5xx) — ต่างจาก "ไม่พบ": แสดงปุ่มลองใหม่ได้
+    failed: !!id && !option && failed.has(id),
+    retry,
   };
 }
 
@@ -126,12 +129,13 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     : (placeholder ?? t('components.clusterPicker.defaultPlaceholder'));
   const pickedHere = picked && picked.id === value ? picked : null;
   const knownHere = knownOption && knownOption.id === value ? knownOption : null;
-  const { option: hydrated, pending: hydPending, missing: hydMissing } =
+  const { option: hydrated, pending: hydPending, missing: hydMissing, failed: hydFailed, retry: retryHydrate } =
     useClusterById(pinnedMatch ? '' : value, pickedHere ?? knownHere);
 
   const resolved = value && !pinnedMatch ? (pickedHere ?? hydrated) : null;
   const isPending = !!value && !pinnedMatch && !resolved && hydPending;
   const isMissing = !!value && !pinnedMatch && !resolved && hydMissing;
+  const isFailed = isMissing && hydFailed;
 
   // hydrate เสร็จ → แจ้งชื่อหนึ่งครั้งต่อ id · ไม่แจ้งเมื่อ missing
   useEffect(() => {
@@ -210,7 +214,10 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     // id ที่หาไม่เจอ: ย่อแบบเดียวกับ user (`Not found · <8 ตัวแรก>`) ไม่โชว์ UUID เต็ม
     const title = pinnedMatch
       ? pinnedMatch.label
-      : (resolved?.name ?? (isMissing ? `${t('components.clusterPicker.notFound')} · ${value.slice(0, 8)}` : value));
+      : (resolved?.name ??
+        (isMissing
+          ? `${t(isFailed ? 'components.clusterPicker.loadFailed' : 'components.clusterPicker.notFound')} · ${value.slice(0, 8)}`
+          : value));
     const sub = resolved ? resolved.code : null;
     const canClear = !disabled;
     return (
@@ -229,6 +236,17 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
             <span className={cn('truncate', isMissing && 'italic')}>{title}</span>
             {sub && <span className="truncate font-mono text-xs text-muted-foreground">{sub}</span>}
           </span>
+          {isFailed && (
+            <button
+              type="button"
+              onClick={retryHydrate}
+              className="shrink-0 rounded hover:text-foreground"
+              aria-label={t('common.action.retry')}
+              title={t('common.action.retry')}
+            >
+              <RotateCw className="h-4 w-4" />
+            </button>
+          )}
           {canClear && (
             <button
               type="button"
