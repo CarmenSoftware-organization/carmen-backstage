@@ -181,12 +181,21 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
             a real uploaded avatar ARE different artwork, so both still show when set. */}
         <div className="flex flex-wrap items-center gap-3 p-4 sm:px-6">
           <div className="flex shrink-0 gap-2.5">
-            {logoUrl && <img src={logoUrl} alt="" className="h-10 w-14 rounded-lg border object-cover" />}
+            {/* Logo keeps its own aspect: slot height fixed, width follows the image, capped at 4:1
+                (h-10 → max-w-40). object-cover on a fixed w-14 used to crop landscape logos.
+                min-w-10 stops the w-auto box collapsing to 0 before the image decodes. */}
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt=""
+                className="bg-background h-10 w-auto min-w-10 max-w-40 rounded-lg border object-contain p-0.5"
+              />
+            )}
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="size-10 rounded-lg border object-cover" />
+              <img src={avatarUrl} alt="" className="size-10 rounded-full border object-cover" />
             ) : (
               !logoUrl && (
-                <div className="bg-primary/90 grid size-10 place-items-center rounded-lg text-base font-bold text-white">
+                <div className="bg-primary/90 grid size-10 place-items-center rounded-full text-base font-bold text-white">
                   {(f.name || f.code || '?').slice(0, 1).toUpperCase()}
                 </div>
               )
