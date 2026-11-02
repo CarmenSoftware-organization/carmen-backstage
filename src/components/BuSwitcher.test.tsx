@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BuSwitcher } from './BuSwitcher';
 import type { BusinessUnit } from '../types';
+
+const getAll = vi.hoisted(() => vi.fn());
+vi.mock('../services/businessUnitService', () => ({ default: { getAll } }));
 
 // Radix Dialog relies on pointer-capture / scroll APIs jsdom doesn't implement.
 beforeAll(() => {
@@ -32,68 +35,103 @@ const BUS: BusinessUnit[] = [
   { id: '3', code: 'BETA-TH', name: 'Beta Thailand', cluster_name: 'Beta', is_active: true },
 ];
 
-function setup(props: Partial<React.ComponentProps<typeof BuSwitcher>> = {}) {
+async function setup(props: Partial<React.ComponentProps<typeof BuSwitcher>> = {}) {
   const onSelect = vi.fn();
   const onOpenChange = vi.fn();
   render(
     <BuSwitcher
       open
       onOpenChange={onOpenChange}
-      businessUnits={BUS}
       currentCode=""
       onSelect={onSelect}
       {...props}
     />,
   );
+  await screen.findByText('Acme Thailand');
   return { onSelect, onOpenChange };
 }
 
 describe('BuSwitcher', () => {
   beforeEach(() => {
     vi.stubGlobal('localStorage', makeLocalStorage());
+    getAll.mockReset();
+    // Server-side search: the mock filters like the backend (name / code), code-sorted.
+    getAll.mockImplementation(async ({ search }: { search: string }) => {
+      const q = (search || '').toLowerCase();
+      const data = BUS.filter((b) => !q || `${b.code} ${b.name}`.toLowerCase().includes(q));
+      return { data, paginate: { total: data.length } };
+    });
   });
 
-  it('filters BUs by the search query', async () => {
+  it('searches BUs on the server with the query', async () => {
     const user = userEvent.setup();
-    setup();
+    await setup();
     await user.type(screen.getByLabelText('Search business units'), 'beta');
+    await waitFor(() => expect(getAll).toHaveBeenLastCalledWith(expect.objectContaining({ search: 'beta', sort: 'code:asc' })));
+    await waitFor(() => expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument());
     expect(screen.getByText('Beta Thailand')).toBeInTheDocument();
-    expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument();
+  });
+
+  it('lists BUs flat (no cluster grouping) and shows the server total', async () => {
+    await setup();
+    expect(screen.getByText('3 BUs')).toBeInTheDocument();
   });
 
   it('connects the BU on click and closes', async () => {
     const user = userEvent.setup();
-    const { onSelect, onOpenChange } = setup();
+    const { onSelect, onOpenChange } = await setup();
     await user.click(screen.getByText('Acme Thailand'));
-    expect(onSelect).toHaveBeenCalledWith('ACME-TH');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: '1', code: 'ACME-TH', name: 'Acme Thailand' }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('connects the active row on Enter', async () => {
     const user = userEvent.setup();
-    const { onSelect } = setup();
+    const { onSelect } = await setup();
     const input = screen.getByLabelText('Search business units');
     await user.type(input, 'singapore');
+    await waitFor(() => expect(screen.queryByText('Acme Thailand')).not.toBeInTheDocument());
     await user.keyboard('{Enter}');
-    expect(onSelect).toHaveBeenCalledWith('ACME-SG');
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ code: 'ACME-SG' }));
   });
 
-  it('marks the currently connected BU', () => {
-    setup({ currentCode: 'ACME-TH' });
+  it('marks the currently connected BU', async () => {
+    await setup({ currentCode: 'ACME-TH' });
     const row = screen.getByText('ACME-TH').closest('[role="option"]') as HTMLElement;
     expect(within(row).getByText('connected')).toBeInTheDocument();
   });
 
-  it('pins recently used BUs under a Recent heading', () => {
-    localStorage.setItem('sqlwb_recent_bus', JSON.stringify(['BETA-TH']));
-    setup();
+  it('pins recently used BUs under a Recent heading, without repeating them below', async () => {
+    localStorage.setItem(
+      'sqlwb_recent_bus_v2',
+      JSON.stringify([{ id: '3', code: 'BETA-TH', name: 'Beta Thailand', cluster_name: 'Beta' }]),
+    );
+    await setup();
     expect(screen.getByText('Recent')).toBeInTheDocument();
+    expect(screen.getAllByText('BETA-TH')).toHaveLength(1);
+  });
+
+  it('ignores legacy bare-code recents', async () => {
+    localStorage.setItem('sqlwb_recent_bus', JSON.stringify(['BETA-TH']));
+    await setup();
+    expect(screen.queryByText('Recent')).not.toBeInTheDocument();
+  });
+
+  it('confirms multiple picks sorted by code', async () => {
+    const user = userEvent.setup();
+    const onSelectMany = vi.fn();
+    await setup({ multiple: true, onSelectMany });
+    await user.click(screen.getByText('Beta Thailand'));
+    await user.click(screen.getByText('Acme Thailand'));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+    expect(onSelectMany.mock.calls[0][0].map((b: { code: string }) => b.code)).toEqual(['ACME-TH', 'BETA-TH']);
   });
 
   it('records the connected BU as recent for next time', async () => {
     const user = userEvent.setup();
-    setup();
+    await setup();
     await user.click(screen.getByText('Acme Singapore'));
-    expect(JSON.parse(localStorage.getItem('sqlwb_recent_bus') || '[]')).toContain('ACME-SG');
+    const recent = JSON.parse(localStorage.getItem('sqlwb_recent_bus_v2') || '[]');
+    expect(recent[0]).toMatchObject({ id: '2', code: 'ACME-SG' });
   });
 });

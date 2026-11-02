@@ -15,10 +15,10 @@ import {
 } from '../../components/ui/select';
 import { useAuth } from '../../context/AuthContext';
 import sqlQueryService from '../../services/sqlQueryService';
-import { fetchAllBusinessUnits } from '../../utils/fetchAllBusinessUnits';
+import type { BusinessUnitOption } from '../../hooks/useBusinessUnitSearch';
 import { validateSqlSafety, classifyStatements } from '../../utils/sqlValidator';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
-import type { BusinessUnit, DbObjectsResponse, SqlExecuteResult } from '../../types';
+import type { DbObjectsResponse, SqlExecuteResult } from '../../types';
 import { SqlEditor } from './SqlEditor';
 import { ResultPanel } from './ResultPanel';
 import { DbObjectTree } from './DbObjectTree';
@@ -67,7 +67,8 @@ export default function SqlWorkbench() {
   const { hasPermission } = useAuth();
   const canManage = hasPermission('sql_workbench.manage');
 
-  const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
+  const [selectedBu, setSelectedBu] = useState<BusinessUnitOption | null>(null);
+  // buCode stays the source of truth the effects and stale-response guards depend on.
   const [buCode, setBuCode] = useState('');
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
@@ -102,21 +103,6 @@ export default function SqlWorkbench() {
     }
   };
 
-  // Load the BU list once.
-  useEffect(() => {
-    let cancelled = false;
-    fetchAllBusinessUnits({ label: 'SqlWorkbench.bus' })
-      .then((rows) => {
-        if (!cancelled) setBusinessUnits(rows);
-      })
-      .catch(() => {
-        if (!cancelled) toast.error(t('pages.sqlWorkbench.loadBuFailed'));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
-
   // Always holds the latest selected BU so async handlers can detect a BU switch
   // that happened mid-flight and discard their stale response.
   const buCodeRef = useRef(buCode);
@@ -136,7 +122,6 @@ export default function SqlWorkbench() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const selectedBu = businessUnits.find((b) => b.code === buCode) ?? null;
 
   // Load db objects whenever the selected BU changes.
   const dbReqSeq = useRef(0);
@@ -516,9 +501,11 @@ export default function SqlWorkbench() {
         <BuSwitcher
           open={switcherOpen}
           onOpenChange={setSwitcherOpen}
-          businessUnits={businessUnits}
           currentCode={buCode}
-          onSelect={setBuCode}
+          onSelect={(bu) => {
+            setSelectedBu(bu);
+            setBuCode(bu.code);
+          }}
         />
 
         {confirmSql !== null &&

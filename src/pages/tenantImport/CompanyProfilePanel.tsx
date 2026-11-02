@@ -165,7 +165,7 @@ export function CompanyProfilePanel({
   file,
 }: {
   step: PreconfigStepMeta;
-  bu: BusinessUnit;
+  bu: Pick<BusinessUnit, 'id' | 'code'>;
   file: File;
 }) {
   const { t } = useI18n();

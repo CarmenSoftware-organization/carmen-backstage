@@ -8,11 +8,10 @@ import { Card, CardContent } from '../components/ui/card';
 import { BuSwitcher } from '../components/BuSwitcher';
 import { DevDebugSheet } from '../components/ui/dev-debug-sheet';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
-import { fetchAllBusinessUnits } from '../utils/fetchAllBusinessUnits';
+import type { BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
 import preconfigImportService from '../services/preconfigImportService';
 import { parseApiError } from '../utils/errorParser';
 import type {
-  BusinessUnit,
   PreconfigCheckReport,
   PreconfigImportSummary,
   PreconfigStepMeta,
@@ -29,9 +28,8 @@ type Screen = 'pick-bu' | 'upload' | 'check' | 'steps';
 export default function TenantImportWizard() {
   const { t } = useI18n();
   const [screen, setScreen] = useState<Screen>('pick-bu');
-  const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
   const [buOpen, setBuOpen] = useState(false);
-  const [bu, setBu] = useState<BusinessUnit | null>(null);
+  const [bu, setBu] = useState<BusinessUnitOption | null>(null);
   const [steps, setSteps] = useState<PreconfigStepMeta[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [report, setReport] = useState<PreconfigCheckReport | null>(null);
@@ -80,19 +78,7 @@ export default function TenantImportWizard() {
 
   useEffect(() => {
     (async () => {
-      // Independent settle: a rejected step catalog (e.g. `data_import.manage` not yet
-      // seeded in this environment) must not take the BU list down with it — the user
-      // can still pick a BU even while the catalog fetch fails.
-      const [listResult, catalogResult] = await Promise.allSettled([
-        fetchAllBusinessUnits({ label: 'TenantImportWizard.bus' }),
-        preconfigImportService.getSteps(),
-      ]);
-
-      if (listResult.status === 'fulfilled') {
-        setBusinessUnits(listResult.value);
-      } else {
-        toast.error(parseApiError(listResult.reason).message);
-      }
+      const [catalogResult] = await Promise.allSettled([preconfigImportService.getSteps()]);
 
       if (catalogResult.status === 'fulfilled') {
         setSteps(catalogResult.value);
@@ -434,10 +420,8 @@ export default function TenantImportWizard() {
       <BuSwitcher
         open={buOpen}
         onOpenChange={setBuOpen}
-        businessUnits={businessUnits}
         currentCode={bu?.code ?? ''}
-        onSelect={(code) => {
-          const picked = businessUnits.find((b) => b.code === code) ?? null;
+        onSelect={(picked) => {
           abortRef.current?.abort();
           resetGenerations();
           setBu(picked);
@@ -446,7 +430,7 @@ export default function TenantImportWizard() {
           setReport(null);
           setStates({});
           setActiveId('');
-          setScreen(picked ? 'upload' : 'pick-bu');
+          setScreen('upload');
         }}
       />
     </Layout>

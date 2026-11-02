@@ -1,13 +1,13 @@
 import { ChevronsUpDown, Database } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import type { BusinessUnit } from '../../types';
+import type { BusinessUnitOption } from '../../hooks/useBusinessUnitSearch';
 import { buHueColor, buInitials } from '../../utils/buHue';
 import { useI18n } from '../../hooks/useI18n';
 
 interface ConnectionBarProps {
   /** The currently connected BU, or null when none is selected yet. */
-  bu: BusinessUnit | null;
+  bu: BusinessUnitOption | null;
   /** True when the user holds `sql_workbench.manage` (can Run/Save/Drop) — the write signal. */
   canWrite: boolean;
   /** Open the BU switcher. */
