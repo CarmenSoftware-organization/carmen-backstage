@@ -33,16 +33,16 @@ interface ClusterPickerProps {
 const EMPTY_PINNED: PinnedRow[] = [];
 
 // ระดับ module = stable
-const fetchByIds = (ids: string[]) =>
+export const fetchClustersByIds = (ids: string[]) =>
   hydrateByKeys<ClusterOption>(ids, 'id', async ({ advance, perpage }) => {
     const res = await clusterService.getAll({ page: 1, perpage, advance });
     return { data: ((res.data || []) as Cluster[]).map(toClusterOption), paginate: res.paginate };
   });
-const keyOfOption = (o: ClusterOption) => o.id;
+export const keyOfOption = (o: ClusterOption) => o.id;
 
 /** hydrate cluster จาก id เดียว — ใช้ใน picker และหน้าที่ต้องแสดงชื่อตอน picker ยังไม่ mount (เช่นอยู่ใน Sheet ที่ปิด) · id '' = ไม่ยิง request */
 export function useClusterById(id: string): { option: ClusterOption | null; pending: boolean; missing: boolean } {
-  const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(id ? [id] : [], keyOfOption, fetchByIds);
+  const { byKey, pending, missing } = useHydratedOptions<ClusterOption>(id ? [id] : [], keyOfOption, fetchClustersByIds);
   const option = id ? (byKey.get(id) ?? null) : null;
   return {
     option,

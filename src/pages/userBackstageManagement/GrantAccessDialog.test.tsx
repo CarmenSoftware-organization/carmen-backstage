@@ -141,7 +141,8 @@ describe('GrantAccessDialog', () => {
     await pickUser(user);
     await user.click(screen.getByRole('checkbox', { name: 'Backstage Admin' }));
     await user.selectOptions(screen.getByLabelText('Scope'), 'A specific cluster');
-    await user.selectOptions(screen.getByLabelText('Cluster'), 'Cluster One');
+    await user.click(screen.getByLabelText('Cluster'));
+    await user.click(await screen.findByRole('button', { name: /Cluster One/ }));
     await user.click(screen.getByRole('button', { name: /Grant access/ }));
 
     await waitFor(() =>
@@ -217,6 +218,7 @@ describe('GrantAccessDialog', () => {
 
     expect(screen.getByRole('checkbox', { name: 'Backstage Admin' })).not.toBeChecked();
     expect(asMock(roleService.getAll)).toHaveBeenCalledTimes(2);
-    expect(asMock(clusterService.getAll)).toHaveBeenCalledTimes(2);
+    // Clusters are no longer loaded on open — the picker searches lazily when its dropdown opens.
+    expect(asMock(clusterService.getAll)).not.toHaveBeenCalled();
   });
 });

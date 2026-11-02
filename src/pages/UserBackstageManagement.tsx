@@ -10,7 +10,7 @@ import userBackstageService from "../services/userBackstageService";
 import userRoleService from "../services/userRoleService";
 import roleService from "../services/roleService";
 import { fetchAllPages, type PagedResponse } from "../utils/fetchAllPages";
-import { fetchAllClusters } from "../hooks/useAllClusters";
+import { ClusterPicker, useClusterById } from "../components/ClusterPicker";
 import { parseApiError } from '../utils/errorParser';
 
 import { Button } from "../components/ui/button";
@@ -35,9 +35,6 @@ import type { PaginateParams, BackstageUserRow, BackstageUserRegistrySummary } f
 import type { ColumnDef } from "@tanstack/react-table";
 import { useI18n } from '../hooks/useI18n';
 import { readStoredPerpage } from '../utils/pageRange';
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring';
 
 const fmtDateTime = (v?: string) => {
   if (!v) return '-';
@@ -83,9 +80,12 @@ const UserBackstageManagement: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   const [roleOptions, setRoleOptions] = useState<{ id: string; name: string }[]>([]);
-  const [clusterOptions, setClusterOptions] = useState<{ id: string; name: string }[]>([]);
+  // Escape while the cluster dropdown is open must close only the dropdown, not the Sheet — a ref, not state.
+  const clusterPickerOpenRef = useRef(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // Name for the active-filter chip while the Sheet (and its picker) is closed, incl. a persisted filter on cold load.
+  const scopeCluster = useClusterById(scopeFilter === 'backstage' ? '' : scopeFilter);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useGlobalShortcuts({
@@ -143,7 +143,7 @@ const UserBackstageManagement: React.FC = () => {
     fetchRows(paginate);
   }, [fetchRows, paginate]);
 
-  // Role/cluster names for the filter Sheet and the active-filter chips. Best-effort:
+  // Role names for the filter Sheet and the active-filter chips. Best-effort:
   // if either fails, filtering still works by id — only the display name is missing.
   useEffect(() => {
     (async () => {
@@ -155,10 +155,6 @@ const UserBackstageManagement: React.FC = () => {
         );
         setRoleOptions(roles.map((x) => ({ id: x.id, name: x.name })));
       } catch { /* filter buttons fall back to raw ids */ }
-      try {
-        const clusters = await fetchAllClusters();
-        setClusterOptions(clusters.map((x) => ({ id: x.id, name: x.name })));
-      } catch { /* same */ }
     })();
   }, []);
 
@@ -456,7 +452,11 @@ const UserBackstageManagement: React.FC = () => {
                     )}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-sm p-4 sm:p-6">
+                <SheetContent
+                  side="right"
+                  className="w-full sm:max-w-sm p-4 sm:p-6"
+                  onEscapeKeyDown={(e) => { if (clusterPickerOpenRef.current) e.preventDefault(); }}
+                >
                   <SheetHeader>
                     <SheetTitle>{t('common.label.filters')}</SheetTitle>
                     <SheetDescription>{t('pages.userBackstage.filterDescription')}</SheetDescription>
@@ -515,18 +515,17 @@ const UserBackstageManagement: React.FC = () => {
 
                     <div className="space-y-3">
                       <Label htmlFor="scope_filter">{t('pages.userBackstage.scopeLabel')}</Label>
-                      <select
+                      <ClusterPicker
                         id="scope_filter"
                         value={scopeFilter}
-                        onChange={(e) => handleScopeFilter(e.target.value)}
-                        className={selectClassName}
-                      >
-                        <option value="">{t('pages.userBackstage.anyScope')}</option>
-                        <option value="backstage">{t('pages.userBackstage.backstageWide')}</option>
-                        {clusterOptions.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
-                      </select>
+                        canSearch={true}
+                        pinned={[
+                          { value: '', label: t('pages.userBackstage.anyScope') },
+                          { value: 'backstage', label: t('pages.userBackstage.backstageWide') },
+                        ]}
+                        onOpenChange={(o) => { clusterPickerOpenRef.current = o; }}
+                        onChange={(id) => { if (id !== scopeFilter) handleScopeFilter(id); }}
+                      />
                     </div>
 
                     {activeFilterCount > 0 && (
@@ -553,7 +552,7 @@ const UserBackstageManagement: React.FC = () => {
                   <Badge variant="secondary" className="text-xs gap-1 pr-1">
                     {scopeFilter === 'backstage'
                       ? t('pages.userBackstage.backstageWide')
-                      : (clusterOptions.find((c) => c.id === scopeFilter)?.name || scopeFilter)}
+                      : (scopeCluster.option?.name || scopeFilter)}
                     <button onClick={() => handleScopeFilter('')} className="ml-0.5 hover:text-foreground">
                       <X className="h-3 w-3" />
                     </button>
