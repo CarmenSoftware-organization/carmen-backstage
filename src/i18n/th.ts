@@ -773,6 +773,8 @@ export const th: Translations = {
       defaultPlaceholder: 'ค้นหาผู้ใช้ด้วยชื่อผู้ใช้หรืออีเมล',
       disabledLabel: 'ไม่พร้อมใช้งาน',
       clearSelectedAria: 'ล้างผู้ใช้ที่เลือก {{name}}',
+      loadingMore: 'กำลังโหลดเพิ่ม…',
+      unknownUser: 'ไม่ทราบผู้ใช้',
     },
     // ใช้ร่วมกันระหว่าง UserMultiSelect.tsx กับ UserPicker.tsx — ทั้งสองไฟล์ใช้ useUserSearch
     // และแสดงข้อความ dropdown เหมือนกันเป๊ะ
@@ -791,6 +793,7 @@ export const th: Translations = {
       suggestedHeading: 'แนะนำสำหรับลูกค้ารายนี้',
       allHeading: 'Business unit ทั้งหมด',
       loadingMore: 'กำลังโหลดเพิ่ม…',
+      notFound: 'ไม่พบ',
     },
     customerPicker: {
       defaultPlaceholder: 'ค้นหาลูกค้าด้วยเลข AR หรือชื่อบริษัท',

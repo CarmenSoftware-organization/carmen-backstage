@@ -1009,6 +1009,8 @@ export const en = {
       defaultPlaceholder: 'Search users by username or email',
       disabledLabel: 'Unavailable',
       clearSelectedAria: 'Clear selected user {{name}}',
+      loadingMore: 'Loading more…',
+      unknownUser: 'Unknown user',
     },
     // Shared between UserMultiSelect.tsx and UserPicker.tsx — both wrap useUserSearch and
     // render byte-identical dropdown copy.
@@ -1027,6 +1029,7 @@ export const en = {
       suggestedHeading: 'Suggested for this customer',
       allHeading: 'All business units',
       loadingMore: 'Loading more…',
+      notFound: 'Not found',
     },
     customerPicker: {
       defaultPlaceholder: 'Search customers by AR number or company',

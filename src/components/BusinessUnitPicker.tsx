@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useBusinessUnitSearch, type BusinessUnitOption } from '../hooks/useBusinessUnitSearch';
+import { isNearBottom } from '../hooks/usePagedSearch';
 import { useI18n } from '../hooks/useI18n';
 
 interface BusinessUnitPickerProps {
@@ -24,9 +25,6 @@ interface BusinessUnitPickerProps {
   /** เปลี่ยนค่าเมื่อต้องการให้ดึงผลค้นหาใหม่ (เช่นหลังผูก BU แล้วสถานะแถวเปลี่ยน) */
   refreshKey?: number;
 }
-
-/** ระยะ (px) จากท้ายรายการที่เริ่มโหลดหน้าถัดไป */
-const LOAD_MORE_THRESHOLD_PX = 48;
 
 const optionLabel = (b: BusinessUnitOption) => `${b.code} · ${b.name}`;
 
@@ -93,8 +91,7 @@ export const BusinessUnitPicker: React.FC<BusinessUnitPickerProps> = ({
   }, [refreshKey, refresh]);
 
   const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    if (el.scrollHeight - el.scrollTop - el.clientHeight <= LOAD_MORE_THRESHOLD_PX && hasMore && !loadingMore) {
+    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore) {
       loadMore();
     }
   };

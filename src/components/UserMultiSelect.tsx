@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { Badge } from './ui/badge';
+import { Skeleton } from './ui/skeleton';
+import { isNearBottom } from '../hooks/usePagedSearch';
 import { cn } from '../lib/utils';
 import { useUserSearch } from '../hooks/useUserSearch';
 import type { UserOption } from '../types';
@@ -13,6 +15,8 @@ interface UserMultiSelectProps {
   disabled?: boolean;
   error?: boolean;
   id?: string;
+  /** id ที่ยังรอ hydrate ชื่อ — แสดงเป็น skeleton chip (ยังลบได้) */
+  pendingIds?: ReadonlySet<string>;
 }
 
 export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
@@ -22,6 +26,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   disabled = false,
   error = false,
   id,
+  pendingIds,
 }) => {
   const { t } = useI18n();
   const effectivePlaceholder = placeholder ?? t('components.userMultiSelect.defaultPlaceholder');
@@ -30,7 +35,9 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { results, loading, error: searchError } = useUserSearch(query, open);
+  const {
+    results, loading, loadingMore, hasMore, loadMore, error: searchError,
+  } = useUserSearch(query, open);
 
   const selectedIds = new Set(value.map((u) => u.id));
 
@@ -76,24 +83,38 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
         )}
         onClick={() => !disabled && inputRef.current?.focus()}
       >
-        {value.map((u) => (
-          <Badge key={u.id} variant="secondary" className="gap-1 pl-2 pr-1 py-0.5 text-xs">
-            <span className="max-w-[160px] truncate">{u.name}</span>
-            {!disabled && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeUser(u.id);
-                }}
-                className="ml-0.5 rounded hover:text-destructive"
-                aria-label={t('common.action.removeAria', { name: u.name })}
-              >
-                <X className="h-3 w-3" />
-              </button>
-            )}
-          </Badge>
-        ))}
+        {value.map((u) => {
+          const isPending = pendingIds?.has(u.id) ?? false;
+          // ไม่มีชื่อและไม่ได้รอ hydrate = หาผู้ใช้ไม่เจอ → chip จางพร้อมปุ่มลบ (ห้ามทิ้งค่าที่เลือกไว้)
+          const isUnknown = !u.name && !isPending;
+          const label = isUnknown ? `${t('components.userPicker.unknownUser')} · ${u.id.slice(0, 8)}` : u.name;
+          return (
+            <Badge
+              key={u.id}
+              variant="secondary"
+              className={cn('gap-1 pl-2 pr-1 py-0.5 text-xs', isUnknown && 'text-muted-foreground')}
+            >
+              {isPending ? (
+                <Skeleton className="h-3 w-20" />
+              ) : (
+                <span className={cn('max-w-[160px] truncate', isUnknown && 'italic')}>{label}</span>
+              )}
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeUser(u.id);
+                  }}
+                  className="ml-0.5 rounded hover:text-destructive"
+                  aria-label={t('common.action.removeAria', { name: label || u.id })}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </Badge>
+          );
+        })}
         <div className="flex flex-1 min-w-[160px] items-center gap-1">
           <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <input
@@ -115,7 +136,12 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
       </div>
 
       {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover shadow-md max-h-64 overflow-y-auto">
+        <div
+          onScroll={(e) => {
+            if (isNearBottom(e.currentTarget) && hasMore && !loadingMore) loadMore();
+          }}
+          className="absolute z-50 mt-1 w-full rounded-md border border-input bg-popover shadow-md max-h-64 overflow-y-auto"
+        >
           {loading && (
             <div className="px-3 py-4 text-sm text-muted-foreground flex items-center gap-2">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.userSearch.searchingEllipsis')}
@@ -162,6 +188,11 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                 );
               })}
             </ul>
+          )}
+          {loadingMore && (
+            <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.userPicker.loadingMore')}
+            </div>
           )}
         </div>
       )}
