@@ -265,7 +265,8 @@ const LicenseIntakeDetail: React.FC = () => {
 
             {isPending && (
               <Can permission="subscription.approve">
-                <Card>
+                {/* overflow-visible: Card มี overflow-hidden ซึ่งตัด dropdown ของ BusinessUnitPicker */}
+                <Card className="overflow-visible">
                   <CardHeader className="pb-2">
                     <h2 className="text-base font-semibold">{t('pages.licenseIntakes.decisionTitle')}</h2>
                     <p className="text-sm text-muted-foreground">{t('pages.licenseIntakes.decisionDescription')}</p>
