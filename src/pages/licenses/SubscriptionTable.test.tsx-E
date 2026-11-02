@@ -1,0 +1,562 @@
+import React from 'react';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+
+// Radix dropdown/sheet rely on pointer-capture / scroll APIs jsdom lacks.
+beforeAll(() => {
+  if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false;
+  if (!Element.prototype.setPointerCapture) Element.prototype.setPointerCapture = () => {};
+  if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => {};
+  if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => {};
+});
+
+// Node 26 exposes bare `localStorage` as undefined; the page reads it on every render
+// (search/status-filter/expiring-soon-filter/page/sort/perpage are all seeded from it).
+const makeLocalStorage = () => {
+  const store: Record<string, string> = {};
+  return {
+    setItem: (k: string, v: string) => { store[k] = v; },
+    getItem: (k: string) => store[k] ?? null,
+    removeItem: (k: string) => { delete store[k]; },
+    clear: () => { Object.keys(store).forEach((k) => delete store[k]); },
+    length: 0,
+    key: () => null,
+  };
+};
+
+vi.mock('../../components/Layout', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+// Mutable auth so a test can revoke subscription.manage. `Can` (the REAL component, not
+// mocked here) reads this via useAuth() — mocking `Can` itself to always render its
+// children would make every permission assertion below vacuous, exactly the defect this
+// pattern exists to close. `subscription.*` is a platform-scoped permission (never
+// per-cluster), and neither `<Can>` call site on this page passes a `clusterId` prop.
+const auth = vi.hoisted(() => ({
+  isSuperAdmin: false,
+  hasPermission: (() => true) as (perm: string, ctx?: { clusterId?: string }) => boolean,
+}));
+vi.mock('../../context/AuthContext', () => ({
+  useAuth: () => auth,
+}));
+
+const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn(), warning: vi.fn() }));
+vi.mock('sonner', () => ({ toast }));
+
+vi.mock('../../services/clusterService', () => ({
+  default: { getAll: vi.fn() },
+}));
+
+vi.mock('../../services/subscriptionService', () => ({
+  default: {
+    getAll: vi.fn(),
+    getSummary: vi.fn(),
+    getById: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    getFeatureCatalog: vi.fn(),
+  },
+}));
+
+import SubscriptionTable from './SubscriptionTable';
+import subscriptionService from '../../services/subscriptionService';
+import clusterService from '../../services/clusterService';
+
+/**
+ * เกณฑ์ "ใกล้หมดอายุ" ย้ายจาก constant ไปเป็นค่าตั้งใน Backstage Config คอมโพเนนต์จึงอ่านผ่าน
+ * context ที่ต้องมี provider ครอบ · mock ด้วย 30 ซึ่งเป็นค่าเดิมก่อนย้าย assertion ทุกข้อในไฟล์นี้
+ * จึงยังยืนยันพฤติกรรมเดียวกับก่อนเปลี่ยน
+ * Mocked with 30, the former constant, so every assertion here still tests the same behaviour.
+ */
+vi.mock('../../context/ExpiryThresholdContext', () => ({
+  DEFAULT_EXPIRY_THRESHOLDS: { subscription_days: 30, bu_quota_days: 30, seat_days: 30 },
+  useExpiryThresholds: () => ({
+    thresholds: { subscription_days: 30, bu_quota_days: 30, seat_days: 30 },
+    isReady: true,
+    refresh: async () => {},
+  }),
+}));
+
+
+const asMock = (fn: unknown) => fn as ReturnType<typeof vi.fn>;
+
+// `state` is deliberately inconsistent with what a naive client-side derivation from
+// `status`/`end_date` would produce (status is 'active' and end_date is far in the
+// future, which a recompute would read as 'active') — the page must show 'inactive'
+// because it reads `state` straight off the row, never recomputing it.
+const sampleSub = {
+  id: 'sub1',
+  cluster_id: 'c1',
+  cluster_name: 'Acme Cluster',
+  cluster_code: 'ACME',
+  subscription_number: 'SUB-0001',
+  start_date: '2026-01-01T00:00:00.000Z',
+  end_date: '2099-12-31T00:00:00.000Z',
+  status: 'active',
+  state: 'inactive',
+  bu_code: 'BU1',
+  bu_name: 'Acme BU',
+  feature_count: 5,
+  groups: [{ id: 'g1', code: 'CORE', name: 'Core' }],
+  seat_used: 10,
+  seat_cap: 20,
+  doc_version: 1,
+};
+
+const summary = { total: 1, active: 0, expired: 0, expiring_soon: 0, deleted: 0 };
+
+// ตัวเลขทั้งชุด (ไม่โดนตัวกรอง) ที่แถบสรุปอ่าน — จงใจไม่เท่ากับ `summary` ด้านบน
+const fleetSummary = { total: 91, active: 44, expired: 33, expiring_soon: 22, deleted: 55 };
+
+const listResponse = {
+  data: [sampleSub],
+  paginate: { total: 1, page: 1, perpage: 10, pages: 1 },
+  summary,
+};
+const emptyResponse = {
+  data: [],
+  paginate: { total: 0, page: 1, perpage: 10, pages: 0 },
+  summary: { total: 0, active: 0, expired: 0, expiring_soon: 0, deleted: 0 },
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.stubGlobal('localStorage', makeLocalStorage());
+  auth.isSuperAdmin = false;
+  auth.hasPermission = () => true;
+  asMock(subscriptionService.getAll).mockResolvedValue(listResponse);
+  // แถบสรุปอ่านจาก endpoint แยกที่ไม่โดนตัวกรอง ไม่ใช่ `summary` ที่ติดมากับ list อีกแล้ว —
+  // ตัวเลขจึงต่างจาก `listResponse.summary` โดยตั้งใจ เพื่อให้เทสต์ที่อ่านผิดแหล่งแดงทันที
+  asMock(subscriptionService.getSummary).mockResolvedValue(fleetSummary);
+  asMock(clusterService.getAll).mockResolvedValue({
+    data: [
+      { id: 'c1', code: 'ACME', name: 'Acme Cluster', is_active: true },
+      { id: 'c2', code: 'BETA', name: 'Beta Cluster', is_active: true },
+    ],
+    paginate: { total: 2, page: 1, perpage: 100 },
+  });
+});
+
+const lastCall = () => asMock(subscriptionService.getAll).mock.calls.at(-1)?.[0];
+
+const renderPage = () =>
+  render(
+    <MemoryRouter>
+      <SubscriptionTable />
+    </MemoryRouter>,
+  );
+
+describe('SubscriptionTable — reads state, never recomputes it', () => {
+  it('shows the backend-supplied state badge, not one derived from status/end_date', async () => {
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    // status='active' + a far-future end_date would recompute to 'active'; the real
+    // state field says 'inactive' — the badge must follow the field, not the recompute.
+    // Scoped to the table: the summary band's "Active" card label is now a second,
+    // legitimate "Active" text node on the page (translating it moved it into the same
+    // shared vocabulary as this badge), so a page-wide query is no longer precise enough
+    // to test what this assertion means — the row's badge, not the whole screen.
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('Inactive')).toBeInTheDocument();
+    expect(within(table).queryByText('Active')).toBeNull();
+  });
+});
+
+describe('SubscriptionTable — summary band', () => {
+  it('renders all 5 cards (total/active/expired/expiring soon/deleted)', async () => {
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(screen.getByText('All')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(screen.getByText('Expired')).toBeInTheDocument();
+    expect(screen.getByText('Expiring soon')).toBeInTheDocument();
+    expect(screen.getByText('Deleted')).toBeInTheDocument();
+  });
+
+  // แถบต้องอ่านจาก endpoint ที่ไม่โดนตัวกรอง ไม่ใช่ `summary` ที่ติดมากับ list — ถ้าอ่านผิดแหล่ง
+  // ตัวเลขจะเป็นของ listResponse.summary (total 1) แทน และคลิกกรองหนึ่งครั้งจะทำให้ทุกการ์ดเป็น 0
+  it('reads its numbers from getSummary, not from the summary riding on the list response', async () => {
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(subscriptionService.getSummary).toHaveBeenCalled();
+    // ผูกกับการ์ดตรง ๆ ไม่ใช่ getByText('1') ซึ่งชนกับเลขหน้าและเลขลำดับแถว
+    const allCard = screen.getByRole('button', { name: /^All/ });
+    // 91 คือ fleetSummary.total ส่วน listResponse.summary.total เป็น 1 — ค่าที่ต่างกันคนละหลัก
+    // ทำให้เทสต์นี้แดงทันทีถ้ามีใครเปลี่ยนกลับไปอ่าน summary ที่ติดมากับ list
+    expect(allCard).toHaveTextContent('91');
+  });
+
+  it('does not refetch the summary when a filter changes — the numbers do not depend on it', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+    asMock(subscriptionService.getSummary).mockClear();
+
+    await user.click(screen.getByRole('button', { name: /expiring soon/i }));
+    await waitFor(() => expect(asMock(subscriptionService.getAll).mock.calls.length).toBeGreaterThan(1));
+
+    expect(subscriptionService.getSummary).not.toHaveBeenCalled();
+  });
+
+  it('clicking "Expiring soon" applies the expiring-soon filter', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await user.click(screen.getByRole('button', { name: /expiring soon/i }));
+
+    await waitFor(() => {
+      const advance = JSON.parse((lastCall()?.advance as string) || '{}');
+      expect(JSON.stringify(advance)).toContain('"status":"active"');
+    });
+  });
+
+  it('clicking "Active" filters by that state, and "All" clears it again', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await user.click(screen.getByRole('button', { name: /^Active/ }));
+    await waitFor(() => expect(lastCall()?.advance).toBeTruthy());
+
+    await user.click(screen.getByRole('button', { name: /^All/ }));
+    await waitFor(() => expect(lastCall()?.advance).toBe(''));
+  });
+
+  // "ลบแล้ว" ไม่มีทาง list ได้ (สัญญา backend §8.2) การ์ดจึงต้องไม่เป็นปุ่มไม่ว่ากรณีใด
+  it('never makes the Deleted card clickable', async () => {
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(screen.queryByRole('button', { name: /^Deleted/ })).toBeNull();
+  });
+
+  // buildAdvance เมิน `states` เมื่อ expiringSoon เปิดอยู่ — การ์ดต้องดูว่ากดไม่ได้ ไม่ใช่กดแล้วเงียบ
+  it('stops rendering Active/Expired as buttons while Expiring soon is on', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await user.click(screen.getByRole('button', { name: /expiring soon/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /^Active/ })).toBeNull();
+      expect(screen.queryByRole('button', { name: /^Expired/ })).toBeNull();
+    });
+    expect(screen.getByText('44')).toBeInTheDocument(); // ยังอ่านตัวเลขได้อยู่
+  });
+});
+
+describe('SubscriptionTable — Add Subscription gate (subscription.manage)', () => {
+  it('hides the header Add Subscription button without subscription.manage', async () => {
+    auth.hasPermission = () => false;
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(screen.queryByRole('button', { name: /add subscription/i })).toBeNull();
+  });
+
+  it('shows the header Add Subscription button with subscription.manage (discriminating control)', async () => {
+    auth.hasPermission = (perm) => perm === 'subscription.manage';
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(screen.getByRole('button', { name: /add subscription/i })).toBeInTheDocument();
+  });
+
+  it('hides the empty-state Add Subscription button without subscription.manage', async () => {
+    asMock(subscriptionService.getAll).mockResolvedValue(emptyResponse);
+    auth.hasPermission = () => false;
+    renderPage();
+
+    expect(await screen.findByText('No subscriptions yet')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add subscription/i })).toBeNull();
+  });
+});
+
+// Review B2#1: the row actions dropdown (Edit + Delete) was removed entirely. Delete is gone
+// (the backend can never surface a soft-deleted subscription, so nobody could verify or undo
+// it), and a single-item "Edit" dropdown would have just duplicated the already-clickable
+// Subscription/Cluster links. This is a regression guard for both halves of that decision:
+// no dropdown/menu exists, and the links it would have duplicated still reach the edit route
+// on their own — for every caller regardless of permission, since the route itself only
+// requires subscription.read (a read-only user must still be able to open it).
+describe('SubscriptionTable — no row actions menu; links go straight to the edit route', () => {
+  it('has no "Actions" trigger and no Delete anywhere on the row, even with subscription.manage', async () => {
+    auth.hasPermission = () => true;
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(screen.queryByRole('button', { name: /actions for/i })).toBeNull();
+    expect(screen.queryByRole('menuitem')).toBeNull();
+    expect(screen.queryByText(/^delete$/i)).toBeNull();
+  });
+
+  it('the Subscription number links straight to /licenses/subscriptions/:id/edit for a read-only user', async () => {
+    auth.hasPermission = (perm) => perm === 'subscription.read';
+    renderPage();
+
+    const subLink = await screen.findByRole('link', { name: 'SUB-0001' });
+    expect(subLink).toHaveAttribute('href', '/licenses/subscriptions/sub1/edit');
+  });
+});
+
+// Review B2#4/#6: buildAdvance forces status=active and ignores any status the user picked
+// once "Expiring soon" is on, so the UI must not leave a stale, silently-ineffective status
+// selection visible — the toggle now disables the status buttons AND clears the selection.
+describe('SubscriptionTable — "Expiring soon" locks and clears the status filter', () => {
+  it('disables the status buttons, shows the lock message, and clears a status picked beforehand', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    const filtersButton = screen.getByRole('button', { name: /filters/i });
+    await user.click(filtersButton);
+    await user.click(await screen.findByRole('button', { name: /^active$/i }));
+
+    // One real filter selected so far — the Filters button badge says so.
+    expect(within(filtersButton).getByText('1')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^active$/i })).not.toBeDisabled();
+
+    await user.click(screen.getByLabelText(/expiring within 30 days/i));
+
+    // The status buttons are now disabled and the lock message explains why — not just
+    // silently ignored while still looking selectable.
+    expect(screen.getByRole('button', { name: /^active$/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^inactive$/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^expired$/i })).toBeDisabled();
+    expect(
+      screen.getByText(/locked to active while showing subscriptions expiring soon/i),
+    ).toBeInTheDocument();
+
+    // Still exactly one filter shown — the previously-selected status was cleared, not just
+    // visually disabled while continuing to count toward the badge.
+    expect(within(filtersButton).getByText('1')).toBeInTheDocument();
+    expect(within(filtersButton).queryByText('2')).toBeNull();
+
+    // What's on screen must equal what's sent: the request the toggle triggered carries only
+    // the forced active/expiring-soon clause, no leftover status:{in:...} from the earlier pick.
+    await waitFor(() => {
+      const lastCall = asMock(subscriptionService.getAll).mock.calls.at(-1)?.[0];
+      const parsed = JSON.parse(lastCall.advance);
+      expect(parsed.where.AND).toEqual([
+        { status: 'active' },
+        { start_date: { lte: expect.any(String) } },
+        { end_date: { gt: expect.any(String), lte: expect.any(String) } },
+      ]);
+    });
+  });
+});
+
+describe('SubscriptionTable — search folds into `advance`, never `search`', () => {
+  it('debounces the search box into paginate.advance as a subscription_number contains clause, and never sets paginate.search', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+    asMock(subscriptionService.getAll).mockClear();
+
+    await user.type(screen.getByPlaceholderText('Search subscription numbers...'), 'SUB-9');
+
+    // Real timers (no fake-timer precedent elsewhere in this repo, and userEvent + fake
+    // timers is a known source of flakiness) — the debounce is 400ms, so give it room.
+    await waitFor(
+      () => expect(asMock(subscriptionService.getAll)).toHaveBeenCalled(),
+      { timeout: 1000 },
+    );
+    const lastCall = asMock(subscriptionService.getAll).mock.calls.at(-1)?.[0];
+    expect(lastCall.search).toBeUndefined();
+    expect(JSON.parse(lastCall.advance)).toEqual({
+      where: { AND: [{ subscription_number: { contains: 'SUB-9', mode: 'insensitive' } }] },
+    });
+  });
+});
+
+// Review I2: `end_date:desc` alone is not a total order, and spec §9 backfills every cluster a
+// contract with the same far-future end_date — so on day one every row ties. Postgres is free
+// to return tied rows in a different order per query, which makes rows repeat or vanish across
+// pages with no error at all. `id` is the primary key, so it breaks every tie.
+describe('SubscriptionTable — sort always carries a unique tiebreaker', () => {
+  it('sends end_date:desc,id:asc on the first request', async () => {
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(lastCall().sort).toBe('end_date:desc,id:asc');
+  });
+
+  it('keeps the tiebreaker when the user sorts by a column header', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    // TanStack's 3-state cycle from the desc default: first click clears the sort (the page
+    // substitutes DEFAULT_SORT rather than sending an empty one), the second flips to asc.
+    await user.click(screen.getByRole('button', { name: /period/i }));
+    await waitFor(() => expect(lastCall().sort).toBe('end_date:desc,id:asc'));
+
+    await user.click(screen.getByRole('button', { name: /period/i }));
+    await waitFor(() => expect(lastCall().sort).toBe('end_date:asc,id:asc'));
+  });
+
+  it('restores the default (never an empty sort) if a stored sort is blank', async () => {
+    localStorage.setItem('sort_subscriptions', '');
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(lastCall().sort).toBe('end_date:desc,id:asc');
+  });
+
+  it('adds the tiebreaker to a stored sort saved before this fix', async () => {
+    localStorage.setItem('sort_subscriptions', 'subscription_number:asc');
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(lastCall().sort).toBe('subscription_number:asc,id:asc');
+  });
+});
+
+// Review I1: the filter sent raw `status`, while the badge and the summary cards both show
+// `state`. Ticking Expired has to catch rows whose status is still 'active' but whose end_date
+// has passed — those are exactly the rows the table labels "expired".
+describe('SubscriptionTable — the State filter matches what the badge shows', () => {
+  const openFilters = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByRole('button', { name: /filters/i }));
+  };
+
+  it('translates Expired into status=expired OR (status=active AND end_date past)', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await openFilters(user);
+    await user.click(await screen.findByRole('button', { name: /^expired$/i }));
+
+    await waitFor(() => {
+      const parsed = JSON.parse(lastCall().advance);
+      expect(parsed.where.AND).toEqual([
+        {
+          OR: [
+            { OR: [{ status: 'expired' }, { status: 'active', end_date: { lte: expect.any(String) } }] },
+          ],
+        },
+      ]);
+    });
+  });
+
+  it('translates Active into status=active AND end_date not yet passed', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await openFilters(user);
+    await user.click(await screen.findByRole('button', { name: /^active$/i }));
+
+    await waitFor(() => {
+      const parsed = JSON.parse(lastCall().advance);
+      expect(parsed.where.AND).toEqual([
+        { OR: [{ status: 'active', start_date: { lte: expect.any(String) }, end_date: { gt: expect.any(String) } }] },
+      ]);
+    });
+    // The raw-column form is gone for good.
+    expect(lastCall().advance).not.toContain('"in"');
+  });
+
+  it('labels the filter "State", the same word the column header uses', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await openFilters(user);
+    // Two on screen: the filter-sheet group label and the table column header.
+    expect(await screen.findAllByText('State')).toHaveLength(2);
+  });
+});
+
+// Review M3: spec §8.1 lists BU, Features, and a cluster filter. The values were already on
+// every row (they even shipped in the CSV export) — just never rendered. The BU column now
+// names the contract's single business unit instead of counting them: one contract = one BU.
+describe('SubscriptionTable — BU and Modules columns', () => {
+  it('renders both column headers with the row values', async () => {
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    expect(screen.getByText('Business Unit')).toBeInTheDocument();
+    expect(screen.getByText('Modules')).toBeInTheDocument();
+    expect(screen.getByText('BU1')).toBeInTheDocument();     // bu_code
+    expect(screen.getByText('Acme BU')).toBeInTheDocument(); // bu_name
+    expect(screen.getByText('CORE')).toBeInTheDocument();    // groups[].code
+  });
+
+  // Both are backend-derived values, not tb_subscription columns — the backend now accepts them
+  // as sort keys it computes in memory (DERIVED_SORT_KEYS in subscription.service.ts). The wire
+  // key must be the same field name the row carries, plus the unique tiebreaker like every sort.
+  it.each([
+    ['Business Unit', 'bu_code:asc'],
+    ['State', 'state:asc'],
+    ['Cluster', 'tb_cluster.name:asc'],
+  ])('sorts by the %s header, sending `%s` as the wire key with the id tiebreaker', async (header, term) => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await user.click(screen.getByRole('button', { name: new RegExp(`^${header}$`) }));
+    await waitFor(() => expect(lastCall().sort).toBe(`${term},id:asc`));
+  });
+});
+
+describe('SubscriptionTable — cluster filter', () => {
+  it('sends cluster_id in advance and shows a removable badge', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await user.click(screen.getByRole('button', { name: /filters/i }));
+    await user.click(await screen.findByLabelText('Cluster'));
+    await user.click(await screen.findByRole('button', { name: /Beta Cluster/ }));
+
+    await waitFor(() => {
+      const parsed = JSON.parse(lastCall().advance);
+      expect(parsed.where.AND).toContainEqual({ cluster_id: 'c2' });
+    });
+
+    // Close the sheet before touching the badge behind it — Radix marks the rest of the page
+    // aria-hidden while a modal sheet is open.
+    await user.keyboard('{Escape}');
+    await user.click(await screen.findByRole('button', { name: 'Clear cluster filter' }));
+    await waitFor(() => expect(lastCall().advance).toBe(''));
+  });
+
+  it('lists the clusters the server search returned, after All clusters', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await user.click(screen.getByRole('button', { name: /filters/i }));
+    await user.click(await screen.findByLabelText('Cluster'));
+    expect(await screen.findByRole('button', { name: /Acme Cluster/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Beta Cluster/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All clusters' })).toBeInTheDocument();
+  });
+
+  // Same reasoning as review C1: a request the user is not allowed to make is a request that
+  // can bounce them out of the app, so it is not made at all — and the control it feeds goes
+  // with it rather than sitting there empty.
+  it('is hidden, and no cluster request is made, without cluster.read', async () => {
+    auth.hasPermission = (perm) => perm.startsWith('subscription.');
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('SUB-0001');
+
+    await user.click(screen.getByRole('button', { name: /filters/i }));
+    // The sheet is open (its State group rendered) — the Cluster control simply is not there.
+    await screen.findByRole('button', { name: /^expired$/i });
+    expect(screen.queryByLabelText('Cluster')).toBeNull();
+    expect(clusterService.getAll).not.toHaveBeenCalled();
+  });
+});

@@ -1,0 +1,226 @@
+import { useCallback, useEffect, useId, useReducer, useRef, useState } from 'react';
+import type React from 'react';
+import { isNearBottom } from '../../hooks/usePagedSearch';
+
+export interface UseTypeaheadOptions<T> {
+  /** Rows the dropdown currently shows, in display order (pinned rows included). Pass only rows that are visible. */
+  items: T[];
+  getKey: (item: T) => string;
+  isDisabled?: (item: T) => boolean;
+  /** `aria-selected` for an option; defaults to "is the active row" */
+  isSelected?: (item: T) => boolean;
+  onPick: (item: T) => void;
+  /** Close the dropdown after a pick. Default true; multi-select passes false. */
+  closeOnPick?: boolean;
+  /** The picker is disabled: the dropdown never opens and reports closed. */
+  disabled?: boolean;
+  /** The dropdown cannot be seen for another reason (e.g. a chip replaces the input): same as disabled. */
+  hidden?: boolean;
+  /** Real open-state changes only, reported synchronously. Feed it a useRef in the host Sheet/Dialog Escape guard. */
+  onOpenChange?: (open: boolean) => void;
+  /** Focus the input after the first commit */
+  autoFocus?: boolean;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  loadMoreError?: string;
+  loadMore?: () => void;
+}
+
+/**
+ * Open state, keyboard navigation, focus handling and ARIA wiring for a search dropdown.
+ * The caller keeps the query, the search hook and the rendering.
+ *
+ * ```tsx
+ * const ta = useTypeahead({ items, getKey, onPick, disabled, onOpenChange, ...pagedSearch });
+ * <div {...ta.wrapperProps}>
+ *   <input {...ta.inputProps} value={q} onChange={(e) => { setQ(e.target.value); ta.setOpen(true); }} />
+ *   {ta.open && (
+ *     <div {...ta.listProps}>
+ *       {items.map((it, i) => <button type="button" key={getKey(it)} {...ta.getOptionProps(it, i)}>...</button>)}
+ *     </div>
+ *   )}
+ * </div>
+ * ```
+ * - Render the dropdown only while `ta.open`. Items must be the rows actually visible, in order.
+ * - Multi-select: pass `closeOnPick: false`; the dropdown stays open after a pick.
+ * - `ta.setOpen(false)` after your own custom close paths; `ta.requestFocus()` to focus the input
+ *   once it mounts in the same commit (dropped otherwise, so a rejected clear never focuses late).
+ * - Escape: while open it is consumed (preventDefault) and closes only the dropdown; while closed it passes
+ *   through. Radix dismisses on a capture-phase listener first, so the host Sheet/Dialog must still guard
+ *   `onEscapeKeyDown` with a ref set from `onOpenChange`.
+ */
+export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
+  const {
+    items, getKey, isDisabled, isSelected, onPick, closeOnPick = true, disabled = false, hidden = false,
+    onOpenChange, autoFocus = false, hasMore, loadingMore, loadMoreError, loadMore,
+  } = opts;
+  const listId = useId();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpenState] = useState(false);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [, bump] = useReducer((n: number) => n + 1, 0);
+
+  const openRef = useRef(false);
+  const blockedRef = useRef(false);
+  blockedRef.current = disabled || hidden;
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  const onPickRef = useRef(onPick);
+  onPickRef.current = onPick;
+  const focusRef = useRef(autoFocus);
+
+  // The one place open changes. Reports only real changes; refuses to open while the dropdown cannot be seen.
+  const setOpen = useCallback((next: boolean) => {
+    if (next && blockedRef.current) return;
+    if (openRef.current === next) return;
+    openRef.current = next;
+    setOpenState(next);
+    if (!next) setActiveKey(null);
+    onOpenChangeRef.current?.(next);
+  }, []);
+
+  // Unmounted while open: release the host's Escape guard
+  useEffect(() => () => {
+    if (openRef.current) {
+      openRef.current = false;
+      onOpenChangeRef.current?.(false);
+    }
+  }, []);
+
+  // Became invisible while open (disabled, chip shown): report closed without waiting for a click or key
+  useEffect(() => {
+    if (disabled || hidden) setOpen(false);
+  }, [disabled, hidden, setOpen]);
+
+  // Focus request: honoured only if the input exists in this commit and the picker is enabled
+  useEffect(() => {
+    if (!focusRef.current) return;
+    focusRef.current = false;
+    if (!blockedRef.current) inputRef.current?.focus();
+  });
+  const requestFocus = useCallback(() => {
+    focusRef.current = true;
+    bump();
+  }, []);
+
+  const visibleOpen = open && !disabled && !hidden;
+
+  useEffect(() => {
+    if (!visibleOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // Handled: page-level shortcuts that skip defaultPrevented must not also cancel
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [visibleOpen, setOpen]);
+
+  const activeIndex = visibleOpen && activeKey !== null ? items.findIndex((it) => getKey(it) === activeKey) : -1;
+  const optionId = (index: number) => `${listId}-opt-${index}`;
+
+  useEffect(() => {
+    if (activeIndex < 0) return;
+    document.getElementById(`${listId}-opt-${activeIndex}`)?.scrollIntoView?.({ block: 'nearest' });
+  }, [activeIndex, listId]);
+
+  const move = (dir: 1 | -1) => {
+    const n = items.length;
+    if (n === 0) return;
+    let i = activeIndex;
+    for (let step = 0; step < n; step += 1) {
+      i = i < 0 ? (dir === 1 ? 0 : n - 1) : (i + dir + n) % n;
+      if (!isDisabled?.(items[i])) {
+        setActiveKey(getKey(items[i]));
+        return;
+      }
+    }
+  };
+
+  const pick = (item: T) => {
+    if (isDisabled?.(item)) return;
+    onPickRef.current(item);
+    if (closeOnPick) setOpen(false);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing) return;
+    switch (e.key) {
+      case 'ArrowDown':
+      case 'ArrowUp':
+        if (blockedRef.current) return;
+        e.preventDefault();
+        if (!openRef.current) setOpen(true);
+        else move(e.key === 'ArrowDown' ? 1 : -1);
+        break;
+      case 'Enter':
+        // Swallow Enter only when it actually picks, so forms still submit otherwise
+        if (visibleOpen && activeIndex >= 0 && !isDisabled?.(items[activeIndex])) {
+          e.preventDefault();
+          pick(items[activeIndex]);
+        }
+        break;
+      case 'Tab':
+        setOpen(false);
+        break;
+      default:
+    }
+  };
+
+  const wrapperProps = {
+    ref: wrapperRef,
+    onBlur: (e: React.FocusEvent<HTMLElement>) => {
+      const next = e.relatedTarget as Node | null;
+      if (next && wrapperRef.current && !wrapperRef.current.contains(next)) setOpen(false);
+    },
+  };
+
+  const inputProps = {
+    ref: inputRef,
+    role: 'combobox' as const,
+    'aria-expanded': visibleOpen,
+    'aria-controls': visibleOpen ? listId : undefined,
+    'aria-activedescendant': activeIndex >= 0 ? optionId(activeIndex) : undefined,
+    'aria-autocomplete': 'list' as const,
+    onFocus: () => setOpen(true),
+    onKeyDown,
+  };
+
+  const listProps = {
+    id: listId,
+    role: 'listbox' as const,
+    onScroll: (e: React.UIEvent<HTMLElement>) => {
+      // A failed next page waits for its Retry button instead of re-firing on every scroll
+      if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore?.();
+    },
+  };
+
+  const getOptionProps = (item: T, index: number) => {
+    const disabledItem = !!isDisabled?.(item);
+    return {
+      id: optionId(index),
+      role: 'option' as const,
+      tabIndex: -1,
+      'aria-selected': isSelected ? isSelected(item) : index === activeIndex,
+      'aria-disabled': disabledItem || undefined,
+      // keep focus in the input so aria-activedescendant stays meaningful
+      onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
+      onClick: () => pick(item),
+      onMouseMove: () => {
+        if (!disabledItem && index !== activeIndex) setActiveKey(getKey(item));
+      },
+    };
+  };
+
+  return { open: visibleOpen, setOpen, activeIndex, wrapperRef, inputRef, listId, wrapperProps, inputProps, listProps, getOptionProps, requestFocus };
+}

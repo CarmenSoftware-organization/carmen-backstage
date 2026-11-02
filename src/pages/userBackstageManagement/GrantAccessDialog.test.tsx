@@ -142,7 +142,7 @@ describe('GrantAccessDialog', () => {
     await user.click(screen.getByRole('checkbox', { name: 'Backstage Admin' }));
     await user.selectOptions(screen.getByLabelText('Scope'), 'A specific cluster');
     await user.click(screen.getByLabelText('Cluster'));
-    await user.click(await screen.findByRole('button', { name: /Cluster One/ }));
+    await user.click(await screen.findByRole('option', { name: /Cluster One/ }));
     await user.click(screen.getByRole('button', { name: /Grant access/ }));
 
     await waitFor(() =>

@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Search, X, Loader2, RotateCw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, X, RotateCw } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useClusterSearch, toClusterOption, type ClusterOption } from '../hooks/useClusterSearch';
-import { isNearBottom } from '../hooks/usePagedSearch';
-import { LoadMoreErrorRow } from './LoadMoreErrorRow';
+import { useTypeahead } from './typeahead/useTypeahead';
+import { TypeaheadFooter, TypeaheadStatus } from './typeahead/TypeaheadStatus';
 import { hydrateByKeys, useHydratedOptions } from '../hooks/useHydratedOptions';
 import clusterService from '../services/clusterService';
 import { useI18n } from '../hooks/useI18n';
@@ -70,18 +70,8 @@ export function useClusterById(
   };
 }
 
-const ClusterRowButton: React.FC<{ c: ClusterOption; onPick: (c: ClusterOption) => void }> = ({ c, onPick }) => (
-  <button
-    type="button"
-    onClick={() => onPick(c)}
-    className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
-  >
-    <span className="flex min-w-0 flex-col">
-      <span className="truncate">{c.name}</span>
-      <span className="truncate font-mono text-xs text-muted-foreground">{c.code}</span>
-    </span>
-  </button>
-);
+type Row = { kind: 'pinned'; p: PinnedRow } | { kind: 'cluster'; c: ClusterOption };
+const rowKey = (r: Row) => (r.kind === 'pinned' ? `pinned:${r.p.value}` : r.c.id);
 
 /**
  * Single-cluster typeahead เก็บค่าเป็น cluster id — ค้นหาฝั่ง server + lazy load
@@ -93,34 +83,11 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
   knownOption, invalid = false, autoFocus = false,
 }) => {
   const { t } = useI18n();
-  const [query, setQuery] = useState('');
-  const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<ClusterOption | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-  const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
-  const openRef = useRef(false);
   const reportedRef = useRef('');
-
-  // จุดเดียวที่สถานะเปิดเปลี่ยน — รายงานเฉพาะเมื่อค่าเปลี่ยนจริง
-  const changeOpen = useCallback((next: boolean) => {
-    if (openRef.current === next) return;
-    openRef.current = next;
-    setOpen(next);
-    onOpenChangeRef.current?.(next);
-  }, []);
-
-  // ถอด component ขณะ dropdown เปิด → ปลดการกัน Escape ของผู้ครอบ
-  useEffect(() => () => {
-    if (openRef.current) {
-      openRef.current = false;
-      onOpenChangeRef.current?.(false);
-    }
-  }, []);
 
   const pinnedMatch = pinned.find((p) => p.value === value) ?? null;
   // pinned '' (เช่น "All clusters") ไม่ใช่ chip — แสดงเป็น placeholder ของช่องค้นหา
@@ -145,48 +112,36 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     onChangeRef.current(value, resolved);
   }, [value, pinnedMatch, resolved]);
 
-  const { results, loading, loadingMore, hasMore, loadMore, error: searchError, loadMoreError } =
-    useClusterSearch(query, open && !disabled && canSearch);
-
-  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // หน้าถัดไปพัง → รอปุ่ม Retry ไม่ยิงซ้ำทุกครั้งที่เลื่อน
-    if (isNearBottom(e.currentTarget) && hasMore && !loadingMore && !loadMoreError) loadMore();
-  };
-
-  // ช่องค้นหา unmount อยู่ตอนแสดง chip — ขอโฟกัสไว้แล้วทำหลังช่องค้นหา mount
-  const [focusPending, setFocusPending] = useState(autoFocus);
   const showChip = !!value;
-  useEffect(() => {
-    if (!focusPending || showChip || disabled) return;
-    inputRef.current?.focus();
-    setFocusPending(false);
-  }, [focusPending, showChip, disabled]);
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const { results, loading, loadingMore, hasMore, loadMore, error: searchError, loadMoreError } =
+    useClusterSearch(query, searchOpen && !disabled && canSearch);
 
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) changeOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      // ทำเครื่องหมายว่าจัดการแล้ว เพื่อให้ shortcut ระดับหน้าที่ข้าม defaultPrevented ไม่ทำงานซ้ำ
-      e.preventDefault();
-      changeOpen(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, changeOpen]);
+  const q = query.trim().toLowerCase();
+  const pinnedShown = pinned.filter((p) => !q || p.label.toLowerCase().includes(q));
+  const resultsShown = canSearch && !loading && !searchError ? results : [];
+  const rows: Row[] = [
+    ...pinnedShown.map((p): Row => ({ kind: 'pinned', p })),
+    ...resultsShown.map((c): Row => ({ kind: 'cluster', c })),
+  ];
+
+  const ta = useTypeahead<Row>({
+    items: rows,
+    getKey: rowKey,
+    onPick: (r) => (r.kind === 'pinned' ? selectPinned(r.p) : selectCluster(r.c)),
+    disabled,
+    hidden: showChip,
+    onOpenChange: (o) => { setSearchOpen(o); onOpenChange?.(o); },
+    autoFocus,
+    hasMore, loadingMore, loadMoreError, loadMore,
+  });
 
   const selectCluster = (c: ClusterOption) => {
     setPicked(c);
     reportedRef.current = c.id;
     onChange(c.id, c);
     setQuery('');
-    changeOpen(false);
   };
 
   const selectPinned = (p: PinnedRow) => {
@@ -194,7 +149,6 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     reportedRef.current = '';
     onChange(p.value, null);
     setQuery('');
-    changeOpen(false);
   };
 
   const clearSelection = () => {
@@ -202,13 +156,8 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     reportedRef.current = '';
     onChange('', null);
     setQuery('');
-    setFocusPending(true);
+    ta.requestFocus();
   };
-
-  // ทุกสถานะที่ dropdown มองไม่เห็น (disabled / แสดง chip) ต้องรายงานปิด — ไม่พึ่งเหตุการณ์คลิก/คีย์
-  useEffect(() => {
-    if (disabled || showChip) changeOpen(false);
-  }, [disabled, showChip, changeOpen]);
 
   if (showChip) {
     // id ที่หาไม่เจอ: ย่อแบบเดียวกับ user (`Not found · <8 ตัวแรก>`) ไม่โชว์ UUID เต็ม
@@ -223,7 +172,6 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     return (
       <div className={cn('min-w-0', className)}>
         <div
-          aria-invalid={invalid || undefined}
           title={isMissing ? value : undefined}
           className={cn(
             'flex min-h-9 w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-1.5 text-sm shadow-xs',
@@ -262,12 +210,10 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
     );
   }
 
-  const q = query.trim().toLowerCase();
-  const pinnedShown = pinned.filter((p) => !q || p.label.toLowerCase().includes(q));
-  const nothing = pinnedShown.length === 0 && results.length === 0;
+  const nothing = rows.length === 0;
 
   return (
-    <div ref={wrapperRef} className={cn('relative min-w-0', className)}>
+    <div {...ta.wrapperProps} className={cn('relative min-w-0', className)}>
       <div
         className={cn(
           'flex min-h-9 w-full items-center gap-1 rounded-md border bg-transparent px-2 py-1.5 text-sm shadow-xs focus-within:outline-hidden focus-within:ring-1 focus-within:ring-ring',
@@ -277,16 +223,15 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
       >
         <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <input
-          ref={inputRef}
+          {...ta.inputProps}
           id={id}
           type="text"
           value={query}
           disabled={disabled}
           onChange={(e) => {
             setQuery(e.target.value);
-            changeOpen(true);
+            ta.setOpen(true);
           }}
-          onFocus={() => changeOpen(true)}
           placeholder={effectivePlaceholder}
           aria-label={ariaLabel}
           aria-invalid={invalid || undefined}
@@ -294,57 +239,48 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
         />
       </div>
 
-      {open && !disabled && (
+      {ta.open && (
         <div
-          onScroll={handleListScroll}
+          {...ta.listProps}
           className="absolute z-50 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-input bg-popover shadow-md"
         >
-          {pinnedShown.length > 0 && (
-            <ul className="py-1">
-              {pinnedShown.map((p) => (
-                <li key={`pinned:${p.value}`}>
-                  <button
-                    type="button"
-                    onClick={() => selectPinned(p)}
-                    className="flex w-full items-center px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <span className="truncate">{p.label}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {canSearch && loading && (
-            <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.clusterPicker.searchingEllipsis')}
-            </div>
-          )}
-          {canSearch && !loading && searchError && (
-            <div className="px-3 py-4 text-sm text-destructive">{searchError}</div>
-          )}
-          {canSearch && !loading && !searchError && results.length > 0 && (
-            <div className={cn(pinnedShown.length > 0 && 'border-t')}>
-              <ul className="py-1">
-                {results.map((c) => (
-                  <li key={c.id}>
-                    <ClusterRowButton c={c} onPick={selectCluster} />
-                  </li>
-                ))}
-              </ul>
-              {loadingMore && (
-                <div className="flex items-center gap-2 border-t px-3 py-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('components.clusterPicker.loadingMore')}
-                </div>
+          {rows.map((r, i) => (
+            <React.Fragment key={rowKey(r)}>
+              {r.kind === 'cluster' && i === pinnedShown.length && pinnedShown.length > 0 && (
+                <div role="presentation" className="border-t" />
               )}
-              {!loadingMore && loadMoreError && <LoadMoreErrorRow message={loadMoreError} onRetry={loadMore} />}
-            </div>
+              <button
+                type="button"
+                {...ta.getOptionProps(r, i)}
+                className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+              >
+                {r.kind === 'pinned' ? (
+                  <span className="truncate">{r.p.label}</span>
+                ) : (
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate">{r.c.name}</span>
+                    <span className="truncate font-mono text-xs text-muted-foreground">{r.c.code}</span>
+                  </span>
+                )}
+              </button>
+            </React.Fragment>
+          ))}
+          {canSearch && (
+            <TypeaheadStatus
+              loading={loading}
+              error={searchError ?? undefined}
+              empty={nothing}
+              searchingLabel={t('components.clusterPicker.searchingEllipsis')}
+              emptyLabel={query ? t('components.clusterPicker.noMatch', { query }) : t('components.clusterPicker.typeToSearch')}
+            />
           )}
-          {!loading && !searchError && nothing && canSearch && (
-            <div className="px-3 py-4 text-sm text-muted-foreground">
-              {query
-                ? t('components.clusterPicker.noMatch', { query })
-                : t('components.clusterPicker.typeToSearch')}
-            </div>
+          {resultsShown.length > 0 && (
+            <TypeaheadFooter
+              loadingMore={loadingMore}
+              loadMoreError={loadMoreError ?? undefined}
+              onRetry={loadMore}
+              loadingMoreLabel={t('components.clusterPicker.loadingMore')}
+            />
           )}
         </div>
       )}

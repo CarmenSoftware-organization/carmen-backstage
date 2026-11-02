@@ -518,7 +518,7 @@ describe('SubscriptionTable — cluster filter', () => {
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
     await user.click(await screen.findByLabelText('Cluster'));
-    await user.click(await screen.findByRole('button', { name: /Beta Cluster/ }));
+    await user.click(await screen.findByRole('option', { name: /Beta Cluster/ }));
 
     await waitFor(() => {
       const parsed = JSON.parse(lastCall().advance);
@@ -539,9 +539,9 @@ describe('SubscriptionTable — cluster filter', () => {
 
     await user.click(screen.getByRole('button', { name: /filters/i }));
     await user.click(await screen.findByLabelText('Cluster'));
-    expect(await screen.findByRole('button', { name: /Acme Cluster/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Beta Cluster/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'All clusters' })).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: /Acme Cluster/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Beta Cluster/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'All clusters' })).toBeInTheDocument();
   });
 
   // Same reasoning as review C1: a request the user is not allowed to make is a request that
