@@ -5197,9 +5197,6 @@ export const en = {
       message: 'Message',
       category: 'Category',
       userIds: 'Recipient users',
-      userIdsLoadFailed: 'Failed to load users',
-      userIdsNoneSelected: 'No users selected',
-      userIdsNoneFound: 'No users found',
       userIdsEmptyMeansAll: 'Leave empty to notify every user.',
       // I2 fix: notification.go rejects an empty user_ids with "notification job config
       // missing user_ids" — a new key rather than editing userIdsEmptyMeansAll.
