@@ -253,6 +253,13 @@ export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardPr
         actions={
           canManage || !!view ? (
             <>
+              {canManage && (
+                <Button variant="outline" size="sm" onClick={handleMeasure} disabled={measuring || loading}>
+                  {measuring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                  {measuring ? t('pages.storageQuota.measuring') : t('pages.storageQuota.measureNow')}
+                </Button>
+              )}
+              {/* ปุ่มทึบ (การสร้าง) อยู่ท้ายสุด ตรงกับการ์ดที่นั่ง/interface: outline ก่อน แล้วค่อยปุ่มหลัก */}
               <Can permission="subscription.manage">
                 <Button
                   size="sm"
@@ -263,12 +270,6 @@ export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardPr
                   {view?.quota.license ? t('pages.storageQuota.replaceLicense') : t('pages.storageQuota.issueLicense')}
                 </Button>
               </Can>
-              {canManage && (
-                <Button variant="outline" size="sm" onClick={handleMeasure} disabled={measuring || loading}>
-                  {measuring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                  {measuring ? t('pages.storageQuota.measuring') : t('pages.storageQuota.measureNow')}
-                </Button>
-              )}
             </>
           ) : undefined
         }
