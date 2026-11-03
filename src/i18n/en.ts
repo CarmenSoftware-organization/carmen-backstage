@@ -3997,7 +3997,6 @@ export const en = {
       confirmEnforceDescription: 'Business units that are full will start their grace period at the next measurement, then be blocked from creating records and uploading files.',
       confirmEnforceAction: 'Turn on',
       reclaimAction: 'Reclaim space',
-      reclaimStarting: 'Starting...',
       reclaimConfirmTitle: 'Reclaim database space?',
       reclaimConfirmDescription: 'VACUUM FULL locks this business unit\'s tables while it runs, so its users cannot work for a while, and it needs free disk space equal to the largest table. Run it outside working hours.',
       reclaimConfirmAction: 'Start reclaim',
@@ -4013,6 +4012,7 @@ export const en = {
       reclaimFinishedAt: 'Finished {{date}}',
       reclaimDoneToast: 'Reclaim finished; usage re-measured',
       reclaimFailedToast: 'Reclaim failed',
+      reclaimSkipped: 'Skipped (locked or timed out): {{tables}}',
     },
     // ── slice 9c: Platform Config ──
     // หน้านี้และการ์ดทั้งหมดเป็น "ไทยล้วน" มาก่อน — ผู้ใช้อังกฤษอ่านไทยมาตลอด

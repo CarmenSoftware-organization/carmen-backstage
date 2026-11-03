@@ -2396,6 +2396,8 @@ export interface StorageReclaimJob {
   bytes_before: number | null;
   bytes_after: number | null;
   error: string | null;
+  /** ตารางที่ข้ามเพราะล็อกไม่ได้/เกินเวลา */
+  skipped_tables: string[];
 }
 
 export interface StorageUsageListItem {

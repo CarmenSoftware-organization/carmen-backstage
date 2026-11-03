@@ -2858,7 +2858,6 @@ export const th: Translations = {
       confirmEnforceDescription: 'BU ที่เต็มอยู่จะเริ่มนับช่วงผ่อนผันตั้งแต่การวัดรอบถัดไป แล้วถูกบล็อกการสร้างข้อมูลและอัปโหลดไฟล์',
       confirmEnforceAction: 'เปิดใช้งาน',
       reclaimAction: 'Reclaim space',
-      reclaimStarting: 'กำลังเริ่ม...',
       reclaimConfirmTitle: 'Reclaim พื้นที่ database?',
       reclaimConfirmDescription: 'VACUUM FULL จะล็อกตารางของ BU นี้ระหว่างทำงาน ผู้ใช้ของ BU จะใช้งานไม่ได้ชั่วคราว และต้องมีพื้นที่ดิสก์ว่างเท่ากับตารางที่ใหญ่ที่สุด แนะนำให้ทำนอกเวลาทำงาน',
       reclaimConfirmAction: 'เริ่ม reclaim',
@@ -2874,6 +2873,7 @@ export const th: Translations = {
       reclaimFinishedAt: 'เสร็จเมื่อ {{date}}',
       reclaimDoneToast: 'Reclaim เสร็จแล้ว วัดการใช้พื้นที่ใหม่แล้ว',
       reclaimFailedToast: 'Reclaim ล้มเหลว',
+      reclaimSkipped: 'ข้าม (ล็อกไม่ได้หรือเกินเวลา): {{tables}}',
     },
     backstageConfig: {
       title: 'ตั้งค่า Backstage',

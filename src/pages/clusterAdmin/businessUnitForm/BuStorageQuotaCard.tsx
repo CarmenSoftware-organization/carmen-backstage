@@ -138,7 +138,7 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
       toast.error(t('pages.storageQuota.reclaimFailedToast'));
       return;
     }
-    if (job.status === 'done') {
+    if (job.status === 'done' && canManage) {
       void (async () => {
         try {
           const measured = await storageQuotaService.measure(buId);
@@ -149,7 +149,7 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
         }
       })();
     }
-  }, [job, jobActive, buId, t]);
+  }, [job, jobActive, buId, t, canManage]);
 
   const handleReclaim = async () => {
     try {
@@ -273,6 +273,11 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
                     {t('pages.storageQuota.reclaimStartedAt', { date: new Date(job.started_at).toLocaleString() })}
                     {job.finished_at &&
                       ` · ${t('pages.storageQuota.reclaimFinishedAt', { date: new Date(job.finished_at).toLocaleString() })}`}
+                  </p>
+                )}
+                {job.skipped_tables?.length > 0 && (
+                  <p className="text-warning text-xs break-words">
+                    {t('pages.storageQuota.reclaimSkipped', { tables: job.skipped_tables.join(', ') })}
                   </p>
                 )}
                 {job.status === 'failed' && job.error && (
