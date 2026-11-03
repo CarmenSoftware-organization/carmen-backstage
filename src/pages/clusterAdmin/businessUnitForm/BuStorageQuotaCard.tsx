@@ -10,13 +10,7 @@ import { useI18n } from '../../../hooks/useI18n';
 import { useAuth } from '../../../context/AuthContext';
 import storageQuotaService from '../../../services/storageQuotaService';
 import { getErrorDetail } from '../../../utils/errorParser';
-import {
-  bytesToGb,
-  bytesToGbInput,
-  formatBytes,
-  gbInputToBytes,
-  isValidQuotaInput,
-} from '../../../utils/storageQuota';
+import { formatBytes } from '../../../utils/storageQuota';
 import type { BuStorageQuotaView, StorageQuotaPatch, StorageReclaimJob } from '../../../types';
 import { StorageMeter } from './StorageMeter';
 
@@ -38,15 +32,11 @@ const isActiveJob = (job: StorageReclaimJob | null): boolean =>
   job?.status === 'queued' || job?.status === 'running';
 
 interface QuotaForm {
-  db: string;
-  file: string;
   exempt: boolean;
   note: string;
 }
 
 const toForm = (view: BuStorageQuotaView): QuotaForm => ({
-  db: bytesToGbInput(view.quota.db_quota_bytes),
-  file: bytesToGbInput(view.quota.file_quota_bytes),
   exempt: view.quota.exempt,
   note: view.quota.note ?? '',
 });
@@ -66,7 +56,6 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [measuring, setMeasuring] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{ db?: string; file?: string }>({});
   const [job, setJob] = useState<StorageReclaimJob | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const jobActive = isActiveJob(job);
@@ -76,7 +65,6 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const apply = useCallback((next: BuStorageQuotaView) => {
     setView(next);
     setForm(toForm(next));
-    setFieldErrors({});
   }, []);
 
   const load = useCallback(async () => {
@@ -164,23 +152,14 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
     }
   };
 
-  const validate = (value: string): string | undefined => {
-    return isValidQuotaInput(value, true) ? undefined : t('pages.storageQuota.quotaMin');
-  };
-
   const handleSave = async () => {
     if (!form || !view) return;
-    const errors = { db: validate(form.db), file: validate(form.file) };
-    setFieldErrors(errors);
-    if (errors.db || errors.file) return;
     try {
       setSaving(true);
       // ส่งเฉพาะ field ที่ผู้ใช้แก้จริง — ช่อง GB แสดงค่าปัดทศนิยม 2 ตำแหน่ง ถ้าส่งทุกช่องกลับ
       // การบันทึกฟิลด์อื่นจะเขียนทับ override เดิมด้วยค่าที่ปัดแล้ว
       const loaded = toForm(view);
       const patch: StorageQuotaPatch = {};
-      if (form.db !== loaded.db) patch.db_quota_bytes = gbInputToBytes(form.db);
-      if (form.file !== loaded.file) patch.file_quota_bytes = gbInputToBytes(form.file);
       if (form.exempt !== loaded.exempt) patch.exempt = form.exempt;
       if (form.note !== loaded.note) patch.note = form.note.trim() === '' ? null : form.note.trim();
       apply(await storageQuotaService.update(buId, patch));
@@ -287,38 +266,6 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
             )}
 
             <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="bu-storage-db-gb">{t('pages.storageQuota.dbQuotaGb')}</Label>
-                <Input
-                  id="bu-storage-db-gb"
-                  type="number"
-                  min={1}
-                  step="any"
-                  inputMode="decimal"
-                  disabled={!canManage || saving}
-                  placeholder={t('pages.storageQuota.defaultPlaceholder', { gb: bytesToGb(view.defaults.db_bytes) })}
-                  value={form.db}
-                  onChange={(e) => setForm({ ...form, db: e.target.value })}
-                  className={fieldErrors.db ? 'border-destructive' : ''}
-                />
-                {fieldErrors.db && <p className="text-destructive text-xs">{fieldErrors.db}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="bu-storage-file-gb">{t('pages.storageQuota.fileQuotaGb')}</Label>
-                <Input
-                  id="bu-storage-file-gb"
-                  type="number"
-                  min={1}
-                  step="any"
-                  inputMode="decimal"
-                  disabled={!canManage || saving}
-                  placeholder={t('pages.storageQuota.defaultPlaceholder', { gb: bytesToGb(view.defaults.file_bytes) })}
-                  value={form.file}
-                  onChange={(e) => setForm({ ...form, file: e.target.value })}
-                  className={fieldErrors.file ? 'border-destructive' : ''}
-                />
-                {fieldErrors.file && <p className="text-destructive text-xs">{fieldErrors.file}</p>}
-              </div>
               <label className="flex items-center gap-2 rounded-md border border-input p-2 text-sm sm:col-span-2">
                 <input
                   type="checkbox"
