@@ -129,7 +129,7 @@ describe('BusinessUnitDocument', () => {
     expect(onCommit).toHaveBeenCalledWith(name, '12');
   });
 
-  it('Max users เป็นค่าอ่านอย่างเดียว — แก้ได้ที่การ์ด User Licenses เท่านั้น', () => {
+  it('Max users เป็นค่าอ่านอย่างเดียว — แก้ได้ที่การ์ด User licenses เท่านั้น', () => {
     setup({ activeSeats: 15, activeLicenseCount: 2 });
 
     expect(screen.getByText('15')).toBeInTheDocument();

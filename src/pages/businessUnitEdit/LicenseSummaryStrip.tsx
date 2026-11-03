@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 import { useI18n } from '../../hooks/useI18n';
 import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
 import { sumActiveLicenses, licenseStatus } from '../../utils/buLicense';
-import { formatBytes, usedPct } from '../../utils/storageQuota';
+import { fmtPct, meterWidth, usedPct } from '../../utils/storageQuota';
 import { daysLeft, fmtDate, isPerpetual } from '../licenses/licenseDates';
 import type { BusinessUnitLicense, BuStorageQuotaView, InterfaceLicense, StorageKind } from '../../types';
 
@@ -71,7 +71,7 @@ function Cell({ target, label, loading, value, unit, meterPct, status, tone = 'd
           </span>
           {meterPct !== undefined && (
             <span className="bg-muted block h-1.5 overflow-hidden rounded-full" aria-hidden="true">
-              <span className={cn('block h-full', toneBar(tone))} style={{ width: `${Math.min(100, Math.max(0, meterPct))}%` }} />
+              <span className={cn('block h-full', toneBar(tone))} style={{ width: meterWidth(meterPct) }} />
             </span>
           )}
           {status && <span className={cn('text-xs', toneText(tone))}>{status}</span>}
@@ -96,10 +96,12 @@ interface LicenseSummaryStripProps {
 }
 
 /**
- * แถบสรุปบนหัวแท็บ Licenses — ตอบ "BU นี้ใช้สิทธิ์อะไรได้ เหลือเท่าไร หมดเมื่อไร" ในที่เดียว
+ * แถบสรุปบนหัวแท็บ Licenses — บอกแค่ "ต้องดูแลอะไรไหม": pool ใกล้เต็ม ใบใกล้หมด โควตาใกล้เต็ม
+ * ตัวเลขละเอียด (bytes, เลขใบ, วันเริ่ม) อยู่ในการ์ดด้านล่างที่เดียว — ห้ามย้ายกลับมาซ้ำที่นี่
+ * ตัวเลขใหญ่กับแถบวัดในช่องเดียวกันต้องพูดถึงปริมาณเดียวกันเสมอ (เคยเป็น "10 seats" ของ BU
+ * คู่กับแถบ 8/10 ของ cluster pool ซึ่งอ่านเป็น "BU นี้ใช้ไป 80%")
  * ทุกช่องคำนวณจากข้อมูลที่หน้านี้โหลดอยู่แล้วของ BU เดียว (ชุดจำกัด) ไม่ใช่ rollup ทั้ง registry
  * จึงไม่ขัดกับ `agent-os/standards/pages/summary-band.md`
- * ตัวเลขใหญ่มีที่นี่ที่เดียว — การ์ดด้านล่างเป็นรายละเอียด
  */
 export function LicenseSummaryStrip({
   seatLicenses,
@@ -144,6 +146,15 @@ export function LicenseSummaryStrip({
   const storageTone: Tone = blocked || fullestPct >= 100 ? 'destructive' : fullestPct >= 80 ? 'warning' : 'default';
   const kindLabel = (k: StorageKind) =>
     t(k === 'database' ? 'pages.storageQuota.database' : 'pages.storageQuota.attachment');
+  const storageStatus = blocked
+    ? t('pages.storageQuota.blocking')
+    : !fullest
+      ? t('pages.storageQuota.notMeasured')
+      : fullestPct >= 100
+        ? t('pages.businessUnits.licStripOverQuota')
+        : fullestPct >= 80
+          ? t('pages.businessUnits.licStripNearlyFull')
+          : t('pages.businessUnits.licStripWithinQuota');
 
   return (
     <Card className="gap-0 p-0">
@@ -152,16 +163,15 @@ export function LicenseSummaryStrip({
           target={LICENSE_SECTION_IDS.seats}
           label={t('pages.businessUnits.licStripSeats')}
           loading={seatsLoading}
-          value={seats}
-          unit={t('pages.businessUnits.licStripSeatUnit')}
+          // มี pool → ตัวเลขใหญ่คือ pool (คู่กับแถบ) และจำนวนของ BU ลงไปเป็นบรรทัดรอง
+          value={clusterSeat ? `${clusterSeat.used}/${clusterSeat.cap}` : seats}
+          unit={t(clusterSeat ? 'pages.businessUnits.licStripPoolUnit' : 'pages.businessUnits.licStripSeatUnit')}
           meterPct={poolPct}
           tone={seatTone}
           status={
             <>
               {clusterSeat && (
-                <span className="block">
-                  {t('pages.businessUnits.clusterPoolSeatsUsed', { used: clusterSeat.used, cap: clusterSeat.cap })}
-                </span>
+                <span className="block">{t('pages.businessUnits.licStripThisBuSeats', { count: seats })}</span>
               )}
               <span className="block">{endsText(seatEnd)}</span>
             </>
@@ -185,17 +195,12 @@ export function LicenseSummaryStrip({
             target={LICENSE_SECTION_IDS.storage}
             label={t('pages.storageQuota.cardTitle')}
             loading={storage.loading}
-            value={fullest ? `${fullestPct.toFixed(1)}%` : '—'}
-            unit={fullest ? t('pages.businessUnits.licStripOfQuota') : undefined}
+            // ช่องเดียวสรุปด้วย kind ที่เต็มที่สุด — บอกชื่อ kind ตรง ๆ ใน unit, bytes อยู่ในการ์ด
+            value={fullest ? fmtPct(fullestPct) : '—'}
+            unit={fullest ? kindLabel(fullest.kind) : undefined}
             meterPct={fullest ? fullestPct : undefined}
             tone={storageTone}
-            status={
-              blocked
-                ? t('pages.storageQuota.blocking')
-                : fullest
-                  ? `${kindLabel(fullest.kind)}: ${formatBytes(fullest.used_bytes)} / ${formatBytes(fullest.quota_bytes)}`
-                  : t('pages.storageQuota.notMeasured')
-            }
+            status={storageStatus}
           />
         )}
       </div>

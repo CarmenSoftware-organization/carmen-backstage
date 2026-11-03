@@ -243,7 +243,7 @@ export const en = {
       // namespaces. Thai copied verbatim from pages.licenses.end, unchanged — all four call
       // sites already shared the one key, so there was nothing to reconcile.
       end: 'End',
-      manageLicences: 'Manage licences',   // British spelling, as in the source
+      manageLicences: 'Manage licenses',   // US spelling, matching every other label on the BU Licenses tab
       // ปุ่มออกสัญญาใบใหม่จากการ์ด User Licenses ในหน้า Business Unit — คู่กับ manageLicences
       newSubscription: 'New subscription',
       export: 'Export',
@@ -3074,7 +3074,7 @@ export const en = {
       logoLabel: 'Logo',
 
       // --- Task 4: BusinessUnitLicensesCard.tsx ---
-      userLicensesTitle: 'User Licenses',
+      userLicensesTitle: 'User licenses',
       // One/Many pair for the "{{seats}} seats from {{count}} active license(s)" ternary
       // (`activeCount === 1 ? 'license' : 'licenses'`) — the seat count itself is always
       // rendered plural in the source ("seats", never "seat"), so only the license-count axis
@@ -3101,8 +3101,11 @@ export const en = {
       licStripNoneIssued: 'None issued',
       licStripNoneInForce: 'Nothing in force',
       licStripEnds: 'Ends {{date}}',
-      licStripOfQuota: 'of quota, fullest kind',
-      clusterPoolSeatsUsed: 'Cluster pool: {{used}} / {{cap}} seats used',
+      licStripPoolUnit: 'used in cluster pool',
+      licStripThisBuSeats: 'This BU: {{count}} seats',
+      licStripWithinQuota: 'Within quota',
+      licStripNearlyFull: 'Nearly full',
+      licStripOverQuota: 'Over quota',
       seatsManagedInLicenseCenter: 'Seats are managed in the License Center.',
       // --- BusinessUnitLicensesCard.tsx: per-BU subscription list ---
       noSubscriptions: 'No subscription has been issued for this business unit',
