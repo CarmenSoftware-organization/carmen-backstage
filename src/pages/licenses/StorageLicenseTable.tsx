@@ -36,6 +36,18 @@ const DEFAULT_SORT_DESC = true;
 const SORT_TIEBREAKER = 'id:asc';
 const DEFAULT_SORT = `${DEFAULT_SORT_ID}:${DEFAULT_SORT_DESC ? 'desc' : 'asc'},${SORT_TIEBREAKER}`;
 
+// id เดิมของคอลัมน์ Cluster (`cluster` คือชื่อบนสาย ไม่ใช่ relation ของ Prisma) — BE ปฏิเสธการเรียงนี้
+// ผู้ใช้ที่เคยบันทึกไว้ใน localStorage ต้องกลับไปใช้ค่าเริ่มต้น
+const STALE_SORT_ID = 'tb_business_unit.cluster.name';
+const readStoredSort = (): string => {
+  const stored = localStorage.getItem(SORT_KEY) || '';
+  if (stored.includes(STALE_SORT_ID)) {
+    localStorage.removeItem(SORT_KEY);
+    return '';
+  }
+  return stored;
+};
+
 const withTiebreaker = (sort: string): string => {
   const s = sort.trim();
   if (!s) return DEFAULT_SORT;
@@ -72,7 +84,7 @@ export function StorageLicenseTable() {
   const [paginate, setPaginate] = useState(() => ({
     page: Number(localStorage.getItem(PAGE_KEY)) || 1,
     perpage: readStoredPerpage(PERPAGE_KEY, 20),
-    sort: withTiebreaker(localStorage.getItem(SORT_KEY) || ''),
+    sort: withTiebreaker(readStoredSort()),
   }));
 
   const resetPage = useCallback(() => {
@@ -238,7 +250,7 @@ export function StorageLicenseTable() {
         ),
       },
       {
-        id: 'tb_business_unit.cluster.name',
+        id: 'tb_business_unit.tb_cluster.name',
         accessorFn: (r) => r.tb_business_unit.cluster?.name ?? '',
         header: t('common.label.cluster'),
         cell: ({ row }) => <span>{row.original.tb_business_unit.cluster?.name || '-'}</span>,

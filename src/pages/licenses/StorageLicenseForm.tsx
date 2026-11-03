@@ -30,7 +30,7 @@ import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../../u
 import { devLog, getErrorDetail, isNotFoundError, parseApiError } from '../../utils/errorParser';
 import { bytesToGbInput, formatBytes, gbInputToBytes, isValidQuotaInput } from '../../utils/storageQuota';
 import { storageLicenseSource } from './storageLicenseSource';
-import type { BuStorageLicense, BuStorageLicenseRow } from '../../types';
+import type { BuStorageLicense, BuStorageLicenseInput, BuStorageLicenseRow } from '../../types';
 
 const LIST_PATH = '/licenses?tab=storage';
 
@@ -245,13 +245,24 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
     return Object.keys(next).length === 0;
   };
 
-  const buildPayload = () => ({
+  const buildPayload = (): BuStorageLicenseInput => ({
     db_quota_bytes: toBytes(form.db),
     file_quota_bytes: toBytes(form.file),
     // ส่ง null เมื่อเคลียร์ช่อง เพื่อให้ล้างค่าเดิมได้ตอนแก้
     reference_no: form.reference_no.trim() || null,
     note: form.note.trim() || null,
   });
+
+  // แก้ใบ: ส่งตัวเลขเฉพาะช่องที่ผู้ใช้แตะ (เทียบสตริง GB ที่ช่องเริ่มต้นไว้ ไม่เทียบไบต์) —
+  // ไม่งั้นค่าที่ migrate มาแบบไม่ลงตัว GB จะถูกปัดเขียนทับทุกครั้งที่บันทึก
+  const buildEditPayload = (): Partial<BuStorageLicenseInput> => {
+    const { db_quota_bytes, file_quota_bytes, ...rest } = buildPayload();
+    return {
+      ...rest,
+      ...(form.db !== savedForm.db ? { db_quota_bytes } : {}),
+      ...(form.file !== savedForm.file ? { file_quota_bytes } : {}),
+    };
+  };
 
   const applyApiError = (err: unknown, prefixKey: 'pages.licenses.saveFailedPrefix') => {
     const { fields } = parseApiError(err, t);
@@ -285,7 +296,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
     setSaving(true);
     setError('');
     try {
-      await storageLicenseService.update(detail.business_unit_id, detail.id, { ...buildPayload(), doc_version: docVersion });
+      await storageLicenseService.update(detail.business_unit_id, detail.id, { ...buildEditPayload(), doc_version: docVersion });
       toast.success(t('toast.saved'));
       await load();
     } catch (err: unknown) {

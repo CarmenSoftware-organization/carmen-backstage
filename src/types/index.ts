@@ -2456,6 +2456,13 @@ export interface BuStorageLicense {
   };
 }
 
+/** ผลของการออกใบ (POST) — backend คืนแค่นี้ ไม่ใช่ใบเต็ม */
+export interface BuStorageLicenseIssued {
+  id: string;
+  license_number: string;
+  superseded_id: string | null;
+}
+
 /** แถวในมุมมองรายใบทั้ง fleet (`/backstage/storage-licenses`) — พ่วง BU + cluster */
 export interface BuStorageLicenseRow extends BuStorageLicense {
   tb_business_unit: {

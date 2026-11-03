@@ -233,8 +233,22 @@ export async function issueStorageLicense(tx: Prisma.TransactionClient, input: {
 ## Deploy notes (not tasks; for the PR descriptions)
 
 1. BE PR first, merge-commit. Deploy to DEV applies the migration. Check that the licence count equals the number of rows with a manual quota, and that `quota_bytes` is unchanged for those BUs (Review Focus 4).
-2. Seed the app allow-list keys on DEV (Task 3 Step 5). Without them the new write routes return 401, which logs the user out.
+2. Seed the app allow-list on **every** environment (DEV, production, and any other app id such as inventory/UAT) with all six keys `businessUnitStorageLicense.create`, `.update`, `.delete`, `.findAll`, `.listPlatform`, `.findOnePlatform` **before the FE goes live** (Task 3 Step 5). Without them the Storage tab, the edit page and the create form return 401, which logs the user out. Writes also require backstage-wide `subscription.manage` (`BackstageWidePermissionGuard`); a cluster-scoped grant is not enough.
 3. FE PR merged to `main` (auto-deploys to DEV).
+   - **Old-FE window:** until the new FE is deployed, the old quota card keeps working (the gateway still returns deprecated `db_quota_bytes` / `file_quota_bytes` in the quota view, mirroring the in-force licence, for one release), but quota edits made from it are no-ops: PUT no longer accepts those fields, only `exempt` / `note` save.
+   - **Post-deploy reconciliation** (run on each environment once the new gateway is up). It catches manual quotas edited between the migration applying and the new gateway starting; expect zero rows:
+     ```sql
+     SELECT q.bu_id, q.db_quota_bytes AS q_db, q.file_quota_bytes AS q_file,
+            l.license_number, l.db_quota_bytes AS l_db, l.file_quota_bytes AS l_file
+     FROM tb_business_unit_storage_quota q
+     LEFT JOIN tb_business_unit_storage_license l
+       ON l.business_unit_id = q.bu_id AND l.deleted_at IS NULL AND l.superseded_at IS NULL
+     WHERE (q.db_quota_bytes IS NOT NULL OR q.file_quota_bytes IS NOT NULL)
+       AND (l.id IS NULL
+            OR q.db_quota_bytes   IS DISTINCT FROM l.db_quota_bytes
+            OR q.file_quota_bytes IS DISTINCT FROM l.file_quota_bytes);
+     ```
+     Any row: issue (or correct) an STQ licence for that BU from the Licenses > Storage tab.
 4. On each environment, if a `storage_quota` config row exists, set the file default to 5 GB in Backstage Config.
 5. Later, a separate branch: drop `tb_business_unit_storage_quota.db_quota_bytes` / `file_quota_bytes`.
 6. Production: `git push origin main:vercel` after the BE is on production.

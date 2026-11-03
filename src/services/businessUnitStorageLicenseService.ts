@@ -3,6 +3,7 @@ import { buildQuery } from '../utils/buildQuery';
 import type {
   BuStorageLicense,
   BuStorageLicenseInput,
+  BuStorageLicenseIssued,
   BuStorageLicenseSummary,
   BuStorageLicensesResponse,
   BuStorageLicenseRow,
@@ -13,7 +14,7 @@ const BASE = (buId: string) => `/api-system/business-units/${encodeURIComponent(
 
 const BACKSTAGE_BASE = '/api-system/backstage/storage-licenses';
 
-/** ค้นได้ที่เลขที่ใบ/เลขอ้างอิง (และ code/ชื่อ BU ที่ backend ค้นเพิ่มให้) — ส่งฟิลด์อื่นไปก็ถูกเมิน */
+/** ฟิลด์ค้นเริ่มต้น — เมื่อมีคำค้น backend เติม code/ชื่อ BU เข้า OR ให้เสมอ (ไม่ว่าจะส่ง searchfields หรือไม่) */
 const defaultSearchFields = ['license_number', 'reference_no'];
 
 /**
@@ -48,7 +49,7 @@ const businessUnitStorageLicenseService = {
   },
 
   /** ออกใบใหม่ — ใบที่ใช้งานอยู่ของ BU จะถูกแทนที่ (license_number ระบบออกให้) */
-  create: async (buId: string, input: BuStorageLicenseInput): Promise<BuStorageLicense> => {
+  create: async (buId: string, input: BuStorageLicenseInput): Promise<BuStorageLicenseIssued> => {
     const response = await api.post(BASE(buId), input);
     return response.data.data || response.data;
   },
