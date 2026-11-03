@@ -295,6 +295,7 @@ const LicenseIntakeDetail: React.FC = () => {
                         loading={buLoading}
                         error={buError}
                         onRetry={() => fetchBuLicenses(selectedBu.id)}
+                        intakeHasStorage={intake.storage_db_bytes != null || intake.storage_file_bytes != null}
                       />
                     )}
 
@@ -413,7 +414,8 @@ const ProducedLinks: React.FC<{ produced?: IntakeDetail['produced'] }> = ({ prod
   const subs = produced?.subscriptions ?? [];
   const seats = produced?.seats ?? [];
   const ifaces = produced?.interfaces ?? [];
-  if (subs.length + seats.length + ifaces.length === 0) return <span>-</span>;
+  const storages = produced?.storage ?? [];
+  if (subs.length + seats.length + ifaces.length + storages.length === 0) return <span>-</span>;
   // เส้นทางเหล่านี้ใช้ subscription.read เหมือนหน้านี้ จึงลิงก์ได้เลยโดยไม่ต้องเช็คสิทธิ์เพิ่ม
   const linkClass = 'font-mono text-primary underline underline-offset-2';
   return (
@@ -442,6 +444,14 @@ const ProducedLinks: React.FC<{ produced?: IntakeDetail['produced'] }> = ({ prod
           </span>
           <Link to={`/licenses/interface/${encodeURIComponent(i.id)}/edit`} className={linkClass}>
             {i.license_number || i.id}
+          </Link>
+        </li>
+      ))}
+      {storages.map((s) => (
+        <li key={s.id}>
+          <span className="mr-2 text-muted-foreground">{t('pages.licenseIntakes.producedStorage')}</span>
+          <Link to={`/licenses/storage/${encodeURIComponent(s.id)}/edit`} className={linkClass}>
+            {s.license_number || s.id}
           </Link>
         </li>
       ))}
