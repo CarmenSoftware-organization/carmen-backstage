@@ -25,6 +25,7 @@ import { formatBytes, usedPct } from '../../utils/storageQuota';
 import type { StorageKind, StorageMeasureAllStatus, StorageUsageListItem } from '../../types';
 import { StorageFlagBadge } from '../clusterAdmin/businessUnitForm/StorageMeter';
 import { LicenseSummaryBand, type SummaryBandItem } from './LicenseSummaryBand';
+import { Skeleton } from '../../components/ui/skeleton';
 
 /** ระดับที่ถือว่า "ใกล้เต็ม" — ตรงกับสีเตือนของ StorageMeter */
 const NEAR_PCT = 80;
@@ -100,6 +101,79 @@ const KindCell: React.FC<{ row: StorageUsageListItem; kind: StorageKind }> = ({ 
         </div>
       )}
     </div>
+  );
+};
+
+interface KindTotal {
+  used: number;
+  quota: number;
+  count: number;
+}
+
+/** ผลรวมทั้ง fleet ของหนึ่ง kind — นับเฉพาะ BU ที่มีผลวัดของ kind นั้น */
+const totalOf = (rows: StorageUsageListItem[], kind: StorageKind): KindTotal =>
+  rows.reduce<KindTotal>(
+    (acc, row) => {
+      const usage = kindOf(row, kind);
+      if (!usage) return acc;
+      return { used: acc.used + usage.used_bytes, quota: acc.quota + usage.quota_bytes, count: acc.count + 1 };
+    },
+    { used: 0, quota: 0, count: 0 },
+  );
+
+/**
+ * การ์ดพื้นที่รวมทั้ง fleet: database กับไฟล์แนบ ใช้ไปรวมเทียบโควตาที่จัดสรรรวม
+ * นับจากทุก BU ไม่ตามตัวกรอง — เป็นภาพรวมที่นิ่ง ไม่ใช่ผลรวมของแถวที่เห็น
+ */
+const StorageTotalsCard: React.FC<{ rows: StorageUsageListItem[]; loading: boolean }> = ({ rows, loading }) => {
+  const { t } = useI18n();
+  const kinds: { kind: StorageKind; label: string }[] = [
+    { kind: 'database', label: t('pages.storageQuota.totalDatabase') },
+    { kind: 'attachment', label: t('pages.storageQuota.totalAttachment') },
+  ];
+  return (
+    <Card>
+      <CardContent className="grid p-0 sm:grid-cols-2 sm:divide-x sm:divide-border">
+        {kinds.map(({ kind, label }, i) => {
+          const total = totalOf(rows, kind);
+          const pct = total.quota > 0 ? (total.used / total.quota) * 100 : 0;
+          return (
+            <div key={kind} className={cn('space-y-2 p-4 sm:p-5', i > 0 && 'border-t border-border sm:border-t-0')}>
+              <div className="text-muted-foreground text-xs font-medium">{label}</div>
+              {loading ? (
+                <>
+                  <Skeleton className="h-7 w-28" />
+                  <Skeleton className="h-3 w-48" />
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-mono text-2xl font-semibold tabular-nums tracking-tight">
+                      {formatBytes(total.used)}
+                    </span>
+                    <span className="text-muted-foreground font-mono text-xs tabular-nums">
+                      {pct.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="bg-muted h-1.5 w-full max-w-xs overflow-hidden rounded-full" aria-hidden="true">
+                    <div
+                      className="bg-primary h-full rounded-full"
+                      style={{ width: `${Math.min(100, pct)}%` }}
+                    />
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {t('pages.storageQuota.totalOfAllocated', {
+                      quota: formatBytes(total.quota),
+                      count: total.count,
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 };
 
@@ -389,6 +463,8 @@ const StorageUsageList: React.FC = () => {
     <Layout>
       <div className="space-y-4 sm:space-y-6">
         <PageHeader title={t('pages.storageQuota.listTitle')} subtitle={t('pages.storageQuota.listSubtitle')} />
+
+        {!error && <StorageTotalsCard rows={rows} loading={loading && rows.length === 0} />}
 
         {!error && <LicenseSummaryBand items={summaryItems} loading={loading} error="" onRetry={load} />}
 
