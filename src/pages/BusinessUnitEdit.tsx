@@ -43,6 +43,7 @@ import BusinessUnitBrandingCard from './businessUnitEdit/BusinessUnitBrandingCar
 import BusinessUnitUsersCard from './businessUnitEdit/BusinessUnitUsersCard';
 import BusinessUnitLicensesCard from './businessUnitEdit/BusinessUnitLicensesCard';
 import BusinessUnitInterfaceLicensesCard from './businessUnitEdit/BusinessUnitInterfaceLicensesCard';
+import { BuStorageQuotaCard } from './clusterAdmin/businessUnitForm/BuStorageQuotaCard';
 import { useBusinessUnitSubscriptions } from './businessUnitEdit/useBusinessUnitSubscriptions';
 import BusinessUnitDebugSheet from './businessUnitEdit/BusinessUnitDebugSheet';
 import BusinessUnitDocument from './businessUnitEdit/BusinessUnitDocument';
@@ -933,6 +934,7 @@ const BusinessUnitEdit: React.FC = () => {
               />
             ) : null
           }
+          storageQuotaSlot={!isNew && hasPermission('storage_quota.read', { clusterId: BACKSTAGE_SCOPED_RECORD }) ? <BuStorageQuotaCard buId={id!} /> : null}
           interfaceLicensesSlot={
             !isNew ? (
               <BusinessUnitInterfaceLicensesCard

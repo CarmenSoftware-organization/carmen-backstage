@@ -2342,3 +2342,89 @@ export interface AiProvider {
 }
 
 export type AiProviderInput = Omit<AiProvider, 'id' | 'doc_version' | 'created_at' | 'updated_at'>;
+
+// ==================== Storage quota (โควตาพื้นที่เก็บข้อมูลต่อ BU) ====================
+
+export type StorageKind = 'database' | 'attachment';
+
+/** ผลวัดล่าสุดของ BU หนึ่ง kind — รูปเดียวกับ `StorageKindUsage` ของ gateway */
+export interface StorageKindUsage {
+  kind: StorageKind;
+  used_bytes: number;
+  quota_bytes: number;
+  remaining_pct: number;
+  step: number | null;
+  exceeded_at: string | null;
+  grace_ends_at: string | null;
+  blocking: boolean;
+  /** `shared_schema` | `null_schema` | `measure_failed` — BU ที่มี flag ไม่ถูกบล็อก */
+  flag: string | null;
+  measured_at: string;
+}
+
+export interface BuStorageUsage {
+  bu_code: string;
+  exempt: boolean;
+  enforce: boolean;
+  kinds: StorageKindUsage[];
+}
+
+/** โควตาที่ตั้งเองต่อ BU — null = ใช้ค่า default ของ Backstage Config */
+export interface BuStorageQuota {
+  db_quota_bytes: number | null;
+  file_quota_bytes: number | null;
+  exempt: boolean;
+  note: string | null;
+  updated_at: string | null;
+  updated_by_id: string | null;
+}
+
+export interface BuStorageQuotaView {
+  quota: BuStorageQuota;
+  defaults: { db_bytes: number; file_bytes: number };
+  usage: BuStorageUsage;
+}
+
+/** งาน reclaim (VACUUM FULL) ล่าสุดของ BU — bytes เป็น null จนกว่างานจะวัดถึง */
+export interface StorageReclaimJob {
+  id: string;
+  bu_id: string;
+  status: 'queued' | 'running' | 'done' | 'failed';
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  bytes_before: number | null;
+  bytes_after: number | null;
+  error: string | null;
+  /** ตารางที่ข้ามเพราะล็อกไม่ได้/เกินเวลา */
+  skipped_tables: string[];
+}
+
+export interface StorageUsageListItem {
+  bu_id: string;
+  bu_code: string;
+  bu_name: string;
+  exempt: boolean;
+  enforce: boolean;
+  flagged: boolean;
+  kinds: StorageKindUsage[];
+  max_pct: number;
+  measured_at: string | null;
+}
+
+/** body ของ PUT โควตา — field ที่ไม่ส่ง = คงเดิม, โควตา null = ใช้ค่า default */
+export interface StorageQuotaPatch {
+  db_quota_bytes?: number | null;
+  file_quota_bytes?: number | null;
+  exempt?: boolean;
+  note?: string | null;
+}
+
+/** คีย์ `storage_quota` ใน Backstage Config (เก็บเป็นไบต์) */
+export interface StorageQuotaConfig {
+  default_db_bytes: number;
+  default_file_bytes: number;
+  team_emails: string[];
+  enforce: boolean;
+  grace_days: number;
+}

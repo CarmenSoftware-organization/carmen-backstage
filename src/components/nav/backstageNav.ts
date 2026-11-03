@@ -1,12 +1,13 @@
 import {
   LayoutDashboard, Network, Building2, Users, FileText, Newspaper, Megaphone, AppWindow,
   ShieldCheck, ShieldAlert, UserCog, DatabaseZap, Database, DatabaseBackup, LayoutGrid, Mail, FileSpreadsheet,
-  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles, Receipt, Inbox
+  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles, Receipt, Inbox, HardDrive
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TKey } from '../../i18n/types';
 import type { NavItem } from '../Sidebar';
 import type { FeatureState } from '../../constants/featureFlags';
+import { BACKSTAGE_SCOPED_RECORD } from '../../utils/permissions';
 
 const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   { path: '/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
@@ -26,6 +27,7 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   { path: '/license-modules', labelKey: 'nav.licenseFeatureGroups', icon: LayoutGrid, permission: 'license_feature_group.read', groupKey: 'navGroup.licenseManagement', feature: 'license_feature_groups' },
   { path: '/license-features', labelKey: 'nav.licenseFeatures', icon: Tags, permission: 'license_feature.read', groupKey: 'navGroup.licenseManagement', feature: 'license_features' },
   { path: '/license-intakes', labelKey: 'nav.licenseIntakes', icon: Inbox, permission: 'subscription.read', groupKey: 'navGroup.licenseManagement', feature: 'license_intakes', countKey: 'licenseIntakesPending' },
+  { path: '/storage-usage', labelKey: 'nav.storageUsage', icon: HardDrive, permission: 'storage_quota.read', widePermission: true, groupKey: 'navGroup.licenseManagement' },
   // Content
   { path: '/report-templates', labelKey: 'nav.reportTemplates', icon: FileText, permission: 'report_template.read', groupKey: 'navGroup.content', feature: 'report_templates' },
   { path: '/report-form-groups', labelKey: 'nav.formGroups', icon: LayoutGrid, permission: 'report_template.read', groupKey: 'navGroup.content', feature: 'report_form_groups' },
@@ -110,14 +112,18 @@ export const resourceNavMeta = (resource: string): ResourceNavMeta | undefined =
 
 /** The platform-administration navigation, filtered to what this user may reach. */
 export function buildBackstageNav(opts: {
-  hasPermission: (key: string) => boolean;
+  hasPermission: (key: string, opts?: { clusterId?: string }) => boolean;
   isSuperAdmin: boolean;
   /** สถานะฟีเจอร์จาก FeatureFlagContext — ผู้เรียกต้องส่งมาเสมอ */
   flagOf: (key: string) => FeatureState;
 }): NavItem[] {
   return ALL_BACKSTAGE_NAV_ITEMS.filter(
     (item) =>
-      (!item.permission || opts.hasPermission(item.permission)) &&
+      (!item.permission ||
+        opts.hasPermission(
+          item.permission,
+          item.widePermission ? { clusterId: BACKSTAGE_SCOPED_RECORD } : undefined,
+        )) &&
       (!item.superAdminOnly || opts.isSuperAdmin) &&
       // `hide` เท่านั้นที่ตัดทิ้ง ส่วน `inactive` ต้องคงลำดับเดิมไว้ — Sidebar จัดกลุ่มจากแถวที่
       // groupKey ซ้ำกันติด ๆ การตัดรายการกลางกลุ่มออกจึงทำให้กลุ่มเดียวแตกเป็นสองหัวข้อได้
