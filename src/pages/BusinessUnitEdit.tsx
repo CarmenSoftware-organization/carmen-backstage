@@ -23,7 +23,7 @@ import { normalizeAudit } from '../utils/audit';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 import { useI18n } from '../hooks/useI18n';
 import { Skeleton } from '../components/ui/skeleton';
-import type { Cluster, BusinessUnitConfig, TenantCurrency, BusinessUnit, BusinessUnitLicense, InterfaceLicense } from '../types';
+import type { Cluster, BusinessUnitConfig, TenantCurrency, BusinessUnit, BusinessUnitLicense, InterfaceLicense, BuStorageQuotaView } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { UNRESOLVED_CLUSTER_ID, BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import TenantMigrationCard from '../components/TenantMigrationCard';
@@ -44,6 +44,7 @@ import BusinessUnitUsersCard from './businessUnitEdit/BusinessUnitUsersCard';
 import BusinessUnitLicensesCard from './businessUnitEdit/BusinessUnitLicensesCard';
 import BusinessUnitInterfaceLicensesCard from './businessUnitEdit/BusinessUnitInterfaceLicensesCard';
 import { BuStorageQuotaCard } from './clusterAdmin/businessUnitForm/BuStorageQuotaCard';
+import { LicenseSummaryStrip } from './businessUnitEdit/LicenseSummaryStrip';
 import { useBusinessUnitSubscriptions } from './businessUnitEdit/useBusinessUnitSubscriptions';
 import BusinessUnitDebugSheet from './businessUnitEdit/BusinessUnitDebugSheet';
 import BusinessUnitDocument from './businessUnitEdit/BusinessUnitDocument';
@@ -142,6 +143,8 @@ const BusinessUnitEdit: React.FC = () => {
   const interfaceLicenses = useLicenseLedger<InterfaceLicense>(id, businessUnitInterfaceLicenseService);
   // สัญญาของ BU นี้ — hook กันสิทธิ์ `subscription.read` เองก่อนยิง (ดูคอมเมนต์ใน hook)
   const buSubscriptions = useBusinessUnitSubscriptions(id);
+  // การ์ด storage เป็นเจ้าของการโหลด แถบสรุปอ่านค่าที่การ์ดรายงานขึ้นมา — ไม่ยิง GET ซ้ำ
+  const [storageState, setStorageState] = useState<{ view: BuStorageQuotaView | null; loading: boolean }>({ view: null, loading: true });
   // hook เดิมคืน activeSeats/activeLicenseCount มาให้ ส่วนหัวเอกสารใช้สองค่านี้ —
   // คำนวณที่นี่แทน (ฟังก์ชันเดิม อินพุตเดิม ผลลัพธ์เดิม)
   const activeSeats = sumActiveLicenses(licenses.licenses);
@@ -161,6 +164,7 @@ const BusinessUnitEdit: React.FC = () => {
     () => (currentCluster ? toClusterOption(currentCluster) : null),
     [currentCluster],
   );
+  const canReadStorage = hasPermission('storage_quota.read', { clusterId: BACKSTAGE_SCOPED_RECORD });
   const clusterSeat = currentCluster
     ? toSeatPool(currentCluster.users_count, currentCluster.total_max_license_users)
     : undefined;
@@ -918,7 +922,6 @@ const BusinessUnitEdit: React.FC = () => {
               <BusinessUnitLicensesCard
                 licenses={licenses.licenses}
                 loading={licenses.loading}
-                clusterSeat={clusterSeat}
                 subscriptions={buSubscriptions}
                 manageHref={formData.cluster_id ? `/licenses/${formData.cluster_id}#seats` : '/licenses'}
                 /* ออกสัญญาใบใหม่ให้ BU นี้ — ฟอร์มสร้างรับ cluster/BU จาก query เพื่อไม่ต้องเลือกซ้ำ
@@ -934,7 +937,19 @@ const BusinessUnitEdit: React.FC = () => {
               />
             ) : null
           }
-          storageQuotaSlot={!isNew && hasPermission('storage_quota.read', { clusterId: BACKSTAGE_SCOPED_RECORD }) ? <BuStorageQuotaCard buId={id!} /> : null}
+          storageQuotaSlot={!isNew && canReadStorage ? <BuStorageQuotaCard buId={id!} onStateChange={setStorageState} /> : null}
+          licensesSummarySlot={
+            !isNew ? (
+              <LicenseSummaryStrip
+                seatLicenses={licenses.licenses}
+                seatsLoading={licenses.loading}
+                clusterSeat={clusterSeat}
+                interfaceLicenses={interfaceLicenses.licenses}
+                interfacesLoading={interfaceLicenses.loading}
+                storage={canReadStorage ? storageState : undefined}
+              />
+            ) : null
+          }
           interfaceLicensesSlot={
             !isNew ? (
               <BusinessUnitInterfaceLicensesCard

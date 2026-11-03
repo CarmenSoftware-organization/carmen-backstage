@@ -3085,6 +3085,8 @@ export const en = {
       // SeatSection.tsx), below the promote bar. Thai copied verbatim from
       // pages.licenses.seatFromLicenseManyOne/ManyMany (identical Thai across all four
       // variants there, since Thai doesn't inflect for number).
+      activeLicenseCountOne: '{{count}} active license',
+      activeLicenseCountMany: '{{count}} active licenses',
       seatsFromActiveLicenseOne: '{{count}} seats from {{activeCount}} active license',
       seatsFromActiveLicenseMany: '{{count}} seats from {{activeCount}} active licenses',
       // NOT the same sentence as pages.businessUnits.clusterSeatsUsed below
@@ -3092,6 +3094,14 @@ export const en = {
       // "Cluster pool:" label prefix the other doesn't. Task 1 flagged the two as a
       // near-duplicate pair to decide on deliberately; kept as two keys, see the comment at
       // clusterSeatsUsed for the full reasoning.
+      licStripSeats: 'User seats',
+      licStripSeatUnit: 'seats',
+      licStripInterfaces: 'Interfaces',
+      licStripOfTotalInForce: 'of {{total}} in force',
+      licStripNoneIssued: 'None issued',
+      licStripNoneInForce: 'Nothing in force',
+      licStripEnds: 'Ends {{date}}',
+      licStripOfQuota: 'of quota, fullest kind',
       clusterPoolSeatsUsed: 'Cluster pool: {{used}} / {{cap}} seats used',
       seatsManagedInLicenseCenter: 'Seats are managed in the License Center.',
       // --- BusinessUnitLicensesCard.tsx: per-BU subscription list ---

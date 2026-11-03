@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
-import { sumActiveLicenses, licenseStatus, isExpiringSoon } from '../../utils/buLicense';
+import { licenseStatus, isExpiringSoon } from '../../utils/buLicense';
 import { daysLeft } from '../licenses/licenseDates';
 import { useI18n } from '../../hooks/useI18n';
 import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
@@ -16,8 +16,6 @@ import { LicenseSectionHeader } from './LicenseSectionHeader';
 interface BusinessUnitLicensesCardProps {
   licenses: BusinessUnitLicense[];
   loading: boolean;
-  /** pool ระดับ cluster ไม่ใช่ของ BU นี้ */
-  clusterSeat?: { used: number; cap: number };
   /**
    * ปลายทางของปุ่ม "Manage licences" — **ผู้เรียกเป็นคนตัดสิน ห้ามการ์ดประกอบ URL เอง**
    * การ์ดนี้ถูกใช้สอง shell และ cluster admin ไม่มี `subscription.read` จึงเข้า `/licenses/*` ไม่ได้
@@ -51,16 +49,14 @@ interface BusinessUnitLicensesCardProps {
  * เพื่อไม่ให้มีสองที่ที่เขียนของเดียวกันแล้วเพี้ยนจากกัน
  */
 export default function BusinessUnitLicensesCard({
-  licenses, loading, clusterSeat, manageHref, createHref, subscriptions, now = new Date(),
+  licenses, loading, manageHref, createHref, subscriptions, now = new Date(),
   subscriptionHref = (sub) => `/licenses/subscriptions/${sub.id}/edit`,
 }: BusinessUnitLicensesCardProps) {
   const { t } = useI18n();
   const { thresholds } = useExpiryThresholds();
   const soonMs = thresholds.subscription_days * 24 * 60 * 60 * 1000;
-  const activeSeats = sumActiveLicenses(licenses, now);
   const activeCount = licenses.filter((l) => licenseStatus(l, now) === 'active').length;
   const soon = licenses.filter((l) => isExpiringSoon(l, thresholds.seat_days, now));
-  const over = clusterSeat ? clusterSeat.used > clusterSeat.cap : false;
   const window = useCoverageWindow(now);
   const subItems = subscriptions?.items ?? [];
 
@@ -71,9 +67,11 @@ export default function BusinessUnitLicensesCard({
         facts={
           loading
             ? t('common.busy.loadingEllipsis')
+            /* จำนวนที่นั่งและพูล cluster อยู่ในช่องแรกของ LicenseSummaryStrip บนหัวแท็บแล้ว —
+               การ์ดเหลือแค่จำนวนใบ ไม่งั้นตัวเลขชุดเดียวกันขึ้นสองที่ห่างกันไม่ถึงหนึ่งจอ */
             : activeCount === 1
-              ? t('pages.businessUnits.seatsFromActiveLicenseOne', { count: activeSeats, activeCount })
-              : t('pages.businessUnits.seatsFromActiveLicenseMany', { count: activeSeats, activeCount })
+              ? t('pages.businessUnits.activeLicenseCountOne', { count: activeCount })
+              : t('pages.businessUnits.activeLicenseCountMany', { count: activeCount })
         }
         actions={
           <>
@@ -91,11 +89,6 @@ export default function BusinessUnitLicensesCard({
           </>
         }
       >
-        {clusterSeat && (
-          <p className={`text-xs ${over ? 'text-destructive' : 'text-muted-foreground'}`}>
-            {t('pages.businessUnits.clusterPoolSeatsUsed', { used: clusterSeat.used, cap: clusterSeat.cap })}
-          </p>
-        )}
         {/* แกนเวลารวมบนหัวการ์ดขึ้นเฉพาะเมื่อมี **มากกว่าหนึ่ง** สัญญา — ใบเดียวแถบนี้เหมือนแถบในแถว
             ทุกพิกเซล วาดซ้ำสองเส้นเป็นแค่เสียงรบกวน · ประโยชน์ของมันคือเห็นช่องโหว่/การทับซ้อนระหว่างใบ
             · shell ของ cluster admin ไม่ส่ง `subscriptions` มา จึงไม่ขึ้นที่นั่น */}

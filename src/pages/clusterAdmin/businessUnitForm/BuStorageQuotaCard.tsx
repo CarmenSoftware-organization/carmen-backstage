@@ -21,6 +21,11 @@ import { relativeTime } from '../../../utils/relativeTime';
 
 interface BuStorageQuotaCardProps {
   buId: string;
+  /**
+   * รายงานข้อมูลที่การ์ดถืออยู่ขึ้นไปให้หน้าแม่ (แถบสรุปบนหัวแท็บ) — การ์ดยังเป็นเจ้าของการโหลด
+   * ผู้เรียกส่ง setter ของ useState ได้ตรง ๆ (ต้องเสถียร ไม่งั้น effect ยิงทุก render)
+   */
+  onStateChange?: (state: { view: BuStorageQuotaView | null; loading: boolean }) => void;
 }
 
 /** ช่วง poll สถานะงาน reclaim ขณะ queued/running */
@@ -52,7 +57,7 @@ const toForm = (view: BuStorageQuotaView): QuotaForm => ({
  * สวิตช์ยกเว้นการบล็อก + หมายเหตุ และปุ่มวัดทันที
  * โควตาแก้ที่ใบ storage ไม่ใช่ที่การ์ดนี้ · แสดงเมื่อมีสิทธิ์ `storage_quota.read` · แก้/วัดต้องมี `storage_quota.manage`
  */
-export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
+export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardProps) {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
@@ -93,6 +98,11 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // ส่งทุกครั้งที่ view เปลี่ยน รวมผลวัดใหม่/reclaim — แถบสรุปจึงไม่ค้างค่าเก่าหลังกด Measure now
+  useEffect(() => {
+    onStateChange?.({ view, loading });
+  }, [view, loading, onStateChange]);
 
   // โหลดงาน reclaim ล่าสุดตอนเปิดการ์ด (ล้มเหลวเงียบ ๆ — ไม่กระทบส่วนอื่นของการ์ด)
   useEffect(() => {

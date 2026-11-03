@@ -47,26 +47,17 @@ const renderCard = (props: Partial<ComponentProps<typeof BusinessUnitLicensesCar
   );
 
 describe('BusinessUnitLicensesCard', () => {
-  it('แสดงผลรวมของใบที่ใช้ได้ ไม่ใช่ผลรวมทุกใบ', () => {
-    // cap ตั้งใจเป็น 99 (ไม่ใช่ตัวเลขบังเอิญ) กันไม่ให้เทสต์ผ่านเพราะเลขชนกับ clusterSeat.cap
-    // แทนที่จะตรงกับผลรวมที่นั่งจริงที่การ์ดคำนวณเอง
+  it('นับเฉพาะใบที่ใช้ได้ ไม่นับใบที่ยัง scheduled', () => {
+    // จำนวนที่นั่งและพูล cluster ย้ายไปอยู่ใน LicenseSummaryStrip บนหัวแท็บแล้ว การ์ดเหลือแค่จำนวนใบ
     renderCard({
-      clusterSeat: { used: 12, cap: 99 },
       licenses: [
         lic({ id: 'a', licensed_users: 10 }),
-        // ใบ 'b' ยัง scheduled (เริ่ม 2026-10-01, NOW = 2026-08-19) จึงไม่นับเข้าที่นั่งที่ใช้ได้
+        // ใบ 'b' ยัง scheduled (เริ่ม 2026-10-01, NOW = 2026-08-19) จึงไม่นับเป็นใบที่ใช้ได้
         lic({ id: 'b', licensed_users: 5, start_date: '2026-10-01T00:00:00.000Z', end_date: '2027-09-30T00:00:00.000Z' }),
       ],
     });
-    // ผลรวมต้องเป็น 10 (เฉพาะใบ 'a' ที่ active) ไม่ใช่ 15 (10+5 รวมทุกใบ)
-    expect(screen.getByText(/^10 seats from/)).toBeInTheDocument();
-    expect(screen.getByText(/1 active license$/)).toBeInTheDocument();
-  });
-
-  it('บอก pool ระดับ cluster เพราะเพดานไม่ใช่ของ BU นี้', () => {
-    renderCard({ clusterSeat: { used: 12, cap: 15 }, licenses: [lic({})] });
-    expect(screen.getByText(/12 \/ 15/)).toBeInTheDocument();
-    expect(screen.getByText(/Cluster pool:/)).toBeInTheDocument();
+    expect(screen.getByText(/^1 active license$/)).toBeInTheDocument();
+    expect(screen.queryByText(/seats from/)).not.toBeInTheDocument();
   });
 
   it('แสดงป้ายใกล้หมดอายุสำหรับใบที่ active และเหลือน้อยกว่า 30 วัน', () => {
@@ -107,6 +98,6 @@ describe('BusinessUnitLicensesCard', () => {
   it('loading = แสดง Loading แทนเลขที่นั่ง ไม่ใช่ 0 seats ที่หลอกตา', () => {
     renderCard({ loading: true, licenses: [] });
     expect(screen.getByText('Loading…')).toBeInTheDocument();
-    expect(screen.queryByText(/seats from/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/active license/)).not.toBeInTheDocument();
   });
 });
