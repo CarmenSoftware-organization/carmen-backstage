@@ -34,6 +34,9 @@ import type { BuStorageLicense, BuStorageLicenseRow } from '../../types';
 
 const LIST_PATH = '/licenses?tab=storage';
 
+// id จาก URL ไปต่อเป็น path ของ API — ต้องเป็น uuid จริงก่อนยิงคำขอใดๆ (กัน path จากผู้ใช้)
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 interface FormState {
   db: string;
   file: string;
@@ -139,9 +142,13 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
   useUnsavedChanges(hasChanges);
 
   // ── โหมดสร้าง: เติม BU จาก ?bu= ──
-  const prefilledBu = searchParams.get('bu') ?? '';
+  // ?bu= ที่ไม่ใช่ uuid ถูกเมินทั้งหมด — ไม่ prefill และไม่เอาค่าดิบไปเป็น id ของ BU
+  const rawBu = searchParams.get('bu') ?? '';
+  const prefilledBu = UUID_RE.test(rawBu) ? rawBu : '';
+  // GET /api-system/business-units/:id ใช้สิทธิ์ cluster.read (เดียวกับ picker) — ไม่มีสิทธิ์ห้ามยิง เพราะ 401 เตะผู้ใช้ออก
+  const canReadBu = hasPermission('cluster.read');
   useEffect(() => {
-    if (!isNew || !prefilledBu) return undefined;
+    if (!isNew || !prefilledBu || !canReadBu) return undefined;
     let cancelled = false;
     businessUnitService
       .getById(prefilledBu)
@@ -161,7 +168,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
         if (!cancelled) setBu({ id: prefilledBu, code: prefilledBu, name: '' });
       });
     return () => { cancelled = true; };
-  }, [isNew, prefilledBu]);
+  }, [isNew, prefilledBu, canReadBu]);
 
   // ── โหมดสร้าง: ใบที่ใช้อยู่ของ BU ที่เลือก ──
   const buId = bu?.id;
@@ -181,6 +188,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
   // ── โหมดแก้ไข ──
   const load = useCallback(async () => {
     if (isNew || !id) return;
+    if (!UUID_RE.test(id)) { setNotFound(true); setLoading(false); return; }
     try {
       setLoading(true);
       setNotFound(false);
@@ -449,7 +457,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
                       value={bu}
                       onChange={(next) => { setBu(next); setFieldErrors((p) => ({ ...p, bu: '' })); }}
                       // GET /api-system/business-units ใช้สิทธิ์ cluster.read — ไม่มี = เหลือแค่ BU ที่เติมมาจาก ?bu=
-                      canSearch={hasPermission('cluster.read')}
+                      canSearch={canReadBu}
                       placeholder={t('pages.storageLicense.form.businessUnitPlaceholder')}
                       disabled={!canEdit}
                     />

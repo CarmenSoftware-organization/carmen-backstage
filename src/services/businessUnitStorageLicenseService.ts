@@ -9,7 +9,7 @@ import type {
   PaginateParams,
 } from '../types';
 
-const BASE = (buId: string) => `/api-system/business-units/${buId}/storage-licenses`;
+const BASE = (buId: string) => `/api-system/business-units/${encodeURIComponent(buId)}/storage-licenses`;
 
 const BACKSTAGE_BASE = '/api-system/backstage/storage-licenses';
 
@@ -43,7 +43,7 @@ const businessUnitStorageLicenseService = {
 
   /** ใบเดียวจาก id ล้วน — คืน `business_unit_id` ไว้ประกอบ path ของ update/remove */
   get: async (id: string): Promise<BuStorageLicenseRow> => {
-    const response = await api.get(`${BACKSTAGE_BASE}/${id}`);
+    const response = await api.get(`${BACKSTAGE_BASE}/${encodeURIComponent(id)}`);
     return response.data.data || response.data;
   },
 
@@ -59,13 +59,13 @@ const businessUnitStorageLicenseService = {
     id: string,
     input: Partial<BuStorageLicenseInput> & { doc_version?: number },
   ): Promise<BuStorageLicense> => {
-    const response = await api.patch(`${BASE(buId)}/${id}`, input);
+    const response = await api.patch(`${BASE(buId)}/${encodeURIComponent(id)}`, input);
     return response.data.data || response.data;
   },
 
   /** ลบ — `doc_version` เป็น query param ที่ backend บังคับ */
   remove: async (buId: string, id: string, docVersion: number): Promise<unknown> => {
-    const response = await api.delete(`${BASE(buId)}/${id}`, { params: { doc_version: docVersion } });
+    const response = await api.delete(`${BASE(buId)}/${encodeURIComponent(id)}`, { params: { doc_version: docVersion } });
     return response.data;
   },
 };
