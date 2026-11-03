@@ -115,6 +115,8 @@ export default function BusinessUnitLicensesCard({
             subscriptionHref={subscriptionHref}
             window={window}
             soonMs={soonMs}
+            showGroups
+            showFeatureCount={false}
             now={now}
           />
         ) : (

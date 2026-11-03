@@ -15,13 +15,13 @@ interface SubscriptionRowsProps {
   /** เกณฑ์ "ใกล้หมด" เป็น ms จาก `thresholds.subscription_days` */
   soonMs: number;
   /**
-   * วาดกลุ่ม feature ที่สัญญาถือใต้แต่ละแถว — opt-in เพราะการ์ดฝั่ง platform ไม่วาด ·
-   * `groups` ไม่มี (backend เก่า) = ไม่วาดอะไร ห้ามอ่านเป็น "ไม่มีกลุ่ม"
+   * วาด license module ที่สัญญาถือใต้แต่ละแถว · `groups` ไม่มี (backend เก่า) = ไม่วาดป้าย และ
+   * ถอยไปโชว์จำนวน feature แทนแม้ `showFeatureCount` ปิด — ห้ามอ่านเป็น "ไม่มี module"
    */
   showGroups?: boolean;
   /**
-   * จำนวน feature ท้ายช่วงวันที่ ("98 features") — ค่าตั้งต้นวาด (การ์ดฝั่ง platform)
-   * แท็บ Modules ของ cluster admin ปิด: ผู้อ่านที่นั่นถามว่า "ซื้อ module อะไร" ป้าย module ตอบแล้ว
+   * จำนวน feature ท้ายช่วงวันที่ ("98 features") — การ์ดที่วาด module (`showGroups`) ปิดไว้:
+   * ผู้อ่านถามว่า "ซื้อ module อะไร" ป้าย module ตอบแล้ว (ผู้ใช้เคาะ 2026-11-03 สำหรับ BU Edit ด้วย)
    * ตัวเลข feature เป็นหน่วยของระบบที่ลูกค้าไม่ได้ซื้อ จึงเป็นแค่เสียงรบกวน
    */
   showFeatureCount?: boolean;
@@ -55,6 +55,7 @@ export function SubscriptionRows({ subscriptions, subscriptionHref, window, soon
         const soon = sub.state === 'active' && left <= soonMs;
         const href = subscriptionHref(sub);
         const groups = showGroups ? sub.groups : undefined;
+        const countVisible = showFeatureCount || (showGroups && !sub.groups);
         const rowClass = 'flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs';
         const body = (
           <>
@@ -62,10 +63,10 @@ export function SubscriptionRows({ subscriptions, subscriptionHref, window, soon
               <div className={href ? 'font-mono group-hover:underline' : 'font-mono'}>{sub.subscription_number}</div>
               <div className="text-muted-foreground">
                 {fmtCoverageRange(sub.start_date, sub.end_date, t('common.state.noExpiry'))}
-                {showFeatureCount && ' · '}
+                {countVisible && ' · '}
                 {/* ไม่โชว์ที่นั่งรายแถว: `seat_used/seat_cap` ของสัญญาคือพูลระดับ cluster ซึ่งขึ้นเป็น
                     บรรทัด "Cluster pool" บนหัวการ์ดอยู่แล้ว ซ้ำทุกแถวจะอ่านผิดว่าเป็นของใบนั้น */}
-                {showFeatureCount && (sub.feature_count === 1
+                {countVisible && (sub.feature_count === 1
                   ? t('pages.businessUnits.subscriptionRowOne', { count: sub.feature_count })
                   : t('pages.businessUnits.subscriptionRowMany', { count: sub.feature_count }))}
               </div>
