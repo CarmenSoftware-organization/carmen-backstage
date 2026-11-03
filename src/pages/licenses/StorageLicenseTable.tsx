@@ -10,7 +10,6 @@ import { SearchInput } from '../../components/SearchInput';
 import { TableSkeleton } from '../../components/TableSkeleton';
 import Can from '../../components/Can';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
-import { useAuth } from '../../context/AuthContext';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useI18n } from '../../hooks/useI18n';
 import { generateCSV, downloadCSV } from '../../utils/csvExport';
@@ -20,9 +19,10 @@ import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { formatBytes } from '../../utils/storageQuota';
 import { readStoredPerpage } from '../../utils/pageRange';
 import storageLicenseService from '../../services/businessUnitStorageLicenseService';
-import backstageConfigService from '../../services/backstageConfigService';
+import { storageLicenseSource as sourceOf } from './storageLicenseSource';
+import { useStorageQuotaDefaults } from '../../hooks/useStorageQuotaDefaults';
 import { LicenseSummaryBand, type SummaryBandItem } from './LicenseSummaryBand';
-import type { BuStorageLicenseRow, BuStorageLicenseSummary, StorageQuotaConfig } from '../../types';
+import type { BuStorageLicenseRow, BuStorageLicenseSummary } from '../../types';
 import type { ColumnDef } from '@tanstack/react-table';
 
 const PAGE_KEY = 'page_storage_license';
@@ -43,13 +43,6 @@ const withTiebreaker = (sort: string): string => {
   return alreadyHasId ? s : `${s},${SORT_TIEBREAKER}`;
 };
 
-/** note ที่ migration ใส่ให้ใบที่แปลงมาจากโควตาที่ตั้งมือแบบเดิม */
-const MIGRATED_NOTE = 'Migrated from manual quota';
-
-type SourceKind = 'intake' | 'manual' | 'migrated';
-const sourceOf = (r: BuStorageLicenseRow): SourceKind =>
-  r.license_intake_id ? 'intake' : r.note === MIGRATED_NOTE ? 'migrated' : 'manual';
-
 /**
  * ตารางใบ storage quota ทั้ง fleet — server-side (Rule 13) ไม่มีวันหมดอายุจึงไม่มี Days Left /
  * ตัวกรองวัน / ตัวกรองสถานะ และไม่มีมุมมอง "ลบแล้ว" (LicenseCenter ไม่ส่ง `deletedView` ให้แท็บนี้)
@@ -57,26 +50,9 @@ const sourceOf = (r: BuStorageLicenseRow): SourceKind =>
  */
 export function StorageLicenseTable() {
   const { t } = useI18n();
-  const { hasPermission } = useAuth();
-  const canReadConfig = hasPermission('backstage_config.read');
 
-  // ค่า default สดจาก config `storage_quota` — อ่านเฉพาะเมื่อมีสิทธิ์ เพราะ 401 จะเตะผู้ใช้ออกจากระบบ
-  // ไม่มีสิทธิ์/อ่านไม่ได้ = ป้ายเปล่า ๆ "Default" ไม่มีขนาด
-  const [defaults, setDefaults] = useState<{ db: number; file: number } | null>(null);
-  useEffect(() => {
-    if (!canReadConfig) return undefined;
-    let cancelled = false;
-    backstageConfigService
-      .getByKey('storage_quota')
-      .then((cfg) => {
-        const v = (cfg?.value ?? {}) as Partial<StorageQuotaConfig>;
-        if (!cancelled && typeof v.default_db_bytes === 'number' && typeof v.default_file_bytes === 'number') {
-          setDefaults({ db: v.default_db_bytes, file: v.default_file_bytes });
-        }
-      })
-      .catch((err: unknown) => devLog('Failed to load storage_quota default:', err));
-    return () => { cancelled = true; };
-  }, [canReadConfig]);
+  // ค่า default สดจาก config `storage_quota` — ไม่มีสิทธิ์/อ่านไม่ได้ = null → ป้ายเปล่า ๆ "Default" ไม่มีขนาด
+  const defaults = useStorageQuotaDefaults();
 
   const quotaLabel = useCallback(
     (bytes: number | null, def: number | undefined) => {
