@@ -10,7 +10,9 @@ import type { BusinessUnitConfig, TenantCurrency } from '../../types';
 import type { BusinessUnitFormData, DefaultCurrency } from './types';
 import { BU_ALIAS_MAX } from './types';
 import { InlineField, type InlineEditorContext, type InlineOption, type InlineWidth } from './InlineField';
-import { ReadOnlyText, Group } from './shared';
+import { Group } from './shared';
+import { cn } from '../../lib/utils';
+import { brandInitials } from '../../components/BrandMark';
 import CalculationSettingsSection from './sections/CalculationSettingsSection';
 import NumberFormatsSection from './sections/NumberFormatsSection';
 import ConfigurationSection from './sections/ConfigurationSection';
@@ -202,8 +204,10 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
               <img src={avatarUrl} alt="" className="size-10 rounded-full border object-cover" />
             ) : (
               !logoUrl && (
-                <div className="bg-primary/90 grid size-10 place-items-center rounded-full text-base font-bold text-white">
-                  {(f.name || f.code || '?').slice(0, 1).toUpperCase()}
+                // กติกาตัวย่อเดียวกับช่อง Avatar ในการ์ด Branding (brandInitials: code ก่อน name) —
+                // เดิมตรงนี้หยิบตัวแรกของ name ได้ "B" ขณะที่ Branding ข้างล่างแสดง "DE" ของ BU เดียวกัน
+                <div className="bg-primary/90 grid size-10 place-items-center rounded-full text-sm font-bold text-white">
+                  {brandInitials(f.name, f.code)}
                 </div>
               )
             )}
@@ -279,7 +283,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
                 <div className="grid grid-cols-1 gap-0.5 py-1.5 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-3">
                   <span className="text-muted-foreground pt-2 text-xs">{t('common.field.code')}</span>
                   <div className="min-w-0">
-                    <ReadOnlyText value={f.code} className="max-w-[14rem] font-mono" />
+                    <StaticValue value={f.code} mono />
                   </div>
                 </div>
               )}
@@ -322,7 +326,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
                 <div className="grid grid-cols-1 gap-0.5 py-1.5 sm:grid-cols-[150px_1fr] sm:items-start sm:gap-3">
                   <span className="text-muted-foreground pt-2 text-xs">{t('pages.businessUnits.maxUsersLabel')}</span>
                   <div className="min-w-0">
-                    <ReadOnlyText value={`${activeSeats}`} className="max-w-[14rem]" />
+                    <StaticValue value={`${activeSeats}`} />
                     <p className="text-muted-foreground mt-1 text-[11px]">
                       {activeLicenseCount === 1
                         ? t('pages.businessUnits.maxUsersFromLicenseOne', { count: activeLicenseCount })
@@ -337,6 +341,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
 
           <CalculationSettingsSection
             {...sectionField}
+            onCommit={onCommit}
             defaultCurrency={defaultCurrency}
             getCalculationMethodLabel={getCalculationMethodLabel}
             currencies={currencies}
@@ -467,5 +472,17 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
 
       {notesSlot}
     </div>
+  );
+}
+
+/**
+ * ค่าที่แก้ไม่ได้ในแถวของ document (Code, Max users) — ข้อความเรียบ ไม่มีกรอบ.
+ * เดิมใช้ ReadOnlyText (กล่องมีขอบ bg-muted หน้าตาเหมือน input) ขณะที่แถวที่แก้ได้จริงเป็น
+ * InlineField ไม่มีกรอบ — ผู้ใช้จึงคลิกกล่องที่ไม่ตอบสนองแล้วมองข้ามช่องที่แก้ได้.
+ * padding เท่ากับปุ่ม read-mode ของ InlineField (px-2 py-1.5) ค่าจึงตรงแนวเดียวกับแถวอื่น
+ */
+function StaticValue({ value, mono }: { value: string; mono?: boolean }) {
+  return (
+    <div className={cn('px-2 py-1.5 text-sm', mono && 'font-mono tabular-nums')}>{value || '-'}</div>
   );
 }

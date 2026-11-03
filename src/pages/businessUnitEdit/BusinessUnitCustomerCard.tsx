@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, Pencil, Unlink } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
@@ -130,9 +130,11 @@ export default function BusinessUnitCustomerCard({ buId, customer, onChanged }: 
 
   return (
     <Card>
-      <CardHeader className="space-y-1">
-        <h3 className="text-sm font-semibold">{t('pages.businessUnits.customerTitle')}</h3>
-        <p className="text-xs text-muted-foreground">{t('pages.businessUnits.customerDescription')}</p>
+      {/* หัวการ์ดทรงเดียวกับ Branding / Calculation settings ที่วางติดกันในแท็บ General —
+          เดิมเป็น text-sm/text-xs ทำให้การ์ดนี้ดูเป็นชั้นรองทั้งที่อยู่ระดับเดียวกัน */}
+      <CardHeader>
+        <CardTitle className="text-base">{t('pages.businessUnits.customerTitle')}</CardTitle>
+        <CardDescription>{t('pages.businessUnits.customerDescription')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
