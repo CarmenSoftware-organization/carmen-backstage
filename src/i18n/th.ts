@@ -1599,6 +1599,24 @@ export const th: Translations = {
       collapseShort: 'พับ',
       moduleFill: '{{module}} — เลือกไว้ {{count}} จาก {{total}}',
     },
+    storageLicense: {
+      default: 'ค่าเริ่มต้น ({{size}})',
+      defaultNoSize: 'ค่าเริ่มต้น',
+      inForce: 'ใช้งานอยู่',
+      replaced: 'ถูกแทนที่',
+      busWithoutLicense: 'BU ที่ไม่มีใบ',
+      dbQuota: 'โควตาฐานข้อมูล',
+      fileQuota: 'โควตาไฟล์แนบ',
+      buCode: 'รหัส BU',
+      sourceColumn: 'ที่มา',
+      source: {
+        intake: 'ใบรับเรื่อง',
+        manual: 'ออกเอง',
+        migrated: 'แปลงจากโควตาเดิม',
+      },
+      issue: 'ออกใบ storage',
+      noneYet: 'ยังไม่มีการออกใบ storage',
+    },
     licenses: {
       buQuota: 'โควตา BU',
       healthBuUsage: '{{used}} / {{cap}} BU',
@@ -1646,6 +1664,7 @@ export const th: Translations = {
       viewBySeat: 'ตามไลเซนส์ที่นั่ง',
       viewByBuQuota: 'ตามโควตา BU',
       viewByInterface: 'ตามใบสิทธิ์ interface',
+      viewByStorage: 'ตามใบ storage',
 
       clusterNotFoundOrDeleted: 'ไม่พบ Cluster หรืออาจถูกลบไปแล้ว',
       clusterUnavailable: 'Cluster ใช้งานไม่ได้',

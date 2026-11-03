@@ -1980,6 +1980,24 @@ export const en = {
       collapseShort: 'Collapse',
       moduleFill: '{{module}} — {{count}} of {{total}} selected',
     },
+    storageLicense: {
+      default: 'Default ({{size}})',
+      defaultNoSize: 'Default',
+      inForce: 'In force',
+      replaced: 'Replaced',
+      busWithoutLicense: 'BUs without a licence',
+      dbQuota: 'Database quota',
+      fileQuota: 'Attachment quota',
+      buCode: 'BU code',
+      sourceColumn: 'Source',
+      source: {
+        intake: 'Intake',
+        manual: 'Manual',
+        migrated: 'Migrated',
+      },
+      issue: 'Issue storage licence',
+      noneYet: 'No storage licences have been issued yet.',
+    },
     licenses: {
       // ClusterLicenseDetail.tsx (nav section label, ALL_SECTIONS) + licenseKindConfig.ts
       // (BU_QUOTA_CONFIG.amountLabel) — both literally 'BU quota'.
@@ -2067,6 +2085,7 @@ export const en = {
       viewBySeat: 'By seat license',
       viewByBuQuota: 'By BU quota',
       viewByInterface: 'By interface license',
+      viewByStorage: 'By storage license',
 
       // ClusterLicenseDetail.tsx
       clusterNotFoundOrDeleted: 'Cluster not found or deleted',
