@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { ChevronRight, Plus } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { daysLeft, fmtCoverageRange } from '../licenses/licenseDates';
 import { useI18n } from '../../hooks/useI18n';
 import { LicenseTimeline, useCoverageWindow } from './LicenseTimeline';
+import { LicenseSectionHeader } from './LicenseSectionHeader';
 import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
 import type { InterfaceLicense } from '../../types';
 
@@ -45,6 +46,7 @@ export default function BusinessUnitInterfaceLicensesCard({
   const capped = licenses.filter((l) => l.state === 'active' && !l.in_force);
   const soonMs = thresholds.interface_days * 24 * 60 * 60 * 1000;
   const window = useCoverageWindow(now);
+  const empty = !loading && licenses.length === 0;
   const toItem = (l: InterfaceLicense) => ({ start_date: l.start_date, end_date: l.end_date, live: l.in_force });
 
   const badgeOf = (l: InterfaceLicense) => {
@@ -56,45 +58,51 @@ export default function BusinessUnitInterfaceLicensesCard({
 
   return (
     <Card>
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-1">
-          <h3 className="text-sm font-semibold">{t('pages.businessUnits.interfaceLicensesTitle')}</h3>
-          <p className="text-muted-foreground text-xs">
-            {loading
-              ? t('common.busy.loadingEllipsis')
-              : t('pages.businessUnits.interfaceInForceCount', { count: inForce.length, total: licenses.length })}
-          </p>
-          {!loading && licenses.length > 0 && (
-            <LicenseTimeline variant="group" items={licenses.map(toItem)} window={window} now={now} />
-          )}
-          {capped.length > 0 && (
-            <p className="text-warning text-xs">
-              {t('pages.businessUnits.interfaceCappedHint', {
-                state: t(`common.status.${capped[0].contract_state}`),
-              })}
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-          {manageHref && (
-            <Button asChild size="sm" variant="outline">
-              <Link to={manageHref}>{t('common.action.manageLicences')}</Link>
-            </Button>
-          )}
-          {createHref && (
-            <Button asChild size="sm">
-              <Link to={createHref}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('pages.licenses.addInterfaceLicense')}
-              </Link>
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {!loading && licenses.length === 0 && (
-          <p className="text-muted-foreground text-xs">{t('pages.businessUnits.noInterfaceLicenses')}</p>
+      <LicenseSectionHeader
+        title={t('pages.businessUnits.interfaceLicensesTitle')}
+        facts={
+          loading
+            ? t('common.busy.loadingEllipsis')
+            : empty
+              ? t('pages.businessUnits.noInterfaceLicenses')
+              : t('pages.businessUnits.interfaceInForceCount', { count: inForce.length, total: licenses.length })
+        }
+        actions={
+          manageHref || createHref ? (
+            <>
+              {manageHref && (
+                <Button asChild size="sm" variant="outline">
+                  <Link to={manageHref}>{t('common.action.manageLicences')}</Link>
+                </Button>
+              )}
+              {createHref && (
+                <Button asChild size="sm">
+                  <Link to={createHref}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('pages.licenses.addInterfaceLicense')}
+                  </Link>
+                </Button>
+              )}
+            </>
+          ) : undefined
+        }
+      >
+        {/* แถบรวมขึ้นเมื่อมีมากกว่าหนึ่งใบ — ใบเดียวซ้ำกับแถบในแถวพอดี (ดู BusinessUnitLicensesCard) */}
+        {!loading && licenses.length > 1 && (
+          <LicenseTimeline variant="group" items={licenses.map(toItem)} window={window} now={now} />
         )}
+        {capped.length > 0 && (
+          <p className="text-warning text-xs">
+            {t('pages.businessUnits.interfaceCappedHint', {
+              state: t(`common.status.${capped[0].contract_state}`),
+            })}
+          </p>
+        )}
+      </LicenseSectionHeader>
+      {/* ไม่มีใบ = การ์ดเหลือแค่หัว ข้อความว่างย้ายขึ้นไปเป็นบรรทัดข้อเท็จจริงแล้ว
+          ไม่ต้องมีพื้นที่ว่างอีกก้อนใต้หัวการ์ด */}
+      {!empty && !loading && (
+      <CardContent className="space-y-2">
         {licenses.map((l) => {
           const left = new Date(l.end_date).getTime() - now.getTime();
           // ป้าย "เหลืออีกกี่วัน" ขึ้นเฉพาะใบที่ใช้ได้จริง — ใบที่ถูกครอบอยู่แล้วไม่มีอะไรให้นับถอยหลัง
@@ -148,6 +156,7 @@ export default function BusinessUnitInterfaceLicensesCard({
           );
         })}
       </CardContent>
+      )}
     </Card>
   );
 }

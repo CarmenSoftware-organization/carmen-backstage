@@ -3988,7 +3988,7 @@ export const en = {
     },
     storageQuota: {
       cardTitle: 'Storage quota',
-      cardDesc: 'Database and attachment size of this business unit against its quota. The quota comes from the storage license (no license = default).',
+      adminSection: 'Enforcement & maintenance',
       database: 'Database',
       attachment: 'Attachments',
       quotaMin: 'Enter a number of at least 1 GB, or leave blank for the default',

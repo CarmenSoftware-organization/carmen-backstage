@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { sumActiveLicenses, licenseStatus, isExpiringSoon } from '../../utils/buLicense';
@@ -11,6 +11,7 @@ import type { BusinessUnitLicense, Subscription } from '../../types';
 import type { BusinessUnitSubscriptions } from './useBusinessUnitSubscriptions';
 import { LicenseTimeline, useCoverageWindow } from './LicenseTimeline';
 import { SubscriptionRows } from './SubscriptionRows';
+import { LicenseSectionHeader } from './LicenseSectionHeader';
 
 interface BusinessUnitLicensesCardProps {
   licenses: BusinessUnitLicense[];
@@ -65,51 +66,55 @@ export default function BusinessUnitLicensesCard({
 
   return (
     <Card>
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-1">
-          <h3 className="text-sm font-semibold">{t('pages.businessUnits.userLicensesTitle')}</h3>
-          {loading ? (
-            <p className="text-xs text-muted-foreground">{t('common.busy.loadingEllipsis')}</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              {activeCount === 1
-                ? t('pages.businessUnits.seatsFromActiveLicenseOne', { count: activeSeats, activeCount })
-                : t('pages.businessUnits.seatsFromActiveLicenseMany', { count: activeSeats, activeCount })}
-            </p>
-          )}
-          {clusterSeat && (
-            <p className={`text-xs ${over ? 'text-destructive' : 'text-muted-foreground'}`}>
-              {t('pages.businessUnits.clusterPoolSeatsUsed', { used: clusterSeat.used, cap: clusterSeat.cap })}
-            </p>
-          )}
-          {/* แกนเวลาของทุกสัญญาในการ์ด — ช่องโหว่/การทับซ้อนระหว่างใบมองเห็นได้ทันที
-              ขึ้นเฉพาะเมื่อมีรายการ: shell ของ cluster admin ไม่ส่ง `subscriptions` มา */}
-          {subscriptions && !subscriptions.loading && subItems.length > 0 && (
-            <LicenseTimeline
-              variant="group"
-              items={subItems.map((sub) => ({ start_date: sub.start_date, end_date: sub.end_date, live: sub.state === 'active' }))}
-              window={window}
-              now={now}
-            />
-          )}
-          {soon.map((l) => (
-            <Badge key={l.id} variant="warning">{t('common.state.daysLeft', { count: daysLeft(l.end_date, now) })}</Badge>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-          <Button asChild size="sm" variant="outline">
-            <Link to={manageHref}>{t('common.action.manageLicences')}</Link>
-          </Button>
-          {createHref && (
-            <Button asChild size="sm">
-              <Link to={createHref}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('common.action.newSubscription')}
-              </Link>
+      <LicenseSectionHeader
+        title={t('pages.businessUnits.userLicensesTitle')}
+        facts={
+          loading
+            ? t('common.busy.loadingEllipsis')
+            : activeCount === 1
+              ? t('pages.businessUnits.seatsFromActiveLicenseOne', { count: activeSeats, activeCount })
+              : t('pages.businessUnits.seatsFromActiveLicenseMany', { count: activeSeats, activeCount })
+        }
+        actions={
+          <>
+            <Button asChild size="sm" variant="outline">
+              <Link to={manageHref}>{t('common.action.manageLicences')}</Link>
             </Button>
-          )}
-        </div>
-      </CardHeader>
+            {createHref && (
+              <Button asChild size="sm">
+                <Link to={createHref}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('common.action.newSubscription')}
+                </Link>
+              </Button>
+            )}
+          </>
+        }
+      >
+        {clusterSeat && (
+          <p className={`text-xs ${over ? 'text-destructive' : 'text-muted-foreground'}`}>
+            {t('pages.businessUnits.clusterPoolSeatsUsed', { used: clusterSeat.used, cap: clusterSeat.cap })}
+          </p>
+        )}
+        {/* แกนเวลารวมบนหัวการ์ดขึ้นเฉพาะเมื่อมี **มากกว่าหนึ่ง** สัญญา — ใบเดียวแถบนี้เหมือนแถบในแถว
+            ทุกพิกเซล วาดซ้ำสองเส้นเป็นแค่เสียงรบกวน · ประโยชน์ของมันคือเห็นช่องโหว่/การทับซ้อนระหว่างใบ
+            · shell ของ cluster admin ไม่ส่ง `subscriptions` มา จึงไม่ขึ้นที่นั่น */}
+        {subscriptions && !subscriptions.loading && subItems.length > 1 && (
+          <LicenseTimeline
+            variant="group"
+            items={subItems.map((sub) => ({ start_date: sub.start_date, end_date: sub.end_date, live: sub.state === 'active' }))}
+            window={window}
+            now={now}
+          />
+        )}
+        {soon.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {soon.map((l) => (
+              <Badge key={l.id} variant="warning">{t('common.state.daysLeft', { count: daysLeft(l.end_date, now) })}</Badge>
+            ))}
+          </div>
+        )}
+      </LicenseSectionHeader>
       <CardContent className="space-y-2">
         {subscriptions ? (
           <SubscriptionRows

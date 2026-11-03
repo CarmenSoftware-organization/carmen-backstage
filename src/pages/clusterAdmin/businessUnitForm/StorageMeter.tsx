@@ -7,6 +7,8 @@ import type { StorageKindUsage } from '../../../types';
 interface StorageMeterProps {
   label: string;
   usage: StorageKindUsage | undefined;
+  /** ปิดเมื่อผู้เรียกพิมพ์เวลาวัดรวมไว้ที่หัวการ์ดแล้ว (ทุก kind วัดเวลาเดียวกัน) — ไม่งั้นบรรทัดซ้ำทุกแถบ */
+  showMeasuredAt?: boolean;
 }
 
 /** `shared_schema` / `null_schema` / `measure_failed` → ป้ายอธิบายสั้น ๆ */
@@ -28,7 +30,7 @@ export function StorageFlagBadge({ flag }: { flag: string | null }) {
  * แถบโควตาของหนึ่ง kind — ใช้ไป / โควตา / % · เกิน 100% แถบเต็มสีแดง ส่วน % จริงอยู่ในตัวเลข
  * แถบเป็นของแถม (aria-hidden) ตัวเลขเป็นตัวหลักเหมือน SeatMeter
  */
-export function StorageMeter({ label, usage }: StorageMeterProps) {
+export function StorageMeter({ label, usage, showMeasuredAt = true }: StorageMeterProps) {
   const { t } = useI18n();
   if (!usage) {
     return (
@@ -49,7 +51,7 @@ export function StorageMeter({ label, usage }: StorageMeterProps) {
         {usage.blocking && <Badge variant="destructive">{t('pages.storageQuota.blocking')}</Badge>}
       </div>
       <div className="flex flex-wrap items-baseline gap-x-2 font-mono tabular-nums">
-        <span className={cn('text-xl font-semibold', over && 'text-destructive')}>{formatBytes(usage.used_bytes)}</span>
+        <span className={cn('text-base font-semibold', over && 'text-destructive')}>{formatBytes(usage.used_bytes)}</span>
         <span className="text-muted-foreground text-sm">/ {formatBytes(usage.quota_bytes)}</span>
         <span className={cn('text-sm', over ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
           {pct.toFixed(1)}%
@@ -61,14 +63,16 @@ export function StorageMeter({ label, usage }: StorageMeterProps) {
           style={{ width: `${Math.min(100, pct)}%` }}
         />
       </div>
-      <div className="text-muted-foreground space-y-0.5 text-xs">
+      <div className="text-muted-foreground space-y-0.5 text-xs empty:hidden">
         {usage.exceeded_at && (
           <p>{t('pages.storageQuota.exceededAt', { date: new Date(usage.exceeded_at).toLocaleString() })}</p>
         )}
         {usage.grace_ends_at && (
           <p>{t('pages.storageQuota.graceEndsAt', { date: new Date(usage.grace_ends_at).toLocaleString() })}</p>
         )}
-        <p>{t('pages.storageQuota.measuredAt', { date: new Date(usage.measured_at).toLocaleString() })}</p>
+        {showMeasuredAt && (
+          <p>{t('pages.storageQuota.measuredAt', { date: new Date(usage.measured_at).toLocaleString() })}</p>
+        )}
       </div>
     </div>
   );

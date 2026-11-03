@@ -2849,7 +2849,7 @@ export const th: Translations = {
     },
     storageQuota: {
       cardTitle: 'โควตาพื้นที่เก็บข้อมูล',
-      cardDesc: 'ขนาด database และไฟล์แนบของ BU นี้เทียบกับโควตา โควตากำหนดโดยใบ storage ของ BU (ไม่มีใบ = ใช้ค่า default)',
+      adminSection: 'การบังคับใช้และบำรุงรักษา',
       database: 'Database',
       attachment: 'ไฟล์แนบ',
       quotaMin: 'กรอกตัวเลขอย่างน้อย 1 GB หรือเว้นว่างเพื่อใช้ค่า default',
