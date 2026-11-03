@@ -2385,6 +2385,19 @@ export interface BuStorageQuotaView {
   usage: BuStorageUsage;
 }
 
+/** งาน reclaim (VACUUM FULL) ล่าสุดของ BU — bytes เป็น null จนกว่างานจะวัดถึง */
+export interface StorageReclaimJob {
+  id: string;
+  bu_id: string;
+  status: 'queued' | 'running' | 'done' | 'failed';
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  bytes_before: number | null;
+  bytes_after: number | null;
+  error: string | null;
+}
+
 export interface StorageUsageListItem {
   bu_id: string;
   bu_code: string;

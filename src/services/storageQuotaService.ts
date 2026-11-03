@@ -1,5 +1,11 @@
 import api from './api';
-import type { BuStorageQuotaView, BuStorageUsage, StorageQuotaPatch, StorageUsageListItem } from '../types';
+import type {
+  BuStorageQuotaView,
+  BuStorageUsage,
+  StorageQuotaPatch,
+  StorageReclaimJob,
+  StorageUsageListItem,
+} from '../types';
 
 const BU_BASE = (buId: string) => `/api-system/business-units/${buId}/storage-quota`;
 
@@ -15,6 +21,14 @@ const storageQuotaService = {
   /** วัดทันที (database + ไฟล์แนบ) — ช้าได้เพราะ gateway รอผลวัดจริง */
   measure: async (buId: string): Promise<BuStorageUsage> =>
     (await api.post(`${BU_BASE(buId)}/measure`, undefined, { timeout: MEASURE_TIMEOUT_MS })).data.data,
+
+  /** เริ่ม reclaim (VACUUM FULL) เบื้องหลัง — ตอบทันทีพร้อมงานที่ queued · 409 ถ้า pool เดียวกันมีงานทำอยู่ */
+  startReclaim: async (buId: string): Promise<StorageReclaimJob> =>
+    (await api.post(`${BU_BASE(buId)}/reclaim`)).data.data,
+
+  /** งาน reclaim ล่าสุดของ BU (null เมื่อไม่เคยมี) */
+  getReclaim: async (buId: string): Promise<StorageReclaimJob | null> =>
+    (await api.get(`${BU_BASE(buId)}/reclaim`)).data.data ?? null,
 
   listUsage: async (): Promise<StorageUsageListItem[]> =>
     (await api.get('/api-system/storage-usage')).data.data,

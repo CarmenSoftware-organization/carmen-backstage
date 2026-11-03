@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Loader2, RefreshCw, Save } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Eraser, Loader2, RefreshCw, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
+import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { useI18n } from '../../../hooks/useI18n';
 import { useAuth } from '../../../context/AuthContext';
 import storageQuotaService from '../../../services/storageQuotaService';
@@ -12,15 +13,29 @@ import { getErrorDetail } from '../../../utils/errorParser';
 import {
   bytesToGb,
   bytesToGbInput,
+  formatBytes,
   gbInputToBytes,
   isValidQuotaInput,
 } from '../../../utils/storageQuota';
-import type { BuStorageQuotaView, StorageQuotaPatch } from '../../../types';
+import type { BuStorageQuotaView, StorageQuotaPatch, StorageReclaimJob } from '../../../types';
 import { StorageMeter } from './StorageMeter';
 
 interface BuStorageQuotaCardProps {
   buId: string;
 }
+
+/** ช่วง poll สถานะงาน reclaim ขณะ queued/running */
+const RECLAIM_POLL_MS = 5000;
+
+const RECLAIM_STATUS_KEY = {
+  queued: 'pages.storageQuota.reclaimQueued',
+  running: 'pages.storageQuota.reclaimRunning',
+  done: 'pages.storageQuota.reclaimDone',
+  failed: 'pages.storageQuota.reclaimFailed',
+} as const;
+
+const isActiveJob = (job: StorageReclaimJob | null): boolean =>
+  job?.status === 'queued' || job?.status === 'running';
 
 interface QuotaForm {
   db: string;
@@ -52,6 +67,11 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const [saving, setSaving] = useState(false);
   const [measuring, setMeasuring] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ db?: string; file?: string }>({});
+  const [job, setJob] = useState<StorageReclaimJob | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const jobActive = isActiveJob(job);
+  // สถานะที่เห็นล่าสุด — วัดใหม่เฉพาะตอนเห็นงานเปลี่ยนจาก queued/running เป็น done (ไม่วัดตอนโหลดงานเก่าที่ done อยู่แล้ว)
+  const prevActiveRef = useRef(false);
 
   const apply = useCallback((next: BuStorageQuotaView) => {
     setView(next);
@@ -74,6 +94,75 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // โหลดงาน reclaim ล่าสุดตอนเปิดการ์ด (ล้มเหลวเงียบ ๆ — ไม่กระทบส่วนอื่นของการ์ด)
+  useEffect(() => {
+    let cancelled = false;
+    storageQuotaService
+      .getReclaim(buId)
+      .then((latest) => {
+        if (cancelled) return;
+        prevActiveRef.current = isActiveJob(latest);
+        setJob(latest);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [buId]);
+
+  // poll ทุก 5 วิขณะงาน queued/running · หยุดเมื่อเสร็จ/ล้มเหลว หรือ unmount
+  useEffect(() => {
+    if (!jobActive) return;
+    let cancelled = false;
+    const timer = setInterval(() => {
+      storageQuotaService
+        .getReclaim(buId)
+        .then((latest) => {
+          if (!cancelled) setJob(latest);
+        })
+        .catch(() => undefined);
+    }, RECLAIM_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [buId, jobActive]);
+
+  // งานเพิ่งจบ: done → วัดซ้ำครั้งเดียวแล้วรีเฟรชแถบ · failed → แจ้งเตือน
+  useEffect(() => {
+    const wasActive = prevActiveRef.current;
+    prevActiveRef.current = jobActive;
+    if (!wasActive || jobActive || !job) return;
+    if (job.status === 'failed') {
+      toast.error(t('pages.storageQuota.reclaimFailedToast'));
+      return;
+    }
+    if (job.status === 'done') {
+      void (async () => {
+        try {
+          const measured = await storageQuotaService.measure(buId);
+          setView((v) => (v ? { ...v, usage: measured } : v));
+          toast.success(t('pages.storageQuota.reclaimDoneToast'));
+        } catch (err: unknown) {
+          toast.error(getErrorDetail(err));
+        }
+      })();
+    }
+  }, [job, jobActive, buId, t]);
+
+  const handleReclaim = async () => {
+    try {
+      const started = await storageQuotaService.startReclaim(buId);
+      prevActiveRef.current = true;
+      setJob(started);
+      setConfirmOpen(false);
+      toast.success(t('pages.storageQuota.reclaimStarted'));
+    } catch (err: unknown) {
+      setConfirmOpen(false);
+      toast.error(getErrorDetail(err));
+    }
+  };
 
   const validate = (value: string): string | undefined => {
     return isValidQuotaInput(value, true) ? undefined : t('pages.storageQuota.quotaMin');
@@ -132,10 +221,16 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
           <p className="text-muted-foreground text-sm">{t('pages.storageQuota.cardDesc')}</p>
         </div>
         {canManage && (
-          <Button variant="outline" size="sm" onClick={handleMeasure} disabled={measuring || loading}>
-            {measuring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-            {measuring ? t('pages.storageQuota.measuring') : t('pages.storageQuota.measureNow')}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={handleMeasure} disabled={measuring || loading}>
+              {measuring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+              {measuring ? t('pages.storageQuota.measuring') : t('pages.storageQuota.measureNow')}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setConfirmOpen(true)} disabled={jobActive || loading}>
+              {jobActive ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eraser className="mr-2 h-4 w-4" />}
+              {t('pages.storageQuota.reclaimAction')}
+            </Button>
+          </div>
         )}
       </CardHeader>
       <CardContent className="space-y-4">
@@ -151,6 +246,39 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
             </div>
             {!view.usage.enforce && (
               <p className="text-muted-foreground text-xs">{t('pages.storageQuota.enforceOff')}</p>
+            )}
+
+            {job && (
+              <div className="space-y-1 border-t pt-4 text-sm" role="status">
+                <p className="font-medium">
+                  {t('pages.storageQuota.reclaimTitle')}
+                  {': '}
+                  <span className={job.status === 'failed' ? 'text-destructive' : ''}>
+                    {t(RECLAIM_STATUS_KEY[job.status])}
+                  </span>
+                </p>
+                {job.bytes_before !== null && (
+                  <p className="text-muted-foreground text-xs">
+                    {t('pages.storageQuota.reclaimBefore')}: {formatBytes(job.bytes_before)}
+                    {job.bytes_after !== null && (
+                      <>
+                        {' → '}
+                        {t('pages.storageQuota.reclaimAfter')}: {formatBytes(job.bytes_after)}
+                      </>
+                    )}
+                  </p>
+                )}
+                {job.started_at && (
+                  <p className="text-muted-foreground text-xs">
+                    {t('pages.storageQuota.reclaimStartedAt', { date: new Date(job.started_at).toLocaleString() })}
+                    {job.finished_at &&
+                      ` · ${t('pages.storageQuota.reclaimFinishedAt', { date: new Date(job.finished_at).toLocaleString() })}`}
+                  </p>
+                )}
+                {job.status === 'failed' && job.error && (
+                  <p className="text-destructive text-xs break-words">{job.error}</p>
+                )}
+              </div>
             )}
 
             <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
@@ -221,6 +349,14 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
           </>
         )}
       </CardContent>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={t('pages.storageQuota.reclaimConfirmTitle')}
+        description={t('pages.storageQuota.reclaimConfirmDescription')}
+        confirmText={t('pages.storageQuota.reclaimConfirmAction')}
+        onConfirm={handleReclaim}
+      />
     </Card>
   );
 }
