@@ -11,6 +11,7 @@ import { NoteFilesPanel } from './NoteFilesPanel';
 import { DeletedNotesList } from './DeletedNotesList';
 import { NoteHistorySheet } from './NoteHistorySheet';
 import { useNotes } from './useNotes';
+import { cn } from '../../lib/utils';
 import type { Note } from '../../types';
 import type { TKey } from '../../i18n/types';
 import type { NotesAdapter, NotesPermissionKeys } from './types';
@@ -40,6 +41,11 @@ export function NotesSection({ ownerId, scopeClusterId, adapter, permissions, on
   // refreshKey: bump หลัง create/update/delete/restore เพื่อให้แผงไฟล์โหลดใหม่
   const [refreshKey, setRefreshKey] = useState(0);
   const bumpFiles = useCallback(() => setRefreshKey((k) => k + 1), []);
+  // null = ยังไม่รู้, -1 = โหลดไม่สำเร็จ. คอลัมน์ไฟล์โผล่เมื่อมีไฟล์ (หรือโหลดพังให้เห็น error) เท่านั้น —
+  // BU ส่วนใหญ่ไม่มีไฟล์แนบ การจอง 18rem ไว้แสดง "(0)" ทำให้ไทม์ไลน์แคบโดยไม่ได้อะไร.
+  // แผงยัง mount อยู่ตลอด (แค่ซ่อน) เพราะมันเป็นคนโหลดรายการไฟล์เอง
+  const [fileCount, setFileCount] = useState<number | null>(null);
+  const showFiles = fileCount !== null && fileCount !== 0;
   // dropNote ไม่แตะ deletedCount — เก็บค่าเองแล้วปรับ ±1; refetch ที่มี summary จะเขียนทับด้วยค่าจริง
   const [deletedCount, setDeletedCount] = useState(0);
   useEffect(() => setDeletedCount(state.deletedCount), [state.deletedCount]);
@@ -81,13 +87,14 @@ export function NotesSection({ ownerId, scopeClusterId, adapter, permissions, on
   };
 
   return (
-    <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_18rem]">
-      {/* แผงไฟล์ — แสดงด้านบนต่ำกว่า lg (order-first), คอลัมน์ขวาที่ lg */}
+    <div className={cn('grid gap-0', showFiles && 'lg:grid-cols-[minmax(0,1fr)_18rem]')}>
+      {/* แผงไฟล์ — แสดงด้านบนต่ำกว่า lg (order-first), คอลัมน์ขวาที่ lg; ซ่อนเมื่อไม่มีไฟล์ */}
       <aside
         data-slot="notes-files-panel"
-        className="order-first border-b empty:hidden lg:order-last lg:border-b-0 lg:border-l"
+        hidden={!showFiles}
+        className="order-first border-b lg:order-last lg:border-b-0 lg:border-l"
       >
-        <NoteFilesPanel ownerId={ownerId} adapter={adapter} refreshKey={refreshKey} />
+        <NoteFilesPanel ownerId={ownerId} adapter={adapter} refreshKey={refreshKey} onCountChange={setFileCount} />
       </aside>
 
       <div className="min-w-0">
