@@ -29,10 +29,10 @@ interface FormData {
   grace_days: string;
 }
 
-/** ตรงกับ registry `storage_quota` ของ micro-cluster (5 GB / 15 GB / 7 วัน / ไม่บังคับ) */
+/** ตรงกับ registry `storage_quota` ของ micro-cluster (5 GB / 5 GB / 7 วัน / ไม่บังคับ) */
 const DEFAULTS: StorageQuotaConfig = {
   default_db_bytes: 5 * BYTES_PER_GB,
-  default_file_bytes: 15 * BYTES_PER_GB,
+  default_file_bytes: 5 * BYTES_PER_GB,
   team_emails: [],
   enforce: false,
   grace_days: 7,

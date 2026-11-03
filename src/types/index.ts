@@ -1389,6 +1389,9 @@ export interface LicenseIntake {
   seats?: number | null;
   module_group_codes?: string[];
   interface_group_codes?: string[];
+  /** โควตา storage ที่ใบขายสั่ง (ไบต์) — null/ไม่มี = ไม่ออกใบ storage ฝั่งนั้น */
+  storage_db_bytes?: number | null;
+  storage_file_bytes?: number | null;
   start_date?: string;
   end_date?: string;
   note?: string | null;
@@ -1422,6 +1425,7 @@ export interface LicenseIntakeProduced {
   subscriptions?: { id: string; subscription_number?: string | null }[];
   seats?: { id: string; license_number?: string | null }[];
   interfaces?: { id: string; license_number?: string | null; group_code?: string | null }[];
+  storage?: { id: string; license_number?: string | null }[];
 }
 
 /** `GET /license-intakes/:id` */
@@ -1456,6 +1460,8 @@ export interface LicenseIntakeBuLicenses {
   seats?: (LicenseIntakeBuLicenseRow & { licensed_users?: number | null })[];
   subscriptions?: (LicenseIntakeBuLicenseRow & { groups?: { code: string; name?: string | null }[] })[];
   interfaces?: (LicenseIntakeBuLicenseRow & { group?: { code: string; name?: string | null } | null })[];
+  /** ใบ storage ที่ใช้งานอยู่ของ BU (ไม่มีวันหมดอายุ จึงไม่มี state/ช่วงวันที่) */
+  storage?: { id: string; number?: string | null; db_quota_bytes: number | null; file_quota_bytes: number | null } | null;
   any_overlap?: boolean;
 }
 
@@ -2369,14 +2375,19 @@ export interface BuStorageUsage {
   kinds: StorageKindUsage[];
 }
 
-/** โควตาที่ตั้งเองต่อ BU — null = ใช้ค่า default ของ Backstage Config */
+/**
+ * การตั้งค่าโควตาต่อ BU — ตัวเลขโควตามาจากใบ storage (`license`) หรือ default ของ Backstage Config
+ * ไม่ได้เก็บในแถวนี้อีกแล้ว เหลือแค่สวิตช์ยกเว้นกับหมายเหตุ
+ */
 export interface BuStorageQuota {
-  db_quota_bytes: number | null;
-  file_quota_bytes: number | null;
   exempt: boolean;
   note: string | null;
   updated_at: string | null;
   updated_by_id: string | null;
+  /** ใบ storage ที่ใช้งานอยู่ — null = ไม่มีใบ ใช้ default */
+  license?: { id: string; license_number: string } | null;
+  /** แหล่งของโควตาแต่ละชนิด: ใบ หรือ default */
+  source?: { database: 'license' | 'default'; attachment: 'license' | 'default' };
 }
 
 export interface BuStorageQuotaView {
@@ -2410,13 +2421,75 @@ export interface StorageUsageListItem {
   kinds: StorageKindUsage[];
   max_pct: number;
   measured_at: string | null;
+  /** เลขที่ใบ storage ที่ใช้งานอยู่ — null = ไม่มีใบ */
+  license_number?: string | null;
 }
 
-/** body ของ PUT โควตา — field ที่ไม่ส่ง = คงเดิม, โควตา null = ใช้ค่า default */
+/** body ของ PUT โควตา — รับเฉพาะ exempt กับ note (ตัวเลขโควตาย้ายไปอยู่ที่ใบ storage) */
 export interface StorageQuotaPatch {
-  db_quota_bytes?: number | null;
-  file_quota_bytes?: number | null;
   exempt?: boolean;
+  note?: string | null;
+}
+
+/**
+ * ใบโควตา storage ของ BU (ไม่มีวันหมดอายุ) — แถวที่ใหม่กว่าแทนที่ใบเก่า (`superseded_*`)
+ * ค่าโควตาเป็นไบต์; null ด้านใดด้านหนึ่ง = ด้านนั้นใช้ default (ห้าม null ทั้งคู่)
+ */
+export interface BuStorageLicense {
+  id: string;
+  license_number: string;
+  business_unit_id: string;
+  db_quota_bytes: number | null;
+  file_quota_bytes: number | null;
+  reference_no: string | null;
+  note: string | null;
+  license_intake_id: string | null;
+  superseded_at: string | null;
+  superseded_by: { id: string; license_number: string } | null;
+  doc_version: number;
+  created_at: string | null;
+  audit?: {
+    created_at: string | null;
+    created_by_id: string | null;
+    updated_at: string | null;
+    updated_by_id: string | null;
+  };
+}
+
+/** ผลของการออกใบ (POST) — backend คืนแค่นี้ ไม่ใช่ใบเต็ม */
+export interface BuStorageLicenseIssued {
+  id: string;
+  license_number: string;
+  superseded_id: string | null;
+}
+
+/** แถวในมุมมองรายใบทั้ง fleet (`/backstage/storage-licenses`) — พ่วง BU + cluster */
+export interface BuStorageLicenseRow extends BuStorageLicense {
+  tb_business_unit: {
+    id: string;
+    code: string;
+    name: string;
+    cluster: { id: string; name: string };
+  };
+}
+
+export interface BuStorageLicensesResponse {
+  data: BuStorageLicenseRow[];
+  paginate: { total: number; page: number; perpage: number; pages: number };
+}
+
+/** `GET /backstage/storage-licenses/summary` */
+export interface BuStorageLicenseSummary {
+  in_force: number;
+  replaced: number;
+  bus_without_license: number;
+}
+
+/** body ของ create/update ใบ storage — ไบต์เป็นจำนวนเต็มบวกหรือ null แต่ไม่ null ทั้งคู่ */
+export interface BuStorageLicenseInput {
+  db_quota_bytes: number | null;
+  file_quota_bytes: number | null;
+  reference_no?: string | null;
   note?: string | null;
 }
 

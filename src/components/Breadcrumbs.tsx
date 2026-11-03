@@ -39,6 +39,7 @@ const SEGMENT_KEYS: Record<string, TKey> = {
   customers: 'breadcrumb.customers',
   'license-intakes': 'breadcrumb.licenseIntakes',
   'storage-usage': 'breadcrumb.storageUsage',
+  storage: 'breadcrumb.storage',
   configs: 'breadcrumb.backstageConfig',
   'email-settings': 'breadcrumb.emailSettings',
   'cluster-admin': 'breadcrumb.clusterAdmin',
@@ -62,6 +63,7 @@ const NON_NAVIGABLE = new Set([
   '/licenses/bu-quota',
   '/licenses/interface',
   '/licenses/seats',
+  '/licenses/storage',
   '/licenses/subscriptions',
 ]);
 

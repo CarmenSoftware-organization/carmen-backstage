@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import Can from '../../components/Can';
 import { useI18n } from '../../hooks/useI18n';
 import type { LicenseIntakeDetail, LicenseIntakeGroup } from '../../types';
+import { useStorageQuotaDefaults } from '../../hooks/useStorageQuotaDefaults';
+import { formatBytes } from '../../utils/storageQuota';
 import { fmtDateTime, periodOf } from './format';
 
 const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
@@ -48,6 +50,24 @@ const GroupChips: React.FC<{ groups?: LicenseIntakeGroup[]; codes?: string[] }> 
 const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) => {
   const { t } = useI18n();
   const customer = intake.customer;
+  const quotaDefaults = useStorageQuotaDefaults();
+  const dbBytes = intake.storage_db_bytes ?? null;
+  const fileBytes = intake.storage_file_bytes ?? null;
+  const defaultLabel = (def?: number) =>
+    def != null
+      ? t('pages.licenseIntakes.storageDefaultSized', { size: formatBytes(def) })
+      : t('pages.licenseIntakes.storageDefault');
+  const storageText =
+    dbBytes === null && fileBytes === null
+      ? t('pages.licenseIntakes.storageNotIncluded')
+      : [
+          t('pages.licenseIntakes.storageDbLabel', {
+            value: dbBytes !== null ? formatBytes(dbBytes) : defaultLabel(quotaDefaults?.db),
+          }),
+          t('pages.licenseIntakes.storageFileLabel', {
+            value: fileBytes !== null ? formatBytes(fileBytes) : defaultLabel(quotaDefaults?.file),
+          }),
+        ].join(' / ');
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -90,6 +110,7 @@ const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) =
           <Row label={t('pages.licenseIntakes.columnInterfaces')}>
             <GroupChips groups={intake.interface_groups} codes={intake.interface_group_codes} />
           </Row>
+          <Row label={t('pages.licenseIntakes.columnStorage')}>{storageText}</Row>
           <Row label={t('pages.licenseIntakes.columnPeriod')}>{periodOf(intake.start_date, intake.end_date)}</Row>
           <Row label={t('pages.licenseIntakes.note')}>
             {intake.note ? <span className="whitespace-pre-wrap">{intake.note}</span> : '-'}

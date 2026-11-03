@@ -31,6 +31,7 @@ const ClusterLicenseDetail = lazy(() => import("./pages/licenses/ClusterLicenseD
 const ClusterAdminLicenses = lazy(() => import("./pages/clusterAdmin/ClusterAdminLicenses"));
 const SubscriptionForm = lazy(() => import("./pages/licenses/SubscriptionForm"));
 const LicensePurchaseForm = lazy(() => import("./pages/licenses/LicensePurchaseForm"));
+const StorageLicenseForm = lazy(() => import("./pages/licenses/StorageLicenseForm"));
 // หน้าเดียวสอง tab แต่ยังสองเส้นทาง — ด่านสิทธิ์/flag ของแต่ละ tab จึงยังเป็นของ route ตัวเอง
 const LicenseCatalog = lazy(() => import("./pages/LicenseCatalog"));
 const LicenseFeatureGroupEdit = lazy(() => import("./pages/LicenseFeatureGroupEdit"));
@@ -266,6 +267,22 @@ function AppContent() {
               element={
                 <PrivateRoute requiredPermission="subscription.read" feature="licenses">
                   <LicensePurchaseForm config={INTERFACE_CONFIG} mode="edit" />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/licenses/storage/new"
+              element={
+                <PrivateRoute requiredPermission="subscription.manage" feature="licenses">
+                  <StorageLicenseForm mode="create" />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/licenses/storage/:id/edit"
+              element={
+                <PrivateRoute requiredPermission="subscription.read" feature="licenses">
+                  <StorageLicenseForm mode="edit" />
                 </PrivateRoute>
               }
             />

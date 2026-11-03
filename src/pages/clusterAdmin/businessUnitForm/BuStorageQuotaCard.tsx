@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Eraser, Loader2, RefreshCw, Save } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eraser, FilePlus2, Loader2, RefreshCw, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
@@ -8,15 +9,10 @@ import { Label } from '../../../components/ui/label';
 import { ConfirmDialog } from '../../../components/ui/confirm-dialog';
 import { useI18n } from '../../../hooks/useI18n';
 import { useAuth } from '../../../context/AuthContext';
+import Can from '../../../components/Can';
 import storageQuotaService from '../../../services/storageQuotaService';
 import { getErrorDetail } from '../../../utils/errorParser';
-import {
-  bytesToGb,
-  bytesToGbInput,
-  formatBytes,
-  gbInputToBytes,
-  isValidQuotaInput,
-} from '../../../utils/storageQuota';
+import { formatBytes } from '../../../utils/storageQuota';
 import type { BuStorageQuotaView, StorageQuotaPatch, StorageReclaimJob } from '../../../types';
 import { StorageMeter } from './StorageMeter';
 
@@ -38,27 +34,25 @@ const isActiveJob = (job: StorageReclaimJob | null): boolean =>
   job?.status === 'queued' || job?.status === 'running';
 
 interface QuotaForm {
-  db: string;
-  file: string;
   exempt: boolean;
   note: string;
 }
 
 const toForm = (view: BuStorageQuotaView): QuotaForm => ({
-  db: bytesToGbInput(view.quota.db_quota_bytes),
-  file: bytesToGbInput(view.quota.file_quota_bytes),
   exempt: view.quota.exempt,
   note: view.quota.note ?? '',
 });
 
 /**
- * การ์ดโควตาพื้นที่เก็บข้อมูลของ BU (ฝั่งทีม Carmen เท่านั้น) — แถบ database + ไฟล์แนบ,
- * ช่องตั้งโควตาเป็น GB (ว่าง = ค่า default), สวิตช์ยกเว้นการบล็อก และปุ่มวัดทันที
- * แสดงเมื่อมีสิทธิ์ `storage_quota.read` · แก้/วัดต้องมี `storage_quota.manage`
+ * การ์ดโควตาพื้นที่เก็บข้อมูลของ BU (ฝั่งทีม Carmen เท่านั้น) — แถบ database + ไฟล์แนบ
+ * พร้อมแหล่งของโควตา (ลิงก์ใบ storage หรือ "Default"), ปุ่มออก/เปลี่ยนใบ (`subscription.manage`),
+ * สวิตช์ยกเว้นการบล็อก + หมายเหตุ และปุ่มวัดทันที
+ * โควตาแก้ที่ใบ storage ไม่ใช่ที่การ์ดนี้ · แสดงเมื่อมีสิทธิ์ `storage_quota.read` · แก้/วัดต้องมี `storage_quota.manage`
  */
 export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
+  const navigate = useNavigate();
   const canManage = hasPermission('storage_quota.manage');
   const [view, setView] = useState<BuStorageQuotaView | null>(null);
   const [form, setForm] = useState<QuotaForm | null>(null);
@@ -66,7 +60,6 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [measuring, setMeasuring] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{ db?: string; file?: string }>({});
   const [job, setJob] = useState<StorageReclaimJob | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const jobActive = isActiveJob(job);
@@ -76,7 +69,6 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const apply = useCallback((next: BuStorageQuotaView) => {
     setView(next);
     setForm(toForm(next));
-    setFieldErrors({});
   }, []);
 
   const load = useCallback(async () => {
@@ -164,25 +156,21 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
     }
   };
 
-  const validate = (value: string): string | undefined => {
-    return isValidQuotaInput(value, true) ? undefined : t('pages.storageQuota.quotaMin');
+  const buildPatch = (f: QuotaForm, v: BuStorageQuotaView): StorageQuotaPatch => {
+    const loaded = toForm(v);
+    const patch: StorageQuotaPatch = {};
+    if (f.exempt !== loaded.exempt) patch.exempt = f.exempt;
+    if (f.note !== loaded.note) patch.note = f.note.trim() === '' ? null : f.note.trim();
+    return patch;
   };
 
   const handleSave = async () => {
     if (!form || !view) return;
-    const errors = { db: validate(form.db), file: validate(form.file) };
-    setFieldErrors(errors);
-    if (errors.db || errors.file) return;
+    const patch = buildPatch(form, view);
+    if (Object.keys(patch).length === 0) return;
     try {
       setSaving(true);
-      // ส่งเฉพาะ field ที่ผู้ใช้แก้จริง — ช่อง GB แสดงค่าปัดทศนิยม 2 ตำแหน่ง ถ้าส่งทุกช่องกลับ
-      // การบันทึกฟิลด์อื่นจะเขียนทับ override เดิมด้วยค่าที่ปัดแล้ว
-      const loaded = toForm(view);
-      const patch: StorageQuotaPatch = {};
-      if (form.db !== loaded.db) patch.db_quota_bytes = gbInputToBytes(form.db);
-      if (form.file !== loaded.file) patch.file_quota_bytes = gbInputToBytes(form.file);
-      if (form.exempt !== loaded.exempt) patch.exempt = form.exempt;
-      if (form.note !== loaded.note) patch.note = form.note.trim() === '' ? null : form.note.trim();
+      // ส่งเฉพาะ field ที่ผู้ใช้แก้จริง (exempt / note)
       apply(await storageQuotaService.update(buId, patch));
       toast.success(t('pages.storageQuota.saved'));
     } catch (err: unknown) {
@@ -210,7 +198,21 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
     }
   };
 
-  const dirty = !!view && !!form && JSON.stringify(form) !== JSON.stringify(toForm(view));
+  // ปุ่มบันทึกเปิดเมื่อมี patch จริงเท่านั้น (ตรงกับที่ handleSave จะส่ง)
+  const dirty = !!view && !!form && Object.keys(buildPatch(form, view)).length > 0;
+  const sourceOf = (kind: 'database' | 'attachment') => {
+    const q = view?.quota;
+    if (!q) return null;
+    if (q.source?.[kind] === 'default') return <span>{t('pages.storageQuota.sourceDefault')}</span>;
+    if (q.license && (!q.source || q.source[kind] === 'license')) {
+      return (
+        <Link to={`/licenses/storage/${q.license.id}/edit`} className="text-primary hover:underline">
+          {q.license.license_number}
+        </Link>
+      );
+    }
+    return null; // backend เก่ายังไม่ส่ง license/source — ไม่แสดงแหล่ง
+  };
   const usageOf = (kind: 'database' | 'attachment') => view?.usage.kinds.find((k) => k.kind === kind);
 
   return (
@@ -220,8 +222,21 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
           <h3 className="text-base font-semibold">{t('pages.storageQuota.cardTitle')}</h3>
           <p className="text-muted-foreground text-sm">{t('pages.storageQuota.cardDesc')}</p>
         </div>
-        {canManage && (
+        {(canManage || !!view) && (
           <div className="flex flex-wrap gap-2">
+            <Can permission="subscription.manage">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading || !view}
+                onClick={() => navigate(`/licenses/storage/new?bu=${encodeURIComponent(buId)}`)}
+              >
+                <FilePlus2 className="mr-2 h-4 w-4" />
+                {view?.quota.license ? t('pages.storageQuota.replaceLicense') : t('pages.storageQuota.issueLicense')}
+              </Button>
+            </Can>
+            {canManage && (
+              <>
             <Button variant="outline" size="sm" onClick={handleMeasure} disabled={measuring || loading}>
               {measuring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
               {measuring ? t('pages.storageQuota.measuring') : t('pages.storageQuota.measureNow')}
@@ -230,6 +245,8 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
               {jobActive ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eraser className="mr-2 h-4 w-4" />}
               {t('pages.storageQuota.reclaimAction')}
             </Button>
+              </>
+            )}
           </div>
         )}
       </CardHeader>
@@ -241,8 +258,14 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2">
-              <StorageMeter label={t('pages.storageQuota.database')} usage={usageOf('database')} />
-              <StorageMeter label={t('pages.storageQuota.attachment')} usage={usageOf('attachment')} />
+              <div className="space-y-1">
+                <StorageMeter label={t('pages.storageQuota.database')} usage={usageOf('database')} />
+                <p className="text-muted-foreground text-xs empty:hidden">{sourceOf('database')}</p>
+              </div>
+              <div className="space-y-1">
+                <StorageMeter label={t('pages.storageQuota.attachment')} usage={usageOf('attachment')} />
+                <p className="text-muted-foreground text-xs empty:hidden">{sourceOf('attachment')}</p>
+              </div>
             </div>
             {!view.usage.enforce && (
               <p className="text-muted-foreground text-xs">{t('pages.storageQuota.enforceOff')}</p>
@@ -287,38 +310,6 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
             )}
 
             <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="bu-storage-db-gb">{t('pages.storageQuota.dbQuotaGb')}</Label>
-                <Input
-                  id="bu-storage-db-gb"
-                  type="number"
-                  min={1}
-                  step="any"
-                  inputMode="decimal"
-                  disabled={!canManage || saving}
-                  placeholder={t('pages.storageQuota.defaultPlaceholder', { gb: bytesToGb(view.defaults.db_bytes) })}
-                  value={form.db}
-                  onChange={(e) => setForm({ ...form, db: e.target.value })}
-                  className={fieldErrors.db ? 'border-destructive' : ''}
-                />
-                {fieldErrors.db && <p className="text-destructive text-xs">{fieldErrors.db}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="bu-storage-file-gb">{t('pages.storageQuota.fileQuotaGb')}</Label>
-                <Input
-                  id="bu-storage-file-gb"
-                  type="number"
-                  min={1}
-                  step="any"
-                  inputMode="decimal"
-                  disabled={!canManage || saving}
-                  placeholder={t('pages.storageQuota.defaultPlaceholder', { gb: bytesToGb(view.defaults.file_bytes) })}
-                  value={form.file}
-                  onChange={(e) => setForm({ ...form, file: e.target.value })}
-                  className={fieldErrors.file ? 'border-destructive' : ''}
-                />
-                {fieldErrors.file && <p className="text-destructive text-xs">{fieldErrors.file}</p>}
-              </div>
               <label className="flex items-center gap-2 rounded-md border border-input p-2 text-sm sm:col-span-2">
                 <input
                   type="checkbox"

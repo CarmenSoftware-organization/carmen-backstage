@@ -5,6 +5,7 @@ import { FetchErrorState } from '../../components/FetchErrorState';
 import { Skeleton } from '../../components/ui/skeleton';
 import { useI18n } from '../../hooks/useI18n';
 import type { LicenseIntakeBuLicenses } from '../../types';
+import { formatBytes } from '../../utils/storageQuota';
 import { periodOf } from './format';
 
 const STATE_LABEL_KEYS = {
@@ -64,10 +65,12 @@ interface IntakeOverlapPanelProps {
   loading: boolean;
   error: string;
   onRetry: () => void;
+  /** ใบขายนี้มีโควตา storage หรือไม่ — ถ้ามีและ BU มีใบอยู่แล้ว ใบใหม่จะแทนที่ใบเดิม */
+  intakeHasStorage?: boolean;
 }
 
 /** ใบสิทธิ์ที่ BU ที่เลือกมีอยู่แล้ว — แถวที่ซ้อนช่วงเวลากับใบขายถูกติดธง */
-const IntakeOverlapPanel: React.FC<IntakeOverlapPanelProps> = ({ buName, data, loading, error, onRetry }) => {
+const IntakeOverlapPanel: React.FC<IntakeOverlapPanelProps> = ({ buName, data, loading, error, onRetry, intakeHasStorage }) => {
   const { t } = useI18n();
 
   if (loading) {
@@ -104,6 +107,15 @@ const IntakeOverlapPanel: React.FC<IntakeOverlapPanelProps> = ({ buName, data, l
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{t('pages.licenseIntakes.overlapWarning')}</span>
         </div>
+      )}
+      {intakeHasStorage && data.storage && (
+        <p role="note" className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+          {t('pages.licenseIntakes.overlapStorageReplace', {
+            number: data.storage.number || data.storage.id,
+            db: data.storage.db_quota_bytes != null ? formatBytes(data.storage.db_quota_bytes) : t('pages.licenseIntakes.storageDefault'),
+            file: data.storage.file_quota_bytes != null ? formatBytes(data.storage.file_quota_bytes) : t('pages.licenseIntakes.storageDefault'),
+          })}
+        </p>
       )}
       <Section heading={t('pages.licenseIntakes.overlapSeats')} empty={t('pages.licenseIntakes.overlapNone')} count={seats.length}>
         {seats.map((s) => (

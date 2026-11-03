@@ -12,14 +12,15 @@ import { FleetCapacity } from '../clusterManagement/FleetCapacity';
 import ClusterLicenseTable from './ClusterLicenseTable';
 import SubscriptionTable from './SubscriptionTable';
 import { PurchaseLicenseTable } from './PurchaseLicenseTable';
+import { StorageLicenseTable } from './StorageLicenseTable';
 import type { DeletedViewControl } from './DeletedLicenseTable';
 import { SEAT_CONFIG, BU_QUOTA_CONFIG, INTERFACE_CONFIG } from './licenseKindConfig';
 import type { FleetSummary } from '../../types';
 
-type LicenseView = 'cluster' | 'subscription' | 'seat' | 'bu-quota' | 'interface';
+type LicenseView = 'cluster' | 'subscription' | 'seat' | 'bu-quota' | 'interface' | 'storage';
 const VIEW_KEY = 'license_center_view';
 const VIEW_PARAM = 'tab';
-const VIEWS: LicenseView[] = ['cluster', 'subscription', 'seat', 'bu-quota', 'interface'];
+const VIEWS: LicenseView[] = ['cluster', 'subscription', 'seat', 'bu-quota', 'interface', 'storage'];
 /** `?deleted=1` = แสดงใบที่ลบแล้วของแท็บปัจจุบัน — อยู่ใน URL ไม่ใช่ localStorage และล้างทิ้งเมื่อสลับแท็บ */
 const DELETED_PARAM = 'deleted';
 
@@ -101,7 +102,7 @@ const LicenseCenter: React.FC = () => {
   // แยกจากการ์ดที่พูดเรื่องเดียวกัน) — ไม่ส่ง `deletedView` = ตารางไม่มีทางเข้า
   const showDeleted = searchParams.get(DELETED_PARAM) === '1';
   const deletedView: DeletedViewControl | undefined =
-    isSuperAdmin && view !== 'cluster'
+    isSuperAdmin && view !== 'cluster' && view !== 'storage'
       ? {
           open: showDeleted,
           onToggle: () => {
@@ -121,6 +122,7 @@ const LicenseCenter: React.FC = () => {
     { id: 'seat', label: t('pages.licenses.viewBySeat') },
     { id: 'bu-quota', label: t('pages.licenses.viewByBuQuota') },
     { id: 'interface', label: t('pages.licenses.viewByInterface') },
+    { id: 'storage', label: t('pages.licenses.viewByStorage') },
   ], [t]);
 
   // แถบสรุปอ่านจาก endpoint เฉพาะทางที่ไม่รับตัวกรองเลย จึงเป็นตัวเลขทั้ง fleet เสมอ
@@ -201,6 +203,9 @@ const LicenseCenter: React.FC = () => {
           <PurchaseLicenseTable key="seat" config={SEAT_CONFIG} deletedView={deletedView} />
         ) : view === 'bu-quota' ? (
           <PurchaseLicenseTable key="bu-quota" config={BU_QUOTA_CONFIG} deletedView={deletedView} />
+        ) : view === 'storage' ? (
+          // ไม่มีมุมมองใบที่ลบแล้ว — ใบ storage ถูกแทนที่ ไม่ถูกลบ จึงไม่ส่ง deletedView
+          <StorageLicenseTable />
         ) : (
           <PurchaseLicenseTable key="interface" config={INTERFACE_CONFIG} deletedView={deletedView} />
         )}
