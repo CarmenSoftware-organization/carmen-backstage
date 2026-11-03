@@ -1,8 +1,6 @@
 import React from 'react';
-import { Input } from '../../../components/ui/input';
-import { Label } from '../../../components/ui/label';
 import { Badge } from '../../../components/ui/badge';
-import { CollapsibleSection, ReadOnlyText, selectClassName } from '../shared';
+import { CollapsibleSection, InlineField, type InlineOption } from '../shared';
 import { useI18n } from '../../../hooks/useI18n';
 import type { TFunction } from '../../../i18n/types';
 import type { SectionFieldProps, DefaultCurrency } from '../types';
@@ -35,7 +33,12 @@ interface CalculationSettingsSectionProps extends SectionFieldProps {
    * never widen it. Defaults to true so every existing call site is unchanged.
    */
   canEditCalculationMethod?: boolean;
+  /** Commit a value into formData — same contract as the Details rows' InlineField. */
+  onCommit: (name: string, value: string) => void;
 }
+
+/** ค่าที่ domain สร้างได้ (ดู getCalculationMethodLabel ใน BusinessUnitEdit.tsx) */
+const CALCULATION_METHODS = ['average', 'fifo', 'average_per_location'] as const;
 
 const currencyLabel = (c: TenantCurrency, t: TFunction) =>
   `${c.code} - ${c.name}${c.is_active === false ? t('pages.businessUnits.inactiveSuffix') : ''}`;
@@ -43,7 +46,7 @@ const currencyLabel = (c: TenantCurrency, t: TFunction) =>
 const CalculationSettingsSection: React.FC<CalculationSettingsSectionProps> = ({
   formData,
   editing,
-  onChange,
+  onCommit,
   defaultCurrency,
   getCalculationMethodLabel,
   currencies,
@@ -53,88 +56,57 @@ const CalculationSettingsSection: React.FC<CalculationSettingsSectionProps> = ({
   canEditCalculationMethod = true,
 }) => {
   const { t } = useI18n();
-  const useDropdown = editing && !currenciesFailed && Array.isArray(currencies);
-  const currentId = formData.default_currency_id;
+  const currentId = formData.default_currency_id ?? '';
+  const list = Array.isArray(currencies) ? currencies : [];
   // Preserve a saved id that isn't in the fetched list so the value never drops.
-  const currentInList = !currentId || (currencies ?? []).some((c) => c.id === currentId);
+  const currentInList = !currentId || list.some((c) => c.id === currentId);
   const currentLabel =
     defaultCurrency && defaultCurrency.id === currentId
       ? `${defaultCurrency.code} - ${defaultCurrency.name}`
       : currentId;
-
-  const renderCurrencyField = () => {
-    if (editing && currenciesLoading) {
-      return (
-        <select id="default_currency_id" name="default_currency_id" className={selectClassName} disabled>
-          <option>{t('pages.businessUnits.loadingCurrencies')}</option>
-        </select>
-      );
-    }
-    if (useDropdown) {
-      return (
-        <select
-          id="default_currency_id"
-          name="default_currency_id"
-          value={currentId}
-          onChange={onChange}
-          className={selectClassName}
-        >
-          <option value="">{t('pages.businessUnits.selectCurrencyOption')}</option>
-          {currentId && !currentInList && <option value={currentId}>{currentLabel}</option>}
-          {(currencies ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {currencyLabel(c, t)}
-            </option>
-          ))}
-        </select>
-      );
-    }
-    if (editing) {
-      return (
-        <Input
-          type="text"
-          id="default_currency_id"
-          name="default_currency_id"
-          value={currentId}
-          onChange={onChange}
-          placeholder={t('pages.businessUnits.defaultCurrencyIdPlaceholder')}
-        />
-      );
-    }
-    // อ่านอย่างเดียวต้องแสดงชื่อที่คนอ่านรู้เรื่อง ('THB - Thai baht') ไม่ใช่ UUID ดิบ — เดิมช่องนี้
-    // โชว์ `currentId` ซึ่งเป็น UUID ทั้งที่ค่าที่อ่านออกอยู่ในกล่องรายละเอียดถัดลงไปแค่ไม่กี่สิบพิกเซล
-    // `currentLabel` ตกกลับเป็น id เองอยู่แล้วเมื่อ catalog ยังไม่มา จึงไม่มีทางว่างกว่าเดิม
-    return <ReadOnlyText value={currentLabel} />;
-  };
+  const currencyOptions: InlineOption[] = [
+    ...(currentId && !currentInList ? [{ value: currentId, label: currentLabel }] : []),
+    ...list.map((c) => ({ value: c.id, label: currencyLabel(c, t) })),
+  ];
+  // catalog โหลดไม่สำเร็จ (หรือไม่ได้ส่งมา) ขณะแก้ได้ → ช่องพิมพ์ id ดิบ เหมือน fallback เดิม
+  const currencyAsText = editing && !currenciesLoading && (currenciesFailed || !Array.isArray(currencies));
+  const methodOptions: InlineOption[] = CALCULATION_METHODS.map((m) => ({ value: m, label: getCalculationMethodLabel(m) }));
 
   return (
     <CollapsibleSection title={t('pages.businessUnits.calculationSettingsTitle')} description={t('pages.businessUnits.calculationSettingsDescription')} forceOpen>
       <div className="space-y-4">
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
-            <Label htmlFor="calculation_method">{t('pages.businessUnits.calculationMethodLabel')}</Label>
-            {editing && canEditCalculationMethod ? (
-              <select
-                id="calculation_method"
-                name="calculation_method"
-                value={formData.calculation_method}
-                onChange={onChange}
-                className={selectClassName}
-              >
-                <option value="">{t('pages.businessUnits.selectMethodOption')}</option>
-                <option value="average">{t('common.option.average')}</option>
-                <option value="fifo">{t('common.option.fifo')}</option>
-                <option value="average_per_location">{t('common.option.averagePerLocation')}</option>
-              </select>
-            ) : (
-              <ReadOnlyText value={getCalculationMethodLabel(formData.calculation_method)} />
-            )}
-          </div>
+        {/* แถวเดียวกับการ์ด Details (InlineField: ป้ายซ้าย ค่าขวา คลิกแล้วเป็น select) — เดิมเป็น
+            Label ตัวหนาเหนือ <select> ที่เปิดค้าง ในกริด 4 คอลัมน์ แท็บเดียวจึงมีฟอร์มสองไวยากรณ์ */}
+        <div>
+          <InlineField
+            name="calculation_method"
+            label={t('pages.businessUnits.calculationMethodLabel')}
+            type="select"
+            options={methodOptions}
+            value={formData.calculation_method ?? ''}
+            width="xs"
+            disabled={!(editing && canEditCalculationMethod)}
+            onCommit={onCommit}
+          />
           {showCurrencyField && (
-            <div className="space-y-2">
-              <Label htmlFor="default_currency_id">{t('pages.businessUnits.defaultCurrencyIdLabel')}</Label>
-              {renderCurrencyField()}
-            </div>
+            <InlineField
+              name="default_currency_id"
+              label={t('pages.businessUnits.defaultCurrencyIdLabel')}
+              type={currencyAsText ? 'text' : 'select'}
+              options={currencyOptions}
+              value={currentId}
+              width="sm"
+              mono={currencyAsText}
+              placeholder={
+                currenciesLoading
+                  ? t('pages.businessUnits.loadingCurrencies')
+                  : currencyAsText
+                    ? t('pages.businessUnits.defaultCurrencyIdPlaceholder')
+                    : undefined
+              }
+              disabled={!editing || currenciesLoading}
+              onCommit={onCommit}
+            />
           )}
         </div>
         {/* แผ่นรายละเอียดสกุลเงินเดิมเป็น `rounded-md border` ซ้อนอยู่ในการ์ดอีกที — กรอบซ้อน

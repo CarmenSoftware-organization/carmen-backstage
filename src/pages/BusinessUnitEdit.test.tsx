@@ -200,6 +200,9 @@ describe('BusinessUnitEdit — write access is gated on canEdit', () => {
     expect(await screen.findByRole('heading', { name: /test bu/i })).toBeInTheDocument();
 
     // General: calculation settings, and the branding card is handed the gate.
+    // Calculation method is an InlineField: the read-mode button is the gate (a combobox only
+    // mounts after a click), so asserting "no combobox" here would pass for everyone.
+    expect(screen.getByRole('button', { name: /set calculation method/i })).toBeDisabled();
     expect(screen.queryByRole('combobox', { name: /calculation method/i })).toBeNull();
     expect(screen.getByTestId('branding-card')).toHaveAttribute('data-editing', 'false');
 
@@ -222,7 +225,10 @@ describe('BusinessUnitEdit — write access is gated on canEdit', () => {
     const user = userEvent.setup();
     renderAt('/business-units/bu1/edit');
 
-    expect(await screen.findByRole('combobox', { name: /calculation method/i })).toBeInTheDocument();
+    const methodField = await screen.findByRole('button', { name: /set calculation method/i });
+    expect(methodField).toBeEnabled();
+    await user.click(methodField);
+    expect(screen.getByRole('combobox', { name: /calculation method/i })).toBeInTheDocument();
     expect(screen.getByTestId('branding-card')).toHaveAttribute('data-editing', 'true');
 
     await goToTab(user, /^technical$/i);
