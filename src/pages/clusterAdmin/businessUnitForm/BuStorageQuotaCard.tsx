@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eraser, FilePlus2, Loader2, RefreshCw, Save } from 'lucide-react';
+import { ChevronRight, Eraser, FilePlus2, Loader2, RefreshCw, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader } from '../../../components/ui/card';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
@@ -15,6 +16,8 @@ import { getErrorDetail } from '../../../utils/errorParser';
 import { formatBytes } from '../../../utils/storageQuota';
 import type { BuStorageQuotaView, StorageQuotaPatch, StorageReclaimJob } from '../../../types';
 import { StorageMeter } from './StorageMeter';
+import { LicenseSectionHeader } from '../../businessUnitEdit/LicenseSectionHeader';
+import { relativeTime } from '../../../utils/relativeTime';
 
 interface BuStorageQuotaCardProps {
   buId: string;
@@ -55,6 +58,7 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const navigate = useNavigate();
   const canManage = hasPermission('storage_quota.manage');
   const [view, setView] = useState<BuStorageQuotaView | null>(null);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [form, setForm] = useState<QuotaForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -69,6 +73,9 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const apply = useCallback((next: BuStorageQuotaView) => {
     setView(next);
     setForm(toForm(next));
+    // มีค่าที่บันทึกไว้แล้ว (ยกเว้นอยู่ / มีหมายเหตุ) = เปิดส่วนตั้งค่าไว้ให้เห็น ไม่ซ่อนข้อมูลที่มีอยู่จริง
+    // เปิดได้อย่างเดียว ไม่ปิดให้ — ผู้ใช้ที่กางไว้แล้วบันทึกต้องไม่เห็นส่วนนี้หุบเอง
+    if (next.quota.exempt || (next.quota.note ?? '').trim() !== '') setAdminOpen(true);
   }, []);
 
   const load = useCallback(async () => {
@@ -215,136 +222,175 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   };
   const usageOf = (kind: 'database' | 'attachment') => view?.usage.kinds.find((k) => k.kind === kind);
 
+  // ทั้งสอง kind วัดในรอบเดียวกันแทบทุกครั้ง — เวลาเดียวกันขึ้นบรรทัดเดียวบนหัวการ์ด ต่างกันค่อยกลับไปวาดรายแถบ
+  const kinds = view?.usage.kinds ?? [];
+  const sharedMeasuredAt =
+    kinds.length > 0 && kinds.every((k) => k.measured_at === kinds[0].measured_at) ? kinds[0].measured_at : null;
+
   return (
     <Card>
-      <CardHeader className="flex flex-col gap-2 space-y-0 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold">{t('pages.storageQuota.cardTitle')}</h3>
-          <p className="text-muted-foreground text-sm">{t('pages.storageQuota.cardDesc')}</p>
-        </div>
-        {(canManage || !!view) && (
-          <div className="flex flex-wrap gap-2">
-            <Can permission="subscription.manage">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={loading || !view}
-                onClick={() => navigate(`/licenses/storage/new?bu=${encodeURIComponent(buId)}`)}
-              >
-                <FilePlus2 className="mr-2 h-4 w-4" />
-                {view?.quota.license ? t('pages.storageQuota.replaceLicense') : t('pages.storageQuota.issueLicense')}
-              </Button>
-            </Can>
-            {canManage && (
-              <>
-            <Button variant="outline" size="sm" onClick={handleMeasure} disabled={measuring || loading}>
-              {measuring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              {measuring ? t('pages.storageQuota.measuring') : t('pages.storageQuota.measureNow')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setConfirmOpen(true)} disabled={jobActive || loading}>
-              {jobActive ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eraser className="mr-2 h-4 w-4" />}
-              {t('pages.storageQuota.reclaimAction')}
-            </Button>
-              </>
-            )}
-          </div>
+      <LicenseSectionHeader
+        title={t('pages.storageQuota.cardTitle')}
+        facts={
+          loading ? (
+            t('common.busy.loadingEllipsis')
+          ) : sharedMeasuredAt ? (
+            <span title={new Date(sharedMeasuredAt).toLocaleString()}>
+              {t('pages.storageQuota.measuredAt', { date: relativeTime(sharedMeasuredAt, new Date(), t) })}
+            </span>
+          ) : null
+        }
+        actions={
+          canManage || !!view ? (
+            <>
+              <Can permission="subscription.manage">
+                <Button
+                  size="sm"
+                  disabled={loading || !view}
+                  onClick={() => navigate(`/licenses/storage/new?bu=${encodeURIComponent(buId)}`)}
+                >
+                  <FilePlus2 className="mr-2 h-4 w-4" />
+                  {view?.quota.license ? t('pages.storageQuota.replaceLicense') : t('pages.storageQuota.issueLicense')}
+                </Button>
+              </Can>
+              {canManage && (
+                <Button variant="outline" size="sm" onClick={handleMeasure} disabled={measuring || loading}>
+                  {measuring ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                  {measuring ? t('pages.storageQuota.measuring') : t('pages.storageQuota.measureNow')}
+                </Button>
+              )}
+            </>
+          ) : undefined
+        }
+      >
+        {view && !view.usage.enforce && (
+          <p className="text-muted-foreground text-xs">{t('pages.storageQuota.enforceOff')}</p>
         )}
-      </CardHeader>
+      </LicenseSectionHeader>
+      {!loading && (
       <CardContent className="space-y-4">
-        {loading ? (
-          <p className="text-muted-foreground text-xs" role="status">{t('common.busy.loadingEllipsis')}</p>
-        ) : error || !view || !form ? (
+        {error || !view || !form ? (
           <p className="text-destructive text-sm" role="alert">{error}</p>
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-1">
-                <StorageMeter label={t('pages.storageQuota.database')} usage={usageOf('database')} />
-                <p className="text-muted-foreground text-xs empty:hidden">{sourceOf('database')}</p>
-              </div>
-              <div className="space-y-1">
-                <StorageMeter label={t('pages.storageQuota.attachment')} usage={usageOf('attachment')} />
-                <p className="text-muted-foreground text-xs empty:hidden">{sourceOf('attachment')}</p>
-              </div>
-            </div>
-            {!view.usage.enforce && (
-              <p className="text-muted-foreground text-xs">{t('pages.storageQuota.enforceOff')}</p>
-            )}
-
-            {job && (
-              <div className="space-y-1 border-t pt-4 text-sm" role="status">
-                <p className="font-medium">
-                  {t('pages.storageQuota.reclaimTitle')}
-                  {': '}
-                  <span className={job.status === 'failed' ? 'text-destructive' : ''}>
-                    {t(RECLAIM_STATUS_KEY[job.status])}
-                  </span>
-                </p>
-                {job.bytes_before !== null && (
-                  <p className="text-muted-foreground text-xs">
-                    {t('pages.storageQuota.reclaimBefore')}: {formatBytes(job.bytes_before)}
-                    {job.bytes_after !== null && (
-                      <>
-                        {' → '}
-                        {t('pages.storageQuota.reclaimAfter')}: {formatBytes(job.bytes_after)}
-                      </>
+              {(['database', 'attachment'] as const).map((kind) => {
+                const source = sourceOf(kind);
+                return (
+                  <div key={kind} className="space-y-1">
+                    <StorageMeter
+                      label={t(kind === 'database' ? 'pages.storageQuota.database' : 'pages.storageQuota.attachment')}
+                      usage={usageOf(kind)}
+                      showMeasuredAt={!sharedMeasuredAt}
+                    />
+                    {source && (
+                      <p className="text-muted-foreground text-xs">
+                        {t('pages.storageQuota.colSource')}: {source}
+                      </p>
                     )}
-                  </p>
-                )}
-                {job.started_at && (
-                  <p className="text-muted-foreground text-xs">
-                    {t('pages.storageQuota.reclaimStartedAt', { date: new Date(job.started_at).toLocaleString() })}
-                    {job.finished_at &&
-                      ` · ${t('pages.storageQuota.reclaimFinishedAt', { date: new Date(job.finished_at).toLocaleString() })}`}
-                  </p>
-                )}
-                {job.skipped_tables?.length > 0 && (
-                  <p className="text-warning text-xs break-words">
-                    {t('pages.storageQuota.reclaimSkipped', { tables: job.skipped_tables.join(', ') })}
-                  </p>
-                )}
-                {job.status === 'failed' && job.error && (
-                  <p className="text-destructive text-xs break-words">{job.error}</p>
-                )}
-              </div>
-            )}
-
-            <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
-              <label className="flex items-center gap-2 rounded-md border border-input p-2 text-sm sm:col-span-2">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4"
-                  checked={form.exempt}
-                  disabled={!canManage || saving}
-                  onChange={(e) => setForm({ ...form, exempt: e.target.checked })}
-                />
-                <span>
-                  {t('pages.storageQuota.exempt')}
-                  <span className="text-muted-foreground block text-xs">{t('pages.storageQuota.exemptHint')}</span>
-                </span>
-              </label>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label htmlFor="bu-storage-note">{t('pages.storageQuota.note')}</Label>
-                <Input
-                  id="bu-storage-note"
-                  maxLength={2000}
-                  disabled={!canManage || saving}
-                  value={form.note}
-                  onChange={(e) => setForm({ ...form, note: e.target.value })}
-                />
-              </div>
+                  </div>
+                );
+              })}
             </div>
-            {canManage && (
-              <div className="flex justify-end">
-                <Button size="sm" onClick={handleSave} disabled={saving || !dirty}>
-                  {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  {saving ? t('common.busy.saving') : t('common.action.saveChanges')}
-                </Button>
+
+            {/* ตั้งค่าที่แตะไม่บ่อย (ยกเว้นการบล็อก · หมายเหตุ · reclaim) พับไว้ — แท็บนี้มีไว้อ่านสิทธิ์
+                ไม่ใช่ฟอร์ม · ตอนพับยังบอกสถานะที่สำคัญผ่านป้ายบนแถวหัว เพื่อไม่ให้ "ยกเว้นอยู่" ถูกซ่อน
+                · `<details>` จริงจึงได้คีย์บอร์ด/screen reader ฟรี ไม่ต้องเพิ่ม primitive */}
+            <details
+              className="group/admin border-t pt-3"
+              open={adminOpen}
+              onToggle={(e) => setAdminOpen(e.currentTarget.open)}
+            >
+              <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 rounded-sm text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-open/admin:rotate-90" aria-hidden="true" />
+                {t('pages.storageQuota.adminSection')}
+                {form.exempt && <Badge variant="warning">{t('pages.storageQuota.exemptBadge')}</Badge>}
+                {job && (
+                  <Badge variant={job.status === 'failed' ? 'destructive' : 'secondary'}>
+                    {t(RECLAIM_STATUS_KEY[job.status])}
+                  </Badge>
+                )}
+              </summary>
+              <div className="space-y-4 pt-4">
+                <label className="flex items-center gap-2 rounded-md border border-input p-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={form.exempt}
+                    disabled={!canManage || saving}
+                    onChange={(e) => setForm({ ...form, exempt: e.target.checked })}
+                  />
+                  <span>
+                    {t('pages.storageQuota.exempt')}
+                    <span className="text-muted-foreground block text-xs">{t('pages.storageQuota.exemptHint')}</span>
+                  </span>
+                </label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="bu-storage-note">{t('pages.storageQuota.note')}</Label>
+                  <Input
+                    id="bu-storage-note"
+                    maxLength={2000}
+                    disabled={!canManage || saving}
+                    value={form.note}
+                    onChange={(e) => setForm({ ...form, note: e.target.value })}
+                  />
+                </div>
+                {canManage && (
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    {/* reclaim เป็นงานหนักที่ต้องยืนยัน — อยู่ในส่วนบำรุงรักษา ไม่ยืนเท่ากับ Measure now บนหัว */}
+                    <Button variant="outline" size="sm" onClick={() => setConfirmOpen(true)} disabled={jobActive}>
+                      {jobActive ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eraser className="mr-2 h-4 w-4" />}
+                      {t('pages.storageQuota.reclaimAction')}
+                    </Button>
+                    <Button size="sm" onClick={handleSave} disabled={saving || !dirty}>
+                      {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      {saving ? t('common.busy.saving') : t('common.action.saveChanges')}
+                    </Button>
+                  </div>
+                )}
+                {job && (
+                  <div className="space-y-1 text-sm" role="status">
+                    <p className="font-medium">
+                      {t('pages.storageQuota.reclaimTitle')}
+                      {': '}
+                      <span className={job.status === 'failed' ? 'text-destructive' : ''}>
+                        {t(RECLAIM_STATUS_KEY[job.status])}
+                      </span>
+                    </p>
+                    {job.bytes_before !== null && (
+                      <p className="text-muted-foreground text-xs">
+                        {t('pages.storageQuota.reclaimBefore')}: {formatBytes(job.bytes_before)}
+                        {job.bytes_after !== null && (
+                          <>
+                            {' → '}
+                            {t('pages.storageQuota.reclaimAfter')}: {formatBytes(job.bytes_after)}
+                          </>
+                        )}
+                      </p>
+                    )}
+                    {job.started_at && (
+                      <p className="text-muted-foreground text-xs">
+                        {t('pages.storageQuota.reclaimStartedAt', { date: new Date(job.started_at).toLocaleString() })}
+                        {job.finished_at &&
+                          ` · ${t('pages.storageQuota.reclaimFinishedAt', { date: new Date(job.finished_at).toLocaleString() })}`}
+                      </p>
+                    )}
+                    {job.skipped_tables?.length > 0 && (
+                      <p className="text-warning text-xs break-words">
+                        {t('pages.storageQuota.reclaimSkipped', { tables: job.skipped_tables.join(', ') })}
+                      </p>
+                    )}
+                    {job.status === 'failed' && job.error && (
+                      <p className="text-destructive text-xs break-words">{job.error}</p>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
+            </details>
           </>
         )}
       </CardContent>
+      )}
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
