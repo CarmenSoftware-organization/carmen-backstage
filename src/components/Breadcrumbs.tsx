@@ -38,6 +38,7 @@ const SEGMENT_KEYS: Record<string, TKey> = {
   'database-pools': 'breadcrumb.databasePools',
   customers: 'breadcrumb.customers',
   'license-intakes': 'breadcrumb.licenseIntakes',
+  'storage-usage': 'breadcrumb.storageUsage',
   configs: 'breadcrumb.backstageConfig',
   'email-settings': 'breadcrumb.emailSettings',
   'cluster-admin': 'breadcrumb.clusterAdmin',

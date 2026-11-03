@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Network, Building2, Users, FileText, Newspaper, Megaphone, AppWindow,
   ShieldCheck, ShieldAlert, UserCog, DatabaseZap, Database, DatabaseBackup, LayoutGrid, Mail, FileSpreadsheet,
-  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles, Receipt, Inbox
+  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles, Receipt, Inbox, HardDrive
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TKey } from '../../i18n/types';
@@ -26,6 +26,7 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   { path: '/license-modules', labelKey: 'nav.licenseFeatureGroups', icon: LayoutGrid, permission: 'license_feature_group.read', groupKey: 'navGroup.licenseManagement', feature: 'license_feature_groups' },
   { path: '/license-features', labelKey: 'nav.licenseFeatures', icon: Tags, permission: 'license_feature.read', groupKey: 'navGroup.licenseManagement', feature: 'license_features' },
   { path: '/license-intakes', labelKey: 'nav.licenseIntakes', icon: Inbox, permission: 'subscription.read', groupKey: 'navGroup.licenseManagement', feature: 'license_intakes', countKey: 'licenseIntakesPending' },
+  { path: '/storage-usage', labelKey: 'nav.storageUsage', icon: HardDrive, permission: 'storage_quota.read', groupKey: 'navGroup.licenseManagement' },
   // Content
   { path: '/report-templates', labelKey: 'nav.reportTemplates', icon: FileText, permission: 'report_template.read', groupKey: 'navGroup.content', feature: 'report_templates' },
   { path: '/report-form-groups', labelKey: 'nav.formGroups', icon: LayoutGrid, permission: 'report_template.read', groupKey: 'navGroup.content', feature: 'report_form_groups' },

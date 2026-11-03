@@ -75,6 +75,8 @@ interface BusinessUnitDocumentProps {
   licensesSlot?: React.ReactNode;
   /** ใบสิทธิ์ interface — คนละชนิดกับที่นั่ง จึงเป็นการ์ดของตัวเองใต้ `licensesSlot` ไม่ใช่ก้อนเดียวกัน */
   interfaceLicensesSlot?: React.ReactNode;
+  /** โควตาพื้นที่เก็บข้อมูลของ BU — ฝั่งทีม Carmen เท่านั้น (ต้องมี storage_quota.read) */
+  storageQuotaSlot?: React.ReactNode;
   /** โน้ตภายในของ staff — หน้าแม่ห่อด้วย `hidden` เองเพื่อให้ draft รอดตอนสลับแท็บ จึงเรนเดอร์ทุกครั้งที่มี slot */
   notesSlot?: React.ReactNode;
 }
@@ -118,6 +120,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
     usersSlot,
     licensesSlot,
     interfaceLicensesSlot,
+    storageQuotaSlot,
     notesSlot,
   } = props;
 
@@ -451,6 +454,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
         <>
           {licensesSlot}
           {interfaceLicensesSlot}
+          {storageQuotaSlot}
         </>
       )}
 
