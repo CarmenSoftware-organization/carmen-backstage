@@ -15,13 +15,15 @@ interface NoteFilesPanelProps {
   adapter: NotesAdapter;
   /** เปลี่ยนค่า = โหลดรายการไฟล์ใหม่ (bump หลัง create/update/delete/restore) */
   refreshKey: number;
+  /** แจ้งจำนวนไฟล์หลังโหลดสำเร็จ (−1 = โหลดไม่สำเร็จ) — ให้ NotesSection ตัดคอลัมน์ขวาทิ้งเมื่อไม่มีไฟล์ */
+  onCountChange?: (count: number) => void;
 }
 
 /**
  * แผง "ไฟล์ทั้งหมด" — ไฟล์แนบรวมทุกโน้ต ใหม่สุดก่อน
  * ต่ำกว่า lg พับได้ (พับไว้เป็นค่าเริ่มต้น) ที่ lg แสดงเสมอเป็นคอลัมน์ขวา
  */
-export function NoteFilesPanel({ ownerId, adapter, refreshKey }: NoteFilesPanelProps) {
+export function NoteFilesPanel({ ownerId, adapter, refreshKey, onCountChange }: NoteFilesPanelProps) {
   const { t } = useI18n();
   const [files, setFiles] = useState<NoteFile[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -38,10 +40,12 @@ export function NoteFilesPanel({ ownerId, adapter, refreshKey }: NoteFilesPanelP
         const list = Array.isArray(rows) ? rows : [];
         setFiles([...list].sort((a, b) => (b.uploaded_at ?? '').localeCompare(a.uploaded_at ?? '')));
         setFailed(false);
+        onCountChange?.(list.length);
       } catch (err) {
         if (generation !== generationRef.current) return;
         devLog('NoteFilesPanel', err);
         setFailed(true);
+        onCountChange?.(-1);
       } finally {
         if (generation === generationRef.current) setLoaded(true);
       }
@@ -51,7 +55,7 @@ export function NoteFilesPanel({ ownerId, adapter, refreshKey }: NoteFilesPanelP
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generationRef.current++;
     };
-  }, [adapter, ownerId, refreshKey]);
+  }, [adapter, ownerId, refreshKey, onCountChange]);
 
   const title = t('pages.clusterNotes.filesTitle', { count: files.length });
 

@@ -129,7 +129,7 @@ export function NoteItem({ note, ownerId, adapter, canManage, onChanged, onDelet
   return (
     <li className="space-y-2 p-4">
       <div className="flex items-start justify-between gap-2">
-        <AuditMeta variant="compact" actor={audit.created} className="text-xs text-muted-foreground" />
+        <AuditMeta variant="byline" actor={audit.created} className="pt-1 text-xs text-muted-foreground" />
         {canManage && !editing && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

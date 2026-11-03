@@ -23,6 +23,8 @@ export function NoteComposer({ ownerId, adapter, onCreated }: NoteComposerProps)
   const [text, setText] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
+  // 2 แถวตอนนิ่ง ให้ไทม์ไลน์เป็นสิ่งแรกที่ตาเจอ; ขยายเป็น 4 เมื่อกำลังเขียน
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // second caller of the hook is fine: each call registers its own beforeunload listener
@@ -62,8 +64,11 @@ export function NoteComposer({ ownerId, adapter, onCreated }: NoteComposerProps)
         onChange={(e) => setText(e.target.value)}
         placeholder={t('pages.clusterNotes.placeholder')}
         aria-label={t('pages.clusterNotes.placeholder')}
-        rows={3}
+        rows={focused || text !== '' ? 4 : 2}
+        className="min-h-0"
         disabled={saving}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         onKeyDown={(e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
             e.preventDefault();

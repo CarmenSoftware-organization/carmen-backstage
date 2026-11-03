@@ -22,7 +22,8 @@ const displayName = (t: TFunction, name?: string): string | undefined => {
 type AuditMetaProps =
   | { variant: 'header'; audit: NormalizedAudit; now?: Date; className?: string }
   | { variant: 'cell'; actor?: AuditActor; now?: Date; className?: string }
-  | { variant: 'compact'; actor?: AuditActor; now?: Date; className?: string; verbKey?: TKey };
+  | { variant: 'compact'; actor?: AuditActor; now?: Date; className?: string; verbKey?: TKey }
+  | { variant: 'byline'; actor?: AuditActor; now?: Date; className?: string };
 
 /**
  * แสดง "ใครทำเมื่อไหร่" ด้วยรูปแบบเดียวกันทั้งแอป
@@ -66,6 +67,22 @@ export function AuditMeta(props: AuditMetaProps) {
         {props.verbKey && ' '}
         {when || '-'}
         {who && ` · ${who}`}
+      </span>
+    );
+  }
+
+  if (props.variant === 'byline') {
+    // หัวรายการในไทม์ไลน์ (โน้ต) — ผู้เขียนเป็นตัวหลัก เวลาเป็นรอง; `<time>` พกเวลาเต็มไว้ทั้งใน
+    // `dateTime` (เครื่องอ่าน) และ `title` (hover) เพราะ "8d ago" อ้างอิงย้อนหลังไม่ได้
+    return (
+      <span className={props.className ?? 'text-xs text-muted-foreground'}>
+        {who && <span className="font-medium text-foreground">{who}</span>}
+        {who && when && <span aria-hidden="true"> · </span>}
+        {when && (
+          <time dateTime={actor.at} title={absolute(actor.at)}>
+            {when}
+          </time>
+        )}
       </span>
     );
   }
