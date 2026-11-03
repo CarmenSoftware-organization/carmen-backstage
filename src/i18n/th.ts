@@ -2262,8 +2262,18 @@ export const th: Translations = {
       userLicensesTitle: 'ไลเซนส์ผู้ใช้',
       // Copied verbatim from pages.licenses.seatFromLicenseManyOne/ManyMany (identical Thai
       // across all four variants there).
+      activeLicenseCountOne: '{{count}} ไลเซนส์ที่ใช้งานอยู่',
+      activeLicenseCountMany: '{{count}} ไลเซนส์ที่ใช้งานอยู่',
       seatsFromActiveLicenseOne: '{{count}} ที่นั่ง จาก {{activeCount}} ไลเซนส์ที่ใช้งานอยู่',
       seatsFromActiveLicenseMany: '{{count}} ที่นั่ง จาก {{activeCount}} ไลเซนส์ที่ใช้งานอยู่',
+      licStripSeats: 'ที่นั่งผู้ใช้',
+      licStripSeatUnit: 'ที่นั่ง',
+      licStripInterfaces: 'Interface',
+      licStripOfTotalInForce: 'ใช้ได้ จากทั้งหมด {{total}} ใบ',
+      licStripNoneIssued: 'ยังไม่ได้ออกใบ',
+      licStripNoneInForce: 'ไม่มีใบที่ใช้ได้',
+      licStripEnds: 'หมด {{date}}',
+      licStripOfQuota: 'ของโควตา (ชนิดที่เต็มสุด)',
       clusterPoolSeatsUsed: 'พูลระดับ cluster: ใช้ไป {{used}} / {{cap}} ที่นั่ง',
       seatsManagedInLicenseCenter: 'จัดการที่นั่งได้ที่ License Center',
       noSubscriptions: 'ยังไม่มีสัญญาของหน่วยธุรกิจนี้',

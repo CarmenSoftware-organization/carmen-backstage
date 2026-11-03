@@ -16,6 +16,7 @@ import NumberFormatsSection from './sections/NumberFormatsSection';
 import ConfigurationSection from './sections/ConfigurationSection';
 import AttachmentPolicySection, { type AttachmentPolicyValue } from './sections/AttachmentPolicySection';
 import DatabaseConnectionSection from './sections/DatabaseConnectionSection';
+import { LICENSE_SECTION_IDS } from './LicenseSummaryStrip';
 import BusinessUnitTabs, { type BuTab, type BuTabId } from './BusinessUnitTabs';
 
 interface BusinessUnitDocumentProps {
@@ -72,6 +73,8 @@ interface BusinessUnitDocumentProps {
   customerSlot?: React.ReactNode;
   advancedExtraSlot?: React.ReactNode;
   usersSlot?: React.ReactNode;
+  /** แถบสรุป 3 ช่องบนหัวแท็บ Licenses — ช่องกดแล้วเลื่อนไปยัง id ใน `LICENSE_SECTION_IDS` */
+  licensesSummarySlot?: React.ReactNode;
   licensesSlot?: React.ReactNode;
   /** ใบสิทธิ์ interface — คนละชนิดกับที่นั่ง จึงเป็นการ์ดของตัวเองใต้ `licensesSlot` ไม่ใช่ก้อนเดียวกัน */
   interfaceLicensesSlot?: React.ReactNode;
@@ -118,6 +121,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
     customerSlot,
     advancedExtraSlot,
     usersSlot,
+    licensesSummarySlot,
     licensesSlot,
     interfaceLicensesSlot,
     storageQuotaSlot,
@@ -452,9 +456,12 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
 
       {activeTab === 'licenses' && (
         <>
-          {licensesSlot}
-          {interfaceLicensesSlot}
-          {storageQuotaSlot}
+          {licensesSummarySlot}
+          {/* ห่อด้วย id ให้ช่องในแถบสรุปเลื่อนมาหา · scroll-mt เผื่อ header + TabStrip ที่ปักอยู่บนสุด
+              · ห่อเฉพาะเมื่อมี slot ไม่งั้น div ว่างกิน gap ของ container */}
+          {licensesSlot && <div id={LICENSE_SECTION_IDS.seats} className="scroll-mt-32">{licensesSlot}</div>}
+          {interfaceLicensesSlot && <div id={LICENSE_SECTION_IDS.interfaces} className="scroll-mt-32">{interfaceLicensesSlot}</div>}
+          {storageQuotaSlot && <div id={LICENSE_SECTION_IDS.storage} className="scroll-mt-32">{storageQuotaSlot}</div>}
         </>
       )}
 
