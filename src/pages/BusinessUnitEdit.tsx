@@ -934,7 +934,7 @@ const BusinessUnitEdit: React.FC = () => {
               />
             ) : null
           }
-          storageQuotaSlot={!isNew && hasPermission('storage_quota.read') ? <BuStorageQuotaCard buId={id!} /> : null}
+          storageQuotaSlot={!isNew && hasPermission('storage_quota.read', { clusterId: BACKSTAGE_SCOPED_RECORD }) ? <BuStorageQuotaCard buId={id!} /> : null}
           interfaceLicensesSlot={
             !isNew ? (
               <BusinessUnitInterfaceLicensesCard
