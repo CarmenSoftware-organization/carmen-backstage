@@ -1,7 +1,7 @@
 import { cn } from '../../../lib/utils';
 import { Badge } from '../../../components/ui/badge';
 import { useI18n } from '../../../hooks/useI18n';
-import { formatBytes, usedPct } from '../../../utils/storageQuota';
+import { fmtPct, formatBytes, meterWidth, usedPct } from '../../../utils/storageQuota';
 import type { StorageKindUsage } from '../../../types';
 
 interface StorageMeterProps {
@@ -54,13 +54,13 @@ export function StorageMeter({ label, usage, showMeasuredAt = true }: StorageMet
         <span className={cn('text-base font-semibold', over && 'text-destructive')}>{formatBytes(usage.used_bytes)}</span>
         <span className="text-muted-foreground text-sm">/ {formatBytes(usage.quota_bytes)}</span>
         <span className={cn('text-sm', over ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
-          {pct.toFixed(1)}%
+          {fmtPct(pct)}
         </span>
       </div>
       <div className="bg-muted h-2 overflow-hidden rounded-full" aria-hidden="true">
         <div
           className={cn('h-full', over ? 'bg-destructive' : near ? 'bg-warning' : 'bg-primary')}
-          style={{ width: `${Math.min(100, pct)}%` }}
+          style={{ width: meterWidth(pct) }}
         />
       </div>
       <div className="text-muted-foreground space-y-0.5 text-xs empty:hidden">

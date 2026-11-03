@@ -73,19 +73,19 @@ describe('BusinessUnitLicensesCard', () => {
     expect(screen.queryByText(/days left/)).not.toBeInTheDocument();
   });
 
-  it('ลิงก์ "Manage licences" ไปตาม manageHref ที่ผู้เรียกส่งเข้ามา — การ์ดห้ามประกอบ URL เอง', () => {
+  it('ลิงก์ "Manage licenses" ไปตาม manageHref ที่ผู้เรียกส่งเข้ามา — การ์ดห้ามประกอบ URL เอง', () => {
     renderCard({ manageHref: '/licenses/cluster-1#seats' });
-    expect(screen.getByRole('link', { name: 'Manage licences' })).toHaveAttribute('href', '/licenses/cluster-1#seats');
+    expect(screen.getByRole('link', { name: 'Manage licenses' })).toHaveAttribute('href', '/licenses/cluster-1#seats');
   });
 
   it('BU ที่ไม่สังกัด cluster — ผู้เรียกส่ง manageHref เป็น /licenses เฉย ๆ (ไม่มี id undefined ปน)', () => {
     renderCard({ manageHref: '/licenses' });
-    expect(screen.getByRole('link', { name: 'Manage licences' })).toHaveAttribute('href', '/licenses');
+    expect(screen.getByRole('link', { name: 'Manage licenses' })).toHaveAttribute('href', '/licenses');
   });
 
   it('cluster admin — manageHref ชี้เชลล์ของตัวเอง ไม่ใช่ /licenses/* ของ platform', () => {
     renderCard({ manageHref: '/cluster-admin/c1/licenses' });
-    expect(screen.getByRole('link', { name: 'Manage licences' })).toHaveAttribute('href', '/cluster-admin/c1/licenses');
+    expect(screen.getByRole('link', { name: 'Manage licenses' })).toHaveAttribute('href', '/cluster-admin/c1/licenses');
   });
 
   it('ไม่มีปุ่ม Add/Edit/Remove อีกต่อไป — การเขียนย้ายไปที่ License Center ทั้งหมด', () => {

@@ -328,7 +328,7 @@ describe('ClusterEdit — cluster-user write surfaces are gated', () => {
 // `subscription.read`; that gating is pinned in SubscriptionCard.test.tsx. It used to own a
 // whole section, so an unconditional nav entry was a menu item that scrolled to an empty
 // stretch of page, and the entry had to follow the permission. It is now the Licensing tab,
-// whose body always carries the Manage licences action, so the tab keeps content either way
+// whose body always carries the Manage licenses action, so the tab keeps content either way
 // and stays unconditional. What follows pins that: the same three tabs either way.
 describe('ClusterEdit — the Licensing tab does not follow subscription.read', () => {
   const renderClusterEdit = async () => {
@@ -365,7 +365,7 @@ describe('ClusterEdit — the Licensing tab does not follow subscription.read', 
 
     await renderClusterEdit();
 
-    expect(screen.getByRole('link', { name: /manage licences/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /manage licenses/i })).toBeInTheDocument();
   });
 });
 

@@ -39,3 +39,17 @@ export const formatBytes = (bytes: number): string => {
 /** สัดส่วนที่ใช้ไป (ไม่ clamp) — quota <= 0 ถือว่าไม่เต็ม */
 export const usedPct = (k: Pick<StorageKindUsage, 'used_bytes' | 'quota_bytes'>): number =>
   k.quota_bytes > 0 ? (k.used_bytes / k.quota_bytes) * 100 : 0;
+
+/**
+ * ความกว้างของแถบวัด — ค่าที่มากกว่า 0 ได้เส้นขั้นต่ำ 2px เสมอ ไม่งั้น 0.1% วาดออกมาเท่ากับ
+ * แถบว่าง แล้วผู้ใช้แยกไม่ออกว่า "ใช้ไปนิดเดียว" กับ "ยังไม่มีอะไร"
+ */
+export function meterWidth(pct: number): string {
+  const clamped = Math.min(100, Math.max(0, pct));
+  return clamped > 0 ? `max(2px, ${clamped}%)` : '0%';
+}
+
+/** ตัวเลข % ที่ไม่ปัดค่าเล็กกว่า 0.1 ลงเป็น "0.0%" ให้ขัดกับเส้นขั้นต่ำของแถบ */
+export function fmtPct(pct: number): string {
+  return pct > 0 && pct < 0.1 ? '<0.1%' : `${pct.toFixed(1)}%`;
+}
