@@ -7,10 +7,13 @@ import ComingSoon from '../pages/ComingSoon';
 import { useFeatureFlags } from '../context/FeatureFlagContext';
 import { useI18n } from '../hooks/useI18n';
 import { loginPathFor } from '../utils/resolveNextPath';
+import { BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
   requiredPermission?: string;
+  /** true = permission ต้องอยู่ระดับ backstage ทั้งระบบ ไม่นับสิทธิ์ระดับ cluster */
+  widePermission?: boolean;
   requireSuperAdmin?: boolean;
   /**
    * ฟีเจอร์ที่เส้นทางนี้สังกัด — คีย์ในแค็ตตาล็อก `src/constants/featureFlags.ts`
@@ -36,7 +39,7 @@ interface PrivateRouteProps {
  * pre-login snapshot of the context — so they keep sending everyone to /dashboard and let this
  * guard route the ones who do not belong there.
  */
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredPermission, requireSuperAdmin, feature }) => {
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredPermission, widePermission, requireSuperAdmin, feature }) => {
   const {
     isAuthenticated,
     loading,
@@ -82,7 +85,10 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredPermissio
     // already refuses to create.
   }
 
-  if (requiredPermission && !hasPermission(requiredPermission)) {
+  if (
+    requiredPermission &&
+    !hasPermission(requiredPermission, widePermission ? { clusterId: BACKSTAGE_SCOPED_RECORD } : undefined)
+  ) {
     return <Forbidden />;
   }
 

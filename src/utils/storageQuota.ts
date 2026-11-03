@@ -21,6 +21,16 @@ export const gbInputToBytes = (value: string): number | null => {
   return Math.round(gb * BYTES_PER_GB);
 };
 
+/**
+ * ตรวจช่อง GB ที่ผู้ใช้กรอก — '' ผ่าน (ใช้ค่า default) · ต้องเป็นตัวเลข >= 1 GB และไม่เกิน MAX_SAFE_INTEGER ไบต์
+ * @returns true เมื่อค่าใช้ได้
+ */
+export const isValidQuotaInput = (value: string, allowBlank: boolean): boolean => {
+  const bytes = gbInputToBytes(value);
+  if (bytes === null) return allowBlank;
+  return Number.isFinite(bytes) && bytes >= MIN_QUOTA_BYTES && bytes <= Number.MAX_SAFE_INTEGER;
+};
+
 export const formatBytes = (bytes: number): string => {
   if (bytes >= BYTES_PER_GB) return `${(bytes / BYTES_PER_GB).toFixed(2)} GB`;
   return `${(bytes / 1024 ** 2).toFixed(1)} MB`;

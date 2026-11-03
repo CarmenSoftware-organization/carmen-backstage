@@ -3957,6 +3957,7 @@ export const en = {
       measureNow: 'Measure now',
       measuring: 'Measuring...',
       measured: 'Measured',
+      measuredWithFailure: 'Measurement finished but part of it failed; the previous figure is kept for that item',
       saved: 'Storage quota saved',
       notMeasured: 'Not measured yet',
       neverMeasured: 'Never',

@@ -324,7 +324,7 @@ function AppContent() {
             <Route
               path="/storage-usage"
               element={
-                <PrivateRoute requiredPermission="storage_quota.read">
+                <PrivateRoute requiredPermission="storage_quota.read" widePermission>
                   <StorageUsageList />
                 </PrivateRoute>
               }

@@ -2818,6 +2818,7 @@ export const th: Translations = {
       measureNow: 'วัดทันที',
       measuring: 'กำลังวัด...',
       measured: 'วัดเรียบร้อย',
+      measuredWithFailure: 'วัดเสร็จแต่บางส่วนวัดไม่สำเร็จ ยังคงตัวเลขเดิมของรายการนั้น',
       saved: 'บันทึกโควตาแล้ว',
       notMeasured: 'ยังไม่เคยวัด',
       neverMeasured: 'ไม่เคย',

@@ -7,7 +7,7 @@ import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { ConfigCardShell, ConfigField } from './ConfigCardShell';
 import backstageConfigService from '../../services/backstageConfigService';
 import { parseApiError } from '../../utils/errorParser';
-import { BYTES_PER_GB, bytesToGbInput, formatBytes } from '../../utils/storageQuota';
+import { BYTES_PER_GB, bytesToGbInput, formatBytes, isValidQuotaInput } from '../../utils/storageQuota';
 import type { StorageQuotaConfig, BackstageConfig } from '../../types';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -85,8 +85,7 @@ export const StorageQuotaConfigCard: React.FC<StorageQuotaConfigCardProps> = ({
   const saved = toValue(config);
 
   const validateGb = (value: string): string => {
-    const n = Number(value);
-    return value.trim() !== '' && Number.isFinite(n) && n >= 1 ? '' : t('pages.storageQuota.quotaMin');
+    return isValidQuotaInput(value, false) ? '' : t('pages.storageQuota.quotaMin');
   };
 
   const validateAll = (): Record<string, string> => {

@@ -10,12 +10,12 @@ import { useAuth } from '../../../context/AuthContext';
 import storageQuotaService from '../../../services/storageQuotaService';
 import { getErrorDetail } from '../../../utils/errorParser';
 import {
-  MIN_QUOTA_BYTES,
   bytesToGb,
   bytesToGbInput,
   gbInputToBytes,
+  isValidQuotaInput,
 } from '../../../utils/storageQuota';
-import type { BuStorageQuotaView } from '../../../types';
+import type { BuStorageQuotaView, StorageQuotaPatch } from '../../../types';
 import { StorageMeter } from './StorageMeter';
 
 interface BuStorageQuotaCardProps {
@@ -76,10 +76,7 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   }, [load]);
 
   const validate = (value: string): string | undefined => {
-    const bytes = gbInputToBytes(value);
-    if (bytes === null) return undefined;
-    if (Number.isNaN(bytes) || bytes < MIN_QUOTA_BYTES) return t('pages.storageQuota.quotaMin');
-    return undefined;
+    return isValidQuotaInput(value, true) ? undefined : t('pages.storageQuota.quotaMin');
   };
 
   const handleSave = async () => {
@@ -89,14 +86,15 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
     if (errors.db || errors.file) return;
     try {
       setSaving(true);
-      apply(
-        await storageQuotaService.update(buId, {
-          db_quota_bytes: gbInputToBytes(form.db),
-          file_quota_bytes: gbInputToBytes(form.file),
-          exempt: form.exempt,
-          note: form.note.trim() === '' ? null : form.note.trim(),
-        }),
-      );
+      // ส่งเฉพาะ field ที่ผู้ใช้แก้จริง — ช่อง GB แสดงค่าปัดทศนิยม 2 ตำแหน่ง ถ้าส่งทุกช่องกลับ
+      // การบันทึกฟิลด์อื่นจะเขียนทับ override เดิมด้วยค่าที่ปัดแล้ว
+      const loaded = toForm(view);
+      const patch: StorageQuotaPatch = {};
+      if (form.db !== loaded.db) patch.db_quota_bytes = gbInputToBytes(form.db);
+      if (form.file !== loaded.file) patch.file_quota_bytes = gbInputToBytes(form.file);
+      if (form.exempt !== loaded.exempt) patch.exempt = form.exempt;
+      if (form.note !== loaded.note) patch.note = form.note.trim() === '' ? null : form.note.trim();
+      apply(await storageQuotaService.update(buId, patch));
       toast.success(t('pages.storageQuota.saved'));
     } catch (err: unknown) {
       toast.error(getErrorDetail(err));
@@ -108,12 +106,14 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   const handleMeasure = async () => {
     try {
       setMeasuring(true);
-      await storageQuotaService.measure(buId);
-      // วัดเสร็จแล้วโหลดใหม่ทั้งก้อน เพื่อให้ผลวัดกับโควตาที่แสดงมาจากชุดเดียวกัน
-      // แต่ไม่ทับฟอร์มที่ผู้ใช้กำลังแก้ค้างอยู่ — ใช้เฉพาะ usage
-      const fresh = await storageQuotaService.get(buId);
-      setView(fresh);
-      toast.success(t('pages.storageQuota.measured'));
+      const measured = await storageQuotaService.measure(buId);
+      // รวมผลวัดเข้ากับ view ปัจจุบัน ไม่ GET ซ้ำ และไม่แตะฟอร์มที่ผู้ใช้แก้ค้างอยู่
+      setView((v) => (v ? { ...v, usage: measured } : v));
+      if (measured.kinds.some((k) => k.flag === 'measure_failed')) {
+        toast.warning(t('pages.storageQuota.measuredWithFailure'));
+      } else {
+        toast.success(t('pages.storageQuota.measured'));
+      }
     } catch (err: unknown) {
       toast.error(getErrorDetail(err));
     } finally {

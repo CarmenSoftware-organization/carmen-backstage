@@ -2397,6 +2397,14 @@ export interface StorageUsageListItem {
   measured_at: string | null;
 }
 
+/** body ของ PUT โควตา — field ที่ไม่ส่ง = คงเดิม, โควตา null = ใช้ค่า default */
+export interface StorageQuotaPatch {
+  db_quota_bytes?: number | null;
+  file_quota_bytes?: number | null;
+  exempt?: boolean;
+  note?: string | null;
+}
+
 /** คีย์ `storage_quota` ใน Backstage Config (เก็บเป็นไบต์) */
 export interface StorageQuotaConfig {
   default_db_bytes: number;

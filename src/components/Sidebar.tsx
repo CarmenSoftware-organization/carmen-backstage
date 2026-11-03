@@ -19,6 +19,8 @@ export interface NavItem {
   labelKey: TKey;
   icon: LucideIcon;
   permission?: string;
+  /** true = ต้องมี permission ในระดับ backstage ทั้งระบบ (สิทธิ์ระดับ cluster ไม่พอ) ตรงกับ BackstageWidePermissionGuard ฝั่ง gateway */
+  widePermission?: boolean;
   superAdminOnly?: boolean;
   /** Catalog key for the group heading. Grouping compares this key, never the
    *  translated text, so a language change cannot re-partition the menu. */
