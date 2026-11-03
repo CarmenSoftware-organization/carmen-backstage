@@ -80,7 +80,7 @@ export function BuStorageQuotaCard({ buId }: BuStorageQuotaCardProps) {
   };
 
   const handleSave = async () => {
-    if (!form) return;
+    if (!form || !view) return;
     const errors = { db: validate(form.db), file: validate(form.file) };
     setFieldErrors(errors);
     if (errors.db || errors.file) return;
