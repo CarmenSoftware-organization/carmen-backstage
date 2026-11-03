@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, HardDrive, SearchX } from 'lucide-react';
+import { Download, HardDrive, RefreshCw, SearchX } from 'lucide-react';
+import { toast } from 'sonner';
 import type { ColumnDef } from '@tanstack/react-table';
 import Layout from '../../components/Layout';
 import { PageHeader } from '../../components/PageHeader';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import Can from '../../components/Can';
 import { DataTable } from '../../components/ui/data-table';
 import { TableSkeleton } from '../../components/TableSkeleton';
 import { FetchErrorState } from '../../components/FetchErrorState';
@@ -17,10 +19,10 @@ import { cn } from '../../lib/utils';
 import { useI18n } from '../../hooks/useI18n';
 import { useAuth } from '../../context/AuthContext';
 import storageQuotaService from '../../services/storageQuotaService';
-import { getErrorDetail } from '../../utils/errorParser';
+import { devLog, getErrorDetail } from '../../utils/errorParser';
 import { generateCSV, downloadCSV } from '../../utils/csvExport';
 import { formatBytes, usedPct } from '../../utils/storageQuota';
-import type { StorageKind, StorageUsageListItem } from '../../types';
+import type { StorageKind, StorageMeasureAllStatus, StorageUsageListItem } from '../../types';
 import { StorageFlagBadge } from '../clusterAdmin/businessUnitForm/StorageMeter';
 import { LicenseSummaryBand, type SummaryBandItem } from './LicenseSummaryBand';
 
@@ -112,12 +114,16 @@ const StorageUsageList: React.FC = () => {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
   const canOpenBu = hasPermission('cluster.update');
+  const canReadQuota = hasPermission('storage_quota.read');
   const [rows, setRows] = useState<StorageUsageListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<UsageFilter | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [measureAll, setMeasureAll] = useState<StorageMeasureAllStatus | null>(null);
+  const [startingMeasureAll, setStartingMeasureAll] = useState(false);
+  const measureRunning = measureAll?.running === true;
 
   useGlobalShortcuts({ onSearch: () => searchInputRef.current?.focus() });
 
@@ -137,6 +143,61 @@ const StorageUsageList: React.FC = () => {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // เปิดหน้าระหว่างงานวัดรันอยู่ → กลับมาแสดงความคืบหน้า (เรียกเฉพาะผู้มี storage_quota.read — 401 เตะผู้ใช้ออก)
+  useEffect(() => {
+    if (!canReadQuota) return;
+    let cancelled = false;
+    storageQuotaService
+      .getMeasureAll()
+      .then((status) => {
+        if (!cancelled && status?.running) setMeasureAll(status);
+      })
+      .catch((err: unknown) => devLog('storage measure-all status', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [canReadQuota]);
+
+  // poll ทุก 5 วิขณะรัน; จบแล้ว toast + โหลดรายการใหม่ · cancelled กัน setState หลัง unmount
+  useEffect(() => {
+    if (!measureRunning || !canReadQuota) return;
+    let cancelled = false;
+    const timer = setInterval(() => {
+      storageQuotaService
+        .getMeasureAll()
+        .then((status) => {
+          if (cancelled || !status) return;
+          setMeasureAll(status);
+          if (status.running) return;
+          clearInterval(timer);
+          if (status.failed > 0) {
+            toast.warning(
+              t('pages.storageQuota.measureAllDoneWithFailures', { total: status.total, failed: status.failed }),
+            );
+          } else {
+            toast.success(t('pages.storageQuota.measureAllDone', { total: status.total }));
+          }
+          void load();
+        })
+        .catch((err: unknown) => devLog('storage measure-all poll', err));
+    }, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [measureRunning, canReadQuota, load, t]);
+
+  const handleMeasureAll = async () => {
+    setStartingMeasureAll(true);
+    try {
+      setMeasureAll(await storageQuotaService.startMeasureAll());
+    } catch (err: unknown) {
+      toast.error(getErrorDetail(err));
+    } finally {
+      setStartingMeasureAll(false);
+    }
+  };
 
   const counts = useMemo(
     () => ({
@@ -342,16 +403,37 @@ const StorageUsageList: React.FC = () => {
                 placeholder={t('pages.storageQuota.searchPlaceholder')}
                 className="min-w-0 flex-1 sm:max-w-sm"
               />
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto shrink-0"
-                onClick={handleExport}
-                disabled={loading || visible.length === 0}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                {t('common.action.export')}
-              </Button>
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                <Can permission="storage_quota.manage">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => void handleMeasureAll()}
+                    disabled={measureRunning || startingMeasureAll}
+                  >
+                    <RefreshCw
+                      className={cn('mr-2 h-4 w-4', (measureRunning || startingMeasureAll) && 'animate-spin')}
+                    />
+                    {measureRunning
+                      ? t('pages.storageQuota.measuringAll', {
+                          done: measureAll?.done ?? 0,
+                          total: measureAll?.total ?? 0,
+                        })
+                      : t('pages.storageQuota.measureAll')}
+                  </Button>
+                </Can>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={handleExport}
+                  disabled={loading || visible.length === 0}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {t('common.action.export')}
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">

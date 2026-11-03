@@ -2411,6 +2411,17 @@ export interface StorageReclaimJob {
   skipped_tables: string[];
 }
 
+/** สถานะงานวัดทุก BU เบื้องหลัง (อยู่ในหน่วยความจำของ gateway instance — หายเมื่อรีสตาร์ท) */
+export interface StorageMeasureAllStatus {
+  running: boolean;
+  started_at: string | null;
+  finished_at: string | null;
+  total: number;
+  done: number;
+  failed: number;
+  current_bu_code: string | null;
+}
+
 export interface StorageUsageListItem {
   bu_id: string;
   bu_code: string;
