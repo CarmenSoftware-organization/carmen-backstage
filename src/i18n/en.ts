@@ -2856,13 +2856,13 @@ export const en = {
     // pluralization templates (vs pages.licenses.seatFromLicense*).
     businessUnits: {
       aliasConflicts: {
-        banner: '{count} BUs have an alias that needs fixing (longer than 3 characters, or duplicated in the cluster)',
+        banner: '{{count}} BUs have an alias that needs fixing (longer than 3 characters, or duplicated in the cluster)',
         view: 'View list',
         showAll: 'Show all',
         reasonColumn: 'Needs fixing because',
-        trimmedClash: 'Trimmed to {truncated}, clashes with {names}',
+        trimmedClash: 'Trimmed to {{truncated}}, clashes with {{names}}',
         tooLong: 'Longer than 3 characters',
-        duplicate: 'Same as {names}',
+        duplicate: 'Same as {{names}}',
       },
       // BusinessUnitEdit.tsx's Users-tab label and BusinessUnitUsersCard.tsx's CardTitle are
       // the one string that recurs across 2 of this slice's 18 files. NOT a reuse of

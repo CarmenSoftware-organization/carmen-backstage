@@ -2119,13 +2119,13 @@ export const th: Translations = {
     // no call site is bound yet).
     businessUnits: {
       aliasConflicts: {
-        banner: '{count} BU มี alias ที่ต้องแก้ (ยาวเกิน 3 ตัว หรือซ้ำใน cluster)',
+        banner: '{{count}} BU มี alias ที่ต้องแก้ (ยาวเกิน 3 ตัว หรือซ้ำใน cluster)',
         view: 'ดูรายการ',
         showAll: 'แสดงทั้งหมด',
         reasonColumn: 'ต้องแก้เพราะ',
-        trimmedClash: 'ตัดเหลือ {truncated} แล้วชนกับ {names}',
+        trimmedClash: 'ตัดเหลือ {{truncated}} แล้วชนกับ {{names}}',
         tooLong: 'ยาวเกิน 3 ตัว',
-        duplicate: 'ซ้ำกับ {names}',
+        duplicate: 'ซ้ำกับ {{names}}',
       },
       // Copied verbatim from nav.users — not retranslated. See en.ts for why this stays its
       // own key instead of reading nav.users directly.
