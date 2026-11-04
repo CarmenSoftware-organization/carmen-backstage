@@ -161,7 +161,7 @@ describe('BusinessUnitEdit (one-document)', () => {
     await user.click(await screen.findByRole('button', { name: /unnamed business unit/i }));
     await user.type(screen.getByRole('textbox', { name: /business unit name/i }), 'New BU');
     await user.tab();
-    // alias_name is mandatory (BU_ALIAS_MIN = 1) — Create is blocked until it has a value.
+    // alias_name is optional; set one anyway so the create payload carries it.
     await user.click(await screen.findByRole('button', { name: /set alias/i }));
     await user.type(screen.getByRole('textbox', { name: /^alias$/i }), 'NB');
     await user.tab();
