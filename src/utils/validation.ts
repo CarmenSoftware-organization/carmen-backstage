@@ -33,13 +33,10 @@ export interface ValidateFieldOptions {
   /**
    * Upper bound for length-limited fields. Only `alias_name` reads it today.
    *
-   * It exists because `validateField` switches on the field **name**, and two different
-   * tables both call their column `alias_name` with different widths:
-   * `tb_cluster.alias_name` is `VarChar(3)` while `tb_business_unit.alias_name` is
-   * `VarChar(10)` (verified in the backend's schema.prisma). Without this, the tighter
-   * cluster rule silently governed business units too, and a perfectly legal 6-character
-   * BU alias was rejected by the UI. The default stays 3 so no existing caller changes
-   * behaviour — a caller that knows it is editing a business unit passes 10.
+   * It exists because `validateField` switches on the field **name**, and the cluster and
+   * business-unit tables both call their column `alias_name`. Both are now limited to 3
+   * characters (the BU column is still `VarChar(10)` until a later phase narrows it), so the
+   * default of 3 fits both; callers pass `BU_ALIAS_MAX` to keep the BU bound explicit.
    */
   maxLength?: number;
 }
@@ -108,8 +105,8 @@ export const validateField = (
     case 'username':
       return isValidEmail(value) ? '' : tr('common.validation.usernameEmail');
     case 'alias_name': {
-      // Default 3 = tb_cluster.alias_name's VarChar(3). Business units pass 10 — see
-      // ValidateFieldOptions.maxLength for why one field name needs two bounds.
+      // Default 3 = tb_cluster.alias_name's VarChar(3), and the business-unit rule since
+      // BU_ALIAS_MAX became 3 — see ValidateFieldOptions.maxLength.
       const max = options?.maxLength ?? 3;
       return new RegExp(`^[a-zA-Z0-9]{0,${max}}$`).test(value)
         ? ''

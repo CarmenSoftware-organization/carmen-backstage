@@ -4,16 +4,18 @@ import type { BusinessUnitConfig } from '../../types';
 export const BU_ROLES = ['admin', 'user'] as const;
 
 /**
- * Longest alias a business unit can hold: `tb_business_unit.alias_name` is `VarChar(10)`
- * in the backend's schema.prisma.
+ * Longest alias a business unit may be given: 3 characters, the same rule as a cluster's.
  *
- * This is NOT the same bound as a cluster's. `tb_cluster.alias_name` is `VarChar(3)`, and
- * because `validateField` dispatches on the field *name* — which both tables spell
- * `alias_name` — the tighter cluster rule used to govern business units too. The result was
- * a UI that rejected a legal 6-character BU alias while still letting an 11-character one
- * through to the database, which then rejected it with a raw driver error.
+ * The rule is enforced by the backend on create and whenever the alias actually changes. The
+ * column `tb_business_unit.alias_name` is still `VarChar(10)` until a later phase narrows it,
+ * so legacy rows may hold up to 10 characters; those are only rejected if the user edits the
+ * alias itself, never when the unchanged value is merely sent back (callers omit it from the
+ * payload when it is unchanged).
+ *
+ * The bound is passed to `validateField` explicitly because it dispatches on the field *name*,
+ * which both tables spell `alias_name`.
  */
-export const BU_ALIAS_MAX = 10;
+export const BU_ALIAS_MAX = 3;
 
 /** `validateField` options for a business-unit field: bounds `alias_name`, ignores everything else. */
 export const aliasBound = (name: string): { maxLength: number } | undefined =>

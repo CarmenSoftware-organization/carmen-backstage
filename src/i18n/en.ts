@@ -2442,7 +2442,6 @@ export const en = {
       // verbatim from the sibling keys.
       overLimitBadge: 'Over limit',
       overLimitTitle: 'Quota {{cap}} · this unit ranks {{rank}}',
-      aliasCannotBeCleared: 'Alias cannot be cleared',
       hotelEmailCannotBeCleared: 'Hotel email cannot be cleared',
       companyEmailCannotBeCleared: 'Company email cannot be cleared',
       // Byte-identical to pages.broadcasts.fixHighlightedFields (2 files / 2 slices — below
@@ -3059,6 +3058,7 @@ export const en = {
       // string for the banner, instead of the raw backend sentence, so the fix reads as
       // actionable rather than a bare fact.
       duplicateNameError: 'A business unit with this name already exists in this cluster.',
+      aliasTakenError: 'Another business unit in this cluster already uses this alias',
 
       // --- Task 4: BusinessUnitBrandingCard.tsx ---
       brandingDescription: 'Logo and avatar shown across Carmen Blue',

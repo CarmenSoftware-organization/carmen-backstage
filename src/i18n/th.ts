@@ -1865,7 +1865,6 @@ export const th: Translations = {
       overLimitCountMany: 'หน่วยธุรกิจ {{count}} หน่วยเกินโควตาที่มีไลเซนส์ {{cap}} หน่วย หน่วยเหล่านั้นอ่านได้อย่างเดียวจนกว่าจะซื้อโควตาเพิ่ม',
       overLimitBadge: 'เกินโควตา',
       overLimitTitle: 'โควตา {{cap}} · หน่วยนี้อยู่อันดับ {{rank}}',
-      aliasCannotBeCleared: 'ล้างชื่อแฝงไม่ได้',
       hotelEmailCannotBeCleared: 'ล้างอีเมลโรงแรมไม่ได้',
       companyEmailCannotBeCleared: 'ล้างอีเมลบริษัทไม่ได้',
       fixHighlightedFields: 'กรุณาแก้ไขช่องที่มีข้อผิดพลาด',
@@ -2250,6 +2249,7 @@ export const th: Translations = {
       copiedHotelAddressToCompany: 'คัดลอกที่อยู่โรงแรมไปยังที่อยู่บริษัทแล้ว',
       // Final-review fix (Important 1, bu-auto-code) — see en.ts for the full explanation.
       duplicateNameError: 'มีหน่วยธุรกิจชื่อนี้อยู่ใน cluster นี้แล้ว',
+      aliasTakenError: 'alias นี้มี BU อื่นใน cluster เดียวกันใช้อยู่แล้ว',
 
       // --- Task 4: BusinessUnitBrandingCard.tsx ---
       brandingDescription: 'โลโก้และรูปประจำตัวที่แสดงทั่วทั้ง Carmen Blue',
