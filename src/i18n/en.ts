@@ -2856,7 +2856,8 @@ export const en = {
     // pluralization templates (vs pages.licenses.seatFromLicense*).
     businessUnits: {
       aliasConflicts: {
-        banner: '{{count}} BUs have an alias that needs fixing (longer than 3 characters, or duplicated in the cluster)',
+        bannerOne: '{{count}} BU has an alias that needs fixing (longer than 3 characters, or duplicated in the cluster)',
+        bannerMany: '{{count}} BUs have an alias that needs fixing (longer than 3 characters, or duplicated in the cluster)',
         view: 'View list',
         showAll: 'Show all',
         reasonColumn: 'Needs fixing because',

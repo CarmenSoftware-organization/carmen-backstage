@@ -14,6 +14,7 @@ export function aliasConflictColumns(
     {
       accessorKey: 'name',
       header: t('common.field.name'),
+      meta: { card: 'title' },
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <BrandMark name={row.original.name} code={row.original.code} alias={row.original.alias_name} />

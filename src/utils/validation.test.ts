@@ -78,9 +78,9 @@ describe('validateField', () => {
     expect(validateField('alias_name', 'abcd')).toBe('Alias must be 1-3 alphanumeric characters');
     expect(validateField('alias_name', 'ab')).toBe('');
   });
-  // สองตารางสะกดคอลัมน์เหมือนกันแต่กว้างไม่เท่ากัน: tb_cluster.alias_name เป็น VarChar(3)
-  // ส่วน tb_business_unit.alias_name เป็น VarChar(10) — validateField แยกตามชื่อฟิลด์อย่างเดียว
-  // กฎที่แคบกว่าจึงเคยกินความไปถึง BU ด้วย ทำให้ alias 6 ตัวอักษรที่ถูกกฎโดนปฏิเสธที่หน้าเว็บ
+  // validateField แยกตามชื่อฟิลด์อย่างเดียว ส่วนเพดานของ alias ขึ้นกับผู้เรียก: ค่าเริ่มต้นคือ 3 ตัว
+  // (กฎของ cluster และของ BU ใหม่ — UI ของ BU ใช้ 3 เช่นกัน) แต่ผู้เรียกยังส่ง maxLength อื่นได้
+  // เช่น 10 = ความกว้างคอลัมน์ tb_business_unit.alias_name ที่ค่าเดิมยาวอาจยังค้างอยู่
   it('ยอมให้ alias ยาวขึ้นเมื่อผู้เรียกระบุเพดานของ business unit', () => {
     expect(validateField('alias_name', 'RIVER', { maxLength: 10 })).toBe('');
     expect(validateField('alias_name', 'RIVERSIDEXX', { maxLength: 10 }))

@@ -2119,7 +2119,8 @@ export const th: Translations = {
     // no call site is bound yet).
     businessUnits: {
       aliasConflicts: {
-        banner: '{{count}} BU มี alias ที่ต้องแก้ (ยาวเกิน 3 ตัว หรือซ้ำใน cluster)',
+        bannerOne: '{{count}} BU มี alias ที่ต้องแก้ (ยาวเกิน 3 ตัว หรือซ้ำใน cluster)',
+        bannerMany: '{{count}} BU มี alias ที่ต้องแก้ (ยาวเกิน 3 ตัว หรือซ้ำใน cluster)',
         view: 'ดูรายการ',
         showAll: 'แสดงทั้งหมด',
         reasonColumn: 'ต้องแก้เพราะ',

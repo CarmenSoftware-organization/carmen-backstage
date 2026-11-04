@@ -18,7 +18,7 @@ export function AliasConflictBanner({ count, active, onToggle }: AliasConflictBa
     >
       <div className="flex items-start gap-2 text-sm">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
-        <span>{t('pages.businessUnits.aliasConflicts.banner', { count })}</span>
+        <span>{t(count === 1 ? 'pages.businessUnits.aliasConflicts.bannerOne' : 'pages.businessUnits.aliasConflicts.bannerMany', { count })}</span>
       </div>
       <Button variant="outline" size="sm" className="shrink-0 self-start sm:self-auto" onClick={onToggle}>
         {active ? t('pages.businessUnits.aliasConflicts.showAll') : t('pages.businessUnits.aliasConflicts.view')}

@@ -524,7 +524,7 @@ const BusinessUnitForm: React.FC = () => {
         const aliasTakenMessage = t('pages.businessUnits.aliasTakenError');
         toast.error(t('pages.clusterAdmin.updateFailed'), { description: isAliasTaken ? aliasTakenMessage : message });
         if (fields || isAliasTaken) {
-          setFieldErrors({ ...fields, ...(isAliasTaken ? { alias_name: aliasTakenMessage } : {}) });
+          setFieldErrors((prev) => ({ ...prev, ...fields, ...(isAliasTaken ? { alias_name: aliasTakenMessage } : {}) }));
         }
       }
     } finally {
