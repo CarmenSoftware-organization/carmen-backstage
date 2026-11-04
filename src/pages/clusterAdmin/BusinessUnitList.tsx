@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Filter, X, Building2, Download } from 'lucide-react';
 import ClusterAdminLayout from '../../components/ClusterAdminLayout';
@@ -26,6 +26,9 @@ import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { useI18n } from '../../hooks/useI18n';
 import type { BusinessUnit, PaginateParams } from '../../types';
 import type { ColumnDef } from '@tanstack/react-table';
+import { AliasConflictBanner } from '../businessUnitManagement/AliasConflictBanner';
+import { useAliasConflicts } from '../businessUnitManagement/aliasConflicts';
+import { aliasConflictColumns } from '../businessUnitManagement/aliasConflictColumns';
 import { readStoredPerpage } from '../../utils/pageRange';
 
 const getStoredJSON = <T,>(key: string, fallback: T): T => {
@@ -44,6 +47,10 @@ const getStoredJSON = <T,>(key: string, fallback: T): T => {
 const BusinessUnitList: React.FC = () => {
   const { t } = useI18n();
   const { clusterId } = useParams<{ clusterId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { conflicts: aliasConflicts, loading: aliasConflictsLoading } = useAliasConflicts(clusterId);
+  // `?alias=conflicts` คือสถานะ active ของตัวกรอง — อยู่ใน URL เพื่อให้ลิงก์/รีเฟรชคงเดิม
+  const aliasActive = searchParams.get('alias') === 'conflicts' && aliasConflicts.length > 0;
 
   const [items, setItems] = useState<BusinessUnit[]>([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -273,6 +280,27 @@ const BusinessUnitList: React.FC = () => {
     ];
   }, [t, clusterId, ranked, buCap]);
 
+  const setAliasFilter = useCallback((on: boolean) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (on) next.set('alias', 'conflicts');
+      else next.delete('alias');
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  // conflicts หมด → ไม่ทิ้ง param ค้าง; รอโหลดเสร็จก่อน
+  useEffect(() => {
+    if (!aliasConflictsLoading && aliasConflicts.length === 0 && searchParams.has('alias')) {
+      setAliasFilter(false);
+    }
+  }, [aliasConflictsLoading, aliasConflicts.length, searchParams, setAliasFilter]);
+
+  const aliasColumns = useMemo(
+    () => aliasConflictColumns(t, (c) => `/cluster-admin/${clusterId}/business-units/${c.id}/edit`),
+    [t, clusterId],
+  );
+
   return (
     <ClusterAdminLayout>
       <div className="space-y-6 sm:space-y-8">
@@ -296,6 +324,21 @@ const BusinessUnitList: React.FC = () => {
           </p>
         )}
 
+        <AliasConflictBanner
+          count={aliasConflicts.length}
+          active={aliasActive}
+          onToggle={() => setAliasFilter(!aliasActive)}
+        />
+
+        {aliasActive && (
+          <Card>
+            <CardContent className="pt-6">
+              <DataTable columns={aliasColumns} data={aliasConflicts} tableLayout="auto" />
+            </CardContent>
+          </Card>
+        )}
+
+        {!aliasActive && (
         <Card>
           <CardHeader className="space-y-3">
             <div className="flex items-center gap-2">
@@ -431,6 +474,7 @@ const BusinessUnitList: React.FC = () => {
             )}
           </CardContent>
         </Card>
+        )}
       </div>
 
       <DevDebugSheet title="API Response" endpoint="GET /api-system/business-units" data={rawResponse} />
