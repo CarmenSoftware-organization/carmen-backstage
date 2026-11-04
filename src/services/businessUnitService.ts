@@ -1,6 +1,6 @@
 import api from './api';
 import { buildQuery } from '../utils/buildQuery';
-import type { PaginateParams, BusinessUnit, BusinessUnitsResponse, BuSummaryData } from '../types';
+import type { PaginateParams, BusinessUnit, BusinessUnitsResponse, BuSummaryData, BuAliasConflict } from '../types';
 
 const defaultSearchFields = ['name', 'code', 'description'];
 
@@ -40,6 +40,16 @@ const businessUnitService = {
   getSummary: async (): Promise<BuSummaryData> => {
     const response = await api.get('/api-system/business-units/summary');
     return response.data.data || response.data;
+  },
+
+  /**
+   * BU ที่ alias ยาวเกิน 3 ตัวหรือซ้ำใน cluster เดียวกัน (backend กรองตามสิทธิ์อ่าน cluster แล้ว)
+   * ถ้า backend ยังไม่มี route นี้ คำขอจะไปตกที่ `GET :business_unit_id` แล้ว 4xx — ผู้เรียกต้องกลืน error
+   */
+  getAliasConflicts: async (): Promise<BuAliasConflict[]> => {
+    const response = await api.get('/api-system/business-units/alias-conflicts');
+    const body = response.data.data || response.data;
+    return Array.isArray(body) ? body : [];
   },
 
   // Dedicated logo/avatar upload endpoints (multipart). Return { file_token, url, expires_at }.

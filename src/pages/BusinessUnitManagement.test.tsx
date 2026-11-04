@@ -49,7 +49,7 @@ const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn(
 vi.mock('sonner', () => ({ toast }));
 
 vi.mock('../services/businessUnitService', () => ({
-  default: { getAll: vi.fn(), delete: vi.fn(), getSummary: vi.fn() },
+  default: { getAll: vi.fn(), delete: vi.fn(), getSummary: vi.fn(), getAliasConflicts: vi.fn() },
 }));
 
 import BusinessUnitManagement from './BusinessUnitManagement';
@@ -81,6 +81,7 @@ beforeEach(() => {
   asMock(businessUnitService.getAll).mockResolvedValue(listResponse);
   asMock(businessUnitService.delete).mockResolvedValue({});
   asMock(businessUnitService.getSummary).mockResolvedValue(summaryResponse);
+  asMock(businessUnitService.getAliasConflicts).mockResolvedValue([]);
 });
 
 const renderPage = () =>
