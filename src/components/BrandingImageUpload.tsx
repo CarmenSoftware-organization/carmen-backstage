@@ -42,6 +42,8 @@ interface BrandingImageUploadProps {
   fallbackName?: string;
   /** Entity code behind this branding — preferred over the name for initials. */
   fallbackCode?: string;
+  /** Business-unit alias — wins over code/name for the initials when non-empty. */
+  fallbackAlias?: string | null;
   // Uploads the file (the parent calls the dedicated endpoint and stores the returned URL).
   onUpload: (file: File) => Promise<void>;
 }
@@ -58,6 +60,7 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
   accept = DEFAULT_ACCEPT,
   fallbackName,
   fallbackCode,
+  fallbackAlias,
   onUpload,
 }) => {
   const { t } = useI18n();
@@ -170,6 +173,7 @@ export const BrandingImageUpload: React.FC<BrandingImageUploadProps> = ({
           shape="circle"
           name={fallbackName}
           code={fallbackCode}
+          alias={fallbackAlias}
           className={cn(compact && 'h-12 w-12 text-base')}
         />
       );

@@ -280,6 +280,7 @@ const BusinessUnitManagement: React.FC = () => {
             src={row.original.avatar?.url}
             name={row.original.name}
             code={row.original.code}
+            alias={row.original.alias_name}
           />
           <div className="min-w-0">
             <Link

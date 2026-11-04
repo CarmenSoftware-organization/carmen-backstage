@@ -898,6 +898,7 @@ const BusinessUnitEdit: React.FC = () => {
                 editing={canEdit}
                 name={formData.name}
                 code={formData.code}
+                alias={formData.alias_name}
                 onUploadLogo={handleUploadLogo}
                 onUploadAvatar={handleUploadAvatar}
               />
