@@ -51,8 +51,8 @@ export function ConnectionBar({ bu, canWrite, onSwitch }: ConnectionBarProps) {
           {bu ? (
             <>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-sm font-semibold tracking-tight">{bu.code}</span>
-                <span className="text-muted-foreground truncate text-[13px]">{bu.name}</span>
+                <span className="truncate text-sm font-semibold tracking-tight">{bu.name}</span>
+                <span className="text-muted-foreground font-mono text-xs">{bu.code}</span>
               </div>
               <div className="text-muted-foreground mt-0.5 flex items-center gap-2 font-mono text-[11px]">
                 <span className="relative flex size-1.5" aria-hidden="true">

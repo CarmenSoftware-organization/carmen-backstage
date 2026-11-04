@@ -277,13 +277,13 @@ export default function DeployPanel() {
                     <TableCell>
                       <input
                         type="checkbox"
-                        aria-label={bu.code}
+                        aria-label={bu.name || bu.code}
                         checked={selected.has(bu.code)}
                         onChange={() => toggleOne(bu.code)}
                         disabled={running}
                       />
                     </TableCell>
-                    <TableCell>{bu.code} — {bu.name}</TableCell>
+                    <TableCell>{bu.name} <span className="font-mono text-xs text-muted-foreground">{bu.code}</span></TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Badge variant={DEPLOY_BADGE[s]}>{t(STATUS_LABEL_KEY[s])}</Badge>

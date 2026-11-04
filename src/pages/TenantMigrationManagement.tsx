@@ -162,6 +162,10 @@ const TenantMigrationManagement: React.FC = () => {
   const [confirmAll, setConfirmAll] = useState(false);
   const [resolveTarget, setResolveTarget] = useState<BusinessUnit | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  // ชื่อ BU สำหรับข้อความจาก stream ที่ส่งมาแค่ bu_id/bu_code — ชื่อมาก่อน รหัสเป็นตัวสำรอง
+  const busRef = useRef<BusinessUnit[]>([]);
+  busRef.current = bus;
+  const buLabel = useCallback((id: string, code: string) => busRef.current.find((b) => b.id === id)?.name || code, []);
 
   // Tracks in-flight deploy stream requests so they can be aborted on unmount/navigation
   // (bu.id -> its AbortController for a per-row Apply; ALL_BU_STREAM_KEY for Deploy all). This
@@ -298,13 +302,13 @@ const TenantMigrationManagement: React.FC = () => {
         } else if (e.type === 'applying') {
           setRowState((prev) => ({ ...prev, [bu.id]: { ...prev[bu.id], progress: { applied: e.index, total: e.total, current: e.name } } }));
         } else if (e.type === 'views-complete' && !e.success) {
-          toast.error(t('pages.tenantMigration.viewsFailed', { code: e.bu_code, message: e.error ?? '' }));
+          toast.error(t('pages.tenantMigration.viewsFailed', { code: bu.name || bu.code, message: e.error ?? '' }));
         }
       };
       const result = await tenantMigrationService.deployStream(bu.id, onEvent, controller.signal);
       const applied = 'applied_migrations' in result ? result.applied_migrations : [];
       if (applied.length === 0) toast.info(t('pages.tenantMigration.alreadyUpToDate'));
-      else toast.success(`Applied ${applied.length} migration(s) to ${bu.code}.`);
+      else toast.success(`Applied ${applied.length} migration(s) to ${bu.name || bu.code}.`);
       setRowState((prev) => ({ ...prev, [bu.id]: { ...prev[bu.id], deploying: false, progress: undefined } }));
       await checkOne(bu);
     } catch (err) {
@@ -338,11 +342,11 @@ const TenantMigrationManagement: React.FC = () => {
     try {
       const onEvent = (e: ProgressEvent) => {
         if (e.type === 'start') {
-          setBatch((b) => (b ? { ...b, total: e.total, buCode: e.bu_code, applied: 0, current: null } : b));
+          setBatch((b) => (b ? { ...b, total: e.total, buCode: buLabel(e.bu_id, e.bu_code), applied: 0, current: null } : b));
         } else if (e.type === 'applying') {
-          setBatch((b) => (b ? { ...b, applied: e.index, total: e.total, current: e.name, buCode: e.bu_code } : b));
+          setBatch((b) => (b ? { ...b, applied: e.index, total: e.total, current: e.name, buCode: buLabel(e.bu_id, e.bu_code) } : b));
         } else if (e.type === 'bu-complete') {
-          const line = `${e.bu_code}: ${e.error ? 'failed' : e.already_up_to_date ? t('pages.tenantMigration.upToDate') : `applied ${e.applied.length}`}`;
+          const line = `${buLabel(e.bu_id, e.bu_code)}: ${e.error ? 'failed' : e.already_up_to_date ? t('pages.tenantMigration.upToDate') : `applied ${e.applied.length}`}`;
           setBatch((b) => (b ? { ...b, log: [...b.log, line] } : b));
           setRowState((prev) => ({
             ...prev,
@@ -359,7 +363,7 @@ const TenantMigrationManagement: React.FC = () => {
                 },
           }));
         } else if (e.type === 'views-complete') {
-          const line = `${e.bu_code} views: ${e.success ? `applied ${e.applied.length}` : `failed — ${e.error ?? ''}`}`;
+          const line = `${buLabel(e.bu_id, e.bu_code)} views: ${e.success ? `applied ${e.applied.length}` : `failed — ${e.error ?? ''}`}`;
           setBatch((b) => (b ? { ...b, log: [...b.log, line] } : b));
           setRowState((prev) => {
             const rs = prev[e.bu_id];
@@ -399,7 +403,7 @@ const TenantMigrationManagement: React.FC = () => {
       activeStreamControllersRef.current.delete(ALL_BU_STREAM_KEY);
       if (!controller.signal.aborted) setBatch(null);
     }
-  }, [canApply, t]);
+  }, [canApply, t, buLabel]);
 
   const applyViewsOne = useCallback(async (bu: BusinessUnit) => {
     // Defence-in-depth เหมือน applyOne: ปุ่มถูก disable อยู่แล้วเมื่อไม่มีสิทธิ์
@@ -412,8 +416,8 @@ const TenantMigrationManagement: React.FC = () => {
     }));
     try {
       const r = await tenantMigrationService.applyViews(bu.id);
-      if (r.applied.length === 0) toast.info(t('pages.tenantMigration.viewsUpToDate', { code: bu.code }));
-      else toast.success(t('pages.tenantMigration.viewsApplied', { code: bu.code, count: r.applied.length }));
+      if (r.applied.length === 0) toast.info(t('pages.tenantMigration.viewsUpToDate', { code: bu.name || bu.code }));
+      else toast.success(t('pages.tenantMigration.viewsApplied', { code: bu.name || bu.code, count: r.applied.length }));
       await checkOne(bu);
     } catch (err) {
       handleMigrationError(err, t);
@@ -490,46 +494,35 @@ const TenantMigrationManagement: React.FC = () => {
 
   const columns = useMemo<ColumnDef<BusinessUnit, unknown>[]>(() => [
     {
-      accessorKey: 'code',
-      header: t('common.field.code'),
-      // Fixed width so the sticky offset of the 3rd frozen column (Name) is
-      // deterministic — see `stickyLeftColumns={3}` and `.table-sticky-left-3`.
-      meta: { headerClassName: 'w-24', cellClassName: 'w-24' },
+      accessorKey: 'name',
+      header: t('common.field.name'),
+      // ค้นหาด้วยรหัสได้เหมือนเดิม: รหัสอยู่ในเซลล์นี้ และ global filter อ่านจาก accessorFn
+      accessorFn: (row) => `${row.name} ${row.code}`,
       cell: ({ row }) => (
-        <Link to={`/business-units/${row.original.id}/edit`} className="text-primary hover:underline whitespace-nowrap">
-          {row.original.code}
-        </Link>
+        <div className="min-w-0">
+          <Link to={`/business-units/${row.original.id}/edit`} className="block whitespace-nowrap text-primary hover:underline">
+            {row.original.name}
+          </Link>
+          <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+        </div>
       ),
     },
-    { accessorKey: 'name', header: t('common.field.name'), cell: ({ row }) => <span className="whitespace-nowrap">{row.original.name}</span> },
     {
-      id: 'schema',
-      header: t('pages.tenantMigration.columnSchema'),
-      // ค่านี้เป็นชื่อ schema จริง ไม่ใช่อันดับเหมือน status/last_checked ข้างล่าง จึงตั้งใจปล่อยให้
-      // ติดช่องค้นหาด้วย — พิมพ์ชื่อ schema แล้วต้องเจอแถวที่ชี้ไปที่นั่น
-      accessorFn: (row) => row.db_schema ?? '',
+      id: 'pool',
+      header: t('pages.tenantMigration.columnPoolHeader'),
+      // ชื่อ schema ไม่แสดงในตารางอีกต่อไป (ยังอยู่ใน CSV) — คอลัมน์นี้เหลือแค่ pool ที่ BU ผูกอยู่
+      accessorFn: (row) => row.database_pool?.name ?? '',
       meta: { headerClassName: 'w-48', cellClassName: 'w-48' },
       cell: ({ row }) => {
-        const bu = row.original;
-        return (
-          <div className="space-y-0.5">
-            {bu.db_schema ? (
-              <span className="block break-all font-mono text-xs">{bu.db_schema}</span>
-            ) : (
-              <span className="text-muted-foreground text-xs">—</span>
-            )}
-            {bu.database_pool?.name && (
-              // ตัดท้ายเฉพาะในตาราง (lg ขึ้นไป) ที่คอลัมน์กว้างคงที่ — ใต้ lg DataTable วาดเป็นการ์ด
-              // หนึ่งใบต่อแถว ถ้าตัดตรงนั้นด้วย ชื่อ pool ยาว ๆ จะขาดหายโดยไม่มีทางกางดู
-              // (วัดที่ 390px: ข้อความ 218px ในช่อง 206px) จึงให้ขึ้นบรรทัดใหม่แทน
-              <span
-                className="text-muted-foreground block break-words text-[11px] lg:truncate"
-                title={bu.database_pool.name}
-              >
-                {t('pages.tenantMigration.columnPool', { name: bu.database_pool.name })}
-              </span>
-            )}
-          </div>
+        const pool = row.original.database_pool?.name;
+        return pool ? (
+          // ตัดท้ายเฉพาะในตาราง (lg ขึ้นไป) ที่คอลัมน์กว้างคงที่ — ใต้ lg DataTable วาดเป็นการ์ด
+          // หนึ่งใบต่อแถว จึงให้ขึ้นบรรทัดใหม่แทนการตัดท้าย
+          <span className="block break-words text-xs lg:truncate" title={pool}>
+            {pool}
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
         );
       },
     },
@@ -772,11 +765,11 @@ const TenantMigrationManagement: React.FC = () => {
                   columns={columns}
                   data={bus}
                   tableLayout="auto"
-                  stickyLeftColumns={3}
+                  stickyLeftColumns={2}
                   globalFilter={searchTerm}
                   onGlobalFilterChange={setSearchTerm}
                   pageSize={25}
-                  defaultSort={{ id: 'code', desc: false }}
+                  defaultSort={{ id: 'name', desc: false }}
                 />
               )
             ) : null}

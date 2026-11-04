@@ -1683,7 +1683,7 @@ export const en = {
         'Interface module still on this contract — must move to an interface license; remove it here',
       removeLeftoverGroup: 'Remove',
       purchasedGroups: 'Purchased modules',
-      groupEntitlementsForBu: 'Licence modules granted to {{code}}',
+      groupEntitlementsForBu: 'Licence modules granted to {{name}}',
       // --- authored English for strings that existed only in Thai ---
       // `clearSearch` and `selectedCount` were dropped from this object (fix round 1):
       // both duplicated an existing common.* key's English exactly while carrying different
@@ -2116,7 +2116,6 @@ export const en = {
       // ClusterLicenseDetail.tsx
       clusterNotFoundOrDeleted: 'Cluster not found or deleted',
       clusterUnavailable: 'Cluster unavailable',
-      subtitleWithCode: 'Licenses · {{code}}',
 
       // ClusterLicenseTable.tsx — LICENSE_FILTERS labels. `noLicence` also renders inline in
       // the BU Quota cell when cap is 0 (same string, same key, two call sites in the file).
@@ -2692,12 +2691,6 @@ export const en = {
       // promotion bar); Thai copied verbatim from the sibling keys.
       clusterNotFoundOrDeleted: 'Cluster not found or deleted',
       clusterUnavailable: 'Cluster unavailable',
-      // NOT a byte match for pages.licenses.subtitleWithCode ('Licenses · {{code}}', American
-      // spelling) — this page's source spells it "Licences" (British), matching the hazard-4
-      // spelling drift Task 1's report already flagged for this file. Thai is identical to
-      // subtitleWithCode's (Thai doesn't distinguish the two spellings), reused verbatim rather
-      // than retranslated.
-      licencesSubtitleWithCode: 'Licences · {{code}}',
       // Shared with licenses/SeatsByBuTable.tsx's bare "Licences" column header below — same
       // English/Thai, no distinct contract between the two (unlike e.g. common.field.company
       // vs this object's own `company` section heading), so one key covers both rather than
@@ -3713,7 +3706,7 @@ export const en = {
       title: 'Tenant Data Import',
       subtitle: "Load Preconfig.xlsx master data into a business unit's database",
       selectBu: 'Select business unit',
-      buPrefix: 'BU: {{code}}',
+      buPrefix: 'BU: {{name}}',
       pickBuHint: 'Pick the business unit that will receive the data.',
       catalogError: 'The import step catalog could not be loaded ({{detail}}). The wizard cannot proceed until this is fixed — this usually means the Backstage permission for Preconfig imports has not been granted yet.',
       checkingWorkbook: 'Checking workbook…',
@@ -3756,7 +3749,7 @@ export const en = {
       buCodeLabel: 'BU code',
       confirmAction: 'Confirm',
       // CompanyProfilePanel
-      cpTarget: '{{sheet}} → business unit record ({{code}})',
+      cpTarget: '{{sheet}} → business unit record ({{name}})',
       cpRefresh: 'Refresh',
       cpApplying: 'Applying…',
       cpApplyToBu: 'Apply to BU',
@@ -3819,7 +3812,7 @@ export const en = {
       opConfirmTitle: 'Run this operation?',
       opConfirmWrite: 'This writes to the database every cluster shares. It cannot be interrupted once started.',
       opConfirmWriteBu: 'This writes application roles and their permissions for {{name}} ({{code}}) only. It cannot be interrupted once started.',
-      opConfirmWriteBus: 'This writes application roles and their permissions for {{count}} business units, one after another: {{codes}}. It cannot be interrupted once started.',
+      opConfirmWriteBus: 'This writes application roles and their permissions for {{count}} business units, one after another: {{names}}. It cannot be interrupted once started.',
       opBatchSucceeded: 'Finished for all {{count}} {{count#business unit|business units}}',
       opBatchPartial: 'Finished {{ok}}, failed {{failed}} — open the failed runs in the console below',
       opBatchFailed: 'Failed for all {{count}} {{count#business unit|business units}}',
@@ -3886,7 +3879,7 @@ export const en = {
       loadBuFailed: 'Failed to load business units: {{detail}}',
       columnPending: 'Pending',
       columnSchema: 'Schema',
-      columnPool: 'pool: {{name}}',
+      columnPoolHeader: 'Database Pool',
       columnPoolCsv: 'Database Pool',
       columnLastChecked: 'Last Checked',
       statusNotChecked: 'Not checked',
@@ -3938,7 +3931,7 @@ export const en = {
       actionApplied: 'Applied',
       actionRolledBack: 'Rolled back',
       resolveButton: 'Resolve',
-      resolveSuccess: 'Resolved {{name}} for {{code}}',
+      resolveSuccess: 'Resolved {{name}} for {{bu}}',
     },
     tenantSeed: {
       // TenantSeedManagement — fleet view of the per-BU TenantSeedCard

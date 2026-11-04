@@ -22,7 +22,7 @@ import type { BusinessUnit, ClusterLicense, ClusterLicenseStatus, Subscription }
 export interface BuQuotaSectionProps {
   clusterId: string;
   /** ป้ายเจ้าของที่ผู้ใช้อ่านออก — ใช้ประกอบลิงก์ Add เท่านั้น (`?ownerLabel=`) ต้องตรงกับ
-   *  `ownerFromRow` ใน LicensePurchaseForm.tsx เป๊ะ (`${code} - ${name}`) ไม่งั้นโหมดสร้างกับ
+   *  `ownerFromRow` ใน LicensePurchaseForm.tsx เป๊ะ (`${name} (${code})`) ไม่งั้นโหมดสร้างกับ
    *  โหมดแก้จะโชว์ป้ายคนละแบบสำหรับ cluster เดียวกัน */
   clusterCode: string;
   clusterName: string;
@@ -126,7 +126,7 @@ export function BuQuotaSection({
   // (`ownerText = ownerLabel || ownerId`) ผู้ใช้จะเห็น " - " แทนที่จะเห็น cluster id ดิบที่ยังอ่านได้
   const addHref = clusterCode && clusterName
     ? `/licenses/bu-quota/new?cluster=${clusterId}&ownerLabel=${
-        encodeURIComponent(`${clusterCode} - ${clusterName}`)
+        encodeURIComponent(`${clusterName} (${clusterCode})`)
       }`
     : `/licenses/bu-quota/new?cluster=${clusterId}`;
 
@@ -450,7 +450,7 @@ export function BuQuotaSection({
                           <td className="px-2 py-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <span>{bu.name}</span>
-                              <Badge variant="outline" className="text-xs">{bu.code}</Badge>
+                              <span className="text-muted-foreground font-mono text-xs">{bu.code}</span>
                             </div>
                           </td>
                           <td className="px-2 py-1 whitespace-nowrap">

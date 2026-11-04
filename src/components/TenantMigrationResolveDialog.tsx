@@ -65,7 +65,7 @@ export const TenantMigrationResolveDialog = ({
     setResolving(true);
     try {
       await tenantMigrationService.resolve(bu.id, trimmed, action);
-      toast.success(t('pages.tenantMigration.resolveSuccess', { name: trimmed, code: bu.code }));
+      toast.success(t('pages.tenantMigration.resolveSuccess', { name: trimmed, bu: bu.name || bu.code }));
       onOpenChange(false);
       await onResolved();
     } catch (err) {

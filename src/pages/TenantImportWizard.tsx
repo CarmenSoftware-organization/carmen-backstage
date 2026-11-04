@@ -264,7 +264,7 @@ export default function TenantImportWizard() {
           subtitle={t('pages.tenantImport.subtitle')}
           actions={
             <Button variant="outline" onClick={() => setBuOpen(true)}>
-              {bu ? t('pages.tenantImport.buPrefix', { code: bu.code }) : t('pages.tenantImport.selectBu')}
+              {bu ? t('pages.tenantImport.buPrefix', { name: bu.name || bu.code }) : t('pages.tenantImport.selectBu')}
             </Button>
           }
         />

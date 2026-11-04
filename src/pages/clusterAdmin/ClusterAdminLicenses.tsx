@@ -112,10 +112,7 @@ export default function ClusterAdminLicenses() {
           title={clusterLoading
             ? t('common.busy.loadingEllipsis')
             : (cluster?.name || (clusterMissing ? t('pages.clusterAdmin.clusterNotFoundOrDeleted') : t('pages.clusterAdmin.clusterUnavailable')))}
-          // code ที่ตรงกับชื่อ (เช่น ZEBRA · ZEBRA) ไม่บอกอะไรเพิ่ม — ขึ้นแค่ป้ายหน้า
-          subtitle={cluster?.code && cluster.code !== cluster.name
-            ? t('pages.clusterAdmin.licencesSubtitleWithCode', { code: cluster.code })
-            : t('pages.clusterAdmin.licencesLabel')}
+          subtitle={t('pages.clusterAdmin.licencesLabel')}
         />
 
         {clusterLoading ? (

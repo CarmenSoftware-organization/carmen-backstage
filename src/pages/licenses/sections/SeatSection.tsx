@@ -254,9 +254,9 @@ function BuGroup({ row, now, nowMs, window, canManage, showExpired, saving, onRe
   const { thresholds } = useExpiryThresholds();
 
   // ป้ายเจ้าของที่ผู้ใช้อ่านออก — ต้องตรงกับ `ownerFromRow` ใน LicensePurchaseForm.tsx เป๊ะ
-  // (`${code} - ${name}`) ไม่งั้นโหมดสร้างกับโหมดแก้จะโชว์ป้ายคนละแบบสำหรับใบเดียวกัน
+  // (`${name} (${code})`) ไม่งั้นโหมดสร้างกับโหมดแก้จะโชว์ป้ายคนละแบบสำหรับใบเดียวกัน
   const addHref = `/licenses/seats/new?bu=${row.bu.id}&ownerLabel=${
-    encodeURIComponent(`${row.bu.code} - ${row.bu.name}`)
+    encodeURIComponent(`${row.bu.name} (${row.bu.code})`)
   }`;
 
   const activeSeats = sumActiveLicenses(row.licenses, now);
@@ -287,7 +287,7 @@ function BuGroup({ row, now, nowMs, window, canManage, showExpired, saving, onRe
         <td colSpan={5} className="px-2 py-2">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="font-medium">{row.bu.name}</span>
-            <Badge variant="outline" className="text-xs font-normal">{row.bu.code}</Badge>
+            <span className="text-muted-foreground font-mono text-xs">{row.bu.code}</span>
 
             {row.failed ? (
               <span className="text-destructive text-xs">{t('pages.licenses.seatCountUnavailable')}</span>

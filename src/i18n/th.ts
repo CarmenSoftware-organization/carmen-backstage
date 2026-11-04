@@ -1356,7 +1356,7 @@ export const th: Translations = {
         'โมดูล interface ที่ยังค้างบนสัญญานี้ — ต้องย้ายไปใบสิทธิ์ interface กดนำออกที่นี่',
       removeLeftoverGroup: 'นำออก',
       purchasedGroups: 'โมดูลที่ซื้อ',
-      groupEntitlementsForBu: 'โมดูลที่ให้กับ {{code}}',
+      groupEntitlementsForBu: 'โมดูลที่ให้กับ {{name}}',
       // `clearSearch` and `selectedCount` were dropped from this object (fix round 1): both
       // duplicated an existing common.* key's English exactly while carrying different Thai.
       // See en.ts for the detail — this screen's search-clear and selected-count wording now
@@ -1694,7 +1694,6 @@ export const th: Translations = {
 
       clusterNotFoundOrDeleted: 'ไม่พบ Cluster หรืออาจถูกลบไปแล้ว',
       clusterUnavailable: 'Cluster ใช้งานไม่ได้',
-      subtitleWithCode: 'ไลเซนส์ · {{code}}',
 
       noLicence: 'ไม่มีไลเซนส์',
       overBuLimit: 'เกินโควตา BU',
@@ -2036,7 +2035,6 @@ export const th: Translations = {
       // --- Task 5: ClusterAdminLicenses.tsx ---
       clusterNotFoundOrDeleted: 'ไม่พบ Cluster หรืออาจถูกลบไปแล้ว',
       clusterUnavailable: 'Cluster ใช้งานไม่ได้',
-      licencesSubtitleWithCode: 'ไลเซนส์ · {{code}}',
       licencesLabel: 'ไลเซนส์',
 
       // --- Task 5: licenses/BuRankingCard.tsx ---
@@ -2580,7 +2578,7 @@ export const th: Translations = {
       title: 'นำเข้าข้อมูล tenant',
       subtitle: 'นำข้อมูลหลักจาก Preconfig.xlsx เข้าฐานข้อมูลของหน่วยธุรกิจ',
       selectBu: 'เลือกหน่วยธุรกิจ',
-      buPrefix: 'BU: {{code}}',
+      buPrefix: 'BU: {{name}}',
       pickBuHint: 'เลือกหน่วยธุรกิจที่จะรับข้อมูลนี้',
       catalogError: 'โหลดรายการขั้นตอนนำเข้าไม่สำเร็จ ({{detail}}) ตัวช่วยนี้ทำงานต่อไม่ได้จนกว่าจะแก้ — มักหมายความว่ายังไม่ได้ให้สิทธิ์ระดับ Backstage สำหรับการนำเข้า Preconfig',
       checkingWorkbook: 'กำลังตรวจไฟล์…',
@@ -2620,7 +2618,7 @@ export const th: Translations = {
       softDeleteUnknown3: 'ด้วยการตั้งค่า',
       buCodeLabel: 'รหัส BU',
       confirmAction: 'ยืนยัน',
-      cpTarget: '{{sheet}} → เรกคอร์ดหน่วยธุรกิจ ({{code}})',
+      cpTarget: '{{sheet}} → เรกคอร์ดหน่วยธุรกิจ ({{name}})',
       cpRefresh: 'โหลดใหม่',
       cpApplying: 'กำลังนำไปใช้…',
       cpApplyToBu: 'นำไปใช้กับ BU',
@@ -2682,7 +2680,7 @@ export const th: Translations = {
       opConfirmTitle: 'รันงานนี้?',
       opConfirmWrite: 'งานนี้เขียนลงฐานข้อมูลกลางที่ทุก cluster ใช้ร่วมกัน หยุดกลางคันไม่ได้',
       opConfirmWriteBu: 'งานนี้เขียนบทบาทของแอปและสิทธิ์ของบทบาทให้ {{name}} ({{code}}) เท่านั้น หยุดกลางคันไม่ได้',
-      opConfirmWriteBus: 'งานนี้เขียนบทบาทของแอปและสิทธิ์ของบทบาทให้หน่วยธุรกิจ {{count}} แห่ง ไล่ทีละแห่ง: {{codes}} หยุดกลางคันไม่ได้',
+      opConfirmWriteBus: 'งานนี้เขียนบทบาทของแอปและสิทธิ์ของบทบาทให้หน่วยธุรกิจ {{count}} แห่ง ไล่ทีละแห่ง: {{names}} หยุดกลางคันไม่ได้',
       opBatchSucceeded: 'รันครบทั้ง {{count}} หน่วยธุรกิจ',
       opBatchPartial: 'สำเร็จ {{ok}} ล้มเหลว {{failed}} — เปิดรายการที่ล้มเหลวในคอนโซลด้านล่าง',
       opBatchFailed: 'ล้มเหลวทั้ง {{count}} หน่วยธุรกิจ',
@@ -2748,7 +2746,7 @@ export const th: Translations = {
       loadBuFailed: 'โหลดหน่วยธุรกิจไม่สำเร็จ: {{detail}}',
       columnPending: 'ค้างอยู่',
       columnSchema: 'Schema',
-      columnPool: 'pool: {{name}}',
+      columnPoolHeader: 'Database Pool',
       columnPoolCsv: 'Database Pool',
       columnLastChecked: 'ตรวจล่าสุด',
       statusNotChecked: 'ยังไม่ได้ตรวจ',
@@ -2799,7 +2797,7 @@ export const th: Translations = {
       actionApplied: 'รันแล้ว (applied)',
       actionRolledBack: 'ย้อนกลับแล้ว (rolled-back)',
       resolveButton: 'แก้สถานะ',
-      resolveSuccess: 'แก้สถานะ {{name}} ของ {{code}} เรียบร้อย',
+      resolveSuccess: 'แก้สถานะ {{name}} ของ {{bu}} เรียบร้อย',
     },
     tenantSeed: {
       // TenantSeedManagement — มุมมองทั้ง fleet ของ TenantSeedCard ราย BU

@@ -180,9 +180,7 @@ const ClusterLicenseDetail: React.FC = () => {
             : (cluster?.name || (clusterMissing
               ? t('pages.licenses.clusterNotFoundOrDeleted')
               : t('pages.licenses.clusterUnavailable')))}
-          subtitle={cluster?.code
-            ? t('pages.licenses.subtitleWithCode', { code: cluster.code })
-            : t('pages.licenses.title')}
+          subtitle={t('pages.licenses.title')}
         />
 
         <LicenseHealthStrip facts={facts} loading={stripLoading} onJump={selectTab} />

@@ -228,11 +228,11 @@ describe('ClusterManagement — table fit-content', () => {
     expect(container.querySelector('table')?.className).toContain('table-auto');
   });
 
-  it('freezes three left columns (#, Code, Name)', async () => {
+  it('freezes two left columns (#, Name)', async () => {
     const { container } = renderPage();
     await screen.findByText('Acme Hotels');
 
-    expect(container.querySelector('table')?.className).toContain('table-sticky-left-3');
+    expect(container.querySelector('table')?.className).not.toContain('table-sticky-left-3');
   });
 
   it('renders the Name link single-line (whitespace-nowrap)', async () => {
@@ -242,11 +242,13 @@ describe('ClusterManagement — table fit-content', () => {
     expect(link.className).toContain('whitespace-nowrap');
   });
 
-  it('renders the Code link single-line (whitespace-nowrap)', async () => {
+  it('renders the code as a muted mono second line, not a link', async () => {
     renderPage();
 
-    const link = await screen.findByRole('link', { name: 'ACME' });
-    expect(link.className).toContain('whitespace-nowrap');
+    const el = await screen.findByText('ACME');
+    expect(el.className).toContain('font-mono');
+    expect(el.className).toContain('text-muted-foreground');
+    expect(el.closest('a')).toBeNull();
   });
 });
 

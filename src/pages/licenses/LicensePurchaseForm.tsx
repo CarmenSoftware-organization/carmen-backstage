@@ -139,10 +139,10 @@ function ownerFromRow(kind: LicenseKind, row: LicenseRow): { id: string; label: 
   // ชนิดเดียวที่เจ้าของเป็นคลัสเตอร์ เขียนเป็น `!== 'bu-quota'` เพื่อไม่ต้องไล่เพิ่มทุกครั้งที่มีชนิดใหม่
   if (kind !== 'bu-quota') {
     const r = row as SeatLicenseRow;
-    return { id: r.business_unit_id, label: `${r.business_unit_code} - ${r.business_unit_name}` };
+    return { id: r.business_unit_id, label: `${r.business_unit_name} (${r.business_unit_code})` };
   }
   const r = row as BuQuotaLicenseRow;
-  return { id: r.cluster_id, label: `${r.cluster_code} - ${r.cluster_name}` };
+  return { id: r.cluster_id, label: `${r.cluster_name} (${r.cluster_code})` };
 }
 
 /**
@@ -176,7 +176,7 @@ function clusterFromRow(
   if (!config.showCluster || !row) return null;
   const r = row as SeatLicenseRow;
   if (!r.cluster_id) return null;
-  return { id: r.cluster_id, label: `${r.cluster_code} - ${r.cluster_name}` };
+  return { id: r.cluster_id, label: `${r.cluster_name} (${r.cluster_code})` };
 }
 
 /** สถานะของแถวที่โหลดมา — เรียกฟังก์ชันคนละตัวกันตามชนิด ห้ามคิดสูตรใหม่ที่นี่ (ดูคอมเมนต์ config) */

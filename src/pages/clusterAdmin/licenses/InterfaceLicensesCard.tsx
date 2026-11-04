@@ -26,7 +26,7 @@ export function InterfaceLicensesCard({ rows, failedBus, loading, clusterId, onR
 
   // วาดเฉพาะใบที่ `in_force` — ใบที่หมด/ถูกครอบ/ยังไม่เริ่ม เหลือแค่ตัวนับบนหัวการ์ด (ผู้ใช้เคาะไว้)
   const items: CoverageRowItem[] = rows.filter((r) => r.license.in_force).map(({ bu, license: l }) => {
-    const buLabel = bu.code || bu.name || t('pages.clusterAdmin.unnamed');
+    const buLabel = bu.name || bu.code || t('pages.clusterAdmin.unnamed');
     return {
       id: l.id,
       start_date: l.start_date,
@@ -41,7 +41,7 @@ export function InterfaceLicensesCard({ rows, failedBus, loading, clusterId, onR
       secondary: `${l.group?.name ?? ''} · ${fmtCoverageRange(l.start_date, l.end_date, t('common.state.noExpiry'))}`,
       href: `/cluster-admin/${clusterId}/business-units/${bu.id}/edit?tab=licenses`,
       ariaLabel: t('pages.clusterAdmin.openBusinessUnitLicences', { name: bu.name || buLabel }),
-      group: { key: bu.id, label: bu.name ? `${buLabel} · ${bu.name}` : buLabel },
+      group: { key: bu.id, label: bu.name && bu.code ? `${bu.name} (${bu.code})` : buLabel },
     };
   });
 

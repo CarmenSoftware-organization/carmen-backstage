@@ -58,10 +58,8 @@ export function ClusterBusinessUnitsCard({ clusterId, units }: ClusterBusinessUn
                 to={`${listTo}/${bu.id}/edit`}
                 className="hover:bg-muted/50 -mx-2 flex items-center gap-3 rounded-md px-2 py-2.5"
               >
-                <span className="text-muted-foreground bg-muted rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold">
-                  {bu.code}
-                </span>
                 <span className="min-w-0 flex-1 truncate text-sm">{bu.name || t('pages.clusterAdmin.unnamed')}</span>
+                <span className="text-muted-foreground shrink-0 font-mono text-xs">{bu.code}</span>
                 <ChevronRight className="text-muted-foreground size-4 shrink-0" />
               </Link>
             </li>

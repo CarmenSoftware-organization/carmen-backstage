@@ -165,7 +165,7 @@ export function CompanyProfilePanel({
   file,
 }: {
   step: PreconfigStepMeta;
-  bu: Pick<BusinessUnit, 'id' | 'code'>;
+  bu: Pick<BusinessUnit, 'id' | 'code' | 'name'>;
   file: File;
 }) {
   const { t } = useI18n();
@@ -329,7 +329,7 @@ export function CompanyProfilePanel({
         <div className="min-w-0">
           <h2 className="text-base font-semibold">{step.display_name}</h2>
           <p className="text-xs text-muted-foreground">
-            {t('pages.tenantImport.cpTarget', { sheet: step.sheet_name, code: bu.code })}
+            {t('pages.tenantImport.cpTarget', { sheet: step.sheet_name, name: bu.name || bu.code })}
           </p>
         </div>
         <div className="flex items-center gap-3">

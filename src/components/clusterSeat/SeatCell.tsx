@@ -50,7 +50,7 @@ export const SeatCell: React.FC<SeatCellProps> = ({ seat, quiet = false }) => {
               <React.Fragment key={link.id}>
                 {i > 0 && <span className="text-muted-foreground">, </span>}
                 <span
-                  title={note ? `${link.bu_code} (${note})` : link.bu_code}
+                  title={note ? `${link.bu_name || link.bu_code} (${note})` : link.bu_name || link.bu_code}
                   className={cn(
                     // ตัดบรรทัดได้เฉพาะหลังจุลภาค ไม่ใช่กลางชื่อ ("ZEBRA" / "(FIFO)")
                     'whitespace-nowrap',

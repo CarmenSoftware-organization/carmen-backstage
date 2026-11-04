@@ -145,9 +145,9 @@ export function IssuedSubscriptionPlate({
 
       <div className="grid gap-3 border-t pt-4 sm:grid-cols-2">
         {bu && (
-          <IdentityRow label={t('entity.businessUnit.title')} value={`${bu.code} - ${bu.name}`} id={bu.id} />
+          <IdentityRow label={t('entity.businessUnit.title')} value={`${bu.name} (${bu.code})`} id={bu.id} />
         )}
-        <IdentityRow label={t('common.label.cluster')} value={`${cluster.code} - ${cluster.name}`} id={cluster.id} />
+        <IdentityRow label={t('common.label.cluster')} value={`${cluster.name} (${cluster.code})`} id={cluster.id} />
       </div>
     </Card>
   );

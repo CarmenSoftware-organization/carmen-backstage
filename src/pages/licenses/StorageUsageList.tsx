@@ -341,7 +341,7 @@ const StorageUsageList: React.FC = () => {
     () => [
       {
         id: 'bu',
-        accessorFn: (row) => row.bu_code,
+        accessorFn: (row) => row.bu_name || row.bu_code,
         header: t('pages.storageQuota.colBu'),
         meta: { card: 'title' },
         cell: ({ row }) => (
@@ -352,13 +352,13 @@ const StorageUsageList: React.FC = () => {
                   to={`/business-units/${encodeURIComponent(row.original.bu_id)}/edit?tab=licenses`}
                   className="text-primary hover:underline"
                 >
-                  {row.original.bu_code}
+                  {row.original.bu_name || row.original.bu_code}
                 </Link>
               ) : (
-                row.original.bu_code
+                row.original.bu_name || row.original.bu_code
               )}
             </div>
-            <div className="text-muted-foreground truncate text-xs">{row.original.bu_name}</div>
+            <div className="text-muted-foreground font-mono text-xs">{row.original.bu_code}</div>
           </div>
         ),
       },
