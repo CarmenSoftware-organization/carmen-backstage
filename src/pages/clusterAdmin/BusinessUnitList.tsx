@@ -5,6 +5,7 @@ import { Filter, X, Building2, Download } from 'lucide-react';
 import ClusterAdminLayout from '../../components/ClusterAdminLayout';
 import ClusterAccessLost from './ClusterAccessLost';
 import { PageHeader } from '../../components/PageHeader';
+import { BrandMark } from '../../components/BrandMark';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardContent, CardHeader } from '../../components/ui/card';
@@ -213,6 +214,8 @@ const BusinessUnitList: React.FC = () => {
     }));
     const csv = generateCSV(rows, [
       { key: 'name', label: t('common.field.name') },
+      { key: 'code', label: t('common.field.code') },
+      { key: 'alias_name', label: t('common.field.aliasName') },
       { key: 'is_hq', label: t('common.label.hq') },
       { key: 'is_active', label: t('common.status.label') },
       { key: 'created_at', label: t('common.audit.createdAt') },
@@ -236,12 +239,23 @@ const BusinessUnitList: React.FC = () => {
           const overLimit = buCap != null && (rank ?? 0) > buCap;
           return (
             <div className="flex flex-wrap items-center gap-2">
-              <Link
-                to={`/cluster-admin/${clusterId}/business-units/${row.original.id}/edit`}
-                className="text-primary hover:underline whitespace-nowrap"
-              >
-                {row.original.name}
-              </Link>
+              <BrandMark
+                src={row.original.avatar?.url}
+                name={row.original.name}
+                code={row.original.code}
+                alias={row.original.alias_name}
+              />
+              <div className="min-w-0">
+                <Link
+                  to={`/cluster-admin/${clusterId}/business-units/${row.original.id}/edit`}
+                  className="block text-primary hover:underline whitespace-nowrap"
+                  title={row.original.name}
+                >
+                  {row.original.name}
+                </Link>
+                {/* รหัสเป็นข้อมูลรอง: บรรทัดที่สองใต้ชื่อ (name-first เหมือน /business-units) */}
+                <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+              </div>
               {overLimit && (
                 // Byte-identical to pages.licenses.overLimitBadge/overLimitTitle (slice 3b),
                 // but a page namespace is owned by its own slice — duplicated into
@@ -258,6 +272,19 @@ const BusinessUnitList: React.FC = () => {
             </div>
           );
         },
+      },
+      {
+        accessorKey: 'alias_name',
+        header: t('common.field.alias'),
+        // ไม่เปิดเรียง: กดหัวคอลัมน์แล้วตารางไม่เปลี่ยน (ยังไม่ยืนยันว่า backend รับ sort key นี้)
+        // และ BU ต่อ cluster มีไม่กี่แถว
+        enableSorting: false,
+        meta: { headerClassName: 'w-24', cellClassName: 'w-24' },
+        cell: ({ row }) => (
+          <span className="block truncate font-mono text-sm text-muted-foreground" title={row.original.alias_name || undefined}>
+            {row.original.alias_name || '-'}
+          </span>
+        ),
       },
       {
         accessorKey: 'is_hq',
