@@ -508,21 +508,33 @@ const TenantMigrationManagement: React.FC = () => {
       ),
     },
     {
-      id: 'pool',
-      header: t('pages.tenantMigration.columnPoolHeader'),
-      // ชื่อ schema ไม่แสดงในตารางอีกต่อไป (ยังอยู่ใน CSV) — คอลัมน์นี้เหลือแค่ pool ที่ BU ผูกอยู่
-      accessorFn: (row) => row.database_pool?.name ?? '',
+      id: 'schema',
+      header: t('pages.tenantMigration.columnSchema'),
+      // ค่านี้เป็นชื่อ schema จริง ไม่ใช่อันดับเหมือน status/last_checked ข้างล่าง จึงตั้งใจปล่อยให้
+      // ติดช่องค้นหาด้วย — พิมพ์ชื่อ schema แล้วต้องเจอแถวที่ชี้ไปที่นั่น
+      accessorFn: (row) => row.db_schema ?? '',
       meta: { headerClassName: 'w-48', cellClassName: 'w-48' },
       cell: ({ row }) => {
-        const pool = row.original.database_pool?.name;
-        return pool ? (
-          // ตัดท้ายเฉพาะในตาราง (lg ขึ้นไป) ที่คอลัมน์กว้างคงที่ — ใต้ lg DataTable วาดเป็นการ์ด
-          // หนึ่งใบต่อแถว จึงให้ขึ้นบรรทัดใหม่แทนการตัดท้าย
-          <span className="block break-words text-xs lg:truncate" title={pool}>
-            {pool}
-          </span>
-        ) : (
-          <span className="text-muted-foreground text-xs">—</span>
+        const bu = row.original;
+        return (
+          <div className="space-y-0.5">
+            {bu.db_schema ? (
+              <span className="block break-all font-mono text-xs">{bu.db_schema}</span>
+            ) : (
+              <span className="text-muted-foreground text-xs">—</span>
+            )}
+            {bu.database_pool?.name && (
+              // ตัดท้ายเฉพาะในตาราง (lg ขึ้นไป) ที่คอลัมน์กว้างคงที่ — ใต้ lg DataTable วาดเป็นการ์ด
+              // หนึ่งใบต่อแถว ถ้าตัดตรงนั้นด้วย ชื่อ pool ยาว ๆ จะขาดหายโดยไม่มีทางกางดู
+              // (วัดที่ 390px: ข้อความ 218px ในช่อง 206px) จึงให้ขึ้นบรรทัดใหม่แทน
+              <span
+                className="text-muted-foreground block break-words text-[11px] lg:truncate"
+                title={bu.database_pool.name}
+              >
+                {t('pages.tenantMigration.columnPool', { name: bu.database_pool.name })}
+              </span>
+            )}
+          </div>
         );
       },
     },

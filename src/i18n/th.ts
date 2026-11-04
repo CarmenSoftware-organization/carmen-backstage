@@ -2746,7 +2746,7 @@ export const th: Translations = {
       loadBuFailed: 'โหลดหน่วยธุรกิจไม่สำเร็จ: {{detail}}',
       columnPending: 'ค้างอยู่',
       columnSchema: 'Schema',
-      columnPoolHeader: 'Database Pool',
+      columnPool: 'pool: {{name}}',
       columnPoolCsv: 'Database Pool',
       columnLastChecked: 'ตรวจล่าสุด',
       statusNotChecked: 'ยังไม่ได้ตรวจ',

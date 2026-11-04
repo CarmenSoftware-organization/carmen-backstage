@@ -3879,7 +3879,7 @@ export const en = {
       loadBuFailed: 'Failed to load business units: {{detail}}',
       columnPending: 'Pending',
       columnSchema: 'Schema',
-      columnPoolHeader: 'Database Pool',
+      columnPool: 'pool: {{name}}',
       columnPoolCsv: 'Database Pool',
       columnLastChecked: 'Last Checked',
       statusNotChecked: 'Not checked',
