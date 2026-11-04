@@ -162,8 +162,10 @@ export function SubscriptionSection({
                       <td className="px-2 py-1">
                         {sub.bu_code ? (
                           <div className="min-w-0">
-                            <div className="truncate">{sub.bu_code}</div>
-                            <div className="text-muted-foreground truncate text-xs">{sub.bu_name}</div>
+                            <div className="truncate">{sub.bu_name || sub.bu_code}</div>
+                            {sub.bu_name && (
+                              <div className="text-muted-foreground truncate font-mono text-xs">{sub.bu_code}</div>
+                            )}
                           </div>
                         ) : (
                           <Badge variant="secondary">{t('pages.licenses.noBuBadge')}</Badge>

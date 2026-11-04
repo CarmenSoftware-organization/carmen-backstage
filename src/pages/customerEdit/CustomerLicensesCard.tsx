@@ -67,7 +67,7 @@ function BuLicenses({ bu }: { bu: CustomerBusinessUnit }) {
           className="text-sm font-medium hover:underline"
           title={t('pages.customers.licenseOpenBu')}
         >
-          {bu.name} <span className="font-mono text-xs text-muted-foreground">{bu.code}</span>
+          {bu.name} <span className="font-mono text-xs font-normal text-muted-foreground">{bu.code}</span>
         </Link>
       </div>
 

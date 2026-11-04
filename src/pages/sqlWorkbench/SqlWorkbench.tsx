@@ -521,7 +521,7 @@ export default function SqlWorkbench() {
                 description={
                   t('pages.sqlWorkbench.destructiveDescription', {
                     keywords: c.destructiveKeywords.join(', '),
-                    bu: selectedBu?.code ?? t('pages.sqlWorkbench.tenantFallback'),
+                    bu: (selectedBu?.name || selectedBu?.code) ?? t('pages.sqlWorkbench.tenantFallback'),
                   }) + (c.unguardedWrite ? t('pages.sqlWorkbench.destructiveUnguarded') : '')
                 }
                 confirmText={t('pages.sqlWorkbench.runAnyway')}
@@ -544,7 +544,7 @@ export default function SqlWorkbench() {
             description={t('pages.sqlWorkbench.dropDescription', {
               type: loadedObject.type,
               qualified: `${loadedObject.schema}.${loadedObject.name}`,
-              bu: selectedBu?.code ?? t('pages.sqlWorkbench.tenantFallback'),
+              bu: (selectedBu?.name || selectedBu?.code) ?? t('pages.sqlWorkbench.tenantFallback'),
             })}
             confirmText={t('pages.sqlWorkbench.drop')}
             confirmVariant="destructive"

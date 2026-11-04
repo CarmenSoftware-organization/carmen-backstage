@@ -243,8 +243,8 @@ const TenantSeedManagement: React.FC = () => {
     if (keys.length === 0) return;
     try {
       const summary = await runSeed(bu, keys, total);
-      if (summary.created > 0) toast.success(t('pages.tenantSeed.seededOne', { count: summary.created, code: bu.code }));
-      else toast.info(t('pages.tenantSeed.nothingCreated', { code: bu.code }));
+      if (summary.created > 0) toast.success(t('pages.tenantSeed.seededOne', { count: summary.created, code: bu.name || bu.code }));
+      else toast.info(t('pages.tenantSeed.nothingCreated', { code: bu.name || bu.code }));
       await checkRow(bu, false);
     } catch (err) {
       if (cancelledRef.current) return;
@@ -272,7 +272,7 @@ const TenantSeedManagement: React.FC = () => {
       for (let i = 0; i < plan.length; i++) {
         if (cancelledRef.current) return;
         const { bu, keys, total } = plan[i];
-        setBatch({ index: i + 1, total: plan.length, buId: bu.id, buCode: bu.code });
+        setBatch({ index: i + 1, total: plan.length, buId: bu.id, buCode: bu.name || bu.code });
         try {
           await runSeed(bu, keys, total);
           await checkRow(bu, false);
@@ -366,16 +366,19 @@ const TenantSeedManagement: React.FC = () => {
 
   const columns = useMemo<ColumnDef<BusinessUnit, unknown>[]>(() => [
     {
-      accessorKey: 'code',
-      header: t('common.field.code'),
-      meta: { headerClassName: 'w-24', cellClassName: 'w-24' },
+      accessorKey: 'name',
+      header: t('common.field.name'),
+      // ค้นหาด้วยรหัสได้เหมือนเดิม: รหัสอยู่ในเซลล์นี้ และ global filter อ่านจาก accessorFn
+      accessorFn: (row) => `${row.name} ${row.code}`,
       cell: ({ row }) => (
-        <Link to={`/business-units/${row.original.id}/edit`} className="text-primary hover:underline whitespace-nowrap">
-          {row.original.code}
-        </Link>
+        <div className="min-w-0">
+          <Link to={`/business-units/${row.original.id}/edit`} className="block whitespace-nowrap text-primary hover:underline">
+            {row.original.name}
+          </Link>
+          <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+        </div>
       ),
     },
-    { accessorKey: 'name', header: t('common.field.name'), cell: ({ row }) => <span className="whitespace-nowrap">{row.original.name}</span> },
     {
       id: 'status',
       header: t('common.status.label'),
@@ -492,7 +495,7 @@ const TenantSeedManagement: React.FC = () => {
         const o = byKey.get(s.key) ?? { key: s.key, label: s.label, count: 0, buCount: 0, items: [] };
         o.count += s.missing.length;
         o.buCount = (o.buCount ?? 0) + 1;
-        o.items.push(`${bu.code} · ${s.missing.length}`);
+        o.items.push(`${bu.name || bu.code} · ${s.missing.length}`);
         byKey.set(s.key, o);
       }
     }
@@ -593,7 +596,7 @@ const TenantSeedManagement: React.FC = () => {
                   globalFilter={searchTerm}
                   onGlobalFilterChange={setSearchTerm}
                   pageSize={25}
-                  defaultSort={{ id: 'code', desc: false }}
+                  defaultSort={{ id: 'name', desc: false }}
                 />
               )
             ) : null}

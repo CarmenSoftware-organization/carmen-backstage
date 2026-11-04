@@ -129,7 +129,7 @@ export function SubscriptionCreateForm({
               </option>
               {clusterBus.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.code} - {b.name}
+                  {b.name} ({b.code})
                 </option>
               ))}
             </select>

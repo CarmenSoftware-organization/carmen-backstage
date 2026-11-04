@@ -83,7 +83,7 @@ export function SubscriptionDraftPlate({ cluster, bu, startDate, endDate }: Subs
             {bu ? bu.name : t('pages.subscriptions.noBusinessUnitYet')}
           </p>
           <p className="text-muted-foreground truncate text-xs">
-            {cluster ? `${cluster.code} · ${cluster.name}` : t('pages.subscriptions.noClusterYet')}
+            {cluster ? `${cluster.name} (${cluster.code})` : t('pages.subscriptions.noClusterYet')}
           </p>
         </div>
       </div>

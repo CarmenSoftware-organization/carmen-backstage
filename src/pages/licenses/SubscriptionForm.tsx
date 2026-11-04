@@ -561,7 +561,7 @@ const SubscriptionForm: React.FC = () => {
                   <CardTitle>{t('pages.subscriptions.purchasedGroups')}</CardTitle>
                   <CardDescription>
                     {detail?.bu
-                      ? t('pages.subscriptions.groupEntitlementsForBu', { code: detail.bu.bu_code })
+                      ? t('pages.subscriptions.groupEntitlementsForBu', { name: detail.bu.bu_name })
                       : t('pages.subscriptions.featureEntitlementsGeneric')}
                   </CardDescription>
                 </CardHeader>

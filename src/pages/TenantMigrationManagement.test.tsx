@@ -295,20 +295,22 @@ describe('TenantMigrationManagement — table fit-content & sticky', () => {
     vi.mocked(businessUnitService.getAll).mockResolvedValue({ data: BUS, paginate: { total: BUS.length } } as never);
   });
 
-  it('uses content-based (table-auto) layout and freezes three left columns', async () => {
+  it('uses content-based (table-auto) layout and freezes two left columns', async () => {
     const { container } = renderPage();
     await screen.findByText('BU01');
 
     const table = container.querySelector('table');
     expect(table?.className).toContain('table-auto');
-    expect(table?.className).toContain('table-sticky-left-3');
+    expect(table?.className).not.toContain('table-sticky-left-3');
   });
 
-  it('renders the Code link single-line (whitespace-nowrap)', async () => {
+  it('renders the code as a muted mono second line, not a link', async () => {
     renderPage();
 
-    const link = await screen.findByRole('link', { name: 'BU01' });
-    expect(link.className).toContain('whitespace-nowrap');
+    const el = await screen.findByText('BU01');
+    expect(el.className).toContain('font-mono');
+    expect(el.className).toContain('text-muted-foreground');
+    expect(el.closest('a')).toBeNull();
   });
 
   it('renders the Name single-line (whitespace-nowrap)', async () => {

@@ -113,14 +113,6 @@ export function BusinessUnitsSection({
           <Table className="table-sticky-right [--sticky-right-bg:var(--card)]">
             <TableHeader>
               <TableRow>
-                {/* Code is a 5-character chip, so it takes a fixed lane. Left to share the
-                   auto layout it was handed 230px for 40px of content and pushed the name —
-                   the thing you actually read the row by — a hand's width to the right, so
-                   the row scanned as three islands instead of one line. Name keeps the
-                   slack: its second line (the audit trail) is what genuinely wants it. */}
-                <SortableTableHead sortKey="code" sort={sort} onSort={(k) => setSort((s) => cycleSort(s, k))} className="w-32">
-                  {t('common.field.code')}
-                </SortableTableHead>
                 <SortableTableHead sortKey="name" sort={sort} onSort={(k) => setSort((s) => cycleSort(s, k))} className="w-96">
                   {t('common.field.name')}
                 </SortableTableHead>
@@ -142,10 +134,10 @@ export function BusinessUnitsSection({
                 const latest = latestActor(bu);
                 return (
                 <TableRow key={bu.id}>
-                  <TableCell><Badge variant="outline" className="text-xs">{bu.code}</Badge></TableCell>
                   <TableCell>
                     <div className="flex flex-wrap items-center gap-2">
                       <span>{bu.name}</span>
+                      <span className="text-muted-foreground font-mono text-xs">{bu.code}</span>
                       {maxLicenseBu != null && (ranked.get(bu.id) ?? 0) > maxLicenseBu && (
                         <Badge
                           variant="destructive"

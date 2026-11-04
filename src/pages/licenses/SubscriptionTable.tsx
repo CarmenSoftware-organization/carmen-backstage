@@ -414,7 +414,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
       {
         // `bu_code` เป็นคีย์ sort ที่ backend คำนวณให้ (DERIVED_SORT_KEYS ใน subscription.service.ts —
         // เรียงในหน่วยความจำแล้วค่อยตัดหน้า เพราะ BU มาจาก relation to-many ที่ Prisma orderBy ไม่รับ)
-        // เรียงด้วยรหัสไม่ใช่ชื่อ เพราะรหัสคือบรรทัดเด่นที่เซลล์นี้แสดง
+        // เซลล์แสดงชื่อเป็นบรรทัดเด่น รหัสเป็นบรรทัดรอง แต่คีย์ sort บนสายยังเป็น bu_code (backend ไม่มีคีย์ชื่อ BU)
         id: 'bu_code',
         accessorKey: 'bu_code',
         header: t('entity.businessUnit.title'),
@@ -423,8 +423,8 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
         cell: ({ row }) =>
           row.original.bu_code ? (
             <div className="min-w-0">
-              <div className="truncate font-medium">{row.original.bu_code}</div>
-              <div className="text-muted-foreground truncate text-xs">{row.original.bu_name}</div>
+              <div className="truncate font-medium">{row.original.bu_name || row.original.bu_code}</div>
+              <div className="text-muted-foreground truncate font-mono text-xs">{row.original.bu_code}</div>
             </div>
           ) : (
             <span className="text-muted-foreground text-xs">—</span>

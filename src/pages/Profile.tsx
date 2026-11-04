@@ -623,7 +623,7 @@ const Profile: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-medium text-sm">{bu.name || '-'}</div>
-                            <Badge variant="outline" className="text-xs mt-1">{bu.code}</Badge>
+                            <div className="mt-1 font-mono text-xs text-muted-foreground">{bu.code}</div>
                           </div>
                           <Badge variant={bu.is_active ? 'success' : 'secondary'} className="text-xs">
                             {bu.is_active ? t('common.status.active') : t('common.status.inactive')}

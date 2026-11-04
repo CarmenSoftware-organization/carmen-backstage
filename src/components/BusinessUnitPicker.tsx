@@ -29,7 +29,7 @@ interface BusinessUnitPickerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const optionLabel = (b: BusinessUnitOption) => `${b.code} · ${b.name}`;
+const optionLabel = (b: BusinessUnitOption) => `${b.name} (${b.code})`;
 
 const OptionBody: React.FC<{ b: BusinessUnitOption; disabledReason?: string | null }> = ({ b, disabledReason }) => (
   <>

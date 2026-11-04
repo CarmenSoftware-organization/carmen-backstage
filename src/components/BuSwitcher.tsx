@@ -394,8 +394,8 @@ export function BuSwitcher({
                       {buInitials(bu.code)}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="font-mono text-[13px] font-semibold">{bu.code}</span>
-                      <span className="text-muted-foreground block truncate text-xs">{bu.name}</span>
+                      <span className="block truncate text-[13px] font-semibold">{bu.name}</span>
+                      <span className="text-muted-foreground block truncate font-mono text-xs">{bu.code}</span>
                     </span>
                     {bu.cluster_name && (
                       <span className="text-muted-foreground hidden shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] sm:inline">

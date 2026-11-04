@@ -249,9 +249,10 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
           ทึบ ไม่ใช่ `bg-background/95 backdrop-blur` — ด้วยเหตุผลเดียวกับแถบ header ใน Layout:
           แถวที่เลื่อนผ่านใต้แถบกลายเป็นเงาจาง ๆ ทับ tab ที่กำลังอ่านอยู่ */}
       <div className="bg-background sticky top-14 z-20 -mt-2 flex items-center gap-3 border-b px-2 sm:px-4 md:top-16">
-        {f.code && (
-          <span className="text-primary bg-primary/10 shrink-0 rounded px-1.5 py-0.5 font-mono text-xs font-semibold">
-            {f.code}
+        {(f.name || f.code) && (
+          <span className="flex max-w-[40%] shrink-0 items-baseline gap-2">
+            {f.name && <span className="truncate text-sm font-medium">{f.name}</span>}
+            {f.code && <span className="text-muted-foreground font-mono text-xs">{f.code}</span>}
           </span>
         )}
         {/* min-w-0 or the strip refuses to shrink below its five triggers and pushes the

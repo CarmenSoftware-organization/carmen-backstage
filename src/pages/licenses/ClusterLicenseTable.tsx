@@ -256,18 +256,20 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
     // ถ้ายังซ่อนอยู่ การ์ดบนมือถือจะไม่เหลือร่องรอยเวลาเลยสักอัน
     const [, updatedColumn] = auditColumns<Cluster>({ t });
     return [
+      // เรียงได้เพราะเป็นคอลัมน์จริงของ tb_cluster — backend แปลง `sort` เป็น orderBy ของ Prisma ตรง ๆ
       {
-        accessorKey: 'code',
+        accessorKey: 'name',
         header: t('common.label.cluster'),
         meta: { card: 'title' },
         cell: ({ row }) => (
-          <Link to={`/licenses/${row.original.id}`} className="text-primary hover:underline whitespace-nowrap">
-            {row.original.code}
-          </Link>
+          <div className="min-w-0">
+            <Link to={`/licenses/${row.original.id}`} className="block text-primary hover:underline whitespace-nowrap">
+              {row.original.name || row.original.code}
+            </Link>
+            <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+          </div>
         ),
       },
-      // เรียงได้เพราะเป็นคอลัมน์จริงของ tb_cluster — backend แปลง `sort` เป็น orderBy ของ Prisma ตรง ๆ
-      { accessorKey: 'name', header: t('common.field.name'), meta: { card: 'title' } },
       {
         // id = คีย์ view sort ที่ backend รองรับ (VIEW_SORT_COLUMNS ใน cluster.service.ts —
         // `sortedClusterIdsByViewColumn` เรียงใน SQL ผ่าน view แล้วคืน id ตามลำดับ) ชุดเดียวกับที่
@@ -527,13 +529,13 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
                 data={clusters}
                 serverSide
                 tableLayout="auto"
-                stickyLeftColumns={3}
+                stickyLeftColumns={2}
                 totalRows={totalRows}
                 page={paginate.page}
                 perpage={paginate.perpage}
                 onPaginateChange={handlePaginateChange}
                 onSortChange={handleSortChange}
-                defaultSort={{ id: 'code', desc: false }}
+                defaultSort={{ id: 'name', desc: false }}
               />
             </div>
           )

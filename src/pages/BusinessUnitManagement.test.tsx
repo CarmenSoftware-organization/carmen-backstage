@@ -206,15 +206,15 @@ describe('BusinessUnitManagement — Add Business Unit gates (cluster.create)', 
 // guard test is added here (unlike NewsManagement/UserManagement).
 
 // Mirrors the clusters treatment: content-based layout, Code+Name single-line, and
-// three frozen left columns (#, Code, Name) since the list leads with Code.
+// three frozen left columns (#, Code, Name) (code is a muted second line in the Name cell).
 describe('BusinessUnitManagement — table fit-content & sticky', () => {
-  it('uses content-based (table-auto) layout and freezes three left columns', async () => {
+  it('uses content-based (table-auto) layout and freezes two left columns', async () => {
     const { container } = renderPage();
     await screen.findByText('Acme HQ');
 
     const table = container.querySelector('table');
     expect(table?.className).toContain('table-auto');
-    expect(table?.className).toContain('table-sticky-left-3');
+    expect(table?.className).not.toContain('table-sticky-left-3');
   });
 
   it('renders the Name link single-line without truncation', async () => {
@@ -226,10 +226,12 @@ describe('BusinessUnitManagement — table fit-content & sticky', () => {
     expect(link.className).not.toContain('max-w-');
   });
 
-  it('renders the Code link single-line (whitespace-nowrap)', async () => {
+  it('renders the code as a muted mono second line, not a link', async () => {
     renderPage();
 
-    const link = await screen.findByRole('link', { name: 'BU1' });
-    expect(link.className).toContain('whitespace-nowrap');
+    const el = await screen.findByText('BU1');
+    expect(el.className).toContain('font-mono');
+    expect(el.className).toContain('text-muted-foreground');
+    expect(el.closest('a')).toBeNull();
   });
 });

@@ -249,7 +249,7 @@ export const BackstageMigrationManagement: React.FC = () => {
     // ป้ายในสมุดต้องบอกด้วยว่ารันกับ BU ไหน — สมุดเก็บหลายรายการ ถ้าเห็นแต่ชื่อ op เหมือนกันสามแถว
     // ก็แยกไม่ออกว่าแถวไหนของ BU ใด
     const buParam = buParamOf(op);
-    const runId = startRun(op.group, bu ? `${opLabel} · ${bu.code}` : opLabel);
+    const runId = startRun(op.group, bu ? `${opLabel} · ${bu.name || bu.code}` : opLabel);
     try {
       const params = buParam && bu ? { [buParam]: bu.id } : undefined;
       const result = await backstageSeedService.runStream(op.id, (e: SeedRunEvent) => {
@@ -636,7 +636,7 @@ export const BackstageMigrationManagement: React.FC = () => {
             : pickedBus.length > 1
               ? t('pages.backstageMigration.opConfirmWriteBus', {
                 count: pickedBus.length,
-                codes: pickedBus.map((b) => b.code).join(', '),
+                names: pickedBus.map((b) => b.name || b.code).join(', '),
               })
               : t('pages.backstageMigration.opConfirmWrite')
         }

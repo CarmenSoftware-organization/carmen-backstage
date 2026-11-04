@@ -89,7 +89,7 @@ const StoragePlate: React.FC<StoragePlateProps> = ({ row, inForce, dbLabel, file
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cell(
             t('pages.storageLicense.form.businessUnit'),
-            `${row.tb_business_unit.code} · ${row.tb_business_unit.name}`,
+            `${row.tb_business_unit.name} (${row.tb_business_unit.code})`,
           )}
           {cell(t('pages.storageLicense.dbQuota'), dbLabel)}
           {cell(t('pages.storageLicense.fileQuota'), fileLabel)}
@@ -421,7 +421,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
           <PageHeader
             backTo={LIST_PATH}
             title={detail?.license_number || t('pages.licenses.unnamedLicense')}
-            subtitle={detail ? `${detail.tb_business_unit.code} · ${detail.tb_business_unit.name}` : undefined}
+            subtitle={detail ? `${detail.tb_business_unit.name} (${detail.tb_business_unit.code})` : undefined}
             audit={normalizeAudit(detail)}
           />
         )}

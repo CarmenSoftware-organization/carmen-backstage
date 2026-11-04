@@ -961,7 +961,7 @@ const BusinessUnitEdit: React.FC = () => {
                    `/licenses/interface/new` — ไม่งั้นปุ่มจะพาผู้ใช้ไปชนหน้าที่เตะกลับ */
                 createHref={
                   canCreateSubscription
-                    ? `/licenses/interface/new?bu=${encodeURIComponent(id!)}&ownerLabel=${encodeURIComponent(`${formData.code} - ${formData.name}`)}`
+                    ? `/licenses/interface/new?bu=${encodeURIComponent(id!)}&ownerLabel=${encodeURIComponent(`${formData.name} (${formData.code})`)}`
                     : undefined
                 }
               />

@@ -125,7 +125,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
     // ไม่พบ: code แสดงตามเดิม · id ย่อแบบเดียวกับ user (`Not found · <8 ตัวแรก>`) ไม่โชว์ UUID เต็ม
     const missingLabel = t(isFailed ? 'components.businessUnitPicker.loadFailed' : 'components.businessUnitPicker.notFound');
     const label = bu
-      ? `${bu.code} - ${bu.name}`
+      ? `${bu.name} (${bu.code})`
       : isMissing && keyBy === 'id'
         ? `${missingLabel} · ${key.slice(0, 8)}`
         : key;
@@ -223,7 +223,7 @@ export const BusinessUnitMultiSelect: React.FC<BusinessUnitMultiSelectProps> = (
                     >
                       {checked && <Check className="h-3 w-3" />}
                     </span>
-                    <span>{bu.code} - {bu.name}</span>
+                    <span>{bu.name} <span className="font-mono text-xs text-muted-foreground">({bu.code})</span></span>
                   </div>
                 );
               })}

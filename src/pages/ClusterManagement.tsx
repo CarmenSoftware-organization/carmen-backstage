@@ -345,24 +345,6 @@ const ClusterManagement: React.FC = () => {
 
   const columns = useMemo<ColumnDef<Cluster, unknown>[]>(() => [
     {
-      accessorKey: 'code',
-      header: t('common.field.code'),
-      // Fixed width so the sticky offset of the 3rd frozen column (Name) is
-      // deterministic — see `stickyLeftColumns={3}` and `.table-sticky-left-3`.
-      meta: { headerClassName: 'w-24', cellClassName: 'w-24', card: 'title' },
-      // Code กับ Name ชี้ปลายทางเดียวกันและซ้ำข้อความกันบ่อย (PPP/PPP, ZEBRA/ZEBRA) — เดิม
-      // ทั้งคู่เป็นลิงก์สีน้ำเงิน ทำให้ทุกแถวมีจุดสีสองจุดที่ไม่ได้แปลว่าอะไรต่างกัน ตอนนี้ Name
-      // ถือสีลิงก์ไว้คนเดียว ส่วน Code เป็นรหัสแบบ mono ที่ยังคลิกได้ (สีมาเมื่อ hover)
-      cell: ({ row }) => (
-        <Link
-          to={`/clusters/${row.original.id}/edit`}
-          className="text-muted-foreground hover:text-primary font-mono text-xs whitespace-nowrap"
-        >
-          {row.original.code}
-        </Link>
-      ),
-    },
-    {
       accessorKey: 'name',
       header: t('common.field.name'),
       meta: { card: 'title' },
@@ -373,9 +355,13 @@ const ClusterManagement: React.FC = () => {
             name={row.original.name}
             code={row.original.code}
           />
-          <Link to={`/clusters/${row.original.id}/edit`} className="text-primary hover:underline whitespace-nowrap">
-            {row.original.name}
-          </Link>
+          <div className="min-w-0">
+            <Link to={`/clusters/${row.original.id}/edit`} className="block text-primary hover:underline whitespace-nowrap">
+              {row.original.name}
+            </Link>
+            {/* รหัสเป็นข้อมูลรอง: บรรทัดที่สองใต้ชื่อ ไม่ใช่คอลัมน์นำหน้า */}
+            <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+          </div>
           {row.original.deleted_at && (
             <Badge variant="destructive" className="text-xs px-1.5 py-0" title={row.original.deleted_by_name ? t('pages.clusters.deletedByTitle', { name: row.original.deleted_by_name }) : undefined}>
               {t('common.status.deleted')}
@@ -696,7 +682,7 @@ const ClusterManagement: React.FC = () => {
                   data={clusters}
                   serverSide
                   tableLayout="auto"
-                  stickyLeftColumns={3}
+                  stickyLeftColumns={2}
                   totalRows={totalRows}
                   page={paginate.page}
                   perpage={paginate.perpage}

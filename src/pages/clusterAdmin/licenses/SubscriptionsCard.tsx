@@ -40,7 +40,7 @@ export function SubscriptionsCard({
     .sort((a, b) => Date.parse(a.end_date) - Date.parse(b.end_date))
     .map((sub) => {
       const bu = buByCode.get(sub.bu_code);
-      const buLabel = sub.bu_code || sub.bu_name || t('pages.clusterAdmin.unnamed');
+      const buLabel = sub.bu_name || sub.bu_code || t('pages.clusterAdmin.unnamed');
       // ไม่พบ BU ในรายชื่อ (ข้อมูลผิดรูปจากยุคก่อน migration: bu_code ว่าง) = แถวไม่เป็นลิงก์
       const href = bu ? `/cluster-admin/${clusterId}/business-units/${bu.id}/edit?tab=licenses` : undefined;
       return {
@@ -71,7 +71,7 @@ export function SubscriptionsCard({
         ),
         href,
         ariaLabel: t('pages.clusterAdmin.openBusinessUnitLicences', { name: bu?.name || buLabel }),
-        group: { key: sub.bu_code || sub.bu_name || '?', label: sub.bu_name ? `${buLabel} · ${sub.bu_name}` : buLabel },
+        group: { key: sub.bu_code || sub.bu_name || '?', label: sub.bu_name && sub.bu_code ? `${sub.bu_name} (${sub.bu_code})` : buLabel },
       };
     });
 
