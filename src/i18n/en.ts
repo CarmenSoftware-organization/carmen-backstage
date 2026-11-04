@@ -5073,8 +5073,7 @@ export const en = {
       manage: 'Manage',
       subscriptionCardDescription: 'License subscriptions for this cluster',
       // สรุปหนึ่งบรรทัดใต้เลขที่สัญญา — เดิมต่อสตริงและปั้น 's' ตอนรัน
-      subscriptionSummary: 'Expires {{date}} · {{count}} feature · {{used}}/{{cap}} seats',
-      subscriptionSummaryPlural: 'Expires {{date}} · {{count}} features · {{used}}/{{cap}} seats',
+      subscriptionSummary: 'Expires {{date}} · {{used}}/{{cap}} seats',
     },
     // ── slice 6: Report Templates ──
     // สองหน้าของฟีเจอร์เดียวกัน แยก namespace ตามหน้าเหมือน slice ก่อน ๆ

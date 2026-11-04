@@ -85,17 +85,32 @@ describe('SubscriptionCard — query shape', () => {
 });
 
 describe('SubscriptionCard — has data', () => {
-  it('shows the subscription number, its BU, backend state badge, expiry, and feature/seat counts', async () => {
-    asMock(subscriptionService.getAll).mockResolvedValue(listResponse([sub()]));
+  it('shows the subscription number, its BU, backend state badge, expiry, modules and seat counts', async () => {
+    asMock(subscriptionService.getAll).mockResolvedValue(listResponse([sub({
+      groups: [
+        { id: 'g1', code: 'INV', name: 'Inventory' },
+        { id: 'g2', code: 'PUR', name: 'Purchasing' },
+      ],
+    })]));
     renderCard();
 
     expect(await screen.findByText('SUB-2026-001')).toBeInTheDocument();
     expect(screen.getByText('active')).toBeInTheDocument();
     expect(screen.getByText(/Expires 2026-12-31/)).toBeInTheDocument();
-    expect(screen.getByText(/3 features/)).toBeInTheDocument();
+    // โมดูลแทนยอด feature — ยอด feature ต้องไม่โผล่เมื่อ backend ส่ง groups มา
+    expect(screen.getByText('INV')).toHaveAttribute('title', 'Inventory');
+    expect(screen.getByText('PUR')).toBeInTheDocument();
+    expect(screen.queryByText(/features?/)).not.toBeInTheDocument();
     // ป้าย BU แทนตัวนับ — หนึ่งใบผูก BU เดียว ตัวนับจึงเป็น 1 ตลอดกาลและไม่บอกอะไร
     expect(screen.getByText('Acme BU')).toBeInTheDocument();
     expect(screen.getByText(/8\/20 seats/)).toBeInTheDocument();
+  });
+
+  it('falls back to the feature count when the backend does not send groups yet', async () => {
+    asMock(subscriptionService.getAll).mockResolvedValue(listResponse([sub()]));
+    renderCard();
+
+    expect(await screen.findByText(/3 features/)).toBeInTheDocument();
   });
 
   it('renders row state as-is from the backend, never recomputed (expired state on an "active" status row)', async () => {

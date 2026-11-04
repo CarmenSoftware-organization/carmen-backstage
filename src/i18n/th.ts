@@ -3888,8 +3888,7 @@ export const th: Translations = {
       createSubscription: 'สร้างสัญญา',
       manage: 'จัดการ',
       subscriptionCardDescription: 'สัญญาไลเซนส์ของ Cluster นี้',
-      subscriptionSummary: 'หมดอายุ {{date}} · {{count}} ฟีเจอร์ · {{used}}/{{cap}} ที่นั่ง',
-      subscriptionSummaryPlural: 'หมดอายุ {{date}} · {{count}} ฟีเจอร์ · {{used}}/{{cap}} ที่นั่ง',
+      subscriptionSummary: 'หมดอายุ {{date}} · {{used}}/{{cap}} ที่นั่ง',
     },
     reportTemplates: {
       importDialog: {

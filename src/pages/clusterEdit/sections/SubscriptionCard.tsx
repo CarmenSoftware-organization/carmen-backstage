@@ -129,20 +129,25 @@ export function SubscriptionCard({ clusterId, embedded = false }: SubscriptionCa
                 </Badge>
               </div>
               <p className="text-muted-foreground text-xs">
-                {(sub.feature_count === 1
-                  ? t('pages.clusters.subscriptionSummary', {
-                      date: fmtDate(sub.end_date),
-                      count: sub.feature_count,
-                      used: seats.used,
-                      cap: seats.cap,
-                    })
-                  : t('pages.clusters.subscriptionSummaryPlural', {
-                      date: fmtDate(sub.end_date),
-                      count: sub.feature_count,
-                      used: seats.used,
-                      cap: seats.cap,
-                    }))}
+                {t('pages.clusters.subscriptionSummary', {
+                  date: fmtDate(sub.end_date),
+                  used: seats.used,
+                  cap: seats.cap,
+                })}
+                {/* ไม่มีฟิลด์ groups = backend ยังไม่ส่ง จึงถอยไปบอกยอด feature แทนช่องว่างที่ดูเหมือน "ไม่มีโมดูล" */}
+                {!sub.groups && <> · {t('pages.licenseFeatureGroups.featuresOnly', { count: sub.feature_count })}</>}
               </p>
+              {/* โมดูลคือสิ่งที่ขายจริง — ยอด feature (เช่น "98 features") บอกไม่ได้ว่าใบนี้ได้อะไร
+                  (ผู้ใช้เคาะ 2026-11-04 ตรงกับ SubscriptionsCard ฝั่ง cluster-admin) */}
+              {sub.groups && sub.groups.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {sub.groups.map((g) => (
+                    <Badge key={g.id} variant="outline" title={g.name} className="font-mono text-[11px] font-normal">
+                      {g.code}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
             <Button
               variant="outline"
