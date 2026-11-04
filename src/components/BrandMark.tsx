@@ -13,10 +13,14 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 const BU_CODE_PREFIX = /^BU-/i;
 
 /**
- * Two-character identity token. The code wins over the name because a code is already the short
- * form people scan a list for ("ACME"); a name still has to be abbreviated to get there.
+ * Identity token of up to three characters. A non-empty alias (business units only) wins and is
+ * capped at 3 — legacy rows may still hold up to 10. Otherwise the code wins over the name (two
+ * characters) because a code is already the short form people scan a list for ("ACME"); a name
+ * still has to be abbreviated to get there.
  */
-export const brandInitials = (name?: string, code?: string): string => {
+export const brandInitials = (name?: string, code?: string, alias?: string | null): string => {
+  const fromAlias = (alias ?? '').trim();
+  if (fromAlias) return fromAlias.slice(0, 3).toUpperCase();
   const fromCode = (code ?? '').replace(BU_CODE_PREFIX, '').replace(/[^A-Za-z0-9]/g, '');
   if (fromCode) return fromCode.slice(0, 2).toUpperCase();
   const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
@@ -33,11 +37,21 @@ const SIZES: Record<BrandMarkSize, { box: string; text: string; radius: string }
   lg: { box: 'h-20 w-20', text: 'text-xl', radius: 'rounded-xl' },     // branding card
 };
 
+// One step smaller per size, used when the token is 3 characters so it fits the box.
+const SIZES_LONG: Record<BrandMarkSize, string> = {
+  xs: 'text-[8px]',
+  sm: 'text-xs',
+  md: 'text-sm',
+  lg: 'text-lg',
+};
+
 interface BrandMarkProps {
   /** Entity name — an initials source only; never rendered as text. */
   name?: string;
   /** Entity code — the preferred initials source. */
   code?: string;
+  /** Business-unit alias — wins over code/name for the initials when non-empty. */
+  alias?: string | null;
   /** Presigned branding image. A missing, expired, or broken URL falls back to the initials. */
   src?: string;
   size?: BrandMarkSize;
@@ -57,6 +71,7 @@ interface BrandMarkProps {
 export const BrandMark = ({
   name,
   code,
+  alias,
   src,
   size = 'xs',
   shape = 'square',
@@ -64,6 +79,7 @@ export const BrandMark = ({
   className,
 }: BrandMarkProps) => {
   const { box, text, radius: squareRadius } = SIZES[size];
+  const initials = brandInitials(name, code, alias);
   const radius = shape === 'circle' ? 'rounded-full' : squareRadius;
 
   return (
@@ -78,13 +94,13 @@ export const BrandMark = ({
         className={cn(
           'font-semibold tracking-tight',
           radius,
-          text,
+          initials.length >= 3 ? SIZES_LONG[size] : text,
           tone === 'primary'
             ? 'bg-primary text-primary-foreground'
             : 'bg-muted text-muted-foreground',
         )}
       >
-        {brandInitials(name, code)}
+        {initials}
       </AvatarFallback>
     </Avatar>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useGlobalShortcuts } from '../components/KeyboardShortcuts';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
 import businessUnitService from '../services/businessUnitService';
@@ -27,6 +27,9 @@ import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/
 import { UNRESOLVED_CLUSTER_ID } from '../utils/permissions';
 import { BrandMark } from '../components/BrandMark';
 import { BuSummary } from './businessUnitManagement/BuSummary';
+import { AliasConflictBanner } from './businessUnitManagement/AliasConflictBanner';
+import { useAliasConflicts } from './businessUnitManagement/aliasConflicts';
+import { aliasConflictColumns } from './businessUnitManagement/aliasConflictColumns';
 import { auditColumns } from '../components/auditColumns';
 import { AuditMeta } from '../components/AuditMeta';
 import { normalizeAudit, auditCsvFields } from '../utils/audit';
@@ -49,6 +52,10 @@ const BusinessUnitManagement: React.FC = () => {
   const { t } = useI18n();
   const navigate = useNavigate();
   const activityTrail = useRowActivityTrail();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { conflicts: aliasConflicts, loading: aliasConflictsLoading } = useAliasConflicts();
+  // `?alias=conflicts` คือสถานะ active ของตัวกรอง — อยู่ใน URL เพื่อให้ลิงก์/รีเฟรชคงเดิม
+  const aliasActive = searchParams.get('alias') === 'conflicts' && aliasConflicts.length > 0;
   const [businessUnits, setBusinessUnits] = useState<BusinessUnit[]>([]);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -267,6 +274,27 @@ const BusinessUnitManagement: React.FC = () => {
     toast.success(t('toast.exported'));
   };
 
+  const setAliasFilter = useCallback((on: boolean) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (on) next.set('alias', 'conflicts');
+      else next.delete('alias');
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  // conflicts หมด (แก้ครบแล้ว) → ไม่ทิ้ง param ค้างไว้ใน URL; รอโหลดเสร็จก่อน ไม่งั้นลบทิ้งตอน list ยังว่าง
+  useEffect(() => {
+    if (!aliasConflictsLoading && aliasConflicts.length === 0 && searchParams.has('alias')) {
+      setAliasFilter(false);
+    }
+  }, [aliasConflictsLoading, aliasConflicts.length, searchParams, setAliasFilter]);
+
+  const aliasColumns = useMemo(
+    () => aliasConflictColumns(t, (c) => `/business-units/${c.id}/edit`),
+    [t],
+  );
+
   const columns = useMemo<ColumnDef<BusinessUnit, unknown>[]>(() => {
     const [createdColumn, updatedColumn] = auditColumns<BusinessUnit>({ t });
     return [
@@ -280,6 +308,7 @@ const BusinessUnitManagement: React.FC = () => {
             src={row.original.avatar?.url}
             name={row.original.name}
             code={row.original.code}
+            alias={row.original.alias_name}
           />
           <div className="min-w-0">
             <Link
@@ -420,6 +449,21 @@ const BusinessUnitManagement: React.FC = () => {
 
         <BuSummary summary={summary} loading={summaryLoading} error={summaryError} onRetry={loadSummary} />
 
+        <AliasConflictBanner
+          count={aliasConflicts.length}
+          active={aliasActive}
+          onToggle={() => setAliasFilter(!aliasActive)}
+        />
+
+        {aliasActive && (
+          <Card>
+            <CardContent className="pt-6">
+              <DataTable columns={aliasColumns} data={aliasConflicts} tableLayout="auto" />
+            </CardContent>
+          </Card>
+        )}
+
+        {!aliasActive && (
         <Card>
           <CardHeader className="space-y-3">
             <div className="flex items-center gap-2">
@@ -574,6 +618,7 @@ const BusinessUnitManagement: React.FC = () => {
             ) : null}
           </CardContent>
         </Card>
+        )}
       </div>
 
       <ConfirmDialog

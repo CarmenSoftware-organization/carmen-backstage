@@ -270,7 +270,10 @@ const BusinessUnitEdit: React.FC = () => {
     setError('');
   };
   const handleInlineValidate = (name: string, value: string) => {
-    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value, aliasBound(name), t) }));
+    // An unchanged alias is never sent (see buildPayload), so a legacy value longer than the
+    // current 3-char rule must not light up an error the user did nothing to cause.
+    const unchangedAlias = name === 'alias_name' && value === savedFormData.alias_name;
+    setFieldErrors((prev) => ({ ...prev, [name]: unchangedAlias ? '' : validateField(name, value, aliasBound(name), t) }));
   };
 
   // One-way copy: hotel address -> company address. Goes through the same
@@ -513,6 +516,15 @@ const BusinessUnitEdit: React.FC = () => {
       }
     }
 
+    // alias_name: the backend re-checks the 3-char rule whenever it receives the field on update,
+    // so an unchanged (possibly legacy 10-char) alias must not be sent. A cleared one is sent as
+    // '' — the spread loop above drops empty strings — which the backend stores as NULL.
+    // On create there is no saved value, so only a non-empty alias is sent.
+    delete payload.alias_name;
+    if (data.alias_name !== savedFormData.alias_name && (!isNew || data.alias_name !== '')) {
+      payload.alias_name = data.alias_name;
+    }
+
     // Parse number format fields from JSON strings to objects
     for (const key of ['amount_format', 'quantity_format', 'recipe_format'] as const) {
       if (data[key]) {
@@ -560,9 +572,14 @@ const BusinessUnitEdit: React.FC = () => {
     // be a valid postgres identifier before Save goes through — onBlur alone only
     // renders the error, it never blocks submit.
     if (formData.db_schema) errs.db_schema = validateField('db_schema', formData.db_schema, undefined, t);
-    // alias_name is optional, but a non-empty value must be 1-10 alphanumerics. The inline
-    // field only renders its error on commit — it never blocks Save — so re-check it here.
-    if (formData.alias_name) errs.alias_name = validateField('alias_name', formData.alias_name, aliasBound('alias_name'), t);
+    // alias_name is optional, but a changed non-empty value must be 1-3 alphanumerics. The
+    // inline field only renders its error on commit — it never blocks Save — so re-check it
+    // here. An unchanged value is skipped: it is not sent, and a legacy row may hold up to 10.
+    if (formData.alias_name !== savedFormData.alias_name) {
+      errs.alias_name = formData.alias_name ? validateField('alias_name', formData.alias_name, aliasBound('alias_name'), t) : '';
+    } else {
+      errs.alias_name = '';
+    }
     const active = Object.fromEntries(Object.entries(errs).filter(([, v]) => v));
     setFieldErrors((prev) => ({ ...prev, ...errs }));
     if (Object.keys(active).length > 0) {
@@ -653,16 +670,25 @@ const BusinessUnitEdit: React.FC = () => {
         const status = (err as { response?: { status?: number } })?.response?.status;
         const code = (err as { response?: { data?: { error?: { code?: string } } } })?.response?.data?.error?.code;
         const isDuplicateName = status === 409 && code === 'BUSINESS_UNIT_ALREADY_EXISTS';
+        // BUSINESS_UNIT_ALIAS_TAKEN (409) is the same story for alias_name: another BU in the
+        // cluster already uses it. isVersionConflict() returns false for it (no "modified by
+        // another request" message), so it lands here and must never reach notifyVersionConflict.
+        const isAliasTaken = status === 409 && code === 'BUSINESS_UNIT_ALIAS_TAKEN';
         const { message, fields } = parseApiError(err, t);
         setFieldErrors((prev) => ({
           ...prev,
           ...fields,
           ...(isDuplicateName ? { name: t('pages.businessUnits.duplicateNameError') } : {}),
+          ...(isAliasTaken ? { alias_name: t('pages.businessUnits.aliasTakenError') } : {}),
         }));
         setError(
           t('toast.saveFailed', { entity: t('entity.businessUnit.lower') }) +
             ': ' +
-            (isDuplicateName ? t('pages.businessUnits.duplicateNameError') : message),
+            (isDuplicateName
+              ? t('pages.businessUnits.duplicateNameError')
+              : isAliasTaken
+                ? t('pages.businessUnits.aliasTakenError')
+                : message),
         );
       }
     } finally {
@@ -872,6 +898,7 @@ const BusinessUnitEdit: React.FC = () => {
                 editing={canEdit}
                 name={formData.name}
                 code={formData.code}
+                alias={formData.alias_name}
                 onUploadLogo={handleUploadLogo}
                 onUploadAvatar={handleUploadAvatar}
               />

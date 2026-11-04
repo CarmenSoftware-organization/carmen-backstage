@@ -11,11 +11,13 @@ interface BusinessUnitBrandingCardProps {
   name?: string;
   /** Business-unit code — preferred over the name for initials. */
   code?: string;
+  /** Business-unit alias — wins over code/name for the avatar initials. */
+  alias?: string | null;
   onUploadLogo: (f: File) => Promise<void>;
   onUploadAvatar: (f: File) => Promise<void>;
 }
 
-const BusinessUnitBrandingCard: React.FC<BusinessUnitBrandingCardProps> = ({ logoUrl, avatarUrl, editing, name, code, onUploadLogo, onUploadAvatar }) => {
+const BusinessUnitBrandingCard: React.FC<BusinessUnitBrandingCardProps> = ({ logoUrl, avatarUrl, editing, name, code, alias, onUploadLogo, onUploadAvatar }) => {
   const { t } = useI18n();
   return (
   <Card>
@@ -38,6 +40,7 @@ const BusinessUnitBrandingCard: React.FC<BusinessUnitBrandingCardProps> = ({ log
         shape="square"
         fallbackName={name}
         fallbackCode={code}
+        fallbackAlias={alias}
         onUpload={onUploadAvatar}
       />
     </CardContent>

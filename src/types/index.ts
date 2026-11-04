@@ -165,6 +165,19 @@ export interface PresignedImage {
   expires_at?: string;
 }
 
+/** แถวจาก `GET /api-system/business-units/alias-conflicts` — snake_case เพราะเป็น wire type */
+export interface BuAliasConflict {
+  id: string;
+  name: string;
+  code: string;
+  cluster_id: string;
+  cluster_name: string;
+  alias_name: string;
+  reason: 'too_long' | 'duplicate';
+  truncated_to: string | null;
+  conflicts_with: { id: string; name: string; alias_name: string }[];
+}
+
 export interface BusinessUnit {
   id: string;
   cluster_id?: string;

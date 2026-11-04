@@ -40,9 +40,9 @@ import type { TKey } from '../../i18n/types';
 
 /**
  * ฟิลด์ที่ API ไม่ยอมให้ล้างค่า — ตรวจกับ BusinessUnitUpdateDto บน swagger 2026-08-19:
- *   name, alias_name → minLength: 3   ·   hotel_email, company_email → format: email
+ *   name → minLength: 3   ·   hotel_email, company_email → format: email
  * ส่ง '' ไปจะได้ 400 ไม่ใช่การล้างค่า จึงต้องกันที่ UI ไม่ใช่ปล่อยให้ผู้ใช้ไปเจอ error
- * จาก backend การที่ API ล้าง alias/email ไม่ได้เป็นช่องว่างฝั่ง backend ที่ยังไม่แก้
+ * จาก backend (alias_name ถอดออกแล้ว: backend รับ '' เป็นการล้าง เก็บเป็น NULL)
  */
 // Holds i18n KEYS, not the user-visible strings themselves — a module-scope const cannot
 // call `t()`, so `name`'s "Name is required" message (identical to validateRequired's own
@@ -55,8 +55,7 @@ import type { TKey } from '../../i18n/types';
 // second list — is what guarantees every key here has a TKey. NOT_CLEARABLE_FIELDS below is
 // derived from this map's own keys instead of being a separately hand-typed array, so the
 // two cannot drift: adding, removing, or renaming a field here changes the guard loop too.
-const NOT_CLEARABLE_KEYS: Record<'alias_name' | 'hotel_email' | 'company_email', TKey> = {
-  alias_name: 'pages.clusterAdmin.aliasCannotBeCleared',
+const NOT_CLEARABLE_KEYS: Record<'hotel_email' | 'company_email', TKey> = {
   hotel_email: 'pages.clusterAdmin.hotelEmailCannotBeCleared',
   company_email: 'pages.clusterAdmin.companyEmailCannotBeCleared',
 };
@@ -363,7 +362,10 @@ const BusinessUnitForm: React.FC = () => {
     setError('');
   };
   const handleInlineValidate = (name: string, value: string) => {
-    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value, aliasBound(name), t) }));
+    // An unchanged alias is never sent (see buildPayload), so a legacy value longer than the
+    // current 3-char rule must not light up an error the user did nothing to cause.
+    const unchangedAlias = name === 'alias_name' && value === savedFormData.alias_name;
+    setFieldErrors((prev) => ({ ...prev, [name]: unchangedAlias ? '' : validateField(name, value, aliasBound(name), t) }));
   };
 
   // One-way copy: hotel address -> company address, same as the platform page.
@@ -426,6 +428,14 @@ const BusinessUnitForm: React.FC = () => {
     // alphanumeric characters" still showing under the field) — Save must not fire while one
     // of those is on screen, even when this pass finds nothing new wrong. `errs` wins over a
     // stale entry for the same key since it is the freshest check.
+    // alias_name is optional and clearable: a changed non-empty value must be 1-3 alphanumerics
+    // (the inline commit only renders the error, it never blocks Save). An unchanged value is
+    // skipped — it is not sent, and a legacy row may hold up to 10 characters.
+    if (formData.alias_name !== savedFormData.alias_name) {
+      errs.alias_name = formData.alias_name ? validateField('alias_name', formData.alias_name, aliasBound('alias_name'), t) : '';
+    } else {
+      errs.alias_name = '';
+    }
     const combined: Record<string, string> = { ...fieldErrors, ...errs };
     const active = Object.fromEntries(Object.entries(combined).filter(([, v]) => v));
     setFieldErrors((prev) => ({ ...prev, ...errs }));
@@ -458,6 +468,9 @@ const BusinessUnitForm: React.FC = () => {
     const changedSet = new Set<string>(changed as string[]);
     const payload: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(data)) {
+      // An unchanged alias must not be sent: the backend re-checks the 3-char rule whenever the
+      // field is present, which would 400 a legacy 10-char alias on an unrelated edit.
+      if (key === 'alias_name' && !changedSet.has(key)) continue;
       if (
         key === 'cluster_id' ||
         key === 'database_pool_id' ||
@@ -502,9 +515,17 @@ const BusinessUnitForm: React.FC = () => {
         notifyVersionConflict(t);
         await fetchBusinessUnit();
       } else {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        const code = (err as { response?: { data?: { error?: { code?: string } } } })?.response?.data?.error?.code;
+        // BUSINESS_UNIT_ALIAS_TAKEN (409): the message names no field, so route it onto alias_name
+        // by hand. isVersionConflict() above is false for it, so notifyVersionConflict never fires.
+        const isAliasTaken = status === 409 && code === 'BUSINESS_UNIT_ALIAS_TAKEN';
         const { message, fields } = parseApiError(err, t);
-        toast.error(t('pages.clusterAdmin.updateFailed'), { description: message });
-        if (fields) setFieldErrors(fields);
+        const aliasTakenMessage = t('pages.businessUnits.aliasTakenError');
+        toast.error(t('pages.clusterAdmin.updateFailed'), { description: isAliasTaken ? aliasTakenMessage : message });
+        if (fields || isAliasTaken) {
+          setFieldErrors((prev) => ({ ...prev, ...fields, ...(isAliasTaken ? { alias_name: aliasTakenMessage } : {}) }));
+        }
       }
     } finally {
       setSaving(false);

@@ -184,6 +184,7 @@ export function ClusterBuDocument({
                   shape="square"
                   fallbackName={f.name}
                   fallbackCode={f.code}
+                  fallbackAlias={f.alias_name}
                   onUpload={onUploadAvatar}
                 />
               </div>

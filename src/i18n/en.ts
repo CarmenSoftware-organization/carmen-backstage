@@ -2442,7 +2442,6 @@ export const en = {
       // verbatim from the sibling keys.
       overLimitBadge: 'Over limit',
       overLimitTitle: 'Quota {{cap}} · this unit ranks {{rank}}',
-      aliasCannotBeCleared: 'Alias cannot be cleared',
       hotelEmailCannotBeCleared: 'Hotel email cannot be cleared',
       companyEmailCannotBeCleared: 'Company email cannot be cleared',
       // Byte-identical to pages.broadcasts.fixHighlightedFields (2 files / 2 slices — below
@@ -2856,6 +2855,16 @@ export const en = {
     // sentence (vs pages.users.activeInactiveSummary), and the seat/license two-axis
     // pluralization templates (vs pages.licenses.seatFromLicense*).
     businessUnits: {
+      aliasConflicts: {
+        bannerOne: '{{count}} BU has an alias that needs fixing (longer than 3 characters, or duplicated in the cluster)',
+        bannerMany: '{{count}} BUs have an alias that needs fixing (longer than 3 characters, or duplicated in the cluster)',
+        view: 'View list',
+        showAll: 'Show all',
+        reasonColumn: 'Needs fixing because',
+        trimmedClash: 'Trimmed to {{truncated}}, clashes with {{names}}',
+        tooLong: 'Longer than 3 characters',
+        duplicate: 'Same as {{names}}',
+      },
       // BusinessUnitEdit.tsx's Users-tab label and BusinessUnitUsersCard.tsx's CardTitle are
       // the one string that recurs across 2 of this slice's 18 files. NOT a reuse of
       // nav.users / breadcrumb.users ('Users') despite the byte match — pages.clusterAdmin.
@@ -3059,6 +3068,7 @@ export const en = {
       // string for the banner, instead of the raw backend sentence, so the fix reads as
       // actionable rather than a bare fact.
       duplicateNameError: 'A business unit with this name already exists in this cluster.',
+      aliasTakenError: 'Another business unit in this cluster already uses this alias',
 
       // --- Task 4: BusinessUnitBrandingCard.tsx ---
       brandingDescription: 'Logo and avatar shown across Carmen Blue',

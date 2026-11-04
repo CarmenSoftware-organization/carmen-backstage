@@ -207,7 +207,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
                 // กติกาตัวย่อเดียวกับช่อง Avatar ในการ์ด Branding (brandInitials: code ก่อน name) —
                 // เดิมตรงนี้หยิบตัวแรกของ name ได้ "B" ขณะที่ Branding ข้างล่างแสดง "DE" ของ BU เดียวกัน
                 <div className="bg-primary/90 grid size-10 place-items-center rounded-full text-sm font-bold text-white">
-                  {brandInitials(f.name, f.code)}
+                  {brandInitials(f.name, f.code, f.alias_name)}
                 </div>
               )
             )}
