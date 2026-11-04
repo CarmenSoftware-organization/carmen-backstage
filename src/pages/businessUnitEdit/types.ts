@@ -14,10 +14,12 @@ export const BU_ROLES = ['admin', 'user'] as const;
  * through to the database, which then rejected it with a raw driver error.
  */
 export const BU_ALIAS_MAX = 10;
+/** A business unit's alias is mandatory — at least one character (user decision 2026-11-04). */
+export const BU_ALIAS_MIN = 1;
 
 /** `validateField` options for a business-unit field: bounds `alias_name`, ignores everything else. */
-export const aliasBound = (name: string): { maxLength: number } | undefined =>
-  name === 'alias_name' ? { maxLength: BU_ALIAS_MAX } : undefined;
+export const aliasBound = (name: string): { minLength: number; maxLength: number } | undefined =>
+  name === 'alias_name' ? { minLength: BU_ALIAS_MIN, maxLength: BU_ALIAS_MAX } : undefined;
 
 export interface ClusterUser {
   user_id: string;

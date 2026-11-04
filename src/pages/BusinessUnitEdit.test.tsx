@@ -88,7 +88,7 @@ const goToTab = async (user: ReturnType<typeof userEvent.setup>, name: RegExp) =
 };
 
 const fakeBu = {
-  id: 'bu1', cluster_id: 'c1', code: 'BU1', name: 'Test BU',
+  id: 'bu1', cluster_id: 'c1', code: 'BU1', name: 'Test BU', alias_name: 'TBU',
   is_active: true, is_hq: false, config: [], users: [],
 };
 
@@ -161,12 +161,16 @@ describe('BusinessUnitEdit (one-document)', () => {
     await user.click(await screen.findByRole('button', { name: /unnamed business unit/i }));
     await user.type(screen.getByRole('textbox', { name: /business unit name/i }), 'New BU');
     await user.tab();
+    // alias_name is mandatory (BU_ALIAS_MIN = 1) — Create is blocked until it has a value.
+    await user.click(await screen.findByRole('button', { name: /set alias/i }));
+    await user.type(screen.getByRole('textbox', { name: /^alias$/i }), 'NB');
+    await user.tab();
 
     await user.click(await screen.findByRole('button', { name: /create business unit/i }));
 
     expect(businessUnitService.create).toHaveBeenCalledTimes(1);
     expect(asMock(businessUnitService.create).mock.calls[0][0]).toMatchObject({
-      name: 'New BU', cluster_id: 'c1',
+      name: 'New BU', cluster_id: 'c1', alias_name: 'NB',
     });
     // code ไม่อยู่ใน payload อีกแล้ว — แพลตฟอร์มเป็นคนตั้งให้ตอนสร้าง
     expect(asMock(businessUnitService.create).mock.calls[0][0]).not.toHaveProperty('code');

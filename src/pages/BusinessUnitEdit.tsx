@@ -560,6 +560,9 @@ const BusinessUnitEdit: React.FC = () => {
     // be a valid postgres identifier before Save goes through — onBlur alone only
     // renders the error, it never blocks submit.
     if (formData.db_schema) errs.db_schema = validateField('db_schema', formData.db_schema, undefined, t);
+    // alias_name is mandatory (BU_ALIAS_MIN = 1); the inline field only shows the error on
+    // commit, so Save must re-check it or a blank alias goes straight to the backend.
+    errs.alias_name = validateField('alias_name', formData.alias_name ?? '', aliasBound('alias_name'), t);
     const active = Object.fromEntries(Object.entries(errs).filter(([, v]) => v));
     setFieldErrors((prev) => ({ ...prev, ...errs }));
     if (Object.keys(active).length > 0) {

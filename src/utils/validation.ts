@@ -42,6 +42,13 @@ export interface ValidateFieldOptions {
    * behaviour — a caller that knows it is editing a business unit passes 10.
    */
   maxLength?: number;
+  /**
+   * Lower bound for length-limited fields. Only `alias_name` reads it today. When > 0 an
+   * empty value fails with the field's own message instead of passing under the
+   * "falsy passes" contract below — business units pass 1 (alias is mandatory there),
+   * clusters pass nothing and keep accepting a blank alias.
+   */
+  minLength?: number;
 }
 
 /**
@@ -89,6 +96,9 @@ export const validateField = (
   if (options?.required && !value?.trim()) {
     return tr('common.validation.requiredMessage', { label: options.label ?? tr('common.validation.fieldDefault') });
   }
+  if (name === 'alias_name' && (options?.minLength ?? 0) > 0 && !value?.trim()) {
+    return tr('common.validation.invalidAlias', { min: options?.minLength ?? 1, max: options?.maxLength ?? 3 });
+  }
   // Historical contract, unchanged for every existing call site: a falsy value passes.
   // A whitespace-only value still falls through to the switch, as it always has.
   if (!value) return '';
@@ -111,9 +121,10 @@ export const validateField = (
       // Default 3 = tb_cluster.alias_name's VarChar(3). Business units pass 10 — see
       // ValidateFieldOptions.maxLength for why one field name needs two bounds.
       const max = options?.maxLength ?? 3;
-      return new RegExp(`^[a-zA-Z0-9]{0,${max}}$`).test(value)
+      const min = options?.minLength ?? 0;
+      return new RegExp(`^[a-zA-Z0-9]{${min},${max}}$`).test(value)
         ? ''
-        : tr('common.validation.invalidAlias', { max });
+        : tr('common.validation.invalidAlias', { min: Math.max(min, 1), max });
     }
     case 'max_license_users':
       return /^\d+$/.test(value) && Number(value) >= 0 ? '' : tr('common.validation.nonNegativeInt');

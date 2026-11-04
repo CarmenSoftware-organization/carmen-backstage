@@ -650,7 +650,7 @@ export const en = {
       positiveInt: 'Must be a positive whole number',
       invalidSchema: 'Schema must start with a letter or underscore and contain only letters, numbers, and underscores',
       invalidSubNo: 'Subscription number must be 1-50 characters (letters, numbers, spaces, - _ . /)',
-      invalidAlias: 'Alias must be 1-{{max}} alphanumeric characters',
+      invalidAlias: 'Alias must be {{min}}-{{max}} alphanumeric characters',
       // Default field names, substituted when a caller passes no `label`. These are
       // user-visible strings that live inside a `??` mid-expression — easy to miss.
       //
