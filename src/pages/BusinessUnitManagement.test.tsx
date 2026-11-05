@@ -209,13 +209,22 @@ describe('BusinessUnitManagement — Add Business Unit gates (cluster.create)', 
 // Mirrors the clusters treatment: content-based layout, Code+Name single-line, and
 // three frozen left columns (#, Code, Name) (code is a muted second line in the Name cell).
 describe('BusinessUnitManagement — table fit-content & sticky', () => {
-  it('uses content-based (table-auto) layout and freezes two left columns', async () => {
+  it('uses content-based (table-auto) layout and freezes three left columns (select, #, Name) when the user can delete', async () => {
     const { container } = renderPage();
     await screen.findByText('Acme HQ');
 
     const table = container.querySelector('table');
     expect(table?.className).toContain('table-auto');
-    expect(table?.className).not.toContain('table-sticky-left-3');
+    expect(table?.className).toContain('table-sticky-left-3');
+  });
+
+  it('freezes two left columns and shows no checkboxes without cluster.delete', async () => {
+    auth.hasPermission = (perm) => perm !== 'cluster.delete';
+    const { container } = renderPage();
+    await screen.findByText('Acme HQ');
+
+    expect(container.querySelector('table')?.className).not.toContain('table-sticky-left-3');
+    expect(screen.queryByRole('checkbox')).toBeNull();
   });
 
   it('renders the Name link single-line without truncation', async () => {

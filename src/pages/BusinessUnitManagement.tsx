@@ -35,6 +35,11 @@ import { AuditMeta } from '../components/AuditMeta';
 import { normalizeAudit, auditCsvFields } from '../utils/audit';
 import { outOfRangePage, readStoredPerpage } from '../utils/pageRange';
 import { useI18n } from '../hooks/useI18n';
+import { useAuth } from '../context/AuthContext';
+import { BulkDeleteDialog, type BulkDeletePlan } from '../components/bulkDelete/BulkDeleteDialog';
+import { BulkSelectionBar } from '../components/bulkDelete/BulkSelectionBar';
+import { usePageSelection } from '../components/bulkDelete/usePageSelection';
+import { summarizeBulkDelete } from '../components/bulkDelete/summarizeBulkDelete';
 import type { BuSummaryData } from '../types';
 import type { BusinessUnit, PaginateParams } from '../types';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -241,6 +246,45 @@ const BusinessUnitManagement: React.FC = () => {
       toast.error(t('toast.deleteFailed', { entity: t('entity.businessUnit.lower') }), { description: getErrorDetail(err, t) });
     }
   };
+
+  // ลบ BU ใช้สิทธิ์ cluster.delete (ตรงกับเมนูแถว ซึ่งตรวจแบบผูก cluster_id) — checkbox ตรวจแบบรวม
+  const { hasPermission } = useAuth();
+  const canBulkDelete = hasPermission('cluster.delete');
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const selection = usePageSelection<BusinessUnit>(
+    [paginate.page, paginate.perpage, paginate.search, paginate.sort, paginate.advance].join('|'),
+  );
+
+  const bulkPlan = useMemo<BulkDeletePlan>(() => {
+    const plan: BulkDeletePlan = { deletable: [], skipped: [] };
+    for (const bu of selection.selected) {
+      const row = { id: bu.id, label: bu.name || bu.code || bu.id, sub: bu.code };
+      if (bu.deleted_at) plan.skipped.push({ ...row, reason: t('common.bulk.skipDeleted') });
+      else plan.deletable.push(row);
+    }
+    return plan;
+  }, [selection.selected, t]);
+
+  const handleConfirmBulkDelete = async () => {
+    const results = await Promise.allSettled(bulkPlan.deletable.map((r) => businessUnitService.delete(r.id)));
+    const ok = summarizeBulkDelete(results, {
+      allOk: (count) => t('pages.businessUnits.bulkDeleted', { count }),
+      allFailed: (count) => t('pages.businessUnits.bulkDeleteFailed', { count }),
+      partial: (okCount, fail) => t('common.bulk.partial', { ok: okCount, fail }),
+      detail: (err) => getErrorDetail(err, t),
+    });
+    setBulkOpen(false);
+    selection.clear();
+    if (ok > 0) {
+      setPaginate(prev => ({ ...prev }));
+      loadSummary();
+    }
+  };
+
+  const rowSelectionLabel = useCallback(
+    (bu: BusinessUnit) => t('common.bulk.selectRow', { name: bu.name || bu.code || '' }),
+    [t],
+  );
 
   const handleExport = () => {
     // `max_license_users` dropped (Task 3.5) — this list endpoint has no per-row seat total to
@@ -586,12 +630,21 @@ const BusinessUnitManagement: React.FC = () => {
                 }
               />
             ) : !error ? (
+              <>
+              {canBulkDelete && (
+                <BulkSelectionBar
+                  count={selection.selected.length}
+                  skippedCount={bulkPlan.skipped.length}
+                  onDelete={() => setBulkOpen(true)}
+                  onClear={selection.clear}
+                />
+              )}
               <div className="relative">
                 {loading && businessUnits.length === 0 ? (
                   // +1 accounts for the `#` row-index column DataTable always prepends,
                   // so the skeleton matches the loaded table's actual header count
                   // (including the conditional Deleted column when showDeleted is on).
-                  <TableSkeleton columns={columns.length + 1} rows={paginate.perpage || 5} />
+                  <TableSkeleton columns={columns.length + (canBulkDelete ? 2 : 1)} rows={paginate.perpage || 5} />
                 ) : (
                 <>
                 {loading && (
@@ -604,17 +657,23 @@ const BusinessUnitManagement: React.FC = () => {
                   data={businessUnits}
                   serverSide
                   tableLayout="auto"
-                  stickyLeftColumns={2}
+                  stickyLeftColumns={canBulkDelete ? 3 : 2}
                   totalRows={totalRows}
                   page={paginate.page}
                   perpage={paginate.perpage}
                   onPaginateChange={handlePaginateChange}
                   onSortChange={handleSortChange}
                   defaultSort={{ id: 'created_at', desc: true }}
+                  enableRowSelection={canBulkDelete}
+                  getRowId={(row) => row.id}
+                  onSelectionChange={selection.onSelectionChange}
+                  selectionResetKey={selection.resetKey}
+                  getRowSelectionLabel={rowSelectionLabel}
                 />
                 </>
                 )}
               </div>
+              </>
             ) : null}
           </CardContent>
         </Card>
@@ -629,6 +688,15 @@ const BusinessUnitManagement: React.FC = () => {
         confirmText={t('common.action.delete')}
         confirmVariant="destructive"
         onConfirm={handleConfirmDelete}
+      />
+
+      <BulkDeleteDialog
+        open={bulkOpen}
+        plan={bulkPlan}
+        title={t('pages.businessUnits.bulkDeleteTitle', { count: bulkPlan.deletable.length })}
+        description={t('pages.businessUnits.bulkDeleteDescription')}
+        onOpenChange={setBulkOpen}
+        onConfirm={handleConfirmBulkDelete}
       />
 
       <ActivityTrailSheet

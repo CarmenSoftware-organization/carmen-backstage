@@ -302,6 +302,17 @@ export const en = {
     // namespace name now carries the rule: an implementer looking for "Updating..." should
     // check here first.
     notAvailable: 'N/A',
+    // ── เลือกหลายแถวแล้วลบ (components/bulkDelete/) ──
+    bulk: {
+      barAria: 'Bulk actions for selected rows',
+      selectRow: 'Select {{name}}',
+      willDelete: 'Items to delete',
+      skipped: '{{count}} will be skipped',
+      skipDeleted: 'Already deleted',
+      nothingDeletable: 'None of the selected items can be deleted.',
+      confirm: 'Delete {{count}}',
+      partial: 'Deleted {{ok}}, {{fail}} failed',
+    },
     busy: {
       saving: 'Saving...',
       // Distinct from `saving` above by ellipsis form (…, U+2026 vs ASCII '...'), same
@@ -2903,6 +2914,10 @@ export const en = {
       deletedByName: 'Deleted by {{name}}',
       deleteTitle: 'Delete Business Unit',
       deleteConfirm: 'Are you sure you want to delete this business unit? This action cannot be undone.',
+      bulkDeleteTitle: 'Delete {{count}} business unit(s)',
+      bulkDeleteDescription: 'The business units below will be deleted. This action cannot be undone.',
+      bulkDeleted: 'Deleted {{count}} business unit(s)',
+      bulkDeleteFailed: 'Failed to delete {{count}} business unit(s)',
 
       // --- Task 2: BuSummary.tsx ---
       // Promotion signal vs pages.clusterAdmin.overview (2 files / 2 slices).
@@ -4979,20 +4994,12 @@ export const en = {
       // แยกเอกพจน์/พหูพจน์ที่ call site เพราะ catalog ไม่มีระบบพหูพจน์ (ไทยไม่ผันตามจำนวน)
       stillHasBu: 'It still has {{count}} business unit. Delete or move them to another cluster first.',
       stillHasBus: 'It still has {{count}} business units. Delete or move them to another cluster first.',
-      // ── bulk delete (เลือกหลายแถว) ──
-      selectRow: 'Select {{name}}',
-      bulkBarAria: 'Bulk actions for selected clusters',
+      // ── bulk delete (เลือกหลายแถว) — ข้อความกลางอยู่ที่ common.bulk ──
       bulkDeleteTitle: 'Delete {{count}} cluster(s)',
-      bulkDeleteConfirm: 'Delete {{count}}',
       bulkDeleteDescription: 'The clusters below will be deleted. This action cannot be undone.',
-      bulkNothingDeletable: 'None of the selected clusters can be deleted.',
-      bulkWillDelete: 'Clusters to delete',
-      bulkSkipped: '{{count}} will be skipped',
       bulkSkipHasBus: 'Has {{count}} BU',
-      bulkSkipDeleted: 'Already deleted',
       bulkDeleted: 'Deleted {{count}} cluster(s)',
       bulkDeleteFailed: 'Failed to delete {{count}} cluster(s)',
-      bulkPartial: 'Deleted {{ok}}, {{fail}} failed',
       // ── ClusterEdit + clusterManagement/ClusterCreateForm + clusterEdit/* ──
       identity: 'Identity',
       codePlaceholder: 'Cluster code',
