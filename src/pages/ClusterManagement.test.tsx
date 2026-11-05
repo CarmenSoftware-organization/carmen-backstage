@@ -228,11 +228,20 @@ describe('ClusterManagement — table fit-content', () => {
     expect(container.querySelector('table')?.className).toContain('table-auto');
   });
 
-  it('freezes two left columns (#, Name)', async () => {
+  it('freezes three left columns (select, #, Name) when the user can delete', async () => {
+    const { container } = renderPage();
+    await screen.findByText('Acme Hotels');
+
+    expect(container.querySelector('table')?.className).toContain('table-sticky-left-3');
+  });
+
+  it('freezes two left columns (#, Name) and shows no checkboxes without cluster.delete', async () => {
+    auth.hasPermission = (perm) => perm !== 'cluster.delete';
     const { container } = renderPage();
     await screen.findByText('Acme Hotels');
 
     expect(container.querySelector('table')?.className).not.toContain('table-sticky-left-3');
+    expect(screen.queryByRole('checkbox')).toBeNull();
   });
 
   it('renders the Name link single-line (whitespace-nowrap)', async () => {
