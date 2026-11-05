@@ -4979,6 +4979,20 @@ export const en = {
       // แยกเอกพจน์/พหูพจน์ที่ call site เพราะ catalog ไม่มีระบบพหูพจน์ (ไทยไม่ผันตามจำนวน)
       stillHasBu: 'It still has {{count}} business unit. Delete or move them to another cluster first.',
       stillHasBus: 'It still has {{count}} business units. Delete or move them to another cluster first.',
+      // ── bulk delete (เลือกหลายแถว) ──
+      selectRow: 'Select {{name}}',
+      bulkBarAria: 'Bulk actions for selected clusters',
+      bulkDeleteTitle: 'Delete {{count}} cluster(s)',
+      bulkDeleteConfirm: 'Delete {{count}}',
+      bulkDeleteDescription: 'The clusters below will be deleted. This action cannot be undone.',
+      bulkNothingDeletable: 'None of the selected clusters can be deleted.',
+      bulkWillDelete: 'Clusters to delete',
+      bulkSkipped: '{{count}} will be skipped',
+      bulkSkipHasBus: 'Has {{count}} BU',
+      bulkSkipDeleted: 'Already deleted',
+      bulkDeleted: 'Deleted {{count}} cluster(s)',
+      bulkDeleteFailed: 'Failed to delete {{count}} cluster(s)',
+      bulkPartial: 'Deleted {{ok}}, {{fail}} failed',
       // ── ClusterEdit + clusterManagement/ClusterCreateForm + clusterEdit/* ──
       identity: 'Identity',
       codePlaceholder: 'Cluster code',

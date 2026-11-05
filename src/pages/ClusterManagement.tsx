@@ -25,6 +25,8 @@ import { ActivityTrailSheet } from '../components/activityTrail/ActivityTrailShe
 import { useRowActivityTrail } from '../components/activityTrail/useRowActivityTrail';
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
 import { BrandMark } from '../components/BrandMark';
+import { useAuth } from '../context/AuthContext';
+import { BulkDeleteClustersDialog, planBulkDelete } from './clusterManagement/BulkDeleteClustersDialog';
 import { FleetCapacity } from './clusterManagement/FleetCapacity';
 import { CapacityMeter } from './clusterManagement/CapacityMeter';
 import { isPerpetual } from '../utils/clusterLicense';
@@ -131,6 +133,11 @@ const ClusterManagement: React.FC = () => {
   };
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { hasPermission } = useAuth();
+  const canBulkDelete = hasPermission('cluster.delete');
+  const [selectedClusters, setSelectedClusters] = useState<Cluster[]>([]);
+  const [selectionResetKey, setSelectionResetKey] = useState(0);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -313,6 +320,46 @@ const ClusterManagement: React.FC = () => {
       });
     }
   };
+
+  const handleSelectionChange = useCallback((rows: Cluster[]) => setSelectedClusters(rows), []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedClusters([]);
+    setSelectionResetKey((k) => k + 1);
+  }, []);
+
+  // เลือกได้เฉพาะหน้าปัจจุบัน: ผลลัพธ์เปลี่ยน (หน้า/ขนาดหน้า/ค้นหา/เรียง/ตัวกรอง) ต้องล้าง
+  // ไม่งั้น TanStack จำ id ข้ามการโหลด → แถวนอกหน้ายังถูกเลือกและโดนลบทั้งที่ไม่เห็นติ๊ก
+  useEffect(() => {
+    clearSelection();
+  }, [clearSelection, paginate.page, paginate.perpage, paginate.search, paginate.sort, paginate.advance]);
+
+  const bulkPlan = useMemo(() => planBulkDelete(selectedClusters), [selectedClusters]);
+
+  const handleConfirmBulkDelete = async () => {
+    const targets = bulkPlan.deletable;
+    const results = await Promise.allSettled(targets.map((c) => clusterService.delete(c.id)));
+    const ok = results.filter((r) => r.status === 'fulfilled').length;
+    const fail = results.length - ok;
+    if (fail === 0) toast.success(t('pages.clusters.bulkDeleted', { count: ok }));
+    else if (ok === 0) {
+      const firstErr = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+      toast.error(t('pages.clusters.bulkDeleteFailed', { count: fail }), {
+        description: firstErr ? getErrorDetail(firstErr.reason, t) : undefined,
+      });
+    } else toast.warning(t('pages.clusters.bulkPartial', { ok, fail }));
+    setBulkOpen(false);
+    clearSelection();
+    if (ok > 0) {
+      setPaginate(prev => ({ ...prev }));
+      loadFleet();
+    }
+  };
+
+  const rowSelectionLabel = useCallback(
+    (c: Cluster) => t('pages.clusters.selectRow', { name: c.name || c.code || '' }),
+    [t],
+  );
 
   const handleExport = () => {
     // ใบตลอดชีพ (sentinel ปี 2099) ต้องไม่โชว์ปี 2099 ในไฟล์ CSV เหมือนกับที่ตารางไม่โชว์ — ต้อง
@@ -664,12 +711,32 @@ const ClusterManagement: React.FC = () => {
                 }
               />
             ) : !error ? (
+              <>
+              {canBulkDelete && selectedClusters.length > 0 && (
+                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2" role="region" aria-label={t('pages.clusters.bulkBarAria')}>
+                  <span className="text-sm font-medium">{t('common.state.nSelected', { count: selectedClusters.length })}</span>
+                  {bulkPlan.skipped.length > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {t('pages.clusters.bulkSkipped', { count: bulkPlan.skipped.length })}
+                    </span>
+                  )}
+                  <div className="ml-auto flex items-center gap-2">
+                    <Button variant="destructive" size="sm" onClick={() => setBulkOpen(true)}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {t('common.action.delete')}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={clearSelection}>
+                      {t('common.action.clear')}
+                    </Button>
+                  </div>
+                </div>
+              )}
               <div className="relative">
                 {loading && clusters.length === 0 ? (
                   // +1 accounts for the `#` row-index column DataTable always prepends,
                   // so the skeleton matches the loaded table's actual header count
                   // (including the conditional Deleted column when showDeleted is on).
-                  <TableSkeleton columns={columns.length + 1} rows={paginate.perpage || 5} />
+                  <TableSkeleton columns={columns.length + (canBulkDelete ? 2 : 1)} rows={paginate.perpage || 5} />
                 ) : (
                 <>
                 {loading && (
@@ -682,17 +749,23 @@ const ClusterManagement: React.FC = () => {
                   data={clusters}
                   serverSide
                   tableLayout="auto"
-                  stickyLeftColumns={2}
+                  stickyLeftColumns={canBulkDelete ? 3 : 2}
                   totalRows={totalRows}
                   page={paginate.page}
                   perpage={paginate.perpage}
                   onPaginateChange={handlePaginateChange}
                   onSortChange={handleSortChange}
                   defaultSort={{ id: 'created_at', desc: true }}
+                  enableRowSelection={canBulkDelete}
+                  getRowId={(row) => row.id}
+                  onSelectionChange={handleSelectionChange}
+                  selectionResetKey={selectionResetKey}
+                  getRowSelectionLabel={rowSelectionLabel}
                 />
                 </>
                 )}
               </div>
+              </>
             ) : null}
           </CardContent>
         </Card>
@@ -706,6 +779,13 @@ const ClusterManagement: React.FC = () => {
         confirmText={t('common.action.delete')}
         confirmVariant="destructive"
         onConfirm={handleConfirmDelete}
+      />
+
+      <BulkDeleteClustersDialog
+        open={bulkOpen}
+        plan={bulkPlan}
+        onOpenChange={setBulkOpen}
+        onConfirm={handleConfirmBulkDelete}
       />
 
       {/* แผ่นตัวเดียวสำหรับทั้งตาราง — สลับ entityId ตามแถวที่เลือก
