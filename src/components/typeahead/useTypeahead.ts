@@ -70,6 +70,9 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
   const [, bump] = useReducer((n: number) => n + 1, 0);
 
   const openRef = useRef(false);
+  // What the host was last told via onOpenChange. Kept apart from openRef so the unmount cleanup can
+  // retract the report without forgetting that the dropdown is open (see the mount effect below).
+  const reportedOpenRef = useRef(false);
   const blockedRef = useRef(false);
   blockedRef.current = disabled || hidden;
   const onOpenChangeRef = useRef(onOpenChange);
@@ -85,15 +88,25 @@ export function useTypeahead<T>(opts: UseTypeaheadOptions<T>) {
     openRef.current = next;
     setOpenState(next);
     if (!next) setActiveKey(null);
+    reportedOpenRef.current = next;
     onOpenChangeRef.current?.(next);
   }, []);
 
-  // Unmounted while open: release the host's Escape guard
-  useEffect(() => () => {
-    if (openRef.current) {
-      openRef.current = false;
-      onOpenChangeRef.current?.(false);
+  // Unmounted while open: release the host's Escape guard.
+  // Remounted while open: report it again. StrictMode (dev) runs this cleanup between two mounts, after
+  // autoFocus has already opened the dropdown; resetting openRef there left `open` true while the host
+  // believed it closed, so pickers showed an expanded, empty list and never ran their search.
+  useEffect(() => {
+    if (openRef.current && !reportedOpenRef.current) {
+      reportedOpenRef.current = true;
+      onOpenChangeRef.current?.(true);
     }
+    return () => {
+      if (reportedOpenRef.current) {
+        reportedOpenRef.current = false;
+        onOpenChangeRef.current?.(false);
+      }
+    };
   }, []);
 
   // Became invisible while open (disabled, chip shown): report closed without waiting for a click or key
