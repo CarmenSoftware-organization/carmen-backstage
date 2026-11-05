@@ -26,7 +26,10 @@ import { useRowActivityTrail } from '../components/activityTrail/useRowActivityT
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
 import { BrandMark } from '../components/BrandMark';
 import { useAuth } from '../context/AuthContext';
-import { BulkDeleteClustersDialog, planBulkDelete } from './clusterManagement/BulkDeleteClustersDialog';
+import { BulkDeleteDialog, type BulkDeletePlan } from '../components/bulkDelete/BulkDeleteDialog';
+import { BulkSelectionBar } from '../components/bulkDelete/BulkSelectionBar';
+import { usePageSelection } from '../components/bulkDelete/usePageSelection';
+import { summarizeBulkDelete } from '../components/bulkDelete/summarizeBulkDelete';
 import { FleetCapacity } from './clusterManagement/FleetCapacity';
 import { CapacityMeter } from './clusterManagement/CapacityMeter';
 import { isPerpetual } from '../utils/clusterLicense';
@@ -135,8 +138,6 @@ const ClusterManagement: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { hasPermission } = useAuth();
   const canBulkDelete = hasPermission('cluster.delete');
-  const [selectedClusters, setSelectedClusters] = useState<Cluster[]>([]);
-  const [selectionResetKey, setSelectionResetKey] = useState(0);
   const [bulkOpen, setBulkOpen] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -321,35 +322,32 @@ const ClusterManagement: React.FC = () => {
     }
   };
 
-  const handleSelectionChange = useCallback((rows: Cluster[]) => setSelectedClusters(rows), []);
+  const selection = usePageSelection<Cluster>(
+    [paginate.page, paginate.perpage, paginate.search, paginate.sort, paginate.advance].join('|'),
+  );
 
-  const clearSelection = useCallback(() => {
-    setSelectedClusters([]);
-    setSelectionResetKey((k) => k + 1);
-  }, []);
-
-  // เลือกได้เฉพาะหน้าปัจจุบัน: ผลลัพธ์เปลี่ยน (หน้า/ขนาดหน้า/ค้นหา/เรียง/ตัวกรอง) ต้องล้าง
-  // ไม่งั้น TanStack จำ id ข้ามการโหลด → แถวนอกหน้ายังถูกเลือกและโดนลบทั้งที่ไม่เห็นติ๊ก
-  useEffect(() => {
-    clearSelection();
-  }, [clearSelection, paginate.page, paginate.perpage, paginate.search, paginate.sort, paginate.advance]);
-
-  const bulkPlan = useMemo(() => planBulkDelete(selectedClusters), [selectedClusters]);
+  // กฎเดียวกับ handleDelete: cluster ที่ยังมี BU ลบไม่ได้ (backend ไม่ cascade) — แยกออกก่อนยิง
+  const bulkPlan = useMemo<BulkDeletePlan>(() => {
+    const plan: BulkDeletePlan = { deletable: [], skipped: [] };
+    for (const c of selection.selected) {
+      const row = { id: c.id, label: c.name || c.code || c.id, sub: c.code };
+      if (c.deleted_at) plan.skipped.push({ ...row, reason: t('common.bulk.skipDeleted') });
+      else if ((c.bu_count ?? 0) > 0) plan.skipped.push({ ...row, reason: t('pages.clusters.bulkSkipHasBus', { count: c.bu_count ?? 0 }) });
+      else plan.deletable.push(row);
+    }
+    return plan;
+  }, [selection.selected, t]);
 
   const handleConfirmBulkDelete = async () => {
-    const targets = bulkPlan.deletable;
-    const results = await Promise.allSettled(targets.map((c) => clusterService.delete(c.id)));
-    const ok = results.filter((r) => r.status === 'fulfilled').length;
-    const fail = results.length - ok;
-    if (fail === 0) toast.success(t('pages.clusters.bulkDeleted', { count: ok }));
-    else if (ok === 0) {
-      const firstErr = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
-      toast.error(t('pages.clusters.bulkDeleteFailed', { count: fail }), {
-        description: firstErr ? getErrorDetail(firstErr.reason, t) : undefined,
-      });
-    } else toast.warning(t('pages.clusters.bulkPartial', { ok, fail }));
+    const results = await Promise.allSettled(bulkPlan.deletable.map((r) => clusterService.delete(r.id)));
+    const ok = summarizeBulkDelete(results, {
+      allOk: (count) => t('pages.clusters.bulkDeleted', { count }),
+      allFailed: (count) => t('pages.clusters.bulkDeleteFailed', { count }),
+      partial: (okCount, fail) => t('common.bulk.partial', { ok: okCount, fail }),
+      detail: (err) => getErrorDetail(err, t),
+    });
     setBulkOpen(false);
-    clearSelection();
+    selection.clear();
     if (ok > 0) {
       setPaginate(prev => ({ ...prev }));
       loadFleet();
@@ -357,7 +355,7 @@ const ClusterManagement: React.FC = () => {
   };
 
   const rowSelectionLabel = useCallback(
-    (c: Cluster) => t('pages.clusters.selectRow', { name: c.name || c.code || '' }),
+    (c: Cluster) => t('common.bulk.selectRow', { name: c.name || c.code || '' }),
     [t],
   );
 
@@ -712,24 +710,13 @@ const ClusterManagement: React.FC = () => {
               />
             ) : !error ? (
               <>
-              {canBulkDelete && selectedClusters.length > 0 && (
-                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2" role="region" aria-label={t('pages.clusters.bulkBarAria')}>
-                  <span className="text-sm font-medium">{t('common.state.nSelected', { count: selectedClusters.length })}</span>
-                  {bulkPlan.skipped.length > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {t('pages.clusters.bulkSkipped', { count: bulkPlan.skipped.length })}
-                    </span>
-                  )}
-                  <div className="ml-auto flex items-center gap-2">
-                    <Button variant="destructive" size="sm" onClick={() => setBulkOpen(true)}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      {t('common.action.delete')}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={clearSelection}>
-                      {t('common.action.clear')}
-                    </Button>
-                  </div>
-                </div>
+              {canBulkDelete && (
+                <BulkSelectionBar
+                  count={selection.selected.length}
+                  skippedCount={bulkPlan.skipped.length}
+                  onDelete={() => setBulkOpen(true)}
+                  onClear={selection.clear}
+                />
               )}
               <div className="relative">
                 {loading && clusters.length === 0 ? (
@@ -758,8 +745,8 @@ const ClusterManagement: React.FC = () => {
                   defaultSort={{ id: 'created_at', desc: true }}
                   enableRowSelection={canBulkDelete}
                   getRowId={(row) => row.id}
-                  onSelectionChange={handleSelectionChange}
-                  selectionResetKey={selectionResetKey}
+                  onSelectionChange={selection.onSelectionChange}
+                  selectionResetKey={selection.resetKey}
                   getRowSelectionLabel={rowSelectionLabel}
                 />
                 </>
@@ -781,9 +768,11 @@ const ClusterManagement: React.FC = () => {
         onConfirm={handleConfirmDelete}
       />
 
-      <BulkDeleteClustersDialog
+      <BulkDeleteDialog
         open={bulkOpen}
         plan={bulkPlan}
+        title={t('pages.clusters.bulkDeleteTitle', { count: bulkPlan.deletable.length })}
+        description={t('pages.clusters.bulkDeleteDescription')}
         onOpenChange={setBulkOpen}
         onConfirm={handleConfirmBulkDelete}
       />
