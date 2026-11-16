@@ -39,7 +39,7 @@ Everything below applies **everywhere** in the repo.
 `bun run build:bump` cuts a release **locally** — it never pushes and never fetches. The
 guard order, what the script writes, and the **tag-push order** (a squash-merged release PR
 strands the tag outside `main`'s history) live in the **`cutting-a-release` skill**
-(`.Codex/skills/cutting-a-release/SKILL.md`) — read it before cutting or fixing a release.
+(`.agents/skills/cutting-a-release/SKILL.md`) — read it before cutting or fixing a release.
 
 The version the app displays comes from `src/data/changelog.json` → `versions[0].version`
 (`src/components/VersionBadge.tsx`), **not** from `package.json`.
@@ -78,7 +78,7 @@ Static SPA. `.github/workflows/` holds **three** workflows that ship to **three 
 git push origin main:vercel      # fast-forward the deploy branch → Vercel builds
 ```
 
-`deploy-dev.yml`'s internals, why `verify.yml` skips the `vercel` branch, the Vercel Branch-Tracking trap, and `deploy-gcs.yml`'s failure history: **`.Codex/skills/deploying/SKILL.md`**.
+`deploy-dev.yml`'s internals, why `verify.yml` skips the `vercel` branch, the Vercel Branch-Tracking trap, and `deploy-gcs.yml`'s failure history: **`.agents/skills/deploying/SKILL.md`**.
 
 ## Unit & Component Tests
 
