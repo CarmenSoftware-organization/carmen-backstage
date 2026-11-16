@@ -2,6 +2,65 @@
   "unreleased": {},
   "versions": [
     {
+      "version": "1.2.0",
+      "date": "2026-11-12",
+      "changes": {
+        "Added": [
+          "Customers (AR) pages, with a customer link on each business unit and a searchable business-unit picker on Customer Edit",
+          "Licence intake queue: a list of incoming licence requests and a review page",
+          "Storage quota licences: their own tab and form on /licenses, and the Business Unit Storage card reads its quota from the issued licence",
+          "Storage Usage page: database and attachment space per business unit and for the whole fleet, with a button to measure every business unit and a way to reclaim space",
+          "Select several rows on the Clusters and Business Units lists and delete them together",
+          "Staff-only Notes tab on Cluster Edit and Business Unit Edit, shown as a logbook timeline",
+          "Manage cluster seats from the Users pages, with a seat ledger layout on the cluster admin Users page",
+          "Purchase Request AI Providers page: provider table and a sectioned edit dialog",
+          "Applications: service status modes with bypass users, an app secret card, and a status column with service status and secret state on the list",
+          "MCP tokens card on User Edit, with revoke all",
+          "Report templates: version history, file backup and import, English and Thai names and descriptions, an Export XML tab, Run report / Export data switches, and filtering and tags by calculation method",
+          "Dialog layout editor for report templates: drag and drop, a property panel, adding and removing fields, columns with ColSpan and Group, and a Label attribute on controls and groups",
+          "Dashboard templates: manage system and business-unit default widgets and deploy them to business units, with English and Thai widget titles",
+          "Tenant migrations show dashboard view status per business unit, with a button to install the views",
+          "Google sign-in can be switched on or off per application, from a config card; the login button shows as disabled when it is off",
+          "After signing in you return to the page you asked for",
+          "App and API version shown on the login, landing, and changelog pages",
+          "External API base URL card on Platform Config",
+          "Comment attachment policy per business unit",
+          "Sortable Days Left column and an Expiring soon filter with a count on the seat, BU quota, interface, and cluster licence tabs; module and days-left columns on the subscription list",
+          "Scheduled state for subscriptions that have not started yet",
+          "Super admins can view deleted licences, restore them, or delete them permanently",
+          "Business Unit Licenses tab: a summary strip that points at what needs attention, and module chips on each subscription row",
+          "Cluster admin: Alias column on the business unit list, the cluster logo in the sidebar, and Seats, Features, and Interface sub-tabs under a business unit's Licenses",
+          "Pickers search on the server as you type and load results page by page: business unit, cluster, scheduled-job recipients, analytics, report template, and the business unit switcher"
+        ],
+        "Changed": [
+          "The console is now named Carmen Blue Backstage",
+          "Licence feature groups are now called Modules, and the page moved to /license-modules",
+          "A business unit alias is empty or 1–3 characters, appears as the letters in its avatar, and a banner flags aliases that need fixing",
+          "Cluster and business unit names lead everywhere; codes are secondary",
+          "Business Unit Edit: the General tab is a single spec sheet, the Users tab moved to the end with a quieter member list, and the Licenses tab uses one card header style",
+          "Subscription cards show licence modules instead of a feature count",
+          "Tenant pages are nested under Business Units in the navigation",
+          "Application Edit is split into an access-definition zone and a live-control zone",
+          "Report Template Edit is a workbench layout and opens on the tab that has content",
+          "Branding: a 4:1 logo slot, images are resized and cropped before upload, and business unit avatars are circular",
+          "Interface licences capped by their contract are listed separately from Active",
+          "A licence's end date is inclusive",
+          "Cluster admin Licences page warns only about licences close to expiry and shows seat usage as proportion bars; the Hotel/Company tab is a two-column contact card"
+        ],
+        "Fixed": [
+          "A remembered page size outside 1–100 is ignored instead of making lists fail to load",
+          "Content XML on Report Template Edit was cut off with no scrollbar",
+          "The confirm dialog on Platform Migrations closes as soon as you press Apply or Resolve",
+          "Dashboard templates cannot be deployed when the business unit default set is empty",
+          "The licence feature picker shows only features of the module's kind, and a module with no children can be selected",
+          "Seat columns and subscription cards show the business unit name instead of its code",
+          "Pickers show \"Couldn't load\" with a retry when a saved value fails to load, and changing the cluster on Business Unit Edit takes one click",
+          "Licence intakes show the correct received date",
+          "User names on a business unit's Users tab in cluster admin no longer link to platform pages"
+        ]
+      }
+    },
+    {
       "version": "1.1.0",
       "date": "2026-10-05",
       "changes": {
