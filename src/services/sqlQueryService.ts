@@ -5,6 +5,10 @@ import type {
   SqlExecuteResult,
   SaveDdlInput,
   SaveDdlResult,
+  DbObjectFingerprints,
+  DbObjectKind,
+  PortableDefinition,
+  ApplyPortableDdlResult,
 } from '../types';
 
 // The tenant SQL endpoints live under the /api proxy (not /api-system).
@@ -75,6 +79,40 @@ const sqlQueryService = {
   ): Promise<{ dropped: boolean; type: string; schema: string; name: string }> => {
     const response = await api.delete(`${base(buCode)}/db-objects?${refQuery(ref)}`);
     return unwrap<{ dropped: boolean; type: string; schema: string; name: string }>(response);
+  },
+
+  /** One hash per view / function / procedure of the BU (schema-free), for comparing BUs. */
+  getFingerprints: async (buCode: string): Promise<DbObjectFingerprints> => {
+    const response = await api.get(`${base(buCode)}/db-objects/fingerprints`);
+    return unwrap<DbObjectFingerprints>(response);
+  },
+
+  /** The object's definition as DDL with no schema name in it — runnable in any BU. */
+  getPortableDefinition: async (
+    buCode: string,
+    ref: { type: DbObjectKind; name: string; identity_args: string },
+  ): Promise<PortableDefinition> => {
+    const q = `type=${encodeURIComponent(ref.type)}&name=${encodeURIComponent(
+      ref.name,
+    )}&identity_args=${encodeURIComponent(ref.identity_args)}`;
+    const response = await api.get(`${base(buCode)}/db-objects/portable-definition?${q}`);
+    return unwrap<PortableDefinition>(response);
+  },
+
+  /**
+   * Run schema-free DDL in this BU (one transaction, the BU's own search_path, lock_timeout 5s).
+   * `dryRun` runs it and rolls back. The backend refuses BU schema names and DROP ... CASCADE.
+   */
+  applyPortableDdl: async (
+    buCode: string,
+    sqlText: string,
+    dryRun: boolean,
+  ): Promise<ApplyPortableDdlResult> => {
+    const response = await api.post(`${base(buCode)}/apply-portable-ddl`, {
+      sql_text: sqlText,
+      dry_run: dryRun,
+    });
+    return unwrap<ApplyPortableDdlResult>(response);
   },
 };
 
