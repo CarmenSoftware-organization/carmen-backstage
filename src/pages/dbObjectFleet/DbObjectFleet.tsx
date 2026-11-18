@@ -62,7 +62,15 @@ export default function DbObjectFleet() {
     async (codes: string[]) => {
       if (codes.length === 0) return;
       setScanning(true);
-      setScans((prev) => ({ ...prev, ...Object.fromEntries(codes.map((c) => [c, { state: 'loading' } as BuScan])) }));
+      // A BU read before keeps its last result until the new one lands. Flipping it to loading
+      // would drop it from the comparison, and an object held only by the BUs being re-read
+      // (just applied everywhere, or just dropped) would vanish and close its open detail.
+      setScans((prev) => ({
+        ...prev,
+        ...Object.fromEntries(
+          codes.filter((c) => prev[c]?.state !== 'ok').map((c) => [c, { state: 'loading' } as BuScan]),
+        ),
+      }));
       await mapWithConcurrency(
         codes,
         FLEET_CONCURRENCY,
