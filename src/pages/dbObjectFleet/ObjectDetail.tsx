@@ -70,6 +70,8 @@ export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChan
     };
   }, []);
   useEffect(() => onBusyChange(running), [running, onBusyChange]);
+  // Unmounted in the same render that ends a run, the effect above never reports `false`.
+  useEffect(() => () => onBusyChange(false), [onBusyChange]);
   useUnsavedChanges(canManage && sqlText !== sourceText);
 
   // Load the source BU's definition whenever the source changes.
@@ -97,6 +99,15 @@ export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChan
     // row identity is the object key; re-running on every rescan would discard edits
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [row?.key, sourceBu]);
+
+  // The source BU already holds exactly what was read from it, so it is no target — until the
+  // SQL is edited (a new version, or a DROP). From then on the source and every BU sharing its
+  // variant would change too, so all of them can be picked and compared.
+  const edited = row !== null && sqlText !== sourceText;
+  const lockedSource = edited ? null : sourceBu;
+  useEffect(() => {
+    if (lockedSource) setTargets((prev) => (prev.includes(lockedSource) ? prev.filter((c) => c !== lockedSource) : prev));
+  }, [lockedSource]);
 
   const signature = runSignature(sqlText, targets);
   const canApply = canManage && !running && targets.length > 0 && passedSignature === signature;
@@ -243,7 +254,7 @@ export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChan
                   variant="ghost"
                   className="h-7 text-xs"
                   disabled={running}
-                  onClick={() => setTargets(defaultTargets(row, sourceBu))}
+                  onClick={() => setTargets(defaultTargets(row, lockedSource))}
                 >
                   {t('pages.dbObjectFleet.selectChanging')}
                 </Button>
@@ -253,7 +264,7 @@ export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChan
                 variant="ghost"
                 className="h-7 text-xs"
                 disabled={running}
-                onClick={() => setTargets(okBus.filter((c) => c !== sourceBu))}
+                onClick={() => setTargets(okBus.filter((c) => c !== lockedSource))}
               >
                 {t('pages.dbObjectFleet.selectAll')}
               </Button>
@@ -306,7 +317,7 @@ export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChan
                           type="checkbox"
                           className="h-4 w-4 accent-primary"
                           checked={targets.includes(b.code)}
-                          disabled={running || !scannedOk || isSource}
+                          disabled={running || !scannedOk || b.code === lockedSource}
                           onChange={() => toggleTarget(b.code)}
                           aria-label={t('pages.dbObjectFleet.targetAria', { bu: b.code })}
                         />
@@ -332,33 +343,34 @@ export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChan
                           <Badge variant="warning">{t('pages.dbObjectFleet.absent')}</Badge>
                         )}
                         {isSource && <Badge variant="outline">{t('pages.dbObjectFleet.source')}</Badge>}
-                        {/* only a BU holding another variant is worth comparing or switching to */}
+                        {/* only a BU holding another variant is worth switching to */}
                         {row && variant && !isSource && variant.hash !== sourceHash && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 px-1.5 text-[11px]"
-                              disabled={running}
-                              onClick={() => chooseSource(b.code)}
-                            >
-                              {t('pages.dbObjectFleet.useAsSource')}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 px-1.5 text-[11px]"
-                              disabled={diffLoadingBu !== null}
-                              onClick={() => openDiff(b.code)}
-                              aria-label={t('pages.dbObjectFleet.compareAria', { bu: b.code })}
-                            >
-                              {diffLoadingBu === b.code ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <GitCompare className="h-3 w-3" />
-                              )}
-                            </Button>
-                          </>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-1.5 text-[11px]"
+                            disabled={running}
+                            onClick={() => chooseSource(b.code)}
+                          >
+                            {t('pages.dbObjectFleet.useAsSource')}
+                          </Button>
+                        )}
+                        {/* …or comparing — unless the SQL was edited: then every BU holding the object differs from it */}
+                        {row && variant && (edited || (!isSource && variant.hash !== sourceHash)) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-1.5 text-[11px]"
+                            disabled={diffLoadingBu !== null}
+                            onClick={() => openDiff(b.code)}
+                            aria-label={t('pages.dbObjectFleet.compareAria', { bu: b.code })}
+                          >
+                            {diffLoadingBu === b.code ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <GitCompare className="h-3 w-3" />
+                            )}
+                          </Button>
                         )}
                       </div>
                     </td>

@@ -112,6 +112,32 @@ describe('DbObjectFleet', () => {
     expect(screen.getByRole('checkbox', { name: 'Roll out to A1' })).toBeDisabled();
   });
 
+  it('lets an edited definition reach the source BU, and locks the source again once the edit is undone', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    const source = screen.getByRole('checkbox', { name: 'Roll out to A1' });
+    expect(source).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /compare a1/i })).toBeNull();
+
+    // e.g. a new version of the view, or a DROP: the source holds the old text now
+    await user.type(screen.getByLabelText('sql'), ' ');
+    expect(source).toBeEnabled();
+    expect(screen.getByRole('button', { name: /compare a1/i })).toBeInTheDocument();
+    const detail = screen.getByRole('region', { name: 'Object across BUs' });
+    await user.click(within(detail).getByRole('button', { name: 'All' }));
+    expect(source).toBeChecked();
+    await user.click(screen.getByRole('button', { name: /try on 3 bu/i }));
+    await waitFor(() => expect(svc.applyPortableDdl).toHaveBeenCalledTimes(3));
+    expect(svc.applyPortableDdl.mock.calls.map((c) => c[0]).sort()).toEqual(['A1', 'B1', 'C1']);
+
+    // back to exactly what A1 holds: A1 is no target any more
+    await user.type(screen.getByLabelText('sql'), '{Backspace}');
+    expect(source).toBeDisabled();
+    expect(source).not.toBeChecked();
+    expect(screen.getByRole('button', { name: /try on 2 bu/i })).toBeInTheDocument();
+  });
+
   it('keeps Apply locked until a dry-run passes on exactly this SQL and these BUs', async () => {
     const user = userEvent.setup();
     renderPage();
@@ -149,6 +175,34 @@ describe('DbObjectFleet', () => {
       ['C1', false],
     ]);
     await waitFor(() => expect(svc.getFingerprints.mock.calls.map((c) => c[0]).sort()).toEqual(['B1', 'C1']));
+  });
+
+  it('drops an object from every BU that holds it, then closes its detail and frees the list', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    const sql = screen.getByLabelText('sql');
+    await user.clear(sql);
+    await user.type(sql, 'DROP VIEW IF EXISTS v_diff;');
+    const detail = screen.getByRole('region', { name: 'Object across BUs' });
+    await user.click(within(detail).getByRole('button', { name: 'All' }));
+    await user.click(screen.getByRole('button', { name: /try on 3 bu/i }));
+    const apply = screen.getByRole('button', { name: 'Apply to 3 BU(s)' });
+    await waitFor(() => expect(apply).toBeEnabled());
+
+    // the rescan after the drop finds v_diff nowhere
+    svc.getFingerprints.mockImplementation(async (code: string) => ({
+      bu_code: code,
+      schema: code,
+      objects: FINGERPRINTS[code].filter((o) => o.name !== 'v_diff'),
+    }));
+    await user.click(apply);
+    const dialog = await screen.findByRole('alertdialog').catch(() => screen.findByRole('dialog'));
+    await user.click(within(dialog).getByRole('button', { name: 'Apply' }));
+
+    expect(await screen.findByText(/pick an object on the left/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /v_diff/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /v_same/ }).closest('[aria-disabled]')).toBeNull();
   });
 
   it('shows the database error per BU and keeps Apply locked when a dry-run fails', async () => {

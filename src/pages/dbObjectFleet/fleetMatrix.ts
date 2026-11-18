@@ -122,6 +122,8 @@ export function pickSourceBu(row: FleetRow): string | null {
 /**
  * BUs that would change if the source BU's definition were applied: the ones without the
  * object and the ones holding a different variant. The source BU itself is never included.
+ * Pass null as the source when there is none to match (a new object, or an edited definition):
+ * then every scanned BU would change.
  */
 export function defaultTargets(row: FleetRow, sourceBu: string | null): string[] {
   const sourceHash = sourceBu ? row.byBu[sourceBu] : undefined;
