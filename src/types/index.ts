@@ -1223,6 +1223,43 @@ export interface SaveDdlResult {
   executed_sql: string;
 }
 
+// ==================== DB objects across BUs (sql-query fleet endpoints) ====================
+
+export type DbObjectKind = 'view' | 'function' | 'procedure';
+
+/** One view / function / procedure of a BU, fingerprinted over its schema-free definition. */
+export interface DbObjectFingerprint {
+  type: DbObjectKind;
+  name: string;
+  /** Routine argument list as Postgres prints it; '' for a view. */
+  identity_args: string;
+  /** Same object in two BUs ⇒ same hash. */
+  hash: string;
+}
+
+/** GET /api/config/:bu/sql-query/db-objects/fingerprints */
+export interface DbObjectFingerprints {
+  bu_code: string;
+  schema: string;
+  objects: DbObjectFingerprint[];
+}
+
+/** GET /api/config/:bu/sql-query/db-objects/portable-definition — DDL with no schema name in it. */
+export interface PortableDefinition extends DbObjectFingerprint {
+  bu_code: string;
+  schema: string;
+  definition: string;
+}
+
+/** POST /api/config/:bu/sql-query/apply-portable-ddl */
+export interface ApplyPortableDdlResult {
+  bu_code: string;
+  schema: string;
+  dry_run: boolean;
+  statements: number;
+  duration_ms: number;
+}
+
 export interface TenantCurrency {
   id: string;
   code: string;

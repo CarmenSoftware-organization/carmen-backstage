@@ -60,6 +60,7 @@ const SuperAdminManagement = lazy(() => import("./pages/SuperAdminManagement"));
 const UserBackstageManagement = lazy(() => import("./pages/UserBackstageManagement"));
 const UserBackstageEdit = lazy(() => import("./pages/UserBackstageEdit"));
 const SqlWorkbench = lazy(() => import("./pages/sqlWorkbench/SqlWorkbench"));
+const DbObjectFleet = lazy(() => import("./pages/dbObjectFleet/DbObjectFleet"));
 const UsageAnalytics = lazy(() => import("./pages/UsageAnalytics"));
 const ActivityEventManagement = lazy(() => import("./pages/ActivityEventManagement"));
 const EmailSettingManagement = lazy(() => import("./pages/EmailSettingManagement"));
@@ -545,6 +546,14 @@ function AppContent() {
               element={
                 <PrivateRoute requiredPermission="sql_workbench.read" feature="sql_workbench">
                   <SqlWorkbench />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/db-objects"
+              element={
+                <PrivateRoute requiredPermission="sql_workbench.read" feature="sql_workbench">
+                  <DbObjectFleet />
                 </PrivateRoute>
               }
             />

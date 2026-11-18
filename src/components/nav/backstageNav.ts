@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Network, Building2, Users, FileText, Newspaper, Megaphone, AppWindow,
   ShieldCheck, ShieldAlert, UserCog, DatabaseZap, Database, DatabaseBackup, LayoutGrid, Mail, FileSpreadsheet,
-  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles, Receipt, Inbox, HardDrive
+  BarChart3, MousePointerClick, Settings, Server, KeyRound, ToggleLeft, Tags, Clock, Sprout, Sparkles, Receipt, Inbox, HardDrive, Layers
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { TKey } from '../../i18n/types';
@@ -64,6 +64,7 @@ const ALL_BACKSTAGE_NAV_ITEMS: NavItem[] = [
   // Must stay last: pulling these out mid-group would split Backstage's heading in two.
   { path: '/backstage/migrations', labelKey: 'nav.backstageMigrations', icon: DatabaseBackup, superAdminOnly: true, groupKey: 'navGroup.database', feature: 'backstage_migrations' },
   { path: '/sql-workbench', labelKey: 'nav.sqlWorkbench', icon: Database, permission: 'sql_workbench.read', groupKey: 'navGroup.database', feature: 'sql_workbench' },
+  { path: '/db-objects', labelKey: 'nav.dbObjectFleet', icon: Layers, permission: 'sql_workbench.read', groupKey: 'navGroup.database', feature: 'sql_workbench' },
   { path: '/backstage/database-pools', labelKey: 'nav.databasePools', icon: Server, permission: 'database_pool.read', groupKey: 'navGroup.database', feature: 'database_pools' },
 ];
 
