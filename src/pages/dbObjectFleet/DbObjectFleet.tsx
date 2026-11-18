@@ -24,6 +24,7 @@ import {
   type RowFilter,
 } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, withRateLimitRetry } from './fleetRequest';
+import { CAN_AUTHOR_SQL } from './fleetPolicy';
 
 /**
  * DB objects across BUs: reads every view / function / procedure of every BU, shows which BUs
@@ -165,7 +166,7 @@ export default function DbObjectFleet() {
                 {scanning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                 {t('pages.dbObjectFleet.rescan')}
               </Button>
-              {canManage && (
+              {canManage && CAN_AUTHOR_SQL && (
                 <Button
                   size="sm"
                   disabled={busLoading || scanning || busy || scannedOk === 0}

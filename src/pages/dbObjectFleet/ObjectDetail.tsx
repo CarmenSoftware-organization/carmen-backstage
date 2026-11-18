@@ -14,6 +14,7 @@ import { SqlEditor } from '../sqlWorkbench/SqlEditor';
 import { SqlDiffView } from './SqlDiffView';
 import { defaultTargets, pickSourceBu, runSignature, type BuScan, type FleetBu, type FleetRow } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, isLockTimeout, withRateLimitRetry } from './fleetRequest';
+import { CAN_AUTHOR_SQL } from './fleetPolicy';
 
 type RunMode = 'dry' | 'commit';
 type RunResult = { state: 'running' } | { state: 'ok'; ms: number } | { state: 'error'; message: string };
@@ -43,6 +44,7 @@ SELECT id, code, name
  */
 export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChange }: ObjectDetailProps) {
   const { t } = useI18n();
+  const canAuthor = canManage && CAN_AUTHOR_SQL;
   const okBus = useMemo(() => bus.filter((b) => scans[b.code]?.state === 'ok').map((b) => b.code), [bus, scans]);
 
   const [sourceBu, setSourceBu] = useState<string | null>(() => (row ? pickSourceBu(row) : null));
@@ -232,12 +234,13 @@ export function ObjectDetail({ row, bus, scans, canManage, onApplied, onBusyChan
         <div className="flex h-[22rem] flex-col overflow-hidden rounded-md border">
           <SqlEditor
             value={sqlText}
+            readOnly={!canAuthor}
             onChange={(v) => {
               setSqlText(v);
             }}
           />
         </div>
-        <p className="text-muted-foreground text-[11px]">{t('pages.dbObjectFleet.definitionRules')}</p>
+        {canAuthor && <p className="text-muted-foreground text-[11px]">{t('pages.dbObjectFleet.definitionRules')}</p>}
       </div>
 
       {/* BUs: presence, target selection, results */}
