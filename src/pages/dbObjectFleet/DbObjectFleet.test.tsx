@@ -10,6 +10,15 @@ vi.mock('../../components/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+// The authoring switch is read through a getter so each block can pick it; the tests above the
+// switched-off block cover the authoring path, which is hidden in the app for now.
+const policy = vi.hoisted(() => ({ canAuthor: true }));
+vi.mock('./fleetPolicy', () => ({
+  get CAN_AUTHOR_SQL() {
+    return policy.canAuthor;
+  },
+}));
+
 const hasPermission = vi.fn();
 vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({ hasPermission }),
@@ -40,8 +49,8 @@ vi.mock('../../services/sqlQueryService', () => ({
 
 // CodeMirror needs layout APIs jsdom lacks — same textarea stand-in SqlWorkbench.test uses.
 vi.mock('../sqlWorkbench/SqlEditor', () => ({
-  SqlEditor: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-    <textarea aria-label="sql" value={value} onChange={(e) => onChange(e.target.value)} />
+  SqlEditor: ({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) => (
+    <textarea aria-label="sql" value={value} readOnly={readOnly} onChange={(e) => onChange(e.target.value)} />
   ),
 }));
 
@@ -67,6 +76,7 @@ const openDiffObject = async (user: ReturnType<typeof userEvent.setup>) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  policy.canAuthor = true;
   hasPermission.mockReturnValue(true);
   svc.getFingerprints.mockImplementation(async (code: string) => ({
     bu_code: code,
@@ -231,5 +241,36 @@ describe('DbObjectFleet', () => {
     expect(screen.queryByRole('button', { name: /try on/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /apply to/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /new object/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('DbObjectFleet while SQL authoring is switched off', () => {
+  beforeEach(() => {
+    policy.canAuthor = false;
+  });
+
+  it('is switched off in the app', async () => {
+    const actual = await vi.importActual<typeof import('./fleetPolicy')>('./fleetPolicy');
+    expect(actual.CAN_AUTHOR_SQL).toBe(false);
+  });
+
+  it('hides New object and shows the definition read-only, even to a manager', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    expect(screen.queryByRole('button', { name: /new object/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('sql')).toHaveAttribute('readonly');
+    expect(screen.queryByText(/allowed: create/i)).not.toBeInTheDocument();
+    // the source BU stays locked: nothing can be edited, so it never needs the rollout
+    expect(screen.getByRole('checkbox', { name: 'Roll out to A1' })).toBeDisabled();
+  });
+
+  it('still rolls the definition out exactly as the source BU holds it', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    await user.click(screen.getByRole('button', { name: /try on 2 bu/i }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Apply to 2 BU(s)' })).toBeEnabled());
+    for (const call of svc.applyPortableDdl.mock.calls) expect(call[1]).toBe('CREATE OR REPLACE VIEW v_diff AS SELECT 1;\n');
   });
 });

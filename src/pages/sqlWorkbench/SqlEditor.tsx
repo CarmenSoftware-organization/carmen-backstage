@@ -28,6 +28,8 @@ interface SqlEditorProps {
   schema?: DbObjectsResponse;
   /** Share of the work column this pane takes, driven by the divider below it. */
   grow?: number;
+  /** Show the SQL without letting it change: typing is blocked and Format / Clear are hidden. Find still works. */
+  readOnly?: boolean;
 }
 
 // Build the { table: [columns] } map lang-sql uses for schema-aware autocomplete.
@@ -47,6 +49,7 @@ export function SqlEditor({
   isRunning = false,
   schema,
   grow = 1,
+  readOnly = false,
 }: SqlEditorProps) {
   const { t } = useI18n();
   const hostRef = useRef<HTMLDivElement>(null);
@@ -55,6 +58,7 @@ export function SqlEditor({
   const onRunRef = useRef(onRun);
   const onChangeRef = useRef(onChange);
   const langCompartment = useRef(new Compartment());
+  const readOnlyCompartment = useRef(new Compartment());
 
   useEffect(() => {
     onRunRef.current = onRun;
@@ -140,6 +144,8 @@ export function SqlEditor({
           '&': { flex: '1 1 auto', minHeight: 0 },
           '.cm-scroller': { flexGrow: 1, overflow: 'auto' },
         }),
+        // Selection and copy keep working; only edits are refused.
+        readOnlyCompartment.current.of(EditorState.readOnly.of(readOnly)),
         updateListener,
       ],
     });
@@ -161,6 +167,12 @@ export function SqlEditor({
     view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } });
     latestValueRef.current = value;
   }, [value]);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: readOnlyCompartment.current.reconfigure(EditorState.readOnly.of(readOnly)),
+    });
+  }, [readOnly]);
 
   // Reconfigure the language (schema autocomplete) when the schema changes,
   // without discarding editor content.
@@ -237,25 +249,29 @@ export function SqlEditor({
             {t('pages.sqlWorkbench.run')}
           </Button>
         )}
-        <div className="bg-border mx-1 h-5 w-px" />
-        <Button size="sm" variant="ghost" className="h-7" onClick={handleFormat} title={t('pages.sqlWorkbench.formatSqlTitle')}>
-          <Wand2 className="mr-1 size-3.5" />
-          {t('pages.sqlWorkbench.format')}
-        </Button>
+        {onRun && <div className="bg-border mx-1 h-5 w-px" />}
+        {!readOnly && (
+          <Button size="sm" variant="ghost" className="h-7" onClick={handleFormat} title={t('pages.sqlWorkbench.formatSqlTitle')}>
+            <Wand2 className="mr-1 size-3.5" />
+            {t('pages.sqlWorkbench.format')}
+          </Button>
+        )}
         <Button size="sm" variant="ghost" className="h-7" onClick={handleFind} title={t('pages.sqlWorkbench.findTitle')}>
           <SearchIcon className="mr-1 size-3.5" />
           {t('pages.sqlWorkbench.find')}
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-destructive h-7"
-          onClick={handleClear}
-          title={t('pages.sqlWorkbench.clearEditorTitle')}
-        >
-          <Eraser className="mr-1 size-3.5" />
-          {t('pages.sqlWorkbench.clear')}
-        </Button>
+        {!readOnly && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive h-7"
+            onClick={handleClear}
+            title={t('pages.sqlWorkbench.clearEditorTitle')}
+          >
+            <Eraser className="mr-1 size-3.5" />
+            {t('pages.sqlWorkbench.clear')}
+          </Button>
+        )}
 
         {/* Editor meta rides the toolbar rather than a status bar of its own — it is one line of
             text and a whole extra row for it costs more screen than it is worth in a pane that
