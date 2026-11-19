@@ -1331,6 +1331,55 @@ export interface DbObjectDeployLogRow {
 }
 
 /** POST /api-system/db-objects/import */
+/** What someone did on the DB objects page — tb_activity.meta_data.operation. */
+export type DbObjectActivityOperation =
+  | 'create'
+  | 'upload_read'
+  | 'upload_add'
+  | 'update'
+  | 'approve'
+  | 'remove'
+  | 'import'
+  | 'apply'
+  | 'drop'
+  | 'dry_run_apply'
+  | 'dry_run_drop';
+
+/** One activity entry of the DB objects page (GET api-system/db-objects/:id/activity, …/activity). */
+export interface DbObjectActivityEntry {
+  id: string;
+  action: string | null;
+  operation: DbObjectActivityOperation | null;
+  /** type:name(args) — still there after the definition is removed */
+  object: string | null;
+  db_object_id: string | null;
+  description: string | null;
+  bu_code: string | null;
+  file_name: string | null;
+  /** set for runs in a BU (tried or real) */
+  success: boolean | null;
+  error: string | null;
+  duration_ms: number | null;
+  doc_version: number | null;
+  /** the entry kept the code before and/or after it — see activityDetail */
+  has_code: boolean;
+  actor: { id: string; name: string | null } | null;
+  ip_address: string | null;
+  created_at: string;
+}
+
+/** One entry with the code before and after it, as composed DDL (null where there is none). */
+export interface DbObjectActivityDetail extends DbObjectActivityEntry {
+  before_ddl: string | null;
+  after_ddl: string | null;
+}
+
+/** A page of the page-wide activity. */
+export interface DbObjectActivityPage {
+  data: DbObjectActivityEntry[];
+  paginate: { page: number; perpage: number; total: number };
+}
+
 /** What one object of an uploaded migration file is against the registry. */
 export type DbObjectUploadStatus = 'new' | 'created' | 'same' | 'differs';
 

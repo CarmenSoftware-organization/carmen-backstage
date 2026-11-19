@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FileUp, Layers, Loader2, RefreshCw } from 'lucide-react';
+import { FileUp, History, Layers, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '../../components/Layout';
 import { PageHeader } from '../../components/PageHeader';
@@ -19,6 +19,7 @@ import { ObjectList } from './ObjectList';
 import { ObjectDetail } from './ObjectDetail';
 import { ImportPanel } from './ImportPanel';
 import { UploadPanel } from './UploadPanel';
+import { ActivitySheet } from './ActivitySheet';
 import {
   buildFleetRows,
   findStale,
@@ -59,6 +60,7 @@ export default function DbObjectFleet() {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const mountedRef = useRef(true);
 
@@ -209,6 +211,10 @@ export default function DbObjectFleet() {
           subtitle={t('pages.dbObjectFleet.subtitle')}
           actions={
             <>
+              <Button variant="outline" size="sm" onClick={() => setActivityOpen(true)}>
+                <History className="mr-2 h-4 w-4" />
+                {t('pages.dbObjectFleet.activityAll')}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -372,6 +378,7 @@ export default function DbObjectFleet() {
           </div>
         )}
       </div>
+      <ActivitySheet open={activityOpen} onOpenChange={setActivityOpen} />
     </Layout>
   );
 }

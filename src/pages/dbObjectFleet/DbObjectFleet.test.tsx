@@ -48,6 +48,9 @@ vi.mock('../../services/dbObjectService', () => ({
     remove: vi.fn(),
     importFromBu: vi.fn(),
     uploadFile: vi.fn(),
+    activity: vi.fn(),
+    activityRecent: vi.fn(),
+    activityDetail: vi.fn(),
     approve: vi.fn(),
     deployLog: vi.fn(),
     applyToBu: vi.fn(),
@@ -135,6 +138,8 @@ beforeEach(() => {
   );
   reg.approve.mockImplementation(async (id) => entryOf(id, { approved: true }));
   reg.deployLog.mockResolvedValue([]);
+  reg.activity.mockResolvedValue([]);
+  reg.activityRecent.mockResolvedValue({ data: [], paginate: { page: 1, perpage: 50, total: 0 } });
   reg.importFromBu.mockResolvedValue({ bu_code: 'A1', created: 1, updated: 0, unchanged: 0, missing: [] });
 });
 
@@ -461,5 +466,113 @@ describe('DbObjectFleet', () => {
     expect(screen.queryByRole('button', { name: /apply to/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: 'Apply to B1' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+  });
+
+  describe('activity log', () => {
+    const entry = (over: Record<string, unknown>) => ({
+      id: 'e',
+      action: 'other',
+      operation: 'apply',
+      object: 'view:v_diff()',
+      db_object_id: 'id-diff',
+      description: '',
+      bu_code: null,
+      file_name: null,
+      success: null,
+      error: null,
+      duration_ms: null,
+      doc_version: null,
+      has_code: false,
+      actor: { id: 'u1', name: 'ann' },
+      ip_address: '10.0.0.9',
+      created_at: '2026-11-19T10:00:00Z',
+      ...over,
+    });
+
+    it('shows what was done to the definition — what, where, the result, who and from where', async () => {
+      const user = userEvent.setup();
+      reg.activity.mockResolvedValue([
+        entry({ id: 'e1', operation: 'update', action: 'update', doc_version: 3, has_code: true }),
+        entry({ id: 'e2', operation: 'apply', bu_code: 'B1', success: false, error: 'relation "tb_x" does not exist' }),
+        entry({ id: 'e3', operation: 'upload_add', action: 'create', file_name: '179_v_diff.up.sql', actor: null, ip_address: null }),
+      ] as never);
+      renderPage();
+      await openDiffObject(user);
+      await waitFor(() => expect(reg.activity).toHaveBeenCalledWith('id-diff'));
+      await user.click(await screen.findByText('Activity (3)'));
+      const list = within(screen.getByText('Activity (3)').closest('details') as HTMLElement);
+      expect(list.getByText('Edited')).toBeInTheDocument();
+      expect(list.getByText('version 3')).toBeInTheDocument();
+      expect(list.getByText('Applied')).toBeInTheDocument();
+      expect(list.getByText('B1')).toBeInTheDocument();
+      expect(list.getByText('Failed')).toBeInTheDocument();
+      expect(list.getByText('relation "tb_x" does not exist')).toBeInTheDocument();
+      expect(list.getByText('Added from a file')).toBeInTheDocument();
+      expect(list.getByText('179_v_diff.up.sql')).toBeInTheDocument();
+      expect(list.getAllByText('ann · 10.0.0.9')).toHaveLength(2);
+      expect(list.getByText('Unknown user')).toBeInTheDocument();
+      // only the entry that kept code offers it
+      expect(list.getAllByRole('button', { name: 'Show code' })).toHaveLength(1);
+    });
+
+    it('opens the code before and after an entry', async () => {
+      const user = userEvent.setup();
+      reg.activity.mockResolvedValue([entry({ id: 'e1', operation: 'update', action: 'update', has_code: true })] as never);
+      reg.activityDetail.mockResolvedValue({
+        ...entry({ id: 'e1', operation: 'update', has_code: true }),
+        before_ddl: 'CREATE OR REPLACE VIEW "v_diff" AS\nSELECT 1;\n',
+        after_ddl: 'CREATE OR REPLACE VIEW "v_diff" AS\nSELECT 2;\n',
+      } as never);
+      renderPage();
+      await openDiffObject(user);
+      await user.click(await screen.findByText('Activity (1)'));
+      await user.click(screen.getByRole('button', { name: 'Show code' }));
+      await waitFor(() => expect(reg.activityDetail).toHaveBeenCalledWith('e1'));
+      const dialog = within(await screen.findByRole('dialog'));
+      expect(dialog.getByText('Before')).toBeInTheDocument();
+      expect(dialog.getByText('After')).toBeInTheDocument();
+      expect(dialog.getByLabelText('bu side')).toHaveTextContent('SELECT 1;');
+      expect(dialog.getByLabelText('central side')).toHaveTextContent('SELECT 2;');
+    });
+
+    it('reloads the activity after a save, so the edit shows up', async () => {
+      const user = userEvent.setup();
+      renderPage();
+      await openDiffObject(user);
+      await waitFor(() => expect(reg.activity).toHaveBeenCalledTimes(1));
+      await user.type(screen.getByLabelText('sql'), ' ');
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+      await waitFor(() => expect(reg.update).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(reg.activity.mock.calls.length).toBeGreaterThanOrEqual(2));
+    });
+
+    it('lists everything done on the page from the header, removed objects included, and pages on', async () => {
+      const user = userEvent.setup();
+      reg.activityRecent
+        .mockResolvedValueOnce({
+          data: [
+            entry({ id: 'p1', operation: 'remove', action: 'delete', object: 'view:v_gone()', db_object_id: 'gone' }),
+            entry({ id: 'p2', operation: 'upload_read', action: 'upload', object: null, db_object_id: null, file_name: 'x.up.sql', bu_code: 'A1' }),
+          ],
+          paginate: { page: 1, perpage: 50, total: 3 },
+        } as never)
+        .mockResolvedValueOnce({
+          data: [entry({ id: 'p3', operation: 'dry_run_drop', object: 'function:f_x(p integer)', bu_code: 'C1', success: true })],
+          paginate: { page: 2, perpage: 50, total: 3 },
+        } as never);
+      renderPage();
+      await screen.findByRole('button', { name: /v_diff/ });
+      await user.click(screen.getByRole('button', { name: 'Activity log' }));
+      const sheet = within(await screen.findByRole('dialog'));
+      expect(await sheet.findByText('Removed from the central store')).toBeInTheDocument();
+      expect(sheet.getByText('v_gone')).toBeInTheDocument();
+      expect(sheet.getByText('Read a file')).toBeInTheDocument();
+      expect(sheet.getByText('x.up.sql')).toBeInTheDocument();
+      await user.click(sheet.getByRole('button', { name: 'Load more (2 of 3)' }));
+      expect(await sheet.findByText('Tried drop')).toBeInTheDocument();
+      expect(sheet.getByText('f_x(p integer)')).toBeInTheDocument();
+      expect(reg.activityRecent).toHaveBeenNthCalledWith(2, 2, 50);
+      expect(sheet.queryByRole('button', { name: /load more/i })).toBeNull();
+    });
   });
 });

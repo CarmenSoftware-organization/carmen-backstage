@@ -1,6 +1,9 @@
 import api from './api';
 import type {
   ApplyPortableDdlResult,
+  DbObjectActivityDetail,
+  DbObjectActivityEntry,
+  DbObjectActivityPage,
   DbObjectDeployLogRow,
   DbObjectImportResult,
   DbObjectUploadResult,
@@ -69,6 +72,26 @@ const dbObjectService = {
 
   /** Take the definition out of the registry. The object stays in every BU that has it. */
   remove: async (id: string): Promise<{ id: string }> => unwrap<{ id: string }>(await api.delete(`${BASE}/${id}`)),
+
+  /** Everything recorded about one definition, newest first. */
+  activity: async (id: string): Promise<DbObjectActivityEntry[]> =>
+    unwrap<DbObjectActivityEntry[]>(await api.get(`${BASE}/${id}/activity`)),
+
+  /**
+   * Activity across the whole page, newest first — removed definitions and file reads included.
+   * The gateway lifts a `{ data, paginate }` result to the top of the response, so it is read
+   * from there rather than unwrapped.
+   */
+  activityRecent: async (page = 1, perpage = 50): Promise<DbObjectActivityPage> => {
+    const response = await api.get(`${BASE}/activity?page=${page}&perpage=${perpage}`);
+    const body = response.data as Partial<DbObjectActivityPage>;
+    const data = Array.isArray(body?.data) ? body.data : [];
+    return { data, paginate: body?.paginate ?? { page, perpage, total: data.length } };
+  },
+
+  /** One entry with the code before and after it. */
+  activityDetail: async (activityId: string): Promise<DbObjectActivityDetail> =>
+    unwrap<DbObjectActivityDetail>(await api.get(`${BASE}/activity/${activityId}`)),
 
   /** Copy definitions from one BU as it holds them now; omit `objects` to take them all. */
   importFromBu: async (buCode: string, objects?: DbObjectRef[]): Promise<DbObjectImportResult> =>
