@@ -23,7 +23,6 @@ import { mapWithConcurrency } from '../../utils/concurrent';
 import type { DbObjectDeployLogRow, DbObjectRegistryEntry, DbObjectSpec } from '../../types';
 import { SqlEditor } from '../sqlWorkbench/SqlEditor';
 import { SqlDiffView } from './SqlDiffView';
-import { SpecForm } from './SpecForm';
 import { defaultTargets, runSignature, withStableBodyTag, type BuScan, type BuStatus, type FleetBu, type FleetRow } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, isLockTimeout, withRateLimitRetry } from './fleetRequest';
 
@@ -377,10 +376,6 @@ export function ObjectDetail({
         </div>
       )}
 
-      {spec && (
-        <SpecForm spec={spec} readOnly={!editable} onChange={setSpec} />
-      )}
-
       {/* The body — the only free-form SQL of a definition */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -627,6 +622,29 @@ export function ObjectDetail({
             <DialogTitle>{t('pages.dbObjectFleet.diffTitle', { bu: diff?.bu ?? '' })}</DialogTitle>
             <DialogDescription>{t('pages.dbObjectFleet.diffDescription', { bu: diff?.bu ?? '' })}</DialogDescription>
           </DialogHeader>
+          {row.outdated.length > 1 && (
+            <label className="flex items-center gap-2 text-xs">
+              <span className="font-medium">{t('pages.dbObjectFleet.diffPickBu')}</span>
+              <select
+                className="border-input bg-background h-8 rounded-md border px-2 font-mono text-xs"
+                value={diff?.bu ?? ''}
+                disabled={diffLoadingBu !== null}
+                onChange={(e) => void openDiff(e.target.value)}
+              >
+                {row.outdated.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </select>
+              {diffLoadingBu && <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" aria-hidden />}
+            </label>
+          )}
+          {/* which side is which — side by side only from md, where the diff is two panes */}
+          <div className="text-muted-foreground hidden grid-cols-2 gap-4 text-xs font-medium md:grid">
+            <span>{t('pages.dbObjectFleet.diffLeft', { bu: diff?.bu ?? '' })}</span>
+            <span>{t('pages.dbObjectFleet.diffRight')}</span>
+          </div>
           {diff && <SqlDiffView original={diff.text} current={withStableBodyTag(entry?.definition ?? '')} />}
         </DialogContent>
       </Dialog>
