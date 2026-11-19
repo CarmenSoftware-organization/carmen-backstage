@@ -37,7 +37,7 @@ export interface FleetRow {
   approved: boolean;
 }
 
-/** An object some BU has but the registry does not. */
+/** An object to copy into the registry from a BU. */
 export interface UnregisteredObject {
   key: string;
   type: DbObjectKind;
@@ -45,6 +45,11 @@ export interface UnregisteredObject {
   identity_args: string;
   /** BUs that hold it */
   bus: string[];
+  /**
+   * true = the registry has a row for it, but one saved before structured definitions: it must
+   * be imported again before it can be edited or applied. Absent = not in the registry at all.
+   */
+  stale?: boolean;
 }
 
 export type RowFilter = 'all' | 'synced' | 'needs';
@@ -135,6 +140,37 @@ export function findUnregistered(
     }
   }
   return Array.from(found.values()).sort(byIdentity);
+}
+
+/**
+ * Registry rows saved before structured definitions (`has_spec === false`), with the BUs that
+ * hold the object — importing them again from one of those BUs gives them their structured form.
+ */
+export function findStale(
+  registry: DbObjectRegistryRow[],
+  bus: FleetBu[],
+  scans: Record<string, BuScan>,
+): UnregisteredObject[] {
+  const holders = new Map<string, string[]>();
+  for (const code of okCodes(bus, scans)) {
+    const scan = scans[code];
+    if (scan?.state !== 'ok') continue;
+    for (const o of scan.objects) {
+      const key = objectKey(o);
+      holders.set(key, [...(holders.get(key) ?? []), code]);
+    }
+  }
+  return registry
+    .filter((r) => r.has_spec === false)
+    .map((r) => ({
+      key: objectKey(r),
+      type: r.type,
+      name: r.name,
+      identity_args: r.identity_args,
+      bus: holders.get(objectKey(r)) ?? [],
+      stale: true,
+    }))
+    .sort(byIdentity);
 }
 
 /** The BU holding the most unregistered objects — the natural one to import from. */

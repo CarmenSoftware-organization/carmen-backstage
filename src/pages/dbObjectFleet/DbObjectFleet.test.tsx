@@ -136,7 +136,7 @@ describe('DbObjectFleet', () => {
     await waitFor(() => expect(within(tiles).getByRole('button', { name: /central definitions/i })).toHaveTextContent('2'));
     expect(within(tiles).getByRole('button', { name: /up to date in every bu/i })).toHaveTextContent('1');
     expect(within(tiles).getByRole('button', { name: /need applying/i })).toHaveTextContent('1');
-    expect(within(tiles).getByRole('button', { name: /not in the central store/i })).toHaveTextContent('1');
+    expect(within(tiles).getByRole('button', { name: /to import from a bu/i })).toHaveTextContent('1');
     // an object only BUs hold is not a row of the list
     expect(screen.queryByRole('button', { name: /^v_loose/ })).toBeNull();
   });
@@ -348,8 +348,8 @@ describe('DbObjectFleet', () => {
     const user = userEvent.setup();
     renderPage();
     const tiles = await screen.findByRole('group', { name: /filter objects by status/i });
-    await waitFor(() => expect(within(tiles).getByRole('button', { name: /not in the central store/i })).toHaveTextContent('1'));
-    await user.click(within(tiles).getByRole('button', { name: /not in the central store/i }));
+    await waitFor(() => expect(within(tiles).getByRole('button', { name: /to import from a bu/i })).toHaveTextContent('1'));
+    await user.click(within(tiles).getByRole('button', { name: /to import from a bu/i }));
     const panel = within(screen.getByRole('region', { name: /import from a bu/i }));
     expect(panel.getByText('v_loose')).toBeInTheDocument();
     await user.click(panel.getByRole('button', { name: 'Import 1 object(s)' }));
@@ -357,6 +357,21 @@ describe('DbObjectFleet', () => {
       expect(reg.importFromBu).toHaveBeenCalledWith('A1', [{ type: 'view', name: 'v_loose', identity_args: '' }]),
     );
     await waitFor(() => expect(reg.list).toHaveBeenCalledTimes(2));
+  });
+
+  it('offers to import again the definitions saved before structured definitions', async () => {
+    const user = userEvent.setup();
+    reg.list.mockResolvedValue(REGISTRY.map((r) => ({ ...r, has_spec: false, approved: false })));
+    renderPage();
+    const banner = await screen.findByText(/2 central definition\(s\) were saved before structured definitions/i);
+    await user.click(within(banner.parentElement as HTMLElement).getByRole('button', { name: /import again from a bu/i }));
+    const panel = within(screen.getByRole('region', { name: /import from a bu/i }));
+    expect(panel.getAllByText('Import again')).toHaveLength(2);
+    // A1 holds both old rows plus v_loose, so it is the BU offered first
+    await user.click(panel.getByRole('button', { name: 'Import 3 object(s)' }));
+    await waitFor(() => expect(reg.importFromBu).toHaveBeenCalledTimes(1));
+    expect(reg.importFromBu.mock.calls[0][0]).toBe('A1');
+    expect(reg.importFromBu.mock.calls[0][1]?.map((o) => o.name).sort()).toEqual(['v_diff', 'v_loose', 'v_same']);
   });
 
   it('opens on the import panel while the central store is empty', async () => {

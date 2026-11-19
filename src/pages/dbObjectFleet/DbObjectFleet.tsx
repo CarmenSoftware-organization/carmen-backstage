@@ -20,6 +20,7 @@ import { ObjectDetail } from './ObjectDetail';
 import { ImportPanel } from './ImportPanel';
 import {
   buildFleetRows,
+  findStale,
   findUnregistered,
   matchesFilter,
   summarizeRows,
@@ -144,7 +145,13 @@ export default function DbObjectFleet() {
   }, []);
 
   const rows = useMemo(() => buildFleetRows(registry, bus, scans), [registry, bus, scans]);
-  const unregistered = useMemo(() => findUnregistered(registry, bus, scans), [registry, bus, scans]);
+  // What the registry should take from a BU: rows that need importing again first, then
+  // objects it does not hold at all.
+  const stale = useMemo(() => findStale(registry, bus, scans), [registry, bus, scans]);
+  const unregistered = useMemo(
+    () => [...stale, ...findUnregistered(registry, bus, scans)],
+    [stale, registry, bus, scans],
+  );
   const summary = useMemo(() => summarizeRows(rows), [rows]);
   const scannedOk = bus.filter((b) => scans[b.code]?.state === 'ok').length;
   const scanErrors = bus.filter((b) => scans[b.code]?.state === 'error');
@@ -235,6 +242,14 @@ export default function DbObjectFleet() {
           <p role="alert" className="text-destructive text-sm">
             {registryError}
           </p>
+        )}
+        {stale.length > 0 && !showImport && (
+          <div role="alert" className="border-warning/40 bg-warning/10 flex flex-wrap items-center gap-3 rounded-md border px-3 py-2 text-sm">
+            <span className="min-w-0 flex-1">{t('pages.dbObjectFleet.staleBanner', { count: stale.length })}</span>
+            <Button size="sm" variant="outline" disabled={busy} onClick={openImport}>
+              {t('pages.dbObjectFleet.staleBannerAction')}
+            </Button>
+          </div>
         )}
         {busError && (
           <p role="alert" className="text-destructive text-sm">
@@ -338,6 +353,7 @@ export default function DbObjectFleet() {
                   bus={bus}
                   scans={scans}
                   canAuthor={canAuthor}
+                  onOpenImport={openImport}
                   canApprove={canApprove}
                   canApply={canApply}
                   onRegistryChanged={onRegistryChanged}

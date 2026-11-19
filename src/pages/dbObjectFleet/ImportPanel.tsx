@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { useI18n } from '../../hooks/useI18n';
 import dbObjectService from '../../services/dbObjectService';
@@ -8,7 +9,10 @@ import { pickImportBu, type FleetBu, type UnregisteredObject } from './fleetMatr
 import { apiErrorMessage } from './fleetRequest';
 
 interface ImportPanelProps {
-  /** Objects some BU has but the registry does not. */
+  /**
+   * Objects to copy in from a BU: the ones the registry lacks, and registry rows that must be
+   * imported again (`stale`).
+   */
   unregistered: UnregisteredObject[];
   bus: FleetBu[];
   canAuthor: boolean;
@@ -17,8 +21,9 @@ interface ImportPanelProps {
 }
 
 /**
- * Objects that exist in a BU but not in the registry, and the one action on them: copy them in
- * from a chosen BU, exactly as that BU holds them. This is how the registry is first filled.
+ * Objects the registry should take from a BU — the ones it lacks, and rows saved before
+ * structured definitions — and the one action on them: copy them in from a chosen BU, exactly as
+ * that BU holds them. This is how the registry is first filled, and how old rows are upgraded.
  */
 export function ImportPanel({ unregistered, bus, canAuthor, onImported }: ImportPanelProps) {
   const { t } = useI18n();
@@ -100,6 +105,11 @@ export function ImportPanel({ unregistered, bus, canAuthor, onImported }: Import
                   <tr key={o.key} className={buCode && !o.bus.includes(buCode) ? 'opacity-50' : undefined}>
                     <td className="px-2 py-1.5">
                       <span className="font-mono break-all">{o.name}</span>
+                      {o.stale && (
+                        <Badge variant="warning" className="ml-2">
+                          {t('pages.dbObjectFleet.importStale')}
+                        </Badge>
+                      )}
                       <span className="text-muted-foreground block text-[11px]">
                         {o.type}
                         {o.identity_args ? ` (${o.identity_args})` : ''}
