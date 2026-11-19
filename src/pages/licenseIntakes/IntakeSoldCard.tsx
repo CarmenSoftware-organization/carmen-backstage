@@ -10,6 +10,7 @@ import type { LicenseIntakeDetail, LicenseIntakeGroup } from '../../types';
 import { useStorageQuotaDefaults } from '../../hooks/useStorageQuotaDefaults';
 import { formatBytes } from '../../utils/storageQuota';
 import { fmtDateTime, periodOf } from './format';
+import { useFeature } from '../../hooks/useFeature';
 
 const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="grid gap-0.5 sm:grid-cols-[9rem_1fr] sm:gap-4">
@@ -49,6 +50,7 @@ const GroupChips: React.FC<{ groups?: LicenseIntakeGroup[]; codes?: string[] }> 
 /** สิ่งที่ license master ขายมา — อ่านอย่างเดียว */
 const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) => {
   const { t } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
   const customer = intake.customer;
   const quotaDefaults = useStorageQuotaDefaults();
   const dbBytes = intake.storage_db_bytes ?? null;
@@ -122,7 +124,7 @@ const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) =
             <GroupChips groups={intake.interface_groups} codes={intake.interface_group_codes} />
           </Row>
           <Row label={t('pages.licenseIntakes.columnStorage')}>{storageText}</Row>
-          <Row label={t('pages.licenseIntakes.columnAiCredit')}>{aiCreditText}</Row>
+          {aiCreditOn && <Row label={t('pages.licenseIntakes.columnAiCredit')}>{aiCreditText}</Row>}
           <Row label={t('pages.licenseIntakes.columnPeriod')}>{periodOf(intake.start_date, intake.end_date)}</Row>
           <Row label={t('pages.licenseIntakes.note')}>
             {intake.note ? <span className="whitespace-pre-wrap">{intake.note}</span> : '-'}

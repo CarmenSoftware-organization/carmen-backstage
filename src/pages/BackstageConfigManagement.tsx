@@ -19,6 +19,7 @@ import { BackstageMigrationConfigCard } from './backstageConfig/BackstageMigrati
 import { GoogleSignInConfigCard } from './backstageConfig/GoogleSignInConfigCard';
 import { StorageQuotaConfigCard } from './backstageConfig/StorageQuotaConfigCard';
 import { AiCreditConfigCard } from './backstageConfig/AiCreditConfigCard';
+import Feature from '../components/Feature';
 import backstageConfigService from '../services/backstageConfigService';
 import { useAuth } from '../context/AuthContext';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
@@ -369,6 +370,7 @@ const BackstageConfigManagement: React.FC = () => {
                 />
               </div>
 
+              <Feature flag="license_ai_credit">
               <div className="space-y-3">
                 <SectionHeading>{t('pages.aiCredit.configSection')}</SectionHeading>
                 <AiCreditConfigCard
@@ -382,6 +384,7 @@ const BackstageConfigManagement: React.FC = () => {
                   footer={auditFooter(aiCreditLatest)}
                 />
               </div>
+              </Feature>
 
               <div className="space-y-3">
                 <SectionHeading>{t('pages.backstageConfig.sectionSignIn')}</SectionHeading>

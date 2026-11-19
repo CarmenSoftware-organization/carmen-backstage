@@ -40,6 +40,7 @@ export const en = {
     sqlWorkbench: 'SQL Workbench',
     customers: 'Customers',
     licenseIntakes: 'License Intakes',
+    licenseAiCredit: 'License AI Credit',
     storageUsage: 'Storage Usage',
     databasePools: 'Database Pools',
     cluster: 'Cluster',

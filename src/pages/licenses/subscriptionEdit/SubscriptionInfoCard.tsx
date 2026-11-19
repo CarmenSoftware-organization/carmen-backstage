@@ -7,6 +7,7 @@ import { ReadOnlyField } from '../../../components/ReadOnlyField';
 import { useI18n } from '../../../hooks/useI18n';
 import type { TKey } from '../../../i18n/types';
 import type { SubscriptionStatus } from '../../../types';
+import { useFeature } from '../../../hooks/useFeature';
 
 export interface SubscriptionFormData {
   cluster_id: string;
@@ -60,6 +61,7 @@ export function SubscriptionInfoCard({
   onFocus,
 }: SubscriptionInfoCardProps) {
   const { t } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
   // `|| s` only fires for a value outside the union; translate() returns '' on a miss (same
   // shape as SubscriptionTable's stateLabel).
   const statusLabel = useCallback((s: string) => t(`common.status.${s}` as TKey) || s, [t]);
@@ -141,6 +143,7 @@ export function SubscriptionInfoCard({
             )}
           </div>
 
+          {aiCreditOn && (
           <div className="space-y-2">
             <Label htmlFor="ai_credits_per_month">{t('pages.subscriptions.aiCreditsPerMonth')}</Label>
             {editing ? (
@@ -169,6 +172,7 @@ export function SubscriptionInfoCard({
               <ReadOnlyField value={formData.ai_credits_per_month} />
             )}
           </div>
+          )}
         </div>
       </CardContent>
     </Card>

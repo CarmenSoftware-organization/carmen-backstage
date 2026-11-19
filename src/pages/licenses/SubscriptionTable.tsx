@@ -35,6 +35,7 @@ import type { Subscription, SubscriptionState, SubscriptionSummary as SummaryTyp
 import type { ColumnDef } from '@tanstack/react-table';
 import type { TKey } from '../../i18n/types';
 import { readStoredPerpage } from '../../utils/pageRange';
+import { useFeature } from '../../hooks/useFeature';
 
 // สถานะที่แสดงผล (`state`) ชุดเดียวกับที่ badge ในตารางและการ์ด summary ใช้ — ไม่ใช่ `status` ดิบ
 // การกรองแปลงกลับเป็นเงื่อนไขบนคอลัมน์จริงใน `buildAdvance`
@@ -99,6 +100,7 @@ interface SubscriptionTableProps {
 
 const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false, deletedView }) => {
   const { t } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
   const { thresholds } = useExpiryThresholds();
   // Single lookup for every place `state`/`s` (a raw SubscriptionState value) is rendered —
   // the row badge, the filter buttons, the active-filter chips, and the CSV export — so a
@@ -370,7 +372,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
       { key: 'bu_name', label: t('pages.subscriptions.businessUnitName') },
       { key: 'groups', label: t('pages.subscriptions.featureGroups') },
       { key: 'feature_count', label: t('pages.subscriptions.featureCount') },
-      { key: 'ai_credits_per_month', label: t('pages.subscriptions.aiCreditsColumn') },
+      ...(aiCreditOn ? [{ key: 'ai_credits_per_month' as const, label: t('pages.subscriptions.aiCreditsColumn') }] : []),
       { key: 'created_at', label: t('common.audit.createdAt') },
       { key: 'created_by', label: t('common.audit.createdBy') },
       { key: 'updated_at', label: t('common.audit.updatedAt') },
@@ -492,21 +494,26 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
           );
         },
       },
-      {
-        // ไม่ได้ผูกกับคีย์เรียงฝั่ง backend — ปิดการเรียงไว้ก่อน · 0 = ไม่มีโควตารายเดือน แสดง "—"
-        id: 'ai_credits_per_month',
-        accessorFn: (r) => r.ai_credits_per_month ?? 0,
-        header: t('pages.subscriptions.aiCreditsColumn'),
-        enableSorting: false,
-        cell: ({ row }) => {
-          const n = row.original.ai_credits_per_month ?? 0;
-          return n > 0 ? (
-            <span className="text-xs tabular-nums">{n.toLocaleString()}</span>
-          ) : (
-            <span className="text-muted-foreground text-xs">—</span>
-          );
-        },
-      },
+      // ซ่อนทั้งคอลัมน์เมื่อ feature flag `license_ai_credit` ไม่ active
+      ...(aiCreditOn
+        ? ([
+          {
+            // ไม่ได้ผูกกับคีย์เรียงฝั่ง backend — ปิดการเรียงไว้ก่อน · 0 = ไม่มีโควตารายเดือน แสดง "—"
+            id: 'ai_credits_per_month',
+            accessorFn: (r) => r.ai_credits_per_month ?? 0,
+            header: t('pages.subscriptions.aiCreditsColumn'),
+            enableSorting: false,
+            cell: ({ row }) => {
+              const n = row.original.ai_credits_per_month ?? 0;
+              return n > 0 ? (
+                <span className="text-xs tabular-nums">{n.toLocaleString()}</span>
+              ) : (
+                <span className="text-muted-foreground text-xs">—</span>
+              );
+            },
+          },
+          ] as ColumnDef<Subscription, unknown>[])
+        : []),
       {
         accessorKey: 'end_date',
         id: 'end_date',
@@ -550,7 +557,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
       createdColumn,
       updatedColumn,
     ];
-  }, [t, stateLabel, thresholds.subscription_days]);
+  }, [t, stateLabel, thresholds.subscription_days, aiCreditOn]);
   // No actions column: the only row action would be "Edit", which just duplicates the
   // already-clickable Subscription/Cluster links above — a one-item navigate-only dropdown is
   // redundant chrome. Soft-delete lives on the edit page (the place you decide), and deleted

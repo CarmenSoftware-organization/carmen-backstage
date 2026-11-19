@@ -53,6 +53,7 @@ import BusinessUnitCustomerCard from './businessUnitEdit/BusinessUnitCustomerCar
 import { HeroName } from './businessUnitEdit/HeroName';
 import { toSeatPool } from '../utils/seatPool';
 import { isBuTabId, tabsWithErrors, type BuTab, type BuTabId } from './businessUnitEdit/BusinessUnitTabs';
+import { useFeature } from '../hooks/useFeature';
 
 // The seat pool needs users_count / total_max_license_users, which ClusterOption does not carry,
 // so the current cluster is hydrated whole — one id-scoped request instead of the full list.
@@ -72,6 +73,7 @@ const BusinessUnitEdit: React.FC = () => {
   const isNew = !id;
   const { hasPermission } = useAuth();
   const { t } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
 
   const [formData, setFormData] = useState<BusinessUnitFormData>({
     ...initialFormData,
@@ -969,7 +971,7 @@ const BusinessUnitEdit: React.FC = () => {
             ) : null
           }
           storageQuotaSlot={!isNew && canReadStorage ? <BuStorageQuotaCard buId={id!} onStateChange={setStorageState} /> : null}
-          aiCreditSlot={!isNew ? <BusinessUnitAiCreditCard buId={id!} /> : null}
+          aiCreditSlot={!isNew && aiCreditOn ? <BusinessUnitAiCreditCard buId={id!} /> : null}
           licensesSummarySlot={
             !isNew ? (
               <LicenseSummaryStrip

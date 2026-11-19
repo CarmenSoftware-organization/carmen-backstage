@@ -62,6 +62,10 @@ import businessUnitService from '../services/businessUnitService';
 import clusterService from '../services/clusterService';
 import databasePoolService from '../services/databasePoolService';
 
+// หน้าเหล่านี้อ่าน feature flag `license_ai_credit` — เทสต์ไม่ได้ห่อ FeatureFlagProvider จึงตัดที่ hook
+// และให้ทุก flag เป็น active เพื่อให้พฤติกรรมเดิมถูกทดสอบเหมือนก่อนมี flag
+vi.mock('../hooks/useFeature', () => ({ useFeature: () => 'active' }));
+
 /**
  * เกณฑ์ "ใกล้หมดอายุ" ย้ายจาก constant ไปเป็นค่าตั้งใน Backstage Config คอมโพเนนต์จึงอ่านผ่าน
  * context ที่ต้องมี provider ครอบ · mock ด้วย 30 ซึ่งเป็นค่าเดิมก่อนย้าย assertion ทุกข้อในไฟล์นี้

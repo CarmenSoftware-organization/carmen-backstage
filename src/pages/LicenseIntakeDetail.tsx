@@ -28,6 +28,7 @@ import RejectIntakeDialog from './licenseIntakes/RejectIntakeDialog';
 import { fmtDateTime } from './licenseIntakes/format';
 import { LICENSE_SECTION_IDS } from './businessUnitEdit/LicenseSummaryStrip';
 import type { LicenseIntakeBuLicenses, LicenseIntakeDetail as IntakeDetail, LicenseIntakeStatus } from '../types';
+import { useFeature } from '../hooks/useFeature';
 
 const STATUS_VARIANT: Record<LicenseIntakeStatus, 'warning' | 'success' | 'secondary'> = {
   pending: 'warning',
@@ -412,6 +413,7 @@ const LicenseIntakeDetail: React.FC = () => {
 
 const ProducedLinks: React.FC<{ produced?: IntakeDetail['produced']; buId?: string }> = ({ produced, buId }) => {
   const { t } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
   const subs = produced?.subscriptions ?? [];
   const seats = produced?.seats ?? [];
   const ifaces = produced?.interfaces ?? [];
@@ -461,7 +463,8 @@ const ProducedLinks: React.FC<{ produced?: IntakeDetail['produced']; buId?: stri
         <li key={a.id}>
           <span className="mr-2 text-muted-foreground">{t('pages.licenseIntakes.producedAiCredit')}</span>
           {/* AI credit ไม่มีหน้าแก้ไขรายใบ — ใบ top-up อยู่ในการ์ด AI credit ของ BU (ledger) จึงลิงก์ไปที่การ์ดนั้น */}
-          {buId ? (
+          {/* flag ซ่อนอยู่ = การ์ดปลายทางไม่ถูกวาด ลิงก์จะพาไปจุดที่ไม่มีอะไร — แสดงเลขใบเฉย ๆ */}
+          {buId && aiCreditOn ? (
             <Link
               to={`/business-units/${encodeURIComponent(buId)}/edit?tab=licenses#${LICENSE_SECTION_IDS.aiCredit}`}
               className={linkClass}

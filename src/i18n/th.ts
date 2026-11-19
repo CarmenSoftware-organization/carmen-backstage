@@ -39,6 +39,7 @@ export const th: Translations = {
     sqlWorkbench: 'SQL Workbench',
     customers: 'ลูกค้า (AR)',
     licenseIntakes: 'ใบขายสิทธิ์',
+    licenseAiCredit: 'License AI Credit',
     storageUsage: 'การใช้พื้นที่',
     databasePools: 'Database Pools',
     cluster: 'Cluster',
