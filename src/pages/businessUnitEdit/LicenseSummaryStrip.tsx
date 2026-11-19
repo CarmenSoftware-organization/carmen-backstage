@@ -14,6 +14,7 @@ export const LICENSE_SECTION_IDS = {
   seats: 'bu-licenses-seats',
   interfaces: 'bu-licenses-interfaces',
   storage: 'bu-licenses-storage',
+  aiCredit: 'bu-licenses-ai-credit',
 } as const;
 
 type Tone = 'default' | 'warning' | 'destructive';

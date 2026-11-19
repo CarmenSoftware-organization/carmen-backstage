@@ -2502,6 +2502,93 @@ export interface BuStorageLicensesResponse {
   paginate: { total: number; page: number; perpage: number; pages: number };
 }
 
+/** ประเภทแถว ledger ของ AI credit — debit ติดลบ, topup +, topup_void −, adjust ± */
+export type AiCreditEntryType = 'debit' | 'topup' | 'topup_void' | 'adjust';
+
+/** ฟีเจอร์ที่ตัด AI credit ได้ — ฟีเจอร์ใหม่เพิ่มค่าที่นี่และที่ backend */
+export type AiCreditFeature = 'ocr_grn_po_match' | 'ocr_ap_invoice' | 'ocr_payment_reconcile';
+
+/** `GET /business-units/:buId/ai-credit` — ยอดคงเหลือ AI credit ของ BU */
+export interface AiCreditBalance {
+  /** เดือน Bangkok รูปแบบ YYYY-MM */
+  month?: string;
+  monthly_quota: number;
+  monthly_used: number;
+  monthly_remaining?: number;
+  /** ติดลบได้หลัง void ใบที่ใช้ไปแล้ว — แสดงค่าดิบ */
+  topup_remaining: number;
+  /** monthly_remaining + max(0, topup_remaining) */
+  available: number;
+  /** เครดิตที่การจอง pending ถืออยู่ */
+  pending?: number;
+  low?: boolean;
+}
+
+/** ใบ top-up `AIC-` — ไม่มีวันหมดอายุ; `deleted_at` มีค่า = void แล้ว */
+export interface AiCreditLicense {
+  id: string;
+  license_number: string;
+  business_unit_id?: string;
+  credits: number;
+  reference_no?: string | null;
+  note?: string | null;
+  license_intake_id?: string | null;
+  doc_version: number;
+  created_at?: string | null;
+  deleted_at?: string | null;
+}
+
+/** แถว ledger (append-only) — `credits` มีเครื่องหมาย */
+export interface AiCreditLedgerEntry {
+  id: string;
+  business_unit_id?: string;
+  entry_type: AiCreditEntryType | string;
+  pool: 'monthly' | 'topup' | string;
+  credits: number;
+  feature?: AiCreditFeature | string | null;
+  month: string;
+  note?: string | null;
+  reason?: string | null;
+  license_number?: string | null;
+  created_at?: string | null;
+}
+
+export interface AiCreditLedgerResponse {
+  data: AiCreditLedgerEntry[];
+  paginate: { total: number; page: number; perpage: number; pages: number };
+}
+
+/** แถวของ `GET /backstage/ai-credit/summary` — หนึ่งแถวต่อ BU ที่มีสิทธิ์ */
+export interface AiCreditSummaryRow {
+  business_unit_id: string;
+  bu_code: string;
+  bu_name: string;
+  cluster_name: string;
+  monthly_quota: number;
+  monthly_used: number;
+  topup_remaining: number;
+  available: number;
+  low: boolean;
+}
+
+export interface AiCreditSummaryResponse {
+  data: AiCreditSummaryRow[];
+  paginate: { total: number; page: number; perpage: number; pages: number };
+}
+
+/** body ออกใบ top-up */
+export interface AiCreditLicenseInput {
+  credits: number;
+  reference_no?: string | null;
+  note?: string | null;
+}
+
+/** body ปรับยอด top-up — credits มีเครื่องหมาย ห้ามเป็น 0 */
+export interface AiCreditAdjustInput {
+  credits: number;
+  reason: string;
+}
+
 /** `GET /backstage/storage-licenses/summary` */
 export interface BuStorageLicenseSummary {
   in_force: number;

@@ -43,6 +43,7 @@ import BusinessUnitBrandingCard from './businessUnitEdit/BusinessUnitBrandingCar
 import BusinessUnitUsersCard from './businessUnitEdit/BusinessUnitUsersCard';
 import BusinessUnitLicensesCard from './businessUnitEdit/BusinessUnitLicensesCard';
 import BusinessUnitInterfaceLicensesCard from './businessUnitEdit/BusinessUnitInterfaceLicensesCard';
+import BusinessUnitAiCreditCard from './businessUnitEdit/BusinessUnitAiCreditCard';
 import { BuStorageQuotaCard } from './clusterAdmin/businessUnitForm/BuStorageQuotaCard';
 import { LicenseSummaryStrip } from './businessUnitEdit/LicenseSummaryStrip';
 import { useBusinessUnitSubscriptions } from './businessUnitEdit/useBusinessUnitSubscriptions';
@@ -968,6 +969,7 @@ const BusinessUnitEdit: React.FC = () => {
             ) : null
           }
           storageQuotaSlot={!isNew && canReadStorage ? <BuStorageQuotaCard buId={id!} onStateChange={setStorageState} /> : null}
+          aiCreditSlot={!isNew ? <BusinessUnitAiCreditCard buId={id!} /> : null}
           licensesSummarySlot={
             !isNew ? (
               <LicenseSummaryStrip

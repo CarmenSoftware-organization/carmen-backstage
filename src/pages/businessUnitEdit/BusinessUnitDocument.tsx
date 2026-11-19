@@ -82,6 +82,8 @@ interface BusinessUnitDocumentProps {
   interfaceLicensesSlot?: React.ReactNode;
   /** โควตาพื้นที่เก็บข้อมูลของ BU — ฝั่งทีม Carmen เท่านั้น (ต้องมี storage_quota.read) */
   storageQuotaSlot?: React.ReactNode;
+  /** การ์ด AI credit ของ BU (ยอด + ใบ top-up + ledger) — ใต้การ์ด storage */
+  aiCreditSlot?: React.ReactNode;
   /** โน้ตภายในของ staff — หน้าแม่ห่อด้วย `hidden` เองเพื่อให้ draft รอดตอนสลับแท็บ จึงเรนเดอร์ทุกครั้งที่มี slot */
   notesSlot?: React.ReactNode;
 }
@@ -127,6 +129,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
     licensesSlot,
     interfaceLicensesSlot,
     storageQuotaSlot,
+    aiCreditSlot,
     notesSlot,
   } = props;
 
@@ -468,6 +471,7 @@ export default function BusinessUnitDocument(props: BusinessUnitDocumentProps) {
           {licensesSlot && <div id={LICENSE_SECTION_IDS.seats} className="scroll-mt-32">{licensesSlot}</div>}
           {interfaceLicensesSlot && <div id={LICENSE_SECTION_IDS.interfaces} className="scroll-mt-32">{interfaceLicensesSlot}</div>}
           {storageQuotaSlot && <div id={LICENSE_SECTION_IDS.storage} className="scroll-mt-32">{storageQuotaSlot}</div>}
+          {aiCreditSlot && <div id={LICENSE_SECTION_IDS.aiCredit} className="scroll-mt-32">{aiCreditSlot}</div>}
         </>
       )}
 
