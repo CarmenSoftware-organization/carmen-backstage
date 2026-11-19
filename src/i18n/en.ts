@@ -2123,6 +2123,7 @@ export const en = {
       viewByBuQuota: 'By BU quota',
       viewByInterface: 'By interface license',
       viewByStorage: 'By storage license',
+      viewByAiCredit: 'By AI credit',
 
       // ClusterLicenseDetail.tsx
       clusterNotFoundOrDeleted: 'Cluster not found or deleted',
@@ -4091,6 +4092,11 @@ export const en = {
       },
       exportCsv: 'Export CSV',
       exportTruncated: 'Exported the first {{count}} rows only. Narrow the filters to export the rest.',
+      fleetColBu: 'Business unit',
+      fleetColMonthly: 'Monthly used / quota',
+      fleetColTopup: 'Top-up remaining',
+      fleetColAvailable: 'Available',
+      fleetNone: 'No business units have AI credit yet',
       exported: 'Exported {{count}} rows',
     },
     storageQuota: {

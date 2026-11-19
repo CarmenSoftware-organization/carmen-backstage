@@ -1701,6 +1701,7 @@ export const th: Translations = {
       viewByBuQuota: 'ตามโควตา BU',
       viewByInterface: 'ตามใบสิทธิ์ interface',
       viewByStorage: 'ตามใบ storage',
+      viewByAiCredit: 'ตาม AI credit',
 
       clusterNotFoundOrDeleted: 'ไม่พบ Cluster หรืออาจถูกลบไปแล้ว',
       clusterUnavailable: 'Cluster ใช้งานไม่ได้',
@@ -2956,6 +2957,11 @@ export const th: Translations = {
       },
       exportCsv: 'ส่งออก CSV',
       exportTruncated: 'ส่งออกเพียง {{count}} แถวแรก ให้ใช้ตัวกรองเพื่อส่งออกส่วนที่เหลือ',
+      fleetColBu: 'หน่วยธุรกิจ',
+      fleetColMonthly: 'ใช้ไป / โควตารายเดือน',
+      fleetColTopup: 'Top-up คงเหลือ',
+      fleetColAvailable: 'ใช้ได้',
+      fleetNone: 'ยังไม่มีหน่วยธุรกิจที่มี AI credit',
       exported: 'ส่งออก {{count}} แถวแล้ว',
     },
     storageQuota: {
