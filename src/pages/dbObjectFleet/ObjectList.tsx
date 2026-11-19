@@ -8,8 +8,10 @@ import type { FleetRow } from './fleetMatrix';
 
 interface ObjectListProps {
   rows: FleetRow[];
-  /** How many BUs were scanned successfully — the denominator of "in x / n BUs". */
+  /** How many BUs were scanned successfully — the denominator of "x / n BUs up to date". */
   scannedBus: number;
+  /** Shown instead of "no match" when the registry itself is empty. */
+  emptyHint?: string;
   selectedKey: string | null;
   onSelect: (key: string) => void;
   search: string;
@@ -20,10 +22,11 @@ interface ObjectListProps {
 
 const TYPES = ['all', 'view', 'function', 'procedure'] as const;
 
-/** The object column: search, kind filter and one row per object with its fleet status. */
+/** The object column: search, kind filter and one row per registry definition with its fleet status. */
 export function ObjectList({
   rows,
   scannedBus,
+  emptyHint,
   selectedKey,
   onSelect,
   search,
@@ -73,11 +76,13 @@ export function ObjectList({
       </div>
 
       {rows.length === 0 ? (
-        <p className="text-muted-foreground px-4 py-10 text-center text-sm">{t('pages.dbObjectFleet.noObjects')}</p>
+        <p className="text-muted-foreground px-4 py-10 text-center text-sm">
+          {emptyHint ?? t('pages.dbObjectFleet.noObjects')}
+        </p>
       ) : (
         <ul className="min-h-0 flex-1 divide-y overflow-auto" aria-label={t('pages.dbObjectFleet.objectsAria')}>
           {rows.map((row) => {
-            const present = scannedBus - row.missing.length;
+            const matching = scannedBus - row.outdated.length - row.missing.length;
             return (
               <li key={row.key}>
                 <button
@@ -99,21 +104,15 @@ export function ObjectList({
                     </span>
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1">
-                    {!row.isMissing && !row.isDiffering && (
-                      <Badge variant="success">{t('pages.dbObjectFleet.statusSame')}</Badge>
-                    )}
-                    {row.isMissing && (
+                    {scannedBus === 0 ? null : row.needsApply ? (
                       <Badge variant="warning">
-                        {t('pages.dbObjectFleet.statusMissing', { count: row.missing.length })}
+                        {t('pages.dbObjectFleet.statusNeeds', { count: row.outdated.length + row.missing.length })}
                       </Badge>
-                    )}
-                    {row.isDiffering && (
-                      <Badge variant="info">
-                        {t('pages.dbObjectFleet.statusDiffers', { count: row.variants.length })}
-                      </Badge>
+                    ) : (
+                      <Badge variant="success">{t('pages.dbObjectFleet.statusSynced')}</Badge>
                     )}
                     <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
-                      {present}/{scannedBus}
+                      {matching}/{scannedBus}
                     </span>
                   </span>
                 </button>

@@ -23,7 +23,7 @@ Route guards are **permission-based**: `PrivateRoute` takes `requiredPermission=
 | `/business-units/:id/edit` | `BusinessUnitEdit` | `cluster.update` | View/edit BU |
 | `/tenant-migrations` | `TenantMigrationManagement` | `tenant_migration.read` | Tenant migration status + deploy (apply/resolve need `tenant_migration.apply`, platform scope) |
 | `/tenant-seeds` | `TenantSeedManagement` | `tenant_seed.read` | Tenant seed status + seeding (seed needs `tenant_seed.apply`, platform scope) |
-| `/db-objects` | `DbObjectFleet` | `sql_workbench.read` | Views / functions / procedures compared across every BU; roll one definition out (dry-run on all targets, then apply — needs `sql_workbench.manage`) |
+| `/db-objects` | `DbObjectFleet` | `sql_workbench.read` | Central definitions of tenant views / functions / procedures (`tb_db_object`) and how every BU stands against them: up to date, out of date, not installed. Create / edit / import / remove needs `db_object.manage`; dry-run then apply to BUs needs `sql_workbench.manage` |
 | `/users` | `UserManagement` | `user.read` | User list (role + status filters) |
 | `/users/new` | `UserEdit` | `user.create` | Create user |
 | `/users/:id/edit` | `UserEdit` | `user.update` | View/edit user + BU assignments |
