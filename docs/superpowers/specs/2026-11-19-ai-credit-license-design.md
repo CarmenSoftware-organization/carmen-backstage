@@ -108,8 +108,8 @@ A debit takes from **monthly first, then top-up**, because monthly quota is lost
   `credits_actual` may never be higher than reserved. The caller must reserve again.
 - `release({ reservation_id, reason })`: marks the reservation released. No ledger debit is written, and the credits become available again.
 - Both commit and release are **idempotent**. Calling commit again on a committed reservation returns the same result. Commit on a released or expired reservation returns 409.
-- **Expiry:** a scheduled task **in `micro-cluster`** (NestJS scheduler) runs every 5 minutes. It calls the same `release` code path for `pending` reservations past `expires_at`, with reason `expired` and `created_by_id = null`.
-  - *(My call: `micro-cronjobs` is a Go service, so putting the job there would mean a second implementation of the lock and release logic, in another language.)*
+- **Expiry:** `micro-cronjobs` calls `POST /api/internal/ai-credit/expire-reservations` every 5 minutes. The endpoint is guarded by `InternalJobGuard`, the same as `api/internal/storage/measure`. The gateway calls the `AiCredit.expireReservations` RPC, which runs the same `release` code path for `pending` reservations past `expires_at`, with reason `expired` and `created_by_id = null`.
+  - *(Correction, plan time: an earlier draft put a NestJS scheduler in `micro-cluster`, but nothing in the backend uses `@nestjs/schedule`. Periodic work is always an external cron hitting an internal endpoint. The release logic still exists only once, in TypeScript.)*
 - `feature` enum: `ocr_grn_po_match`, `ocr_ap_invoice`, `ocr_payment_reconcile`. New features add enum values.
 - A reservation made in month M and committed in M+1 still counts against M's monthly usage, the month stored on the reservation. *(My call.)*
 
@@ -120,7 +120,7 @@ Columns: `business_unit_id`, `entry_type` (`debit` | `topup` | `topup_void` | `a
 - `monthly_used(b, M)` = Σ debit credits, pool monthly, month M, plus pending reservations.
 - `topup_used` = Σ debit credits, pool topup, plus pending.
 
-The balance row (`tb_bu_ai_credit_balance`, one per BU) is a **lock target and cache**. The ledger is the truth. A `db:check.*` script recomputes the cache from the ledger and reports drift.
+The balance row (`tb_bu_ai_credit_balance`, one per BU, created on first use) is **only a lock target**. It holds no figures. Every balance is computed from the ledger plus pending reservations, so there is no cache that could drift. *(Plan-time simplification: this removed the drift-check script.)*
 
 ### 5.6 Voiding and adjusting
 - **Void a top-up licence** (soft delete). This writes `topup_void −credits`, and the top-up pool **may go negative**. A negative pool does not reduce monthly quota,
@@ -130,7 +130,7 @@ The balance row (`tb_bu_ai_credit_balance`, one per BU) is a **lock target and c
 - Editing a licence's `credits` is not allowed. Void it and issue a new one. *(My call: it keeps the ledger honest.)*
 
 ### 5.7 Low-balance warning
-- Config key, for example `ai_credit_low_threshold`, default **100 credits**, editable in Backstage Config. It sits next to the expiry thresholds (`project-expiry-thresholds-config`).
+- New Backstage Config registry key `ai_credit` with shape `{ low_threshold: number }`, default **100 credits**, editable in Backstage Config. It sits next to the expiry thresholds (`project-expiry-thresholds-config`).
 - A BU is "low" when `available < threshold` **and** it has any AI credit entitlement (quota > 0 or ever had a top-up). BUs with no AI credit at all are not flagged.
 
 ## 6. License intake
@@ -182,4 +182,3 @@ Otherwise the call returns 401 and the user is logged out.
 - Exact table and column names, Prisma relations, indexes. A likely index is `(business_unit_id, month)` on the ledger and `(status, expires_at)` on reservations.
 - Exact HTTP status and error code mapping for "insufficient". The code name `AI_CREDIT_INSUFFICIENT` must stay stable for B and C.
 - Component layout within the AI credit section, following the existing licence cards.
-- The `db:check` drift script shape.
