@@ -3,6 +3,7 @@ import type {
   ApplyPortableDdlResult,
   DbObjectDeployLogRow,
   DbObjectImportResult,
+  DbObjectUploadResult,
   DbObjectKind,
   DbObjectRegistryEntry,
   DbObjectRegistryRow,
@@ -72,6 +73,25 @@ const dbObjectService = {
   /** Copy definitions from one BU as it holds them now; omit `objects` to take them all. */
   importFromBu: async (buCode: string, objects?: DbObjectRef[]): Promise<DbObjectImportResult> =>
     unwrap<DbObjectImportResult>(await api.post(`${BASE}/import`, { bu_code: buCode, objects })),
+
+  /**
+   * Read a migration file by running it in `buCode` and rolling it back; with `dryRun: false`,
+   * add the objects the registry does not have yet (unapproved). Existing ones are never replaced.
+   */
+  uploadFile: async (input: {
+    buCode: string;
+    sqlText: string;
+    fileName?: string;
+    dryRun: boolean;
+  }): Promise<DbObjectUploadResult> =>
+    unwrap<DbObjectUploadResult>(
+      await api.post(`${BASE}/upload`, {
+        bu_code: input.buCode,
+        sql_text: input.sqlText,
+        file_name: input.fileName,
+        dry_run: input.dryRun,
+      }),
+    ),
 };
 
 export default dbObjectService;

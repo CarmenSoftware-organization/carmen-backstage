@@ -1331,6 +1331,32 @@ export interface DbObjectDeployLogRow {
 }
 
 /** POST /api-system/db-objects/import */
+/** What one object of an uploaded migration file is against the registry. */
+export type DbObjectUploadStatus = 'new' | 'created' | 'same' | 'differs';
+
+/** One object an uploaded migration file creates (POST api-system/db-objects/upload). */
+export interface DbObjectUploadObject {
+  type: DbObjectKind;
+  name: string;
+  identity_args: string;
+  hash: string;
+  /** DDL composed from the spec read back from the trial run */
+  definition: string;
+  /** new = would be added · created = added (unapproved) · same / differs = already in the registry, left alone */
+  status: DbObjectUploadStatus;
+  /** registry row id: the added row, or the existing one; null while only reported as new */
+  id: string | null;
+}
+
+/** Result of reading (and optionally adding) a migration file. */
+export interface DbObjectUploadResult {
+  bu_code: string;
+  dry_run: boolean;
+  objects: DbObjectUploadObject[];
+  /** DROP / COMMENT ON statements that ran in the trial but are not kept */
+  not_stored: string[];
+}
+
 export interface DbObjectImportResult {
   bu_code: string;
   created: number;

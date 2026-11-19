@@ -23,7 +23,7 @@ import { mapWithConcurrency } from '../../utils/concurrent';
 import type { DbObjectDeployLogRow, DbObjectRegistryEntry, DbObjectSpec } from '../../types';
 import { SqlEditor } from '../sqlWorkbench/SqlEditor';
 import { SqlDiffView } from './SqlDiffView';
-import { SpecForm, blankSpec } from './SpecForm';
+import { SpecForm } from './SpecForm';
 import { defaultTargets, runSignature, withStableBodyTag, type BuScan, type BuStatus, type FleetBu, type FleetRow } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, isLockTimeout, withRateLimitRetry } from './fleetRequest';
 
@@ -31,11 +31,11 @@ type RunKind = 'dry' | 'apply' | 'drop';
 type RunResult = { state: 'running' } | { state: 'ok'; ms: number } | { state: 'error'; message: string };
 
 interface ObjectDetailProps {
-  /** The registry definition being worked on; null = writing a new one. */
-  row: FleetRow | null;
+  /** The registry definition being worked on. */
+  row: FleetRow;
   bus: FleetBu[];
   scans: Record<string, BuScan>;
-  /** May create / edit / remove registry definitions (db_object.manage). */
+  /** May edit / remove registry definitions (db_object.manage). */
   canAuthor: boolean;
   /** Opens the import panel — where a row without a structured form is imported again. */
   onOpenImport: () => void;
@@ -50,9 +50,6 @@ interface ObjectDetailProps {
   /** True while a dry-run or apply is in flight, so the page can lock navigation. */
   onBusyChange: (busy: boolean) => void;
 }
-
-const NEW_VIEW_BODY = `SELECT id, code, name
-  FROM tb_location`;
 
 const isConflict = (err: unknown): boolean => (err as { response?: { status?: number } })?.response?.status === 409;
 const sameSpec = (a: DbObjectSpec | null, b: DbObjectSpec | null): boolean => JSON.stringify(a) === JSON.stringify(b);
@@ -83,12 +80,12 @@ export function ObjectDetail({
   const okBus = useMemo(() => bus.filter((b) => scans[b.code]?.state === 'ok').map((b) => b.code), [bus, scans]);
 
   const [entry, setEntry] = useState<DbObjectRegistryEntry | null>(null);
-  const [spec, setSpec] = useState<DbObjectSpec | null>(() => (row ? null : blankSpec('view', '', NEW_VIEW_BODY)));
+  const [spec, setSpec] = useState<DbObjectSpec | null>(null);
   const [defLoading, setDefLoading] = useState(false);
   const [defError, setDefError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [approving, setApproving] = useState(false);
-  const [targets, setTargets] = useState<string[]>(() => (row ? defaultTargets(row) : []));
+  const [targets, setTargets] = useState<string[]>(() => defaultTargets(row));
   const [results, setResults] = useState<Record<string, RunResult>>({});
   const [lastRun, setLastRun] = useState<RunKind | null>(null);
   const [running, setRunning] = useState(false);
@@ -114,9 +111,8 @@ export function ObjectDetail({
   useEffect(() => () => onBusyChange(false), [onBusyChange]);
 
   const savedSpec = entry?.spec ?? null;
-  const dirty = row ? spec !== null && !sameSpec(spec, savedSpec) : false;
-  const [newTouched, setNewTouched] = useState(false);
-  useUnsavedChanges(canAuthor && (dirty || (!row && newTouched)));
+  const dirty = spec !== null && !sameSpec(spec, savedSpec);
+  useUnsavedChanges(canAuthor && dirty);
 
   const adopt = useCallback((e: DbObjectRegistryEntry) => {
     setEntry(e);
@@ -149,11 +145,10 @@ export function ObjectDetail({
   );
   // Load once per definition; a rescan or a registry reload of the same row must not discard edits.
   useEffect(() => {
-    if (!row) return;
     void loadEntry(row.id);
     void loadLog(row.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [row?.id]);
+  }, [row.id]);
 
   const resetRun = () => {
     setPassedSignature(null);
@@ -164,19 +159,12 @@ export function ObjectDetail({
     if (!spec || !spec.body.trim()) return;
     setSaving(true);
     try {
-      if (row) {
-        adopt(await dbObjectService.update(row.id, { spec, doc_version: entry?.doc_version }));
-        resetRun();
-        toast.success(t('pages.dbObjectFleet.saved'));
-        onRegistryChanged(row.id);
-      } else {
-        const created = await dbObjectService.create({ spec: { ...spec, name: spec.name.trim() } });
-        toast.success(t('pages.dbObjectFleet.created'));
-        setNewTouched(false);
-        onRegistryChanged(created.id);
-      }
+      adopt(await dbObjectService.update(row.id, { spec, doc_version: entry?.doc_version }));
+      resetRun();
+      toast.success(t('pages.dbObjectFleet.saved'));
+      onRegistryChanged(row.id);
     } catch (err) {
-      if (row && isConflict(err)) {
+      if (isConflict(err)) {
         toast.error(t('pages.dbObjectFleet.conflict'));
         void loadEntry(row.id);
       } else {
@@ -188,7 +176,7 @@ export function ObjectDetail({
   };
 
   const approve = async () => {
-    if (!row || !entry) return;
+    if (!entry) return;
     setApproving(true);
     try {
       adopt(await dbObjectService.approve(row.id, entry.doc_version));
@@ -207,7 +195,6 @@ export function ObjectDetail({
   };
 
   const remove = async () => {
-    if (!row) return;
     try {
       await dbObjectService.remove(row.id);
       toast.success(t('pages.dbObjectFleet.removed'));
@@ -233,7 +220,7 @@ export function ObjectDetail({
   const runOn = useCallback(
     async (kind: RunKind) => {
       const codes = [...targets];
-      if (!row || !entry || codes.length === 0) return;
+      if (!entry || codes.length === 0) return;
       const hash = entry.hash;
       setRunning(true);
       setLastRun(kind);
@@ -301,7 +288,6 @@ export function ObjectDetail({
   );
 
   const openDiff = async (code: string) => {
-    if (!row) return;
     setDiffLoadingBu(code);
     try {
       const d = await sqlQueryService.getPortableDefinition(code, {
@@ -328,7 +314,7 @@ export function ObjectDetail({
 
   const editable = canAuthor && hasSpec;
   const canSave =
-    editable && !saving && !running && !!spec && spec.body.trim() !== '' && (row ? dirty : spec.name.trim() !== '');
+    editable && !saving && !running && !!spec && spec.body.trim() !== '' && dirty;
   const applyHint = !hasSpec
     ? t('pages.dbObjectFleet.needsReimport')
     : dirty
@@ -345,31 +331,29 @@ export function ObjectDetail({
         <div className="min-w-0 flex-1 space-y-1">
           <h2 className="flex flex-wrap items-center gap-2 font-mono text-base font-semibold break-all">
             <span>
-              {row ? row.name : t('pages.dbObjectFleet.newObjectTitle')}
-              {row?.identity_args ? <span className="text-muted-foreground font-normal">({row.identity_args})</span> : null}
+              {row.name}
+              {row.identity_args ? <span className="text-muted-foreground font-normal">({row.identity_args})</span> : null}
             </span>
-            {row && entry && hasSpec && (
+            {entry && hasSpec && (
               <Badge variant={approved && !dirty ? 'success' : 'warning'} className="font-sans">
                 {approved && !dirty ? t('pages.dbObjectFleet.approvedBadge') : t('pages.dbObjectFleet.pendingBadge')}
               </Badge>
             )}
           </h2>
           <p className="text-muted-foreground text-xs">
-            {row
-              ? t('pages.dbObjectFleet.detailSubtitle', {
-                  match: okBus.length - row.outdated.length - row.missing.length,
-                  total: okBus.length,
-                })
-              : t('pages.dbObjectFleet.newObjectHint')}
+            {t('pages.dbObjectFleet.detailSubtitle', {
+              match: okBus.length - row.outdated.length - row.missing.length,
+              total: okBus.length,
+            })}
           </p>
         </div>
-        {row && canApprove && entry && hasSpec && !approved && (
+        {canApprove && entry && hasSpec && !approved && (
           <Button size="sm" disabled={dirty || approving || running} onClick={approve}>
             {approving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BadgeCheck className="mr-2 h-4 w-4" />}
             {t('pages.dbObjectFleet.approve')}
           </Button>
         )}
-        {row && canAuthor && (
+        {canAuthor && (
           <Button variant="outline" size="sm" disabled={running || saving} onClick={() => setRemoveOpen(true)}>
             <Trash2 className="mr-2 h-4 w-4" />
             {t('pages.dbObjectFleet.remove')}
@@ -394,27 +378,19 @@ export function ObjectDetail({
       )}
 
       {spec && (
-        <SpecForm
-          spec={spec}
-          isNew={!row}
-          readOnly={!editable}
-          onChange={(next) => {
-            setSpec(next);
-            if (!row) setNewTouched(true);
-          }}
-        />
+        <SpecForm spec={spec} readOnly={!editable} onChange={setSpec} />
       )}
 
       {/* The body — the only free-form SQL of a definition */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-medium">{t('pages.dbObjectFleet.bodyLabel')}</span>
-          {row && dirty && <span className="text-warning">{t('pages.dbObjectFleet.unsaved')}</span>}
+          {dirty && <span className="text-warning">{t('pages.dbObjectFleet.unsaved')}</span>}
           {defLoading && <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" aria-hidden />}
           {editable && (
             <Button size="sm" className="ml-auto h-7" disabled={!canSave} onClick={save}>
               {saving ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1 h-3.5 w-3.5" />}
-              {row ? t('pages.dbObjectFleet.save') : t('pages.dbObjectFleet.create')}
+              {t('pages.dbObjectFleet.save')}
             </Button>
           )}
         </div>
@@ -425,7 +401,6 @@ export function ObjectDetail({
             onChange={(body) => {
               if (!spec) return;
               setSpec({ ...spec, body });
-              if (!row) setNewTouched(true);
             }}
           />
         </div>
@@ -441,7 +416,6 @@ export function ObjectDetail({
       </div>
 
       {/* BUs: how each stands against the registry, target selection, results */}
-      {row && (
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium">
@@ -561,9 +535,8 @@ export function ObjectDetail({
             </table>
           </div>
         </div>
-      )}
 
-      {row && canApply && (
+      {canApply && (
         <div className="flex flex-wrap items-center gap-3 border-t pt-3">
           <Button variant="outline" disabled={!ready || defLoading} onClick={() => runOn('dry')}>
             {running && lastRun === 'dry' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FlaskConical className="mr-2 h-4 w-4" />}
@@ -582,7 +555,6 @@ export function ObjectDetail({
       )}
 
       {/* Every real rollout of this definition */}
-      {row && (
         <details className="rounded-md border text-xs">
           <summary className="cursor-pointer px-3 py-1.5 font-medium">
             {t('pages.dbObjectFleet.historyLabel', { count: log?.length ?? 0 })}
@@ -620,7 +592,6 @@ export function ObjectDetail({
             </div>
           )}
         </details>
-      )}
 
       <ConfirmDialog
         open={confirm !== null}
@@ -628,7 +599,7 @@ export function ObjectDetail({
         title={t(confirm === 'drop' ? 'pages.dbObjectFleet.dropTitle' : 'pages.dbObjectFleet.confirmTitle', { count: targets.length })}
         description={t(
           confirm === 'drop' ? 'pages.dbObjectFleet.dropDescription' : 'pages.dbObjectFleet.confirmDescription',
-          { name: row?.name ?? '', bus: targets.join(', ') },
+          { name: row.name, bus: targets.join(', ') },
         )}
         confirmText={t(confirm === 'drop' ? 'pages.dbObjectFleet.confirmDrop' : 'pages.dbObjectFleet.confirmApply')}
         onConfirm={() => {
@@ -642,7 +613,7 @@ export function ObjectDetail({
         open={removeOpen}
         onOpenChange={setRemoveOpen}
         title={t('pages.dbObjectFleet.removeTitle')}
-        description={t('pages.dbObjectFleet.removeDescription', { name: row?.name ?? '' })}
+        description={t('pages.dbObjectFleet.removeDescription', { name: row.name })}
         confirmText={t('pages.dbObjectFleet.remove')}
         onConfirm={async () => {
           await remove();

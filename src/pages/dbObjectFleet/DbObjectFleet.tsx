@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Layers, Loader2, Plus, RefreshCw } from 'lucide-react';
+import { FileUp, Layers, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import Layout from '../../components/Layout';
 import { PageHeader } from '../../components/PageHeader';
@@ -18,6 +18,7 @@ import type { DbObjectKind, DbObjectRegistryRow } from '../../types';
 import { ObjectList } from './ObjectList';
 import { ObjectDetail } from './ObjectDetail';
 import { ImportPanel } from './ImportPanel';
+import { UploadPanel } from './UploadPanel';
 import {
   buildFleetRows,
   findStale,
@@ -57,7 +58,7 @@ export default function DbObjectFleet() {
   const [typeFilter, setTypeFilter] = useState<'all' | DbObjectKind>('all');
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const mountedRef = useRef(true);
 
@@ -169,19 +170,19 @@ export default function DbObjectFleet() {
 
   const selectedRow = selectedId ? rows.find((r) => r.id === selectedId) ?? null : null;
   // With nothing in the registry yet, importing is the only thing to do — show it straight away.
-  const showImport = importing || (registryLoaded && !registryError && registry.length === 0 && !creating);
+  const showImport = importing || (registryLoaded && !registryError && registry.length === 0 && !uploading);
 
   // Below `lg` the detail stacks under the list, out of sight — bring it up when one is picked.
   const detailRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!selectedId && !creating && !importing) return;
+    if (!selectedId && !uploading && !importing) return;
     if (typeof window.matchMedia !== 'function' || !window.matchMedia('(max-width: 1023px)').matches) return;
     detailRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-  }, [selectedId, creating, importing]);
+  }, [selectedId, uploading, importing]);
   const onApplied = useCallback((codes: string[]) => void scan(codes), [scan]);
   const onRegistryChanged = useCallback(
     (selectId: string | null) => {
-      setCreating(false);
+      setUploading(false);
       setSelectedId(selectId);
       void loadRegistry();
     },
@@ -189,7 +190,7 @@ export default function DbObjectFleet() {
   );
   const openImport = () => {
     if (busy) return;
-    setCreating(false);
+    setUploading(false);
     setSelectedId(null);
     setImporting(true);
   };
@@ -227,10 +228,10 @@ export default function DbObjectFleet() {
                   onClick={() => {
                     setSelectedId(null);
                     setImporting(false);
-                    setCreating(true);
+                    setUploading(true);
                   }}
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <FileUp className="mr-2 h-4 w-4" />
                   {t('pages.dbObjectFleet.newObject')}
                 </Button>
               )}
@@ -322,9 +323,9 @@ export default function DbObjectFleet() {
                 rows={visibleRows}
                 scannedBus={scannedOk}
                 emptyHint={registryLoaded && registry.length === 0 ? t('pages.dbObjectFleet.registryEmpty') : undefined}
-                selectedKey={creating || showImport ? null : (selectedRow?.key ?? null)}
+                selectedKey={uploading || showImport ? null : (selectedRow?.key ?? null)}
                 onSelect={(key) => {
-                  setCreating(false);
+                  setUploading(false);
                   setImporting(false);
                   setSelectedId(rows.find((r) => r.key === key)?.id ?? null);
                 }}
@@ -346,10 +347,12 @@ export default function DbObjectFleet() {
                     toast.info(t('pages.dbObjectFleet.importedHint'));
                   }}
                 />
-              ) : creating || selectedRow ? (
+              ) : uploading ? (
+                <UploadPanel bus={bus} onCreated={onRegistryChanged} />
+              ) : selectedRow ? (
                 <ObjectDetail
-                  key={creating ? 'new' : selectedRow?.id}
-                  row={creating ? null : selectedRow}
+                  key={selectedRow.id}
+                  row={selectedRow}
                   bus={bus}
                   scans={scans}
                   canAuthor={canAuthor}
