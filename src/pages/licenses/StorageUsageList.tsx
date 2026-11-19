@@ -26,6 +26,7 @@ import type { StorageKind, StorageMeasureAllStatus, StorageUsageListItem } from 
 import { StorageFlagBadge } from '../clusterAdmin/businessUnitForm/StorageMeter';
 import { LicenseSummaryBand, type SummaryBandItem } from './LicenseSummaryBand';
 import { Skeleton } from '../../components/ui/skeleton';
+import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
 
 /** ระดับที่ถือว่า "ใกล้เต็ม" — ตรงกับสีเตือนของ StorageMeter */
 const NEAR_PCT = 80;
@@ -49,6 +50,18 @@ const isNear = (row: StorageUsageListItem) => row.kinds.some((k) => {
 });
 const isBlocked = (row: StorageUsageListItem) => row.kinds.some((k) => k.blocking);
 
+/**
+ * flag `license_storage_quota` ปิด: ลบโควตาออกจากแถว DB (เหลือขนาดที่ใช้) ก่อนส่วนอื่นของหน้าจะอ่าน
+ * ตัวกรอง/สถานะ/% จึงไม่นับ DB ไปเองโดยไม่ต้องแก้ทีละจุด — ตรงกับที่ gateway ถือว่าโควตา DB เป็น 0
+ * DB off: strip the quota from DB rows up front so filters, status and % ignore DB, matching the gateway.
+ */
+const withoutDbQuota = (row: StorageUsageListItem): StorageUsageListItem => ({
+  ...row,
+  kinds: row.kinds.map((k) =>
+    k.kind === 'database' ? { ...k, quota_bytes: 0, blocking: false, exceeded_at: null, grace_ends_at: null } : k,
+  ),
+});
+
 const FILTERS: Record<UsageFilter, (row: StorageUsageListItem) => boolean> = {
   near: isNear,
   over: isOver,
@@ -57,10 +70,15 @@ const FILTERS: Record<UsageFilter, (row: StorageUsageListItem) => boolean> = {
 };
 
 /** เซลล์ของหนึ่ง kind: ใช้ไป / โควตา + % บนแถบที่มีเส้น 80% กับ 100% — แถวปกติจางลง แถวที่ต้องดูเด่นขึ้น */
-const KindCell: React.FC<{ row: StorageUsageListItem; kind: StorageKind }> = ({ row, kind }) => {
+const KindCell: React.FC<{ row: StorageUsageListItem; kind: StorageKind; usedOnly?: boolean }> = ({
+  row,
+  kind,
+  usedOnly = false,
+}) => {
   const { t } = useI18n();
   const usage = kindOf(row, kind);
   if (!usage) return <span className="text-muted-foreground text-xs">{t('pages.storageQuota.notMeasured')}</span>;
+  if (usedOnly) return <span className="font-mono text-xs tabular-nums">{formatBytes(usage.used_bytes)}</span>;
   const pct = usedPct(usage);
   const tone = pct >= 100 ? 'over' : pct >= NEAR_PCT ? 'near' : 'ok';
   return (
@@ -125,7 +143,11 @@ const totalOf = (rows: StorageUsageListItem[], kind: StorageKind): KindTotal =>
  * การ์ดพื้นที่รวมทั้ง fleet: database กับไฟล์แนบ ใช้ไปรวมเทียบโควตาที่จัดสรรรวม
  * นับจากทุก BU ไม่ตามตัวกรอง — เป็นภาพรวมที่นิ่ง ไม่ใช่ผลรวมของแถวที่เห็น
  */
-const StorageTotalsCard: React.FC<{ rows: StorageUsageListItem[]; loading: boolean }> = ({ rows, loading }) => {
+const StorageTotalsCard: React.FC<{ rows: StorageUsageListItem[]; loading: boolean; dbQuotaOn: boolean }> = ({
+  rows,
+  loading,
+  dbQuotaOn,
+}) => {
   const { t } = useI18n();
   const kinds: { kind: StorageKind; label: string }[] = [
     { kind: 'database', label: t('pages.storageQuota.totalDatabase') },
@@ -137,6 +159,8 @@ const StorageTotalsCard: React.FC<{ rows: StorageUsageListItem[]; loading: boole
         {kinds.map(({ kind, label }, i) => {
           const total = totalOf(rows, kind);
           const pct = total.quota > 0 ? (total.used / total.quota) * 100 : 0;
+          // DB ตอน flag ปิด: บอกแค่ขนาดที่ใช้รวม ไม่มี % แถบ หรือโควตาที่จัดสรร
+          const usedOnly = kind === 'database' && !dbQuotaOn;
           return (
             <div key={kind} className={cn('space-y-2 p-4 sm:p-5', i > 0 && 'border-t border-border sm:border-t-0')}>
               <div className="text-muted-foreground text-xs font-medium">{label}</div>
@@ -151,10 +175,14 @@ const StorageTotalsCard: React.FC<{ rows: StorageUsageListItem[]; loading: boole
                     <span className="font-mono text-2xl font-semibold tabular-nums tracking-tight">
                       {formatBytes(total.used)}
                     </span>
-                    <span className="text-muted-foreground font-mono text-xs tabular-nums">
-                      {pct.toFixed(1)}%
-                    </span>
+                    {!usedOnly && (
+                      <span className="text-muted-foreground font-mono text-xs tabular-nums">
+                        {pct.toFixed(1)}%
+                      </span>
+                    )}
                   </div>
+                  {!usedOnly && (
+                  <>
                   <div className="bg-muted h-1.5 w-full max-w-xs overflow-hidden rounded-full" aria-hidden="true">
                     <div
                       className="bg-primary h-full rounded-full"
@@ -167,6 +195,8 @@ const StorageTotalsCard: React.FC<{ rows: StorageUsageListItem[]; loading: boole
                       count: total.count,
                     })}
                   </div>
+                  </>
+                  )}
                 </>
               )}
             </div>
@@ -189,7 +219,9 @@ const StorageUsageList: React.FC = () => {
   const { hasPermission } = useAuth();
   const canOpenBu = hasPermission('cluster.update');
   const canReadQuota = hasPermission('storage_quota.read');
-  const [rows, setRows] = useState<StorageUsageListItem[]>([]);
+  const [rawRows, setRows] = useState<StorageUsageListItem[]>([]);
+  const dbQuotaOn = useDbQuotaOn();
+  const rows = useMemo(() => (dbQuotaOn ? rawRows : rawRows.map(withoutDbQuota)), [rawRows, dbQuotaOn]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -364,9 +396,10 @@ const StorageUsageList: React.FC = () => {
       },
       {
         id: 'database',
-        accessorFn: (row) => pctOf(row, 'database') ?? -1,
+        // flag ปิด: ไม่มี % ให้เรียง จึงเรียงตามขนาดที่ใช้แทน
+        accessorFn: (row) => (dbQuotaOn ? pctOf(row, 'database') : kindOf(row, 'database')?.used_bytes) ?? -1,
         header: t('pages.storageQuota.database'),
-        cell: ({ row }) => <KindCell row={row.original} kind="database" />,
+        cell: ({ row }) => <KindCell row={row.original} kind="database" usedOnly={!dbQuotaOn} />,
       },
       {
         id: 'attachment',
@@ -413,7 +446,7 @@ const StorageUsageList: React.FC = () => {
         ),
       },
     ],
-    [t, canOpenBu],
+    [t, canOpenBu, dbQuotaOn],
   );
 
   const handleExport = () => {
@@ -426,8 +459,8 @@ const StorageUsageList: React.FC = () => {
         bu_code: row.bu_code,
         bu_name: row.bu_name,
         db_used: d?.used_bytes ?? '',
-        db_quota: d?.quota_bytes ?? '',
-        db_pct: d ? usedPct(d).toFixed(1) : '',
+        db_quota: dbQuotaOn ? (d?.quota_bytes ?? '') : '',
+        db_pct: dbQuotaOn && d ? usedPct(d).toFixed(1) : '',
         file_used: a?.used_bytes ?? '',
         file_quota: a?.quota_bytes ?? '',
         file_pct: a ? usedPct(a).toFixed(1) : '',
@@ -441,8 +474,13 @@ const StorageUsageList: React.FC = () => {
       { key: 'bu_code', label: t('pages.storageQuota.colBu') },
       { key: 'bu_name', label: t('common.field.name') },
       { key: 'db_used', label: t('pages.storageQuota.csvUsedBytes', { kind: db }) },
-      { key: 'db_quota', label: t('pages.storageQuota.csvQuotaBytes', { kind: db }) },
-      { key: 'db_pct', label: t('pages.storageQuota.csvPct', { kind: db }) },
+      // flag ปิด: CSV เก็บขนาด DB ที่ใช้ไว้ แต่ไม่มีคอลัมน์โควตา/% ของ DB
+      ...(dbQuotaOn
+        ? [
+            { key: 'db_quota' as const, label: t('pages.storageQuota.csvQuotaBytes', { kind: db }) },
+            { key: 'db_pct' as const, label: t('pages.storageQuota.csvPct', { kind: db }) },
+          ]
+        : []),
       { key: 'file_used', label: t('pages.storageQuota.csvUsedBytes', { kind: file }) },
       { key: 'file_quota', label: t('pages.storageQuota.csvQuotaBytes', { kind: file }) },
       { key: 'file_pct', label: t('pages.storageQuota.csvPct', { kind: file }) },
@@ -464,7 +502,7 @@ const StorageUsageList: React.FC = () => {
       <div className="space-y-4 sm:space-y-6">
         <PageHeader title={t('pages.storageQuota.listTitle')} subtitle={t('pages.storageQuota.listSubtitle')} />
 
-        {!error && <StorageTotalsCard rows={rows} loading={loading && rows.length === 0} />}
+        {!error && <StorageTotalsCard rows={rows} loading={loading && rows.length === 0} dbQuotaOn={dbQuotaOn} />}
 
         {!error && <LicenseSummaryBand items={summaryItems} loading={loading} error="" onRetry={load} />}
 
