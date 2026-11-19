@@ -40,6 +40,11 @@ export interface FeatureDefinition {
  * เพราะ backend ยังไม่มีผู้ใช้เครดิตจริง (OCR ยังไม่เรียก reserve) เปิดได้ที่ /backstage/features
  * The one exception is `license_ai_credit`, hidden by the owner's call until an OCR feature consumes it.
  *
+ * `license_storage_quota` (`hide`) ก็เป็นคำสั่งเจ้าของ (2026-11-19): โควตา DB ยังไม่พร้อมขายและยังไม่กำหนดขนาด
+ * ระหว่างที่ไม่ใช่ `active` หน้าจอซ่อนโควตา DB (ขนาดที่ใช้ยังโชว์) และ gateway ถือว่าโควตา DB ไม่จำกัด
+ * — flag ตัวแรกที่มีผลกับ backend ด้วย · spec docs/superpowers/specs/2026-11-19-hide-db-quota-design.md
+ * `license_storage_quota` is the owner's call too: while not active the DB quota is hidden and unlimited.
+ *
  * หน้าที่จงใจไม่มี flag เพราะปิดแล้วแอปเข้าไม่ถึงหรือปิดตัวเอง:
  * /dashboard · /backstage/features · /profile · /changelog · /login · / · /403 · /404
  * Deliberately ungated: closing any of them would lock the app or the switch itself.
@@ -64,6 +69,8 @@ export const FEATURE_CATALOG: readonly FeatureDefinition[] = [
   { key: 'license_intakes', labelKey: 'nav.licenseIntakes', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
   // ไม่มีเมนูหรือเส้นทางของตัวเอง — คุมการ์ด/แท็บ/ฟิลด์ AI credit ที่กระจายอยู่หลายหน้า
   { key: 'license_ai_credit', labelKey: 'nav.licenseAiCredit', groupKey: 'navGroup.licenseManagement', defaultState: 'hide' },
+  // คุมเฉพาะส่วน "โควตา DB" ของใบ STQ (ขนาด DB ที่ใช้ไปยังโชว์) — gateway ก็อ่านคีย์นี้เพื่อปิดผลของโควตา DB ด้วย
+  { key: 'license_storage_quota', labelKey: 'nav.licenseStorageQuota', groupKey: 'navGroup.licenseManagement', defaultState: 'hide' },
   // Content
   { key: 'report_templates', labelKey: 'nav.reportTemplates', groupKey: 'navGroup.content', defaultState: 'active' },
   { key: 'report_form_groups', labelKey: 'nav.formGroups', groupKey: 'navGroup.content', defaultState: 'active' },
@@ -114,3 +121,9 @@ export function isFeatureKey(key: string): boolean {
 export const DEFAULT_FEATURE_STATES: Record<string, FeatureState> = Object.fromEntries(
   FEATURE_CATALOG.map((f) => [f.key, f.defaultState]),
 );
+
+/**
+ * คีย์ flag ที่คุมโควตา DB ของใบ STQ — ต้องตรงกับ `DB_QUOTA_FLAG_KEY` ใน gateway (storage-quota.service.ts)
+ * The flag gating the STQ database quota; must equal the gateway's `DB_QUOTA_FLAG_KEY`.
+ */
+export const DB_QUOTA_FLAG = 'license_storage_quota';

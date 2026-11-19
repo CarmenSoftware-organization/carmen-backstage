@@ -18,6 +18,7 @@ import type { BuStorageQuotaView, StorageQuotaPatch, StorageReclaimJob } from '.
 import { StorageMeter } from './StorageMeter';
 import { LicenseSectionHeader } from '../../businessUnitEdit/LicenseSectionHeader';
 import { relativeTime } from '../../../utils/relativeTime';
+import { useDbQuotaOn } from '../../../hooks/useDbQuotaOn';
 
 interface BuStorageQuotaCardProps {
   buId: string;
@@ -59,6 +60,7 @@ const toForm = (view: BuStorageQuotaView): QuotaForm => ({
  */
 export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardProps) {
   const { t } = useI18n();
+  const dbQuotaOn = useDbQuotaOn();
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
   const canManage = hasPermission('storage_quota.manage');
@@ -286,13 +288,16 @@ export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardPr
           <>
             <div className="grid gap-6 sm:grid-cols-2">
               {(['database', 'attachment'] as const).map((kind) => {
-                const source = sourceOf(kind);
+                // flag ปิด: แถว DB เหลือแค่ขนาดที่ใช้ ไม่บอกแหล่งโควตา (ใบ/ค่าตั้งต้น) เพราะโควตา DB ยังไม่มีผล
+                const dbHidden = kind === 'database' && !dbQuotaOn;
+                const source = dbHidden ? null : sourceOf(kind);
                 return (
                   <div key={kind} className="space-y-1">
                     <StorageMeter
                       label={t(kind === 'database' ? 'pages.storageQuota.database' : 'pages.storageQuota.attachment')}
                       usage={usageOf(kind)}
                       showMeasuredAt={!sharedMeasuredAt}
+                      usedOnly={dbHidden}
                     />
                     {source && (
                       <p className="text-muted-foreground text-xs">

@@ -9,6 +9,8 @@ interface StorageMeterProps {
   usage: StorageKindUsage | undefined;
   /** ปิดเมื่อผู้เรียกพิมพ์เวลาวัดรวมไว้ที่หัวการ์ดแล้ว (ทุก kind วัดเวลาเดียวกัน) — ไม่งั้นบรรทัดซ้ำทุกแถบ */
   showMeasuredAt?: boolean;
+  /** โชว์แค่ขนาดที่ใช้ ไม่มีเพดาน/%/แถบ/ป้ายบล็อก — ใช้กับ DB ตอน flag `license_storage_quota` ปิด */
+  usedOnly?: boolean;
 }
 
 /** `shared_schema` / `null_schema` / `measure_failed` → ป้ายอธิบายสั้น ๆ */
@@ -30,13 +32,29 @@ export function StorageFlagBadge({ flag }: { flag: string | null }) {
  * แถบโควตาของหนึ่ง kind — ใช้ไป / โควตา / % · เกิน 100% แถบเต็มสีแดง ส่วน % จริงอยู่ในตัวเลข
  * แถบเป็นของแถม (aria-hidden) ตัวเลขเป็นตัวหลักเหมือน SeatMeter
  */
-export function StorageMeter({ label, usage, showMeasuredAt = true }: StorageMeterProps) {
+export function StorageMeter({ label, usage, showMeasuredAt = true, usedOnly = false }: StorageMeterProps) {
   const { t } = useI18n();
   if (!usage) {
     return (
       <div className="space-y-1">
         <div className="text-sm font-medium">{label}</div>
         <p className="text-muted-foreground text-xs">{t('pages.storageQuota.notMeasured')}</p>
+      </div>
+    );
+  }
+  if (usedOnly) {
+    return (
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium">{label}</span>
+          <StorageFlagBadge flag={usage.flag} />
+        </div>
+        <div className="font-mono text-base font-semibold tabular-nums">{formatBytes(usage.used_bytes)}</div>
+        {showMeasuredAt && (
+          <p className="text-muted-foreground text-xs">
+            {t('pages.storageQuota.measuredAt', { date: new Date(usage.measured_at).toLocaleString() })}
+          </p>
+        )}
       </div>
     );
   }

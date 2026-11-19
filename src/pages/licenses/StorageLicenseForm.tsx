@@ -23,6 +23,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { useStorageQuotaDefaults } from '../../hooks/useStorageQuotaDefaults';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import type { BusinessUnitOption } from '../../hooks/useBusinessUnitSearch';
+import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
 import businessUnitService from '../../services/businessUnitService';
 import storageLicenseService from '../../services/businessUnitStorageLicenseService';
 import { normalizeAudit } from '../../utils/audit';
@@ -64,7 +65,8 @@ const toBytes = (gb: string): number | null => {
 interface StoragePlateProps {
   row: BuStorageLicenseRow;
   inForce: boolean;
-  dbLabel: string;
+  /** null = ซ่อนช่อง DB (flag `license_storage_quota` ปิด) */
+  dbLabel: string | null;
   fileLabel: string;
   sourceLabel: string;
 }
@@ -91,7 +93,7 @@ const StoragePlate: React.FC<StoragePlateProps> = ({ row, inForce, dbLabel, file
             t('pages.storageLicense.form.businessUnit'),
             `${row.tb_business_unit.name} (${row.tb_business_unit.code})`,
           )}
-          {cell(t('pages.storageLicense.dbQuota'), dbLabel)}
+          {dbLabel !== null && cell(t('pages.storageLicense.dbQuota'), dbLabel)}
           {cell(t('pages.storageLicense.fileQuota'), fileLabel)}
           {cell(t('pages.storageLicense.sourceColumn'), sourceLabel)}
         </dl>
@@ -117,6 +119,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
   const { hasPermission } = useAuth();
   const canEdit = hasPermission('subscription.manage');
   const isNew = mode === 'create';
+  const dbQuotaOn = useDbQuotaOn();
   const defaults = useStorageQuotaDefaults();
 
   const [bu, setBu] = useState<BusinessUnitOption | null>(null);
@@ -234,11 +237,17 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
   const validate = (): boolean => {
     const next: Record<string, string> = {};
     if (isNew && !bu) next.bu = t('pages.storageLicense.form.buRequired');
-    const dbErr = quotaError(form.db);
+    // ช่อง DB ซ่อนอยู่ = ไม่ตรวจ: ค่าที่เก็บไว้ (เช่นต่ำกว่า 1 GB จากการ migrate) จะทำให้บันทึกเงียบ ๆ โดยไม่มีข้อความให้เห็น
+    // และค่านั้นไม่ถูกส่งไปอยู่แล้ว · hidden DB field is never validated: its error could not be shown
+    const dbErr = dbQuotaOn ? quotaError(form.db) : '';
     const fileErr = quotaError(form.file);
     if (dbErr) next.db = dbErr;
     if (fileErr) next.file = fileErr;
-    if (!dbErr && !fileErr && form.db.trim() === '' && form.file.trim() === '') {
+    if (!dbQuotaOn && isNew && !fileErr && form.file.trim() === '') {
+      // ช่อง DB ซ่อนอยู่ ใบใหม่จึงต้องมีโควตาไฟล์ (backend ปฏิเสธใบที่ไม่มีตัวเลขเลย) · แก้ใบไม่บังคับ:
+      // ตัวเลข DB เดิมยังอยู่และไม่ถูกส่งทับ
+      next.file = t('pages.storageLicense.form.fileRequired');
+    } else if (!dbErr && !fileErr && form.db.trim() === '' && form.file.trim() === '') {
       next.figures = t('pages.storageLicense.form.needOneFigure');
     }
     setFieldErrors(next);
@@ -434,7 +443,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
           <StoragePlate
             row={detail}
             inForce={!replaced}
-            dbLabel={quotaLabel(detail.db_quota_bytes, defaults?.db)}
+            dbLabel={dbQuotaOn ? quotaLabel(detail.db_quota_bytes, defaults?.db) : null}
             fileLabel={quotaLabel(detail.file_quota_bytes, defaults?.file)}
             sourceLabel={t(`pages.storageLicense.source.${storageLicenseSource(detail)}` as const)}
           />
@@ -476,6 +485,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
                   </div>
                 )}
 
+                {dbQuotaOn && (
                 <div className="space-y-2">
                   <Label htmlFor="db">{t('pages.storageLicense.form.dbQuotaGb')}</Label>
                   {editing ? (
@@ -498,6 +508,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
                   {editing && <p className="text-muted-foreground text-xs">{blankHint(defaults?.db)}</p>}
                   {fieldErrors.db && <p className="text-destructive text-xs">{fieldErrors.db}</p>}
                 </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="file">{t('pages.storageLicense.form.fileQuotaGb')}</Label>

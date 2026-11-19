@@ -21,6 +21,7 @@ import { readStoredPerpage } from '../../utils/pageRange';
 import storageLicenseService from '../../services/businessUnitStorageLicenseService';
 import { storageLicenseSource as sourceOf } from './storageLicenseSource';
 import { useStorageQuotaDefaults } from '../../hooks/useStorageQuotaDefaults';
+import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
 import { LicenseSummaryBand, type SummaryBandItem } from './LicenseSummaryBand';
 import type { BuStorageLicenseRow, BuStorageLicenseSummary } from '../../types';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -62,6 +63,7 @@ const withTiebreaker = (sort: string): string => {
  */
 export function StorageLicenseTable() {
   const { t } = useI18n();
+  const dbQuotaOn = useDbQuotaOn();
 
   // ค่า default สดจาก config `storage_quota` — ไม่มีสิทธิ์/อ่านไม่ได้ = null → ป้ายเปล่า ๆ "Default" ไม่มีขนาด
   const defaults = useStorageQuotaDefaults();
@@ -198,7 +200,7 @@ export function StorageLicenseTable() {
       bu_code: r.tb_business_unit.code,
       bu_name: r.tb_business_unit.name,
       cluster_name: r.tb_business_unit.cluster?.name ?? '',
-      db_quota: quotaLabel(r.db_quota_bytes, defaults?.db),
+      db_quota: dbQuotaOn ? quotaLabel(r.db_quota_bytes, defaults?.db) : '',
       file_quota: quotaLabel(r.file_quota_bytes, defaults?.file),
       status: statusText(r),
       source: sourceLabel(r),
@@ -210,7 +212,8 @@ export function StorageLicenseTable() {
       { key: 'bu_code', label: t('pages.storageLicense.buCode') },
       { key: 'bu_name', label: t('entity.businessUnit.title') },
       { key: 'cluster_name', label: t('common.label.cluster') },
-      { key: 'db_quota', label: t('pages.storageLicense.dbQuota') },
+      // flag `license_storage_quota` ปิด: ไม่มีคอลัมน์โควตา DB ทั้งในตารางและ CSV
+      ...(dbQuotaOn ? [{ key: 'db_quota' as const, label: t('pages.storageLicense.dbQuota') }] : []),
       { key: 'file_quota', label: t('pages.storageLicense.fileQuota') },
       { key: 'status', label: t('common.status.label') },
       { key: 'source', label: t('pages.storageLicense.sourceColumn') },
@@ -255,7 +258,7 @@ export function StorageLicenseTable() {
         header: t('common.label.cluster'),
         cell: ({ row }) => <span>{row.original.tb_business_unit.cluster?.name || '-'}</span>,
       },
-      {
+      ...(dbQuotaOn ? [{
         id: 'db_quota_bytes',
         accessorFn: (r) => r.db_quota_bytes ?? 0,
         header: t('pages.storageLicense.dbQuota'),
@@ -264,7 +267,7 @@ export function StorageLicenseTable() {
             {quotaLabel(row.original.db_quota_bytes, defaults?.db)}
           </span>
         ),
-      },
+      } satisfies ColumnDef<BuStorageLicenseRow, unknown>] : []),
       {
         id: 'file_quota_bytes',
         accessorFn: (r) => r.file_quota_bytes ?? 0,
@@ -311,7 +314,7 @@ export function StorageLicenseTable() {
       },
       createdColumn,
     ];
-  }, [t, quotaLabel, defaults, sourceLabel]);
+  }, [t, quotaLabel, defaults, sourceLabel, dbQuotaOn]);
 
   const filtered = !!search;
 

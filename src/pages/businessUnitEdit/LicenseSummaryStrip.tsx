@@ -6,6 +6,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
 import { sumActiveLicenses, licenseStatus } from '../../utils/buLicense';
 import { fmtPct, meterWidth, usedPct } from '../../utils/storageQuota';
+import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
 import { daysLeft, fmtDate, isPerpetual } from '../licenses/licenseDates';
 import type { BusinessUnitLicense, BuStorageQuotaView, InterfaceLicense, StorageKind } from '../../types';
 
@@ -115,6 +116,7 @@ export function LicenseSummaryStrip({
 }: LicenseSummaryStripProps) {
   const { t } = useI18n();
   const { thresholds } = useExpiryThresholds();
+  const dbQuotaOn = useDbQuotaOn();
 
   const endsText = (end: string | null): string => {
     if (!end) return t('pages.businessUnits.licStripNoneInForce');
@@ -140,7 +142,9 @@ export function LicenseSummaryStrip({
   const ifTone: Tone = endTone(ifEnd, thresholds.interface_days);
 
   // ── Storage — ช่องเดียวสรุปด้วย kind ที่เต็มที่สุด ────────────────────────────
-  const kinds = storage?.view?.usage.kinds ?? [];
+  // flag `license_storage_quota` ปิด = โควตา DB ไม่มีผล ช่องนี้ (ตัวเลข % แถบ สี) จึงคิดจากไฟล์แนบอย่างเดียว
+  // ตัวเลขใหญ่กับแถบต้องวัดปริมาณเดียวกัน · DB off: the cell measures attachment only
+  const kinds = (storage?.view?.usage.kinds ?? []).filter((k) => dbQuotaOn || k.kind !== 'database');
   const fullest = kinds.length === 0 ? null : kinds.reduce((a, b) => (usedPct(a) >= usedPct(b) ? a : b));
   const fullestPct = fullest ? usedPct(fullest) : 0;
   const blocked = kinds.some((k) => k.blocking);
