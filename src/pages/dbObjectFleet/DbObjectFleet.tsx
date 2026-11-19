@@ -41,6 +41,7 @@ export default function DbObjectFleet() {
   const { hasPermission } = useAuth();
   const canApply = hasPermission('sql_workbench.manage');
   const canAuthor = hasPermission('db_object.manage');
+  const canApprove = hasPermission('db_object.approve');
 
   const [bus, setBus] = useState<FleetBu[]>([]);
   const [busLoading, setBusLoading] = useState(true);
@@ -337,6 +338,7 @@ export default function DbObjectFleet() {
                   bus={bus}
                   scans={scans}
                   canAuthor={canAuthor}
+                  canApprove={canApprove}
                   canApply={canApply}
                   onRegistryChanged={onRegistryChanged}
                   onApplied={onApplied}

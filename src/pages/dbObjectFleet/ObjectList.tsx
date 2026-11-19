@@ -104,6 +104,7 @@ export function ObjectList({
                     </span>
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1">
+                    {!row.approved && <Badge variant="outline">{t('pages.dbObjectFleet.statusPending')}</Badge>}
                     {scannedBus === 0 ? null : row.needsApply ? (
                       <Badge variant="warning">
                         {t('pages.dbObjectFleet.statusNeeds', { count: row.outdated.length + row.missing.length })}
