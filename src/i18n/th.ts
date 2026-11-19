@@ -41,6 +41,7 @@ export const th: Translations = {
     customers: 'ลูกค้า (AR)',
     licenseIntakes: 'ใบขายสิทธิ์',
     licenseAiCredit: 'License AI Credit',
+    licenseStorageQuota: 'License DB Quota',
     storageUsage: 'การใช้พื้นที่',
     databasePools: 'Database Pools',
     cluster: 'Cluster',

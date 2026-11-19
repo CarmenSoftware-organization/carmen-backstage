@@ -42,6 +42,7 @@ export const en = {
     customers: 'Customers',
     licenseIntakes: 'License Intakes',
     licenseAiCredit: 'License AI Credit',
+    licenseStorageQuota: 'License DB Quota',
     storageUsage: 'Storage Usage',
     databasePools: 'Database Pools',
     cluster: 'Cluster',
