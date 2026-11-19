@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, FlaskConical, GitCompare, Loader2, Rocket, Save, Trash2, XCircle } from 'lucide-react';
+import {
+  BadgeCheck,
+  CheckCircle2,
+  FlaskConical,
+  GitCompare,
+  Loader2,
+  Rocket,
+  Save,
+  Trash2,
+  XCircle,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { useI18n } from '../../hooks/useI18n';
@@ -11,13 +20,14 @@ import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import sqlQueryService from '../../services/sqlQueryService';
 import dbObjectService from '../../services/dbObjectService';
 import { mapWithConcurrency } from '../../utils/concurrent';
-import type { DbObjectKind } from '../../types';
+import type { DbObjectDeployLogRow, DbObjectRegistryEntry, DbObjectSpec } from '../../types';
 import { SqlEditor } from '../sqlWorkbench/SqlEditor';
 import { SqlDiffView } from './SqlDiffView';
+import { SpecForm, blankSpec } from './SpecForm';
 import { defaultTargets, runSignature, type BuScan, type BuStatus, type FleetBu, type FleetRow } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, isLockTimeout, withRateLimitRetry } from './fleetRequest';
 
-type RunMode = 'dry' | 'commit';
+type RunKind = 'dry' | 'apply' | 'drop';
 type RunResult = { state: 'running' } | { state: 'ok'; ms: number } | { state: 'error'; message: string };
 
 interface ObjectDetailProps {
@@ -27,6 +37,8 @@ interface ObjectDetailProps {
   scans: Record<string, BuScan>;
   /** May create / edit / remove registry definitions (db_object.manage). */
   canAuthor: boolean;
+  /** May approve a definition for a real rollout (db_object.approve). */
+  canApprove: boolean;
   /** May dry-run and apply to BUs (sql_workbench.manage). */
   canApply: boolean;
   /** The registry changed; `selectId` is the row to show afterwards (null = none). */
@@ -37,25 +49,28 @@ interface ObjectDetailProps {
   onBusyChange: (busy: boolean) => void;
 }
 
-const NEW_OBJECT_TEMPLATE = `-- No schema names: each BU runs this in its own schema.
-CREATE OR REPLACE VIEW v_new_view AS
-SELECT id, code, name
-  FROM tb_location;
-`;
+const NEW_VIEW_BODY = `SELECT id, code, name
+  FROM tb_location`;
 
-const KINDS: DbObjectKind[] = ['view', 'function', 'procedure'];
 const isConflict = (err: unknown): boolean => (err as { response?: { status?: number } })?.response?.status === 409;
+const sameSpec = (a: DbObjectSpec | null, b: DbObjectSpec | null): boolean => JSON.stringify(a) === JSON.stringify(b);
+const fmtTime = (iso: string): string => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
+};
 
 /**
- * One registry definition: its text (edited and saved here), how every BU stands against it,
- * and the two-step rollout of the saved text — try on every target BU with a rollback, then
- * apply for real only when that exact text passed on exactly those BUs.
+ * One registry definition. Its metadata is a form and its body an editor — the DDL header is
+ * composed by the backend. The saved definition must be approved before it can be applied for
+ * real; rolling it out is still two steps (try on every target with a rollback, then apply),
+ * and every real rollout lands in the history below.
  */
 export function ObjectDetail({
   row,
   bus,
   scans,
   canAuthor,
+  canApprove,
   canApply,
   onRegistryChanged,
   onApplied,
@@ -64,24 +79,22 @@ export function ObjectDetail({
   const { t } = useI18n();
   const okBus = useMemo(() => bus.filter((b) => scans[b.code]?.state === 'ok').map((b) => b.code), [bus, scans]);
 
-  const [sqlText, setSqlText] = useState(row ? '' : NEW_OBJECT_TEMPLATE);
-  const [savedText, setSavedText] = useState(row ? '' : NEW_OBJECT_TEMPLATE);
-  const [docVersion, setDocVersion] = useState<number | undefined>(undefined);
-  const [newKind, setNewKind] = useState<DbObjectKind>('view');
-  const [newName, setNewName] = useState('');
-  const [newArgs, setNewArgs] = useState('');
+  const [entry, setEntry] = useState<DbObjectRegistryEntry | null>(null);
+  const [spec, setSpec] = useState<DbObjectSpec | null>(() => (row ? null : blankSpec('view', '', NEW_VIEW_BODY)));
   const [defLoading, setDefLoading] = useState(false);
   const [defError, setDefError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [approving, setApproving] = useState(false);
   const [targets, setTargets] = useState<string[]>(() => (row ? defaultTargets(row) : []));
   const [results, setResults] = useState<Record<string, RunResult>>({});
-  const [lastMode, setLastMode] = useState<RunMode | null>(null);
+  const [lastRun, setLastRun] = useState<RunKind | null>(null);
   const [running, setRunning] = useState(false);
   const [passedSignature, setPassedSignature] = useState<string | null>(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirm, setConfirm] = useState<'apply' | 'drop' | null>(null);
   const [removeOpen, setRemoveOpen] = useState(false);
   const [diff, setDiff] = useState<{ bu: string; text: string } | null>(null);
   const [diffLoadingBu, setDiffLoadingBu] = useState<string | null>(null);
+  const [log, setLog] = useState<DbObjectDeployLogRow[] | null>(null);
 
   // Leaving the page mid-run stops new BUs from being started; the ones in flight finish.
   // Reset in the body: StrictMode's mount → cleanup → mount would otherwise leave it true and
@@ -97,58 +110,67 @@ export function ObjectDetail({
   // Unmounted in the same render that ends a run, the effect above never reports `false`.
   useEffect(() => () => onBusyChange(false), [onBusyChange]);
 
-  const dirty = sqlText !== savedText;
-  useUnsavedChanges(canAuthor && (dirty || (!row && newName.trim() !== '')));
+  const savedSpec = entry?.spec ?? null;
+  const dirty = row ? spec !== null && !sameSpec(spec, savedSpec) : false;
+  const [newTouched, setNewTouched] = useState(false);
+  useUnsavedChanges(canAuthor && (dirty || (!row && newTouched)));
+
+  const adopt = useCallback((e: DbObjectRegistryEntry) => {
+    setEntry(e);
+    setSpec(e.spec);
+  }, []);
+
+  const loadLog = useCallback(async (id: string) => {
+    try {
+      const rows = await dbObjectService.deployLog(id);
+      if (!cancelledRef.current) setLog(rows);
+    } catch {
+      if (!cancelledRef.current) setLog([]);
+    }
+  }, []);
 
   const loadEntry = useCallback(
     async (id: string) => {
       setDefLoading(true);
       setDefError(null);
       try {
-        const entry = await dbObjectService.get(id);
-        if (cancelledRef.current) return;
-        setSqlText(entry.definition);
-        setSavedText(entry.definition);
-        setDocVersion(entry.doc_version);
+        const e = await dbObjectService.get(id);
+        if (!cancelledRef.current) adopt(e);
       } catch (err) {
         if (!cancelledRef.current) setDefError(apiErrorMessage(err, t('pages.dbObjectFleet.loadDefinitionFailed')));
       } finally {
         if (!cancelledRef.current) setDefLoading(false);
       }
     },
-    [t],
+    [t, adopt],
   );
   // Load once per definition; a rescan or a registry reload of the same row must not discard edits.
   useEffect(() => {
-    if (row) void loadEntry(row.id);
+    if (!row) return;
+    void loadEntry(row.id);
+    void loadLog(row.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [row?.id]);
 
+  const resetRun = () => {
+    setPassedSignature(null);
+    setResults({});
+  };
+
   const save = async () => {
-    if (!sqlText.trim()) return;
+    if (!spec || !spec.body.trim()) return;
     setSaving(true);
     try {
       if (row) {
-        const entry = await dbObjectService.update(row.id, { definition: sqlText, doc_version: docVersion });
-        setSqlText(entry.definition);
-        setSavedText(entry.definition);
-        setDocVersion(entry.doc_version);
-        setPassedSignature(null);
-        setResults({});
+        adopt(await dbObjectService.update(row.id, { spec, doc_version: entry?.doc_version }));
+        resetRun();
         toast.success(t('pages.dbObjectFleet.saved'));
         onRegistryChanged(row.id);
       } else {
-        const entry = await dbObjectService.create({
-          type: newKind,
-          name: newName.trim(),
-          identity_args: newKind === 'view' ? '' : newArgs.trim(),
-          definition: sqlText,
-        });
+        const created = await dbObjectService.create({ spec: { ...spec, name: spec.name.trim() } });
         toast.success(t('pages.dbObjectFleet.created'));
-        // leave the "new" form clean so the unsaved-changes guard does not fire on the switch
-        setSavedText(sqlText);
-        setNewName('');
-        onRegistryChanged(entry.id);
+        setNewTouched(false);
+        onRegistryChanged(created.id);
       }
     } catch (err) {
       if (row && isConflict(err)) {
@@ -159,6 +181,25 @@ export function ObjectDetail({
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const approve = async () => {
+    if (!row || !entry) return;
+    setApproving(true);
+    try {
+      adopt(await dbObjectService.approve(row.id, entry.doc_version));
+      toast.success(t('pages.dbObjectFleet.approved'));
+      onRegistryChanged(row.id);
+    } catch (err) {
+      if (isConflict(err)) {
+        toast.error(t('pages.dbObjectFleet.conflict'));
+        void loadEntry(row.id);
+      } else {
+        toast.error(apiErrorMessage(err, t('pages.dbObjectFleet.approveFailed')));
+      }
+    } finally {
+      setApproving(false);
     }
   };
 
@@ -173,8 +214,12 @@ export function ObjectDetail({
     }
   };
 
-  const signature = runSignature(savedText, targets);
-  const applyUnlocked = canApply && !dirty && !running && targets.length > 0 && passedSignature === signature;
+  const approved = entry?.approved === true;
+  const hasSpec = entry ? entry.spec !== null : true;
+  const signature = runSignature(entry?.hash ?? '', targets);
+  const dryPassed = passedSignature === signature;
+  const ready = canApply && !!entry && hasSpec && !dirty && !running && targets.length > 0;
+  const applyUnlocked = ready && approved && dryPassed;
   const failedBus = Object.entries(results)
     .filter(([, r]) => r.state === 'error')
     .map(([code]) => code);
@@ -183,12 +228,12 @@ export function ObjectDetail({
     setTargets((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code].sort()));
 
   const runOn = useCallback(
-    async (mode: RunMode) => {
+    async (kind: RunKind) => {
       const codes = [...targets];
-      const text = savedText;
-      if (!row || codes.length === 0 || !text.trim()) return;
+      if (!row || !entry || codes.length === 0) return;
+      const hash = entry.hash;
       setRunning(true);
-      setLastMode(mode);
+      setLastRun(kind);
       setPassedSignature(null);
       setResults(Object.fromEntries(codes.map((c) => [c, { state: 'running' } as RunResult])));
       const passedBus: string[] = [];
@@ -197,7 +242,9 @@ export function ObjectDetail({
         FLEET_CONCURRENCY,
         (code) => {
           if (cancelledRef.current) return Promise.reject(new Error(t('pages.dbObjectFleet.cancelled')));
-          return withRateLimitRetry(() => sqlQueryService.applyPortableDdl(code, text, mode === 'dry'));
+          return withRateLimitRetry(() =>
+            dbObjectService.applyToBu(code, row.id, kind === 'drop' ? 'drop' : 'apply', kind === 'dry'),
+          );
         },
         (code, _i, res, err) => {
           if (!err) passedBus.push(code);
@@ -212,19 +259,20 @@ export function ObjectDetail({
       );
       if (cancelledRef.current) return;
       const failed = codes.length - passedBus.length;
-      if (mode === 'dry') {
+      if (kind === 'dry') {
         setRunning(false);
         if (failed === 0) {
-          setPassedSignature(runSignature(text, codes));
+          setPassedSignature(runSignature(hash, codes));
           toast.success(t('pages.dbObjectFleet.dryRunPassed', { count: codes.length }));
         } else {
           toast.warning(t('pages.dbObjectFleet.dryRunFailedSome', { failed, total: codes.length }));
         }
         return;
       }
-      // Postgres stores its own rendering of what was applied. Read it back from one BU that took
-      // it, so the registry fingerprint equals what a scan of those BUs returns from now on.
-      if (passedBus.length > 0 && canAuthor) {
+      // Postgres reprints a view when it stores it, so read it back from one BU that took it:
+      // the registry fingerprint then equals what a scan of those BUs returns. A routine body
+      // is stored verbatim and needs no such step.
+      if (kind === 'apply' && row.type === 'view' && passedBus.length > 0 && canAuthor) {
         try {
           const res = await dbObjectService.importFromBu(passedBus.sort()[0], [
             { type: row.type, name: row.name, identity_args: row.identity_args },
@@ -236,12 +284,17 @@ export function ObjectDetail({
       }
       if (cancelledRef.current) return;
       setRunning(false);
+      void loadLog(row.id);
       onRegistryChanged(row.id);
       onApplied(codes);
-      if (failed === 0) toast.success(t('pages.dbObjectFleet.appliedAll', { count: codes.length }));
-      else toast.warning(t('pages.dbObjectFleet.appliedSome', { passed: passedBus.length, failed, total: codes.length }));
+      const counts = { passed: passedBus.length, failed, total: codes.length, count: codes.length };
+      if (failed === 0) {
+        toast.success(t(kind === 'drop' ? 'pages.dbObjectFleet.droppedAll' : 'pages.dbObjectFleet.appliedAll', counts));
+      } else {
+        toast.warning(t(kind === 'drop' ? 'pages.dbObjectFleet.droppedSome' : 'pages.dbObjectFleet.appliedSome', counts));
+      }
     },
-    [targets, savedText, row, canAuthor, t, onApplied, onRegistryChanged, loadEntry],
+    [targets, row, entry, canAuthor, t, onApplied, onRegistryChanged, loadEntry, loadLog],
   );
 
   const openDiff = async (code: string) => {
@@ -270,15 +323,33 @@ export function ObjectDetail({
       <Badge variant="warning">{t('pages.dbObjectFleet.buMissing')}</Badge>
     );
 
-  const canSave = canAuthor && !saving && !running && sqlText.trim() !== '' && (row ? dirty : newName.trim() !== '');
+  const editable = canAuthor && hasSpec;
+  const canSave =
+    editable && !saving && !running && !!spec && spec.body.trim() !== '' && (row ? dirty : spec.name.trim() !== '');
+  const applyHint = !hasSpec
+    ? t('pages.dbObjectFleet.needsReimport')
+    : dirty
+      ? t('pages.dbObjectFleet.applyNeedsSave')
+      : !approved
+        ? t('pages.dbObjectFleet.applyNeedsApproval')
+        : applyUnlocked
+          ? t('pages.dbObjectFleet.applyReady')
+          : t('pages.dbObjectFleet.applyNeedsDryRun');
 
   return (
     <section className="min-w-0 space-y-4 rounded-lg border p-4" aria-label={t('pages.dbObjectFleet.detailAria')}>
       <header className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1 space-y-1">
-          <h2 className="font-mono text-base font-semibold break-all">
-            {row ? row.name : t('pages.dbObjectFleet.newObjectTitle')}
-            {row?.identity_args ? <span className="text-muted-foreground font-normal">({row.identity_args})</span> : null}
+          <h2 className="flex flex-wrap items-center gap-2 font-mono text-base font-semibold break-all">
+            <span>
+              {row ? row.name : t('pages.dbObjectFleet.newObjectTitle')}
+              {row?.identity_args ? <span className="text-muted-foreground font-normal">({row.identity_args})</span> : null}
+            </span>
+            {row && entry && hasSpec && (
+              <Badge variant={approved && !dirty ? 'success' : 'warning'} className="font-sans">
+                {approved && !dirty ? t('pages.dbObjectFleet.approvedBadge') : t('pages.dbObjectFleet.pendingBadge')}
+              </Badge>
+            )}
           </h2>
           <p className="text-muted-foreground text-xs">
             {row
@@ -289,6 +360,12 @@ export function ObjectDetail({
               : t('pages.dbObjectFleet.newObjectHint')}
           </p>
         </div>
+        {row && canApprove && entry && hasSpec && !approved && (
+          <Button size="sm" disabled={dirty || approving || running} onClick={approve}>
+            {approving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BadgeCheck className="mr-2 h-4 w-4" />}
+            {t('pages.dbObjectFleet.approve')}
+          </Button>
+        )}
         {row && canAuthor && (
           <Button variant="outline" size="sm" disabled={running || saving} onClick={() => setRemoveOpen(true)}>
             <Trash2 className="mr-2 h-4 w-4" />
@@ -297,67 +374,62 @@ export function ObjectDetail({
         )}
       </header>
 
-      {!row && (
-        <div className="grid gap-3 sm:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)]">
-          <label className="space-y-1 text-xs">
-            <span className="block font-medium">{t('pages.dbObjectFleet.fieldKind')}</span>
-            <select
-              className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
-              value={newKind}
-              onChange={(e) => setNewKind(e.target.value as DbObjectKind)}
-            >
-              {KINDS.map((k) => (
-                <option key={k} value={k}>
-                  {k}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-1 text-xs">
-            <span className="block font-medium">{t('pages.dbObjectFleet.fieldName')}</span>
-            <Input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="v_new_view"
-              className="h-9 font-mono text-xs"
-            />
-          </label>
-          {newKind !== 'view' && (
-            <label className="space-y-1 text-xs">
-              <span className="block font-medium">{t('pages.dbObjectFleet.fieldArgs')}</span>
-              <Input
-                value={newArgs}
-                onChange={(e) => setNewArgs(e.target.value)}
-                placeholder="p_date_from date, p_date_to date"
-                className="h-9 font-mono text-xs"
-              />
-            </label>
-          )}
-        </div>
+      {defError && (
+        <p role="alert" className="text-destructive text-xs">
+          {defError}
+        </p>
+      )}
+      {entry && !hasSpec && (
+        <p role="alert" className="text-warning text-xs">
+          {t('pages.dbObjectFleet.needsReimport')}
+        </p>
       )}
 
-      {/* The registry definition */}
+      {spec && (
+        <SpecForm
+          spec={spec}
+          isNew={!row}
+          readOnly={!editable}
+          onChange={(next) => {
+            setSpec(next);
+            if (!row) setNewTouched(true);
+          }}
+        />
+      )}
+
+      {/* The body — the only free-form SQL of a definition */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-medium">{t('pages.dbObjectFleet.definitionLabel')}</span>
+          <span className="font-medium">{t('pages.dbObjectFleet.bodyLabel')}</span>
           {row && dirty && <span className="text-warning">{t('pages.dbObjectFleet.unsaved')}</span>}
           {defLoading && <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" aria-hidden />}
-          {canAuthor && (
+          {editable && (
             <Button size="sm" className="ml-auto h-7" disabled={!canSave} onClick={save}>
               {saving ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1 h-3.5 w-3.5" />}
               {row ? t('pages.dbObjectFleet.save') : t('pages.dbObjectFleet.create')}
             </Button>
           )}
         </div>
-        {defError && (
-          <p role="alert" className="text-destructive text-xs">
-            {defError}
-          </p>
-        )}
-        <div className="flex h-[22rem] flex-col overflow-hidden rounded-md border">
-          <SqlEditor value={sqlText} readOnly={!canAuthor} onChange={setSqlText} />
+        <div className="flex h-[20rem] flex-col overflow-hidden rounded-md border">
+          <SqlEditor
+            value={spec?.body ?? entry?.definition ?? ''}
+            readOnly={!editable || !spec}
+            onChange={(body) => {
+              if (!spec) return;
+              setSpec({ ...spec, body });
+              if (!row) setNewTouched(true);
+            }}
+          />
         </div>
-        {canAuthor && <p className="text-muted-foreground text-[11px]">{t('pages.dbObjectFleet.definitionRules')}</p>}
+        {editable && <p className="text-muted-foreground text-[11px]">{t('pages.dbObjectFleet.bodyRules')}</p>}
+        {entry && hasSpec && (
+          <details className="rounded-md border text-xs">
+            <summary className="cursor-pointer px-3 py-1.5 font-medium">{t('pages.dbObjectFleet.composedLabel')}</summary>
+            <pre className="bg-muted/40 max-h-64 overflow-auto border-t p-3 font-mono text-[11px] whitespace-pre-wrap">
+              {entry.definition}
+            </pre>
+          </details>
+        )}
       </div>
 
       {/* BUs: how each stands against the registry, target selection, results */}
@@ -431,8 +503,7 @@ export function ObjectDetail({
                           ) : status ? (
                             statusBadge(status)
                           ) : null}
-                          {/* a BU holding the object is worth comparing when it differs, or when the text here is unsaved */}
-                          {status && status !== 'missing' && (status === 'outdated' || dirty) && (
+                          {status === 'outdated' && (
                             <Button
                               size="sm"
                               variant="ghost"
@@ -451,7 +522,11 @@ export function ObjectDetail({
                         {result?.state === 'ok' && (
                           <span className="text-success inline-flex items-center gap-1">
                             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-                            {lastMode === 'dry' ? t('pages.dbObjectFleet.resultDryOk') : t('pages.dbObjectFleet.resultApplied')}
+                            {lastRun === 'dry'
+                              ? t('pages.dbObjectFleet.resultDryOk')
+                              : lastRun === 'drop'
+                                ? t('pages.dbObjectFleet.resultDropped')
+                                : t('pages.dbObjectFleet.resultApplied')}
                           </span>
                         )}
                         {result?.state === 'error' && (
@@ -477,37 +552,76 @@ export function ObjectDetail({
 
       {row && canApply && (
         <div className="flex flex-wrap items-center gap-3 border-t pt-3">
-          <Button
-            variant="outline"
-            disabled={running || dirty || targets.length === 0 || !savedText.trim() || defLoading}
-            onClick={() => runOn('dry')}
-          >
-            {running && lastMode === 'dry' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FlaskConical className="mr-2 h-4 w-4" />}
+          <Button variant="outline" disabled={!ready || defLoading} onClick={() => runOn('dry')}>
+            {running && lastRun === 'dry' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FlaskConical className="mr-2 h-4 w-4" />}
             {t('pages.dbObjectFleet.dryRun', { count: targets.length })}
           </Button>
-          <Button disabled={!applyUnlocked} onClick={() => setConfirmOpen(true)}>
-            {running && lastMode === 'commit' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
+          <Button disabled={!applyUnlocked} onClick={() => setConfirm('apply')}>
+            {running && lastRun === 'apply' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
             {t('pages.dbObjectFleet.apply', { count: targets.length })}
           </Button>
-          <p className="text-muted-foreground text-xs">
-            {dirty
-              ? t('pages.dbObjectFleet.applyNeedsSave')
-              : applyUnlocked
-                ? t('pages.dbObjectFleet.applyReady')
-                : t('pages.dbObjectFleet.applyNeedsDryRun')}
-          </p>
+          <Button variant="outline" className="text-destructive" disabled={!ready || !approved} onClick={() => setConfirm('drop')}>
+            {running && lastRun === 'drop' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+            {t('pages.dbObjectFleet.drop', { count: targets.length })}
+          </Button>
+          <p className="text-muted-foreground basis-full text-xs">{applyHint}</p>
         </div>
       )}
 
+      {/* Every real rollout of this definition */}
+      {row && (
+        <details className="rounded-md border text-xs">
+          <summary className="cursor-pointer px-3 py-1.5 font-medium">
+            {t('pages.dbObjectFleet.historyLabel', { count: log?.length ?? 0 })}
+          </summary>
+          {!log || log.length === 0 ? (
+            <p className="text-muted-foreground border-t px-3 py-2">{t('pages.dbObjectFleet.historyEmpty')}</p>
+          ) : (
+            <div className="max-h-64 overflow-auto border-t">
+              <table className="w-full">
+                <thead className="bg-muted/50 sticky top-0">
+                  <tr className="text-muted-foreground text-left">
+                    <th className="px-2 py-1.5 font-medium">{t('pages.dbObjectFleet.colWhen')}</th>
+                    <th className="px-2 py-1.5 font-medium">{t('pages.dbObjectFleet.colBu')}</th>
+                    <th className="px-2 py-1.5 font-medium">{t('pages.dbObjectFleet.colAction')}</th>
+                    <th className="px-2 py-1.5 font-medium">{t('pages.dbObjectFleet.colVersion')}</th>
+                    <th className="px-2 py-1.5 font-medium">{t('pages.dbObjectFleet.colResult')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {log.map((l) => (
+                    <tr key={l.id}>
+                      <td className="px-2 py-1 whitespace-nowrap">{fmtTime(l.created_at)}</td>
+                      <td className="px-2 py-1 font-mono">{l.bu_code}</td>
+                      <td className="px-2 py-1">{l.action}</td>
+                      <td className="px-2 py-1 font-mono">
+                        v{l.doc_version} · {l.hash}
+                      </td>
+                      <td className={l.success ? 'text-success px-2 py-1' : 'text-destructive px-2 py-1 break-words'}>
+                        {l.success ? t('pages.dbObjectFleet.logOk') : (l.error ?? t('pages.dbObjectFleet.applyFailed'))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </details>
+      )}
+
       <ConfirmDialog
-        open={confirmOpen}
-        onOpenChange={setConfirmOpen}
-        title={t('pages.dbObjectFleet.confirmTitle', { count: targets.length })}
-        description={t('pages.dbObjectFleet.confirmDescription', { name: row?.name ?? '', bus: targets.join(', ') })}
-        confirmText={t('pages.dbObjectFleet.confirmApply')}
+        open={confirm !== null}
+        onOpenChange={(o) => !o && setConfirm(null)}
+        title={t(confirm === 'drop' ? 'pages.dbObjectFleet.dropTitle' : 'pages.dbObjectFleet.confirmTitle', { count: targets.length })}
+        description={t(
+          confirm === 'drop' ? 'pages.dbObjectFleet.dropDescription' : 'pages.dbObjectFleet.confirmDescription',
+          { name: row?.name ?? '', bus: targets.join(', ') },
+        )}
+        confirmText={t(confirm === 'drop' ? 'pages.dbObjectFleet.confirmDrop' : 'pages.dbObjectFleet.confirmApply')}
         onConfirm={() => {
-          setConfirmOpen(false);
-          void runOn('commit');
+          const kind = confirm;
+          setConfirm(null);
+          if (kind) void runOn(kind);
         }}
       />
 
@@ -529,7 +643,7 @@ export function ObjectDetail({
             <DialogTitle>{t('pages.dbObjectFleet.diffTitle', { bu: diff?.bu ?? '' })}</DialogTitle>
             <DialogDescription>{t('pages.dbObjectFleet.diffDescription', { bu: diff?.bu ?? '' })}</DialogDescription>
           </DialogHeader>
-          {diff && <SqlDiffView original={diff.text} current={sqlText} />}
+          {diff && <SqlDiffView original={diff.text} current={entry?.definition ?? ''} />}
         </DialogContent>
       </Dialog>
     </section>

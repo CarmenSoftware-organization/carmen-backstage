@@ -64,6 +64,20 @@ describe('buildFleetRows', () => {
     expect(defaultTargets(rows[0])).toEqual([]);
   });
 
+  it('marks a definition unapproved when its latest edit is, or when it has no structured form', () => {
+    const rows2 = buildFleetRows(
+      [
+        { ...REGISTRY[0], approved: false, has_spec: true },
+        { ...REGISTRY[1], approved: true, has_spec: false },
+      ],
+      BUS,
+      SCANS,
+    );
+    expect(rows2.map((r) => r.approved)).toEqual([false, false]);
+    // a backend that predates approval sends neither field
+    expect(rows.every((r) => r.approved)).toBe(true);
+  });
+
   it('shows every definition as needing nothing while no BU has been read', () => {
     const none = buildFleetRows(REGISTRY, BUS, {});
     expect(none.every((r) => !r.needsApply)).toBe(true);

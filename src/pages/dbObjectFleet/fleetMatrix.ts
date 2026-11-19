@@ -33,6 +33,8 @@ export interface FleetRow {
   missing: string[];
   /** true when at least one scanned BU is outdated or missing */
   needsApply: boolean;
+  /** false while the latest edit has not been approved (or the row has no structured form yet) */
+  approved: boolean;
 }
 
 /** An object some BU has but the registry does not. */
@@ -106,6 +108,8 @@ export function buildFleetRows(
         outdated,
         missing,
         needsApply: outdated.length + missing.length > 0,
+        // a backend that predates approval sends neither field: treat its rows as approved
+        approved: r.approved !== false && r.has_spec !== false,
       };
     })
     .sort(byIdentity);

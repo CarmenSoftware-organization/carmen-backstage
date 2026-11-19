@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import DbObjectFleet from './DbObjectFleet';
 import sqlQueryService from '../../services/sqlQueryService';
 import dbObjectService from '../../services/dbObjectService';
-import type { DbObjectFingerprint, DbObjectRegistryRow } from '../../types';
+import type { DbObjectFingerprint, DbObjectRegistryEntry, DbObjectRegistryRow, DbObjectSpec } from '../../types';
 
 vi.mock('../../components/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -47,6 +47,9 @@ vi.mock('../../services/dbObjectService', () => ({
     update: vi.fn(),
     remove: vi.fn(),
     importFromBu: vi.fn(),
+    approve: vi.fn(),
+    deployLog: vi.fn(),
+    applyToBu: vi.fn(),
   },
 }));
 
@@ -66,10 +69,16 @@ const FINGERPRINTS: Record<string, DbObjectFingerprint[]> = {
   C1: [view('v_same', 'h1')],
 };
 const REGISTRY: DbObjectRegistryRow[] = [
-  { ...view('v_same', 'h1'), id: 'id-same', doc_version: 0 },
-  { ...view('v_diff', 'x'), id: 'id-diff', doc_version: 2 },
+  { ...view('v_same', 'h1'), id: 'id-same', doc_version: 0, approved: true, has_spec: true },
+  { ...view('v_diff', 'x'), id: 'id-diff', doc_version: 2, approved: true, has_spec: true },
 ];
-const DIFF_SQL = 'CREATE OR REPLACE VIEW v_diff AS SELECT 1;\n';
+// The editor holds only the body; the header is the backend's.
+const DIFF_SQL = 'SELECT 1';
+const entryOf = (id: string, over: Partial<DbObjectRegistryEntry> = {}): DbObjectRegistryEntry => {
+  const row = REGISTRY.find((r) => r.id === id) as DbObjectRegistryRow;
+  const spec: DbObjectSpec = { type: 'view', name: row.name, body: 'SELECT 1' };
+  return { ...row, spec, definition: `CREATE OR REPLACE VIEW "${row.name}" AS\nSELECT 1;\n`, ...over };
+};
 
 const svc = vi.mocked(sqlQueryService);
 const reg = vi.mocked(dbObjectService);
@@ -101,7 +110,7 @@ beforeEach(() => {
     hash: 'x',
     definition: `CREATE OR REPLACE VIEW ${ref.name} AS SELECT 0;\n`,
   }));
-  svc.applyPortableDdl.mockImplementation(async (code, _sql, dryRun) => ({
+  reg.applyToBu.mockImplementation(async (code, _id, _action, dryRun) => ({
     bu_code: code,
     schema: code,
     dry_run: dryRun,
@@ -109,15 +118,12 @@ beforeEach(() => {
     duration_ms: 3,
   }));
   reg.list.mockResolvedValue(REGISTRY);
-  reg.get.mockImplementation(async (id: string) => {
-    const row = REGISTRY.find((r) => r.id === id) as DbObjectRegistryRow;
-    return { ...row, definition: `CREATE OR REPLACE VIEW ${row.name} AS SELECT 1;\n` };
-  });
-  reg.update.mockImplementation(async (id, input) => ({
-    ...(REGISTRY.find((r) => r.id === id) as DbObjectRegistryRow),
-    definition: input.definition,
-    doc_version: 3,
-  }));
+  reg.get.mockImplementation(async (id: string) => entryOf(id));
+  reg.update.mockImplementation(async (id, input) =>
+    entryOf(id, { spec: input.spec, doc_version: 3, hash: 'edited', approved: false }),
+  );
+  reg.approve.mockImplementation(async (id) => entryOf(id, { approved: true }));
+  reg.deployLog.mockResolvedValue([]);
   reg.importFromBu.mockResolvedValue({ bu_code: 'A1', created: 1, updated: 0, unchanged: 0, missing: [] });
 });
 
@@ -154,25 +160,69 @@ describe('DbObjectFleet', () => {
     expect(screen.queryByRole('button', { name: /compare a1/i })).toBeNull();
   });
 
-  it('applies only the saved definition: an edit must be saved before a dry-run', async () => {
+  it('lets only the body be written: the header fields are fixed for an existing object', async () => {
     const user = userEvent.setup();
     renderPage();
     await openDiffObject(user);
-    const tryBtn = screen.getByRole('button', { name: /try on 2 bu/i });
-    const save = screen.getByRole('button', { name: 'Save' });
-    expect(save).toBeDisabled();
+    expect(screen.getByLabelText('Kind')).toBeDisabled();
+    expect(screen.getByLabelText('Name')).toBeDisabled();
+    expect(screen.getByLabelText('Name')).toHaveValue('v_diff');
+    // the composed DDL is shown, read-only, as the backend returned it
+    expect(screen.getByText(/CREATE OR REPLACE VIEW "v_diff" AS/)).toBeInTheDocument();
+  });
 
-    await user.type(screen.getByLabelText('sql'), '-- v2');
+  it('saves an edited body as a spec; the edit is unapproved and cannot be applied until approved', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    expect(screen.getByText('Approved')).toBeInTheDocument();
+    const tryBtn = screen.getByRole('button', { name: /try on 2 bu/i });
+
+    await user.type(screen.getByLabelText('sql'), ' AS n');
     expect(tryBtn).toBeDisabled();
     expect(screen.getByText(/save the definition first/i)).toBeInTheDocument();
-    await user.click(save);
-    await waitFor(() => expect(reg.update).toHaveBeenCalledWith('id-diff', { definition: `${DIFF_SQL}-- v2`, doc_version: 2 }));
-    await waitFor(() => expect(tryBtn).toBeEnabled());
-    expect(svc.applyPortableDdl).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() =>
+      expect(reg.update).toHaveBeenCalledWith('id-diff', {
+        spec: { type: 'view', name: 'v_diff', body: 'SELECT 1 AS n' },
+        doc_version: 2,
+      }),
+    );
+    expect(await screen.findByText(/not approved yet/i)).toBeInTheDocument();
+    expect(within(screen.getByRole('region', { name: /central definition and bus/i })).getByText('Awaiting approval')).toBeInTheDocument();
 
+    // it can be tried while unapproved…
     await user.click(tryBtn);
-    await waitFor(() => expect(svc.applyPortableDdl).toHaveBeenCalledTimes(2));
-    for (const call of svc.applyPortableDdl.mock.calls) expect(call.slice(1)).toEqual([`${DIFF_SQL}-- v2`, true]);
+    await waitFor(() => expect(reg.applyToBu).toHaveBeenCalledTimes(2));
+    for (const call of reg.applyToBu.mock.calls) expect(call.slice(1)).toEqual(['id-diff', 'apply', true]);
+    // …but not applied or removed for real
+    const apply = screen.getByRole('button', { name: 'Apply to 2 BU(s)' });
+    await waitFor(() => expect(screen.getAllByText('Dry-run passed').length).toBe(2));
+    expect(apply).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Remove from 2 BU(s)' })).toBeDisabled();
+
+    // approving keeps the version that was tried: same fingerprint, so the dry-run still counts
+    reg.approve.mockResolvedValueOnce(
+      entryOf('id-diff', {
+        spec: { type: 'view', name: 'v_diff', body: 'SELECT 1 AS n' },
+        doc_version: 3,
+        hash: 'edited',
+        approved: true,
+      }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Approve' }));
+    await waitFor(() => expect(reg.approve).toHaveBeenCalledWith('id-diff', 3));
+    await waitFor(() => expect(apply).toBeEnabled());
+  });
+
+  it('hides Approve from a user without db_object.approve', async () => {
+    hasPermission.mockImplementation((p: string) => p !== 'db_object.approve');
+    reg.get.mockImplementation(async (id: string) => entryOf(id, { approved: false }));
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    expect(screen.getByText(/not approved yet/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument();
   });
 
   it('reloads the definition when someone else saved first', async () => {
@@ -186,37 +236,65 @@ describe('DbObjectFleet', () => {
     await waitFor(() => expect(screen.getByLabelText('sql')).toHaveValue(DIFF_SQL));
   });
 
-  it('applies for real after confirm, settles the central fingerprint from a BU, then rescans', async () => {
+  it('applies by id after confirm — no SQL is sent — then settles the view, reloads history and rescans', async () => {
     const user = userEvent.setup();
     renderPage();
     await openDiffObject(user);
     await user.click(screen.getByRole('button', { name: /try on 2 bu/i }));
     const apply = screen.getByRole('button', { name: 'Apply to 2 BU(s)' });
     await waitFor(() => expect(apply).toBeEnabled());
-    svc.applyPortableDdl.mockClear();
+    reg.applyToBu.mockClear();
+    reg.deployLog.mockClear();
     svc.getFingerprints.mockClear();
 
     await user.click(apply);
     const dialog = await screen.findByRole('alertdialog').catch(() => screen.findByRole('dialog'));
     await user.click(within(dialog).getByRole('button', { name: 'Apply' }));
 
-    await waitFor(() => expect(svc.applyPortableDdl).toHaveBeenCalledTimes(2));
-    expect(svc.applyPortableDdl.mock.calls.map((c) => [c[0], c[2]]).sort()).toEqual([
-      ['B1', false],
-      ['C1', false],
+    await waitFor(() => expect(reg.applyToBu).toHaveBeenCalledTimes(2));
+    expect(reg.applyToBu.mock.calls.map((c) => c.join('|')).sort()).toEqual([
+      'B1|id-diff|apply|false',
+      'C1|id-diff|apply|false',
     ]);
+    expect(svc.applyPortableDdl).not.toHaveBeenCalled();
     await waitFor(() =>
       expect(reg.importFromBu).toHaveBeenCalledWith('B1', [{ type: 'view', name: 'v_diff', identity_args: '' }]),
     );
+    await waitFor(() => expect(reg.deployLog).toHaveBeenCalledWith('id-diff'));
     await waitFor(() => expect(svc.getFingerprints.mock.calls.map((c) => c[0]).sort()).toEqual(['B1', 'C1']));
+  });
+
+  it('removes the object from the chosen BUs by id after confirm', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    await user.click(screen.getByRole('button', { name: 'Remove from 2 BU(s)' }));
+    const dialog = await screen.findByRole('alertdialog').catch(() => screen.findByRole('dialog'));
+    expect(dialog).toHaveTextContent(/drops v_diff for real in: B1, C1/i);
+    await user.click(within(dialog).getByRole('button', { name: 'Remove' }));
+    await waitFor(() => expect(reg.applyToBu).toHaveBeenCalledTimes(2));
+    for (const call of reg.applyToBu.mock.calls) expect(call.slice(1)).toEqual(['id-diff', 'drop', false]);
+    expect(reg.importFromBu).not.toHaveBeenCalled();
+  });
+
+  it('shows the rollout history of the definition', async () => {
+    reg.deployLog.mockResolvedValue([
+      { id: 'l1', doc_version: 2, hash: 'x', bu_code: 'B1', action: 'apply', success: true, duration_ms: 40, created_at: '2026-11-19T04:00:00Z' },
+      { id: 'l2', doc_version: 2, hash: 'x', bu_code: 'C1', action: 'apply', success: false, error: 'lock timeout (55P03)', duration_ms: 5100, created_at: '2026-11-19T04:00:01Z' },
+    ]);
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    expect(await screen.findByText('Rollout history (2)')).toBeInTheDocument();
+    expect(screen.getByText('lock timeout (55P03)')).toBeInTheDocument();
   });
 
   it('shows the database error per BU and keeps Apply locked when a dry-run fails', async () => {
     const user = userEvent.setup();
-    svc.applyPortableDdl.mockImplementation(async (code, _sql, dryRun) => {
+    reg.applyToBu.mockImplementation(async (code, _id, _action, dryRun) => {
       if (code === 'C1') {
         throw Object.assign(new Error('Request failed with status code 400'), {
-          response: { status: 400, data: { message: 'Failed to apply ddl: relation "tb_x" does not exist (42P01)' } },
+          response: { status: 400, data: { message: 'Failed to apply db object: relation "tb_x" does not exist (42P01)' } },
         });
       }
       return { bu_code: code, schema: code, dry_run: dryRun, statements: 1, duration_ms: 3 };
@@ -229,20 +307,41 @@ describe('DbObjectFleet', () => {
     expect(screen.getByRole('button', { name: 'Failed only (1)' })).toBeInTheDocument();
   });
 
-  it('creates a new central definition without touching any BU', async () => {
+  it('creates a new function from the form: kind, name, arguments and body — nothing touches a BU', async () => {
     const user = userEvent.setup();
-    reg.create.mockResolvedValue({ ...view('v_new', 'n'), id: 'id-new', definition: 'x', doc_version: 0 });
+    reg.create.mockResolvedValue(entryOf('id-same', { id: 'id-new' }));
     renderPage();
     await screen.findByRole('button', { name: /v_diff/ });
     await user.click(screen.getByRole('button', { name: /new object/i }));
     const create = screen.getByRole('button', { name: 'Create' });
     expect(create).toBeDisabled();
-    await user.type(screen.getByLabelText('Name'), 'v_new');
+    await user.selectOptions(screen.getByLabelText('Kind'), 'function');
+    await user.type(screen.getByLabelText('Name'), 'f_new');
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+    await user.type(screen.getByLabelText('Name of argument 1'), 'p_id');
+    await user.clear(screen.getByLabelText('Type of argument 1'));
+    await user.type(screen.getByLabelText('Type of argument 1'), 'uuid');
     await user.click(create);
     await waitFor(() => expect(reg.create).toHaveBeenCalledTimes(1));
-    expect(reg.create.mock.calls[0][0]).toMatchObject({ type: 'view', name: 'v_new', identity_args: '' });
-    expect(svc.applyPortableDdl).not.toHaveBeenCalled();
+    expect(reg.create.mock.calls[0][0].spec).toMatchObject({
+      type: 'function',
+      name: 'f_new',
+      args: [{ name: 'p_id', type: 'uuid', mode: 'in' }],
+      language: 'sql',
+      pin_search_path: true,
+    });
+    expect(reg.applyToBu).not.toHaveBeenCalled();
     await waitFor(() => expect(reg.list).toHaveBeenCalledTimes(2));
+  });
+
+  it('asks for a re-import when a definition has no structured form, and locks it', async () => {
+    reg.get.mockImplementation(async (id: string) => entryOf(id, { spec: null, has_spec: false }));
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: /v_diff/ }));
+    expect((await screen.findAllByText(/import it again from a bu/i)).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /try on 2 bu/i })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
   });
 
   it('imports objects that only BUs hold, from the BU holding the most', async () => {

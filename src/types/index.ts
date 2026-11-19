@@ -1260,17 +1260,74 @@ export interface ApplyPortableDdlResult {
   duration_ms: number;
 }
 
+/** One argument (or RETURNS TABLE column) of a routine spec. */
+export interface DbObjectArg {
+  name: string;
+  /** Type as Postgres spells it, never schema-qualified. */
+  type: string;
+  mode: 'in' | 'out' | 'inout' | 'variadic' | 'table';
+  default?: string | null;
+}
+
+export interface DbObjectViewSpec {
+  type: 'view';
+  name: string;
+  /** The SELECT. */
+  body: string;
+}
+
+export interface DbObjectRoutineSpec {
+  type: 'function' | 'procedure';
+  name: string;
+  args: DbObjectArg[];
+  /** Ignored when an argument has mode `table`; null for a procedure. */
+  returns?: string | null;
+  language: 'sql' | 'plpgsql';
+  volatility: 'immutable' | 'stable' | 'volatile';
+  strict: boolean;
+  /** SET search_path FROM CURRENT: the routine is pinned to the BU schema it is created in. */
+  pin_search_path: boolean;
+  body: string;
+}
+
+/**
+ * The stored shape of a tenant view / function / procedure: metadata with fixed choices plus a
+ * body. The DDL header is composed by the backend — the page never writes or sends one.
+ */
+export type DbObjectSpec = DbObjectViewSpec | DbObjectRoutineSpec;
+
 /** One row of the central DB object registry (tb_db_object), without its text. */
 export interface DbObjectRegistryRow extends DbObjectFingerprint {
   id: string;
   note?: string | null;
   doc_version?: number;
   updated_at?: string | null;
+  /** True while the current fingerprint is the approved one. Absent on a backend that predates approval. */
+  approved?: boolean;
+  approved_at?: string | null;
+  /** False for a row saved before structured specs — it must be imported again. */
+  has_spec?: boolean;
 }
 
-/** GET /api-system/db-objects/:id — the agreed, schema-free definition of one object. */
+/** GET /api-system/db-objects/:id — the agreed definition of one object. */
 export interface DbObjectRegistryEntry extends DbObjectRegistryRow {
+  spec: DbObjectSpec | null;
+  /** DDL the backend composed from the spec — for reading and comparing only. */
   definition: string;
+}
+
+/** GET /api-system/db-objects/:id/deploy-log — one real (not dry-run) rollout to one BU. */
+export interface DbObjectDeployLogRow {
+  id: string;
+  doc_version: number;
+  hash: string;
+  bu_code: string;
+  action: 'apply' | 'drop';
+  success: boolean;
+  error?: string | null;
+  duration_ms: number;
+  actor_id?: string | null;
+  created_at: string;
 }
 
 /** POST /api-system/db-objects/import */
