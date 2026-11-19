@@ -23,6 +23,7 @@ import { mapWithConcurrency } from '../../utils/concurrent';
 import type { DbObjectDeployLogRow, DbObjectRegistryEntry, DbObjectSpec } from '../../types';
 import { SqlEditor } from '../sqlWorkbench/SqlEditor';
 import { SqlDiffView } from './SqlDiffView';
+import { ObjectActivity } from './ObjectActivity';
 import { defaultTargets, runSignature, withStableBodyTag, type BuScan, type BuStatus, type FleetBu, type FleetRow } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, isLockTimeout, withRateLimitRetry } from './fleetRequest';
 
@@ -94,6 +95,9 @@ export function ObjectDetail({
   const [diff, setDiff] = useState<{ bu: string; text: string } | null>(null);
   const [diffLoadingBu, setDiffLoadingBu] = useState<string | null>(null);
   const [log, setLog] = useState<DbObjectDeployLogRow[] | null>(null);
+  // Bumped after every action so the activity section shows what was just done.
+  const [activityTick, setActivityTick] = useState(0);
+  const bumpActivity = () => setActivityTick((n) => n + 1);
 
   // Leaving the page mid-run stops new BUs from being started; the ones in flight finish.
   // Reset in the body: StrictMode's mount → cleanup → mount would otherwise leave it true and
@@ -161,6 +165,7 @@ export function ObjectDetail({
       adopt(await dbObjectService.update(row.id, { spec, doc_version: entry?.doc_version }));
       resetRun();
       toast.success(t('pages.dbObjectFleet.saved'));
+      bumpActivity();
       onRegistryChanged(row.id);
     } catch (err) {
       if (isConflict(err)) {
@@ -180,6 +185,7 @@ export function ObjectDetail({
     try {
       adopt(await dbObjectService.approve(row.id, entry.doc_version));
       toast.success(t('pages.dbObjectFleet.approved'));
+      bumpActivity();
       onRegistryChanged(row.id);
     } catch (err) {
       if (isConflict(err)) {
@@ -247,6 +253,7 @@ export function ObjectDetail({
         },
       );
       if (cancelledRef.current) return;
+      bumpActivity();
       const failed = codes.length - passedBus.length;
       if (kind === 'dry') {
         setRunning(false);
@@ -548,6 +555,9 @@ export function ObjectDetail({
           <p className="text-muted-foreground basis-full text-xs">{applyHint}</p>
         </div>
       )}
+
+      {/* Everything done to this definition — who, when, from where, and the result */}
+      <ObjectActivity dbObjectId={row.id} refreshKey={activityTick} />
 
       {/* Every real rollout of this definition */}
         <details className="rounded-md border text-xs">
