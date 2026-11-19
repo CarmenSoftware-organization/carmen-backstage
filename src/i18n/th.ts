@@ -1647,6 +1647,7 @@ export const th: Translations = {
         blankHintNoSize: 'เว้นว่าง = ใช้ค่าเริ่มต้น',
         quotaMin: 'กรอกตัวเลขอย่างน้อย 1 GB หรือเว้นว่างเพื่อใช้ค่าเริ่มต้น',
         needOneFigure: 'กรอกโควตาอย่างน้อยหนึ่งช่อง',
+        fileRequired: 'กรอกโควตาไฟล์แนบ',
         referenceNo: 'เลขอ้างอิง',
         note: 'หมายเหตุ',
         replacesNotice: 'การบันทึกจะแทนที่ {{number}} ใบนั้นหยุดมีผลกับ BU นี้ทันทีและเก็บไว้เป็นประวัติ',

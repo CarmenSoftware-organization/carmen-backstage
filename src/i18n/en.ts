@@ -2029,6 +2029,7 @@ export const en = {
         blankHintNoSize: 'Blank = use the default',
         quotaMin: 'Enter a number of at least 1 GB, or leave blank for the default',
         needOneFigure: 'Fill in at least one of the two quotas',
+        fileRequired: 'Enter the attachment quota',
         referenceNo: 'Reference No.',
         note: 'Note',
         replacesNotice: 'Saving replaces {{number}}. It stops applying to this business unit immediately and is kept as history.',
