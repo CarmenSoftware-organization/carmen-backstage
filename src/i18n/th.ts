@@ -1497,7 +1497,7 @@ export const th: Translations = {
       aiCreditsPerMonth: 'AI credit ต่อเดือน',
       aiCreditsPerMonthHint: 'โควตารายเดือนของหน่วยธุรกิจ รีเซ็ตทุกวันที่ 1 (เวลากรุงเทพ) ใส่ 0 = ไม่มีโควตารายเดือน',
       aiCreditsColumn: 'AI credit ต่อเดือน',
-      amendDescription: 'สัญญาที่ออกไปแล้วแก้ได้เฉพาะช่วงเวลาและสถานะเท่านั้น',
+      amendDescription: 'สัญญาที่ออกไปแล้วแก้ได้เฉพาะช่วงเวลา สถานะ และโควตา AI credit รายเดือน',
     },
 
     // See en.ts for the cross-file rationale behind each key here (Task 1, catalog-only —
@@ -2963,6 +2963,9 @@ export const th: Translations = {
       exportTruncated: 'ส่งออกเพียง {{count}} แถวแรก ให้ใช้ตัวกรองเพื่อส่งออกส่วนที่เหลือ',
       fleetColBu: 'หน่วยธุรกิจ',
       fleetColMonthly: 'ใช้ไป / โควตารายเดือน',
+      fleetColBuCode: 'รหัส BU',
+      csvMonthlyUsed: 'ใช้ไปรายเดือน',
+      csvMonthlyQuota: 'โควตารายเดือน',
       fleetColTopup: 'Top-up คงเหลือ',
       fleetColAvailable: 'ใช้ได้',
       fleetNone: 'ยังไม่มีหน่วยธุรกิจที่มี AI credit',

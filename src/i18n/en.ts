@@ -1853,7 +1853,7 @@ export const en = {
       aiCreditsPerMonth: 'AI credits / month',
       aiCreditsPerMonthHint: 'Monthly quota for the business unit, reset on the 1st (Bangkok time). 0 means no monthly quota.',
       aiCreditsColumn: 'AI credits / month',
-      amendDescription: 'The period and status are the only fields an issued contract can change.',
+      amendDescription: 'An issued contract can change its period, status, and monthly AI credit quota.',
     },
 
     // Slice 3b (License Center, cluster license tables, the purchase form, and three
@@ -4098,6 +4098,9 @@ export const en = {
       exportTruncated: 'Exported the first {{count}} rows only. Narrow the filters to export the rest.',
       fleetColBu: 'Business unit',
       fleetColMonthly: 'Monthly used / quota',
+      fleetColBuCode: 'BU code',
+      csvMonthlyUsed: 'Monthly used',
+      csvMonthlyQuota: 'Monthly quota',
       fleetColTopup: 'Top-up remaining',
       fleetColAvailable: 'Available',
       fleetNone: 'No business units have AI credit yet',

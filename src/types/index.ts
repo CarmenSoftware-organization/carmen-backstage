@@ -2552,7 +2552,8 @@ export interface AiCreditLedgerEntry {
   pool: 'monthly' | 'topup' | string;
   credits: number;
   feature?: AiCreditFeature | string | null;
-  month: string;
+  /** null สำหรับแถวของ pool top-up (ไม่มีเดือน) */
+  month: string | null;
   note?: string | null;
   reason?: string | null;
   license_number?: string | null;

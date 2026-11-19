@@ -4,6 +4,7 @@ import { Input } from '../../components/ui/input';
 import { ConfigCardShell, ConfigField } from './ConfigCardShell';
 import backstageConfigService from '../../services/backstageConfigService';
 import { parseApiError } from '../../utils/errorParser';
+import { validateField } from '../../utils/validation';
 import type { AiCreditConfig, BackstageConfig } from '../../types';
 import { useI18n } from '../../hooks/useI18n';
 
@@ -48,10 +49,9 @@ export const AiCreditConfigCard: React.FC<AiCreditConfigCardProps> = ({
   const saved = toValue(config);
 
   const validate = (): string => {
-    const n = Number(threshold);
-    return threshold.trim() !== '' && Number.isInteger(n) && n >= 0 && n <= MAX_LOW_THRESHOLD
-      ? ''
-      : t('pages.aiCredit.lowThresholdRange');
+    // validateField treats a blank value as valid — an empty threshold is still an error here
+    if (threshold.trim() === '') return t('pages.aiCredit.lowThresholdRange');
+    return validateField('low_threshold', threshold.trim(), undefined, t);
   };
 
   const handleCancel = () => {
@@ -106,6 +106,7 @@ export const AiCreditConfigCard: React.FC<AiCreditConfigCardProps> = ({
           step={1}
           value={threshold}
           onChange={(e) => setThreshold(e.target.value)}
+          onBlur={() => setFieldErrors((prev) => ({ ...prev, low_threshold: validate() }))}
           className={fieldErrors.low_threshold ? 'border-destructive' : ''}
         />
       </ConfigField>

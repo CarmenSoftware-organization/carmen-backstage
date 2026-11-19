@@ -71,7 +71,7 @@ export function SubscriptionInfoCard({
         <CardDescription>{t('pages.subscriptions.amendDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="start_date">{t('common.field.startDate')}{editing && ' *'}</Label>
             {editing ? (

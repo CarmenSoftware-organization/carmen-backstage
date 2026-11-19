@@ -20,6 +20,7 @@ import {
 } from '../../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { EmptyState } from '../../components/EmptyState';
+import { TableSkeleton } from '../../components/TableSkeleton';
 import Can from '../../components/Can';
 import { useI18n } from '../../hooks/useI18n';
 import { cn } from '../../lib/utils';
@@ -65,7 +66,9 @@ const FEATURE_KEY: Record<string, TKey> = {
 
 const fmtNum = (n: number) => n.toLocaleString();
 const fmtSigned = (n: number) => (n > 0 ? `+${fmtNum(n)}` : fmtNum(n));
-const isInt = (s: string) => /^-?\d+$/.test(s.trim());
+const isInt = (s: string) => /^[+-]?\d+$/.test(s.trim());
+/** ตัด `+` นำหน้าก่อนแปลงเป็นตัวเลข — Number('+10') ใช้ได้ แต่ทำให้ชัดเจนและไม่พึ่งพฤติกรรมนั้น */
+const toInt = (s: string) => Number(s.trim().replace(/^\+/, ''));
 
 interface Filters {
   type: string;
@@ -95,6 +98,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
   const [balanceError, setBalanceError] = useState('');
   const [licenses, setLicenses] = useState<AiCreditLicense[]>([]);
   const [licensesLoading, setLicensesLoading] = useState(true);
+  const [licensesError, setLicensesError] = useState('');
 
   const [rows, setRows] = useState<AiCreditLedgerEntry[]>([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -133,13 +137,14 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
   const loadLicenses = useCallback(async () => {
     const gen = ++licensesGen.current;
     setLicensesLoading(true);
+    setLicensesError('');
     try {
       const next = await aiCreditService.licenses(buId);
       if (gen !== licensesGen.current) return;
       setLicenses(next);
     } catch (err: unknown) {
       if (gen !== licensesGen.current) return;
-      toast.error(getErrorDetail(err, t));
+      setLicensesError(getErrorDetail(err, t));
     } finally {
       if (gen === licensesGen.current) setLicensesLoading(false);
     }
@@ -191,7 +196,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
       setVoidTarget(null);
       if (isVersionConflict(err)) {
         notifyVersionConflict(t);
-        void loadLicenses();
+        refreshAll();
         return;
       }
       toast.error(getErrorDetail(err, t));
@@ -223,7 +228,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
           pool: r.pool,
           feature: r.feature ?? '',
           credits: r.credits,
-          month: r.month,
+          month: r.month ?? '—',
           license_number: r.license_number ?? '',
           note: r.reason ?? r.note ?? '',
         })),
@@ -307,7 +312,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
         id: 'month',
         header: t('pages.aiCredit.colMonth'),
         enableSorting: false,
-        cell: ({ row }) => <span className="font-mono tabular-nums">{row.original.month}</span>,
+        cell: ({ row }) => <span className="font-mono tabular-nums">{row.original.month ?? '—'}</span>,
       },
       {
         id: 'detail',
@@ -397,7 +402,9 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
 
         <section className="space-y-2">
           <h4 className="text-sm font-medium">{t('pages.aiCredit.licensesTitle')}</h4>
-          {licensesLoading && licenses.length === 0 ? (
+          {licensesError ? (
+            <p className="text-destructive text-sm" role="alert">{licensesError}</p>
+          ) : licensesLoading && licenses.length === 0 ? (
             <p className="text-muted-foreground text-xs">{t('common.busy.loadingEllipsis')}</p>
           ) : licenses.length === 0 ? (
             <p className="text-muted-foreground text-sm">{t('pages.aiCredit.noLicenses')}</p>
@@ -485,6 +492,8 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
           </div>
           {ledgerError ? (
             <p className="text-destructive text-sm" role="alert">{ledgerError}</p>
+          ) : ledgerLoading && rows.length === 0 ? (
+            <TableSkeleton columns={7} rows={perpage > 5 ? 5 : perpage} />
           ) : !ledgerLoading && rows.length === 0 ? (
             <EmptyState icon={ScrollText} title={t('pages.aiCredit.noLedger')} />
           ) : (
@@ -627,7 +636,7 @@ function AdjustDialog({ open, onOpenChange, buId, onDone }: DialogProps) {
     }
   }, [open]);
 
-  const n = Number(credits);
+  const n = toInt(credits);
   const creditsValid = isInt(credits) && n !== 0 && Math.abs(n) <= 2147483647;
   const reasonValid = reason.trim().length >= 1 && reason.trim().length <= 500;
 
