@@ -32,8 +32,8 @@ import { FLEET_CONCURRENCY, apiErrorMessage, withRateLimitRetry } from './fleetR
 
 /**
  * DB objects: the central registry (tb_db_object) holds the one agreed definition of every tenant
- * view / function / procedure. The page reads every BU, shows which BUs match the registry, are
- * out of date or lack the object, and applies the registry definition to the BUs that need it —
+ * view / function / procedure. The page reads every BU, shows which BUs match the registry,
+ * differ from it or lack the object, and applies the registry definition to the BUs that need it —
  * tried on all of them with a rollback first, applied for real only after that passes.
  * Each BU is one request (one tenant transaction), so the page drives the fleet BU by BU.
  */

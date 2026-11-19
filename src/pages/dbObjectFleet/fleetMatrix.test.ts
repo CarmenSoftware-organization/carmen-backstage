@@ -9,6 +9,7 @@ import {
   pickImportBu,
   runSignature,
   summarizeRows,
+  withStableBodyTag,
   type BuScan,
   type FleetBu,
 } from './fleetMatrix';
@@ -128,5 +129,19 @@ describe('runSignature', () => {
 describe('objectKey', () => {
   it('includes the argument list', () => {
     expect(objectKey(fn('f', 'a int', 'h'))).toBe('function:f(a int)');
+  });
+});
+
+describe('withStableBodyTag', () => {
+  it('shows two different system-made tags as the same one', () => {
+    const bu = 'AS $b_407029d718af$\nSELECT 1\n$b_407029d718af$;';
+    const central = 'AS $b_62b9c9e03017$\nSELECT 2\n$b_62b9c9e03017$;';
+    expect(withStableBodyTag(bu)).toBe('AS $body$\nSELECT 1\n$body$;');
+    expect(withStableBodyTag(central)).toBe('AS $body$\nSELECT 2\n$body$;');
+  });
+
+  it('leaves other dollar quotes and view text alone', () => {
+    const ddl = "AS $function$ SELECT '$b_short$' $function$; CREATE VIEW v AS SELECT 1";
+    expect(withStableBodyTag(ddl)).toBe(ddl);
   });
 });

@@ -61,7 +61,7 @@ vi.mock('../sqlWorkbench/SqlEditor', () => ({
 }));
 
 const view = (name: string, hash: string): DbObjectFingerprint => ({ type: 'view', name, identity_args: '', hash });
-// v_same: every BU matches the registry. v_diff: A1 matches, B1 is out of date, C1 lacks it.
+// v_same: every BU matches the registry. v_diff: A1 matches, B1 differs from it, C1 lacks it.
 // v_loose exists in A1 + B1 only and has no registry row.
 const FINGERPRINTS: Record<string, DbObjectFingerprint[]> = {
   A1: [view('v_same', 'h1'), view('v_diff', 'x'), view('v_loose', 'l')],
@@ -134,21 +134,21 @@ describe('DbObjectFleet', () => {
     expect(svc.getFingerprints.mock.calls.map((c) => c[0]).sort()).toEqual(['A1', 'B1', 'C1']);
     const tiles = await screen.findByRole('group', { name: /filter objects by status/i });
     await waitFor(() => expect(within(tiles).getByRole('button', { name: /central definitions/i })).toHaveTextContent('2'));
-    expect(within(tiles).getByRole('button', { name: /up to date in every bu/i })).toHaveTextContent('1');
+    expect(within(tiles).getByRole('button', { name: /matches in every bu/i })).toHaveTextContent('1');
     expect(within(tiles).getByRole('button', { name: /need applying/i })).toHaveTextContent('1');
     expect(within(tiles).getByRole('button', { name: /to import from a bu/i })).toHaveTextContent('1');
     // an object only BUs hold is not a row of the list
     expect(screen.queryByRole('button', { name: /^v_loose/ })).toBeNull();
   });
 
-  it('shows each BU as up to date, out of date or not installed, and targets the ones that need it', async () => {
+  it('shows each BU as matching, differing from central or not installed, and targets the ones that need it', async () => {
     const user = userEvent.setup();
     renderPage();
     await openDiffObject(user);
     expect(reg.get).toHaveBeenCalledWith('id-diff');
     const table = within(screen.getByRole('region', { name: /central definition and bus/i }));
-    expect(table.getByRole('row', { name: /A1/ })).toHaveTextContent('Up to date');
-    expect(table.getByRole('row', { name: /B1/ })).toHaveTextContent('Out of date');
+    expect(table.getByRole('row', { name: /A1/ })).toHaveTextContent('Matches central');
+    expect(table.getByRole('row', { name: /B1/ })).toHaveTextContent('Differs from central');
     expect(table.getByRole('row', { name: /C1/ })).toHaveTextContent('Not installed');
     expect(screen.queryByText(/variant/i)).toBeNull();
     expect(screen.queryByText(/^source$/i)).toBeNull();
@@ -156,7 +156,8 @@ describe('DbObjectFleet', () => {
     expect(screen.getByRole('checkbox', { name: 'Apply to B1' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'Apply to C1' })).toBeChecked();
     // comparing is offered for the BU that differs, against the central definition
-    expect(screen.getByRole('button', { name: /compare b1 with the central definition/i })).toBeInTheDocument();
+    // a labelled button, not a bare icon, so it can be found
+    expect(screen.getByRole('button', { name: /compare b1 with the central definition/i })).toHaveTextContent('Compare');
     expect(screen.queryByRole('button', { name: /compare a1/i })).toBeNull();
   });
 

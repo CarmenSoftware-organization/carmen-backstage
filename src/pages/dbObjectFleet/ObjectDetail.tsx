@@ -24,7 +24,7 @@ import type { DbObjectDeployLogRow, DbObjectRegistryEntry, DbObjectSpec } from '
 import { SqlEditor } from '../sqlWorkbench/SqlEditor';
 import { SqlDiffView } from './SqlDiffView';
 import { SpecForm, blankSpec } from './SpecForm';
-import { defaultTargets, runSignature, type BuScan, type BuStatus, type FleetBu, type FleetRow } from './fleetMatrix';
+import { defaultTargets, runSignature, withStableBodyTag, type BuScan, type BuStatus, type FleetBu, type FleetRow } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, isLockTimeout, withRateLimitRetry } from './fleetRequest';
 
 type RunKind = 'dry' | 'apply' | 'drop';
@@ -282,7 +282,7 @@ export function ObjectDetail({
           ]);
           if (res.updated > 0 && !cancelledRef.current) await loadEntry(row.id);
         } catch {
-          // The apply itself succeeded; an unsettled fingerprint only shows those BUs as out of date.
+          // The apply itself succeeded; an unsettled fingerprint only shows those BUs as differing from the registry.
         }
       }
       if (cancelledRef.current) return;
@@ -309,7 +309,7 @@ export function ObjectDetail({
         name: row.name,
         identity_args: row.identity_args,
       });
-      setDiff({ bu: code, text: d.definition });
+      setDiff({ bu: code, text: withStableBodyTag(d.definition) });
     } catch (err) {
       toast.error(apiErrorMessage(err, t('pages.dbObjectFleet.loadDefinitionFailed')));
     } finally {
@@ -514,13 +514,18 @@ export function ObjectDetail({
                           {status === 'outdated' && (
                             <Button
                               size="sm"
-                              variant="ghost"
-                              className="h-6 px-1.5 text-[11px]"
+                              variant="outline"
+                              className="h-6 px-2 text-[11px]"
                               disabled={diffLoadingBu !== null}
                               onClick={() => openDiff(b.code)}
                               aria-label={t('pages.dbObjectFleet.compareAria', { bu: b.code })}
                             >
-                              {diffLoadingBu === b.code ? <Loader2 className="h-3 w-3 animate-spin" /> : <GitCompare className="h-3 w-3" />}
+                              {diffLoadingBu === b.code ? (
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                              ) : (
+                                <GitCompare className="mr-1 h-3 w-3" />
+                              )}
+                              {t('pages.dbObjectFleet.compare')}
                             </Button>
                           )}
                         </div>
@@ -651,7 +656,7 @@ export function ObjectDetail({
             <DialogTitle>{t('pages.dbObjectFleet.diffTitle', { bu: diff?.bu ?? '' })}</DialogTitle>
             <DialogDescription>{t('pages.dbObjectFleet.diffDescription', { bu: diff?.bu ?? '' })}</DialogDescription>
           </DialogHeader>
-          {diff && <SqlDiffView original={diff.text} current={entry?.definition ?? ''} />}
+          {diff && <SqlDiffView original={diff.text} current={withStableBodyTag(entry?.definition ?? '')} />}
         </DialogContent>
       </Dialog>
     </section>
