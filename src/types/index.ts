@@ -1260,6 +1260,29 @@ export interface ApplyPortableDdlResult {
   duration_ms: number;
 }
 
+/** One row of the central DB object registry (tb_db_object), without its text. */
+export interface DbObjectRegistryRow extends DbObjectFingerprint {
+  id: string;
+  note?: string | null;
+  doc_version?: number;
+  updated_at?: string | null;
+}
+
+/** GET /api-system/db-objects/:id — the agreed, schema-free definition of one object. */
+export interface DbObjectRegistryEntry extends DbObjectRegistryRow {
+  definition: string;
+}
+
+/** POST /api-system/db-objects/import */
+export interface DbObjectImportResult {
+  bu_code: string;
+  created: number;
+  updated: number;
+  unchanged: number;
+  /** requested objects the BU does not have, as `type:name(args)` */
+  missing: string[];
+}
+
 export interface TenantCurrency {
   id: string;
   code: string;

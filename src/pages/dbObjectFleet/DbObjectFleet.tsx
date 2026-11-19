@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Layers, Loader2, Plus, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import Layout from '../../components/Layout';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState } from '../../components/EmptyState';
@@ -8,15 +9,18 @@ import { Card } from '../../components/ui/card';
 import { useAuth } from '../../context/AuthContext';
 import { useI18n } from '../../hooks/useI18n';
 import sqlQueryService from '../../services/sqlQueryService';
+import dbObjectService from '../../services/dbObjectService';
 import { fetchAllBusinessUnits } from '../../utils/fetchAllBusinessUnits';
 import { mapWithConcurrency } from '../../utils/concurrent';
 import { getErrorDetail } from '../../utils/errorParser';
 import { cn } from '../../lib/utils';
-import type { DbObjectKind } from '../../types';
+import type { DbObjectKind, DbObjectRegistryRow } from '../../types';
 import { ObjectList } from './ObjectList';
 import { ObjectDetail } from './ObjectDetail';
+import { ImportPanel } from './ImportPanel';
 import {
   buildFleetRows,
+  findUnregistered,
   matchesFilter,
   summarizeRows,
   type BuScan,
@@ -24,28 +28,33 @@ import {
   type RowFilter,
 } from './fleetMatrix';
 import { FLEET_CONCURRENCY, apiErrorMessage, withRateLimitRetry } from './fleetRequest';
-import { CAN_AUTHOR_SQL } from './fleetPolicy';
 
 /**
- * DB objects across BUs: reads every view / function / procedure of every BU, shows which BUs
- * lack an object or hold a different definition, and rolls one definition out to the BUs that
- * need it — tried on all of them with a rollback first, applied for real only after that passes.
+ * DB objects: the central registry (tb_db_object) holds the one agreed definition of every tenant
+ * view / function / procedure. The page reads every BU, shows which BUs match the registry, are
+ * out of date or lack the object, and applies the registry definition to the BUs that need it —
+ * tried on all of them with a rollback first, applied for real only after that passes.
  * Each BU is one request (one tenant transaction), so the page drives the fleet BU by BU.
  */
 export default function DbObjectFleet() {
   const { t } = useI18n();
   const { hasPermission } = useAuth();
-  const canManage = hasPermission('sql_workbench.manage');
+  const canApply = hasPermission('sql_workbench.manage');
+  const canAuthor = hasPermission('db_object.manage');
 
   const [bus, setBus] = useState<FleetBu[]>([]);
   const [busLoading, setBusLoading] = useState(true);
   const [busError, setBusError] = useState<string | null>(null);
+  const [registry, setRegistry] = useState<DbObjectRegistryRow[]>([]);
+  const [registryLoaded, setRegistryLoaded] = useState(false);
+  const [registryError, setRegistryError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
   const [scans, setScans] = useState<Record<string, BuScan>>({});
   const [scanning, setScanning] = useState(false);
   const [filter, setFilter] = useState<RowFilter>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | DbObjectKind>('all');
   const [search, setSearch] = useState('');
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
   const mountedRef = useRef(true);
@@ -91,6 +100,24 @@ export default function DbObjectFleet() {
     [t],
   );
 
+  const loadRegistry = useCallback(async () => {
+    try {
+      const rows = await dbObjectService.list();
+      if (!mountedRef.current) return;
+      setRegistry(rows);
+      setRegistryError(null);
+    } catch (err) {
+      if (mountedRef.current) setRegistryError(apiErrorMessage(err, t('pages.dbObjectFleet.registryFailed')));
+    } finally {
+      if (mountedRef.current) setRegistryLoaded(true);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    void loadRegistry();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     let stale = false;
     (async () => {
@@ -115,7 +142,8 @@ export default function DbObjectFleet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const rows = useMemo(() => buildFleetRows(bus, scans), [bus, scans]);
+  const rows = useMemo(() => buildFleetRows(registry, bus, scans), [registry, bus, scans]);
+  const unregistered = useMemo(() => findUnregistered(registry, bus, scans), [registry, bus, scans]);
   const summary = useMemo(() => summarizeRows(rows), [rows]);
   const scannedOk = bus.filter((b) => scans[b.code]?.state === 'ok').length;
   const scanErrors = bus.filter((b) => scans[b.code]?.state === 'error');
@@ -131,22 +159,37 @@ export default function DbObjectFleet() {
     );
   }, [rows, filter, typeFilter, search]);
 
-  const selectedRow = selectedKey ? rows.find((r) => r.key === selectedKey) ?? null : null;
+  const selectedRow = selectedId ? rows.find((r) => r.id === selectedId) ?? null : null;
+  // With nothing in the registry yet, importing is the only thing to do — show it straight away.
+  const showImport = importing || (registryLoaded && !registryError && registry.length === 0 && !creating);
 
   // Below `lg` the detail stacks under the list, out of sight — bring it up when one is picked.
   const detailRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!selectedKey && !creating) return;
+    if (!selectedId && !creating && !importing) return;
     if (typeof window.matchMedia !== 'function' || !window.matchMedia('(max-width: 1023px)').matches) return;
     detailRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-  }, [selectedKey, creating]);
+  }, [selectedId, creating, importing]);
   const onApplied = useCallback((codes: string[]) => void scan(codes), [scan]);
+  const onRegistryChanged = useCallback(
+    (selectId: string | null) => {
+      setCreating(false);
+      setSelectedId(selectId);
+      void loadRegistry();
+    },
+    [loadRegistry],
+  );
+  const openImport = () => {
+    if (busy) return;
+    setCreating(false);
+    setSelectedId(null);
+    setImporting(true);
+  };
 
   const filterTiles: { key: RowFilter; label: string; value: number; tone: string }[] = [
     { key: 'all', label: t('pages.dbObjectFleet.tileAll'), value: summary.total, tone: '' },
-    { key: 'same', label: t('pages.dbObjectFleet.tileSame'), value: summary.same, tone: 'text-success' },
-    { key: 'missing', label: t('pages.dbObjectFleet.tileMissing'), value: summary.missing, tone: 'text-warning' },
-    { key: 'differs', label: t('pages.dbObjectFleet.tileDiffers'), value: summary.differs, tone: 'text-info' },
+    { key: 'synced', label: t('pages.dbObjectFleet.tileSynced'), value: summary.synced, tone: 'text-success' },
+    { key: 'needs', label: t('pages.dbObjectFleet.tileNeeds'), value: summary.needs, tone: 'text-warning' },
   ];
 
   return (
@@ -161,17 +204,21 @@ export default function DbObjectFleet() {
                 variant="outline"
                 size="sm"
                 disabled={busLoading || scanning || busy || bus.length === 0}
-                onClick={() => void scan(bus.map((b) => b.code))}
+                onClick={() => {
+                  void loadRegistry();
+                  void scan(bus.map((b) => b.code));
+                }}
               >
                 {scanning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                 {t('pages.dbObjectFleet.rescan')}
               </Button>
-              {canManage && CAN_AUTHOR_SQL && (
+              {canAuthor && (
                 <Button
                   size="sm"
-                  disabled={busLoading || scanning || busy || scannedOk === 0}
+                  disabled={busy || !registryLoaded}
                   onClick={() => {
-                    setSelectedKey(null);
+                    setSelectedId(null);
+                    setImporting(false);
                     setCreating(true);
                   }}
                 >
@@ -183,6 +230,11 @@ export default function DbObjectFleet() {
           }
         />
 
+        {registryError && (
+          <p role="alert" className="text-destructive text-sm">
+            {registryError}
+          </p>
+        )}
         {busError && (
           <p role="alert" className="text-destructive text-sm">
             {busError}
@@ -208,19 +260,36 @@ export default function DbObjectFleet() {
             )}
           </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label={t('pages.dbObjectFleet.filterAria')}>
+            <button
+              type="button"
+              aria-pressed={showImport}
+              onClick={openImport}
+              className={cn(
+                'order-last rounded-md border px-3 py-2 text-left transition-colors',
+                showImport ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+              )}
+            >
+              <span className="text-info block font-mono text-2xl font-semibold tabular-nums">
+                {scannedOk > 0 && registryLoaded ? unregistered.length : '-'}
+              </span>
+              <span className="text-muted-foreground text-xs">{t('pages.dbObjectFleet.tileUnregistered')}</span>
+            </button>
             {filterTiles.map((tile) => (
               <button
                 key={tile.key}
                 type="button"
-                aria-pressed={filter === tile.key}
-                onClick={() => setFilter(tile.key)}
+                aria-pressed={!showImport && filter === tile.key}
+                onClick={() => {
+                  setFilter(tile.key);
+                  setImporting(false);
+                }}
                 className={cn(
                   'rounded-md border px-3 py-2 text-left transition-colors',
-                  filter === tile.key ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                  !showImport && filter === tile.key ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
                 )}
               >
                 <span className={cn('block font-mono text-2xl font-semibold tabular-nums', tile.tone)}>
-                  {scannedOk > 0 ? tile.value : '-'}
+                  {registryLoaded ? tile.value : '-'}
                 </span>
                 <span className="text-muted-foreground text-xs">{tile.label}</span>
               </button>
@@ -236,10 +305,12 @@ export default function DbObjectFleet() {
               <ObjectList
                 rows={visibleRows}
                 scannedBus={scannedOk}
-                selectedKey={creating ? null : selectedKey}
+                emptyHint={registryLoaded && registry.length === 0 ? t('pages.dbObjectFleet.registryEmpty') : undefined}
+                selectedKey={creating || showImport ? null : (selectedRow?.key ?? null)}
                 onSelect={(key) => {
                   setCreating(false);
-                  setSelectedKey(key);
+                  setImporting(false);
+                  setSelectedId(rows.find((r) => r.key === key)?.id ?? null);
                 }}
                 search={search}
                 onSearchChange={setSearch}
@@ -248,13 +319,26 @@ export default function DbObjectFleet() {
               />
             </div>
             <div ref={detailRef} className="min-w-0 scroll-mt-20">
-              {creating || selectedRow ? (
+              {showImport ? (
+                <ImportPanel
+                  unregistered={unregistered}
+                  bus={bus}
+                  canAuthor={canAuthor}
+                  onImported={() => {
+                    setImporting(false);
+                    void loadRegistry();
+                    toast.info(t('pages.dbObjectFleet.importedHint'));
+                  }}
+                />
+              ) : creating || selectedRow ? (
                 <ObjectDetail
-                  key={creating ? 'new' : selectedRow?.key}
+                  key={creating ? 'new' : selectedRow?.id}
                   row={creating ? null : selectedRow}
                   bus={bus}
                   scans={scans}
-                  canManage={canManage}
+                  canAuthor={canAuthor}
+                  canApply={canApply}
+                  onRegistryChanged={onRegistryChanged}
                   onApplied={onApplied}
                   onBusyChange={setBusy}
                 />
