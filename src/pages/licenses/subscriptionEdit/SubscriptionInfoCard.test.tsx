@@ -11,6 +11,7 @@ const formData: SubscriptionFormData = {
   start_date: '2026-01-01',
   end_date: '2026-12-31',
   status: 'active',
+  ai_credits_per_month: '0',
 };
 
 const base = (over: Record<string, unknown> = {}) => ({

@@ -68,6 +68,17 @@ const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) =
             value: fileBytes !== null ? formatBytes(fileBytes) : defaultLabel(quotaDefaults?.file),
           }),
         ].join(' / ');
+  const aiMonthly = intake.ai_credits_per_month ?? null;
+  const aiTopup = intake.ai_credit_topup ?? null;
+  const aiCreditText =
+    aiMonthly === null && aiTopup === null
+      ? t('pages.licenseIntakes.aiCreditNotIncluded')
+      : [
+          aiMonthly !== null ? t('pages.licenseIntakes.aiCreditMonthlyLabel', { count: aiMonthly.toLocaleString() }) : null,
+          aiTopup !== null ? t('pages.licenseIntakes.aiCreditTopupLabel', { count: aiTopup.toLocaleString() }) : null,
+        ]
+          .filter(Boolean)
+          .join(' / ');
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -111,6 +122,7 @@ const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) =
             <GroupChips groups={intake.interface_groups} codes={intake.interface_group_codes} />
           </Row>
           <Row label={t('pages.licenseIntakes.columnStorage')}>{storageText}</Row>
+          <Row label={t('pages.licenseIntakes.columnAiCredit')}>{aiCreditText}</Row>
           <Row label={t('pages.licenseIntakes.columnPeriod')}>{periodOf(intake.start_date, intake.end_date)}</Row>
           <Row label={t('pages.licenseIntakes.note')}>
             {intake.note ? <span className="whitespace-pre-wrap">{intake.note}</span> : '-'}

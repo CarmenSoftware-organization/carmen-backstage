@@ -1405,6 +1405,9 @@ export interface LicenseIntake {
   /** โควตา storage ที่ใบขายสั่ง (ไบต์) — null/ไม่มี = ไม่ออกใบ storage ฝั่งนั้น */
   storage_db_bytes?: number | null;
   storage_file_bytes?: number | null;
+  /** โควตา AI credit รายเดือน / ใบ top-up ที่ใบขายสั่ง — null/ไม่มี = ไม่รวม */
+  ai_credits_per_month?: number | null;
+  ai_credit_topup?: number | null;
   start_date?: string;
   end_date?: string;
   note?: string | null;
@@ -1439,6 +1442,7 @@ export interface LicenseIntakeProduced {
   seats?: { id: string; license_number?: string | null }[];
   interfaces?: { id: string; license_number?: string | null; group_code?: string | null }[];
   storage?: { id: string; license_number?: string | null }[];
+  ai_credit?: { id: string; license_number?: string | null }[];
 }
 
 /** `GET /license-intakes/:id` */
@@ -1795,6 +1799,8 @@ export interface Subscription {
   seat_used: number;
   /** จำนวนเต็มเสมอ ไม่มี null — ไม่มีคำว่า "ไม่จำกัด" ในระบบที่นั่ง 0 คือศูนย์ที่นั่งจริงๆ */
   seat_cap: number;
+  /** โควตา AI credit ต่อเดือนของ BU (int 0..1,000,000) — 0 = ไม่มีโควตารายเดือน · optional เพราะ BE เก่าไม่ส่ง */
+  ai_credits_per_month?: number;
   doc_version: number;
 }
 
@@ -2602,6 +2608,11 @@ export interface BuStorageLicenseInput {
   file_quota_bytes: number | null;
   reference_no?: string | null;
   note?: string | null;
+}
+
+/** คีย์ `ai_credit` ใน Backstage Config — เกณฑ์ยอดเหลือน้อย (int 0..1,000,000) */
+export interface AiCreditConfig {
+  low_threshold: number;
 }
 
 /** คีย์ `storage_quota` ใน Backstage Config (เก็บเป็นไบต์) */

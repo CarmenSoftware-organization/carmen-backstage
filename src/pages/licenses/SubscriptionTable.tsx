@@ -370,6 +370,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
       { key: 'bu_name', label: t('pages.subscriptions.businessUnitName') },
       { key: 'groups', label: t('pages.subscriptions.featureGroups') },
       { key: 'feature_count', label: t('pages.subscriptions.featureCount') },
+      { key: 'ai_credits_per_month', label: t('pages.subscriptions.aiCreditsColumn') },
       { key: 'created_at', label: t('common.audit.createdAt') },
       { key: 'created_by', label: t('common.audit.createdBy') },
       { key: 'updated_at', label: t('common.audit.updatedAt') },
@@ -488,6 +489,21 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                 </Badge>
               )}
             </div>
+          );
+        },
+      },
+      {
+        // ไม่ได้ผูกกับคีย์เรียงฝั่ง backend — ปิดการเรียงไว้ก่อน · 0 = ไม่มีโควตารายเดือน แสดง "—"
+        id: 'ai_credits_per_month',
+        accessorFn: (r) => r.ai_credits_per_month ?? 0,
+        header: t('pages.subscriptions.aiCreditsColumn'),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const n = row.original.ai_credits_per_month ?? 0;
+          return n > 0 ? (
+            <span className="text-xs tabular-nums">{n.toLocaleString()}</span>
+          ) : (
+            <span className="text-muted-foreground text-xs">—</span>
           );
         },
       },

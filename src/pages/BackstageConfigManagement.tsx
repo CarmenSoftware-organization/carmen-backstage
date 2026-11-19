@@ -18,6 +18,7 @@ import { ExpiryThresholdsCard } from './backstageConfig/ExpiryThresholdsCard';
 import { BackstageMigrationConfigCard } from './backstageConfig/BackstageMigrationConfigCard';
 import { GoogleSignInConfigCard } from './backstageConfig/GoogleSignInConfigCard';
 import { StorageQuotaConfigCard } from './backstageConfig/StorageQuotaConfigCard';
+import { AiCreditConfigCard } from './backstageConfig/AiCreditConfigCard';
 import backstageConfigService from '../services/backstageConfigService';
 import { useAuth } from '../context/AuthContext';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
@@ -44,6 +45,7 @@ type CardId =
   | 'backstage_migration'
   | 'google_sign_in'
   | 'storage_quota'
+  | 'ai_credit'
   | 'external_api';
 
 /**
@@ -127,6 +129,7 @@ const BackstageConfigManagement: React.FC = () => {
   const backstageMigration = configs.find((c) => c.key === 'backstage_migration') ?? null;
   const googleSignIn = configs.find((c) => c.key === 'google_sign_in') ?? null;
   const storageQuota = configs.find((c) => c.key === 'storage_quota') ?? null;
+  const aiCredit = configs.find((c) => c.key === 'ai_credit') ?? null;
   const externalApi = configs.find((c) => c.key === 'external_api') ?? null;
 
   // ที่มาเดียวของ audit ต่อ config — การ์ดแต่ละใบไม่รู้จัก normalizeAudit เอง (อยู่นอกขอบเขต
@@ -141,6 +144,7 @@ const BackstageConfigManagement: React.FC = () => {
   const backstageMigrationAudit = normalizeAudit(backstageMigration);
   const googleSignInAudit = normalizeAudit(googleSignIn);
   const storageQuotaAudit = normalizeAudit(storageQuota);
+  const aiCreditAudit = normalizeAudit(aiCredit);
   const externalApiAudit = normalizeAudit(externalApi);
   // ค่ากริยา+actor ล่าสุดต่อการ์ด สำหรับแถบท้ายการ์ด — คำนวณแยกจาก *Audit ด้านบน
   // ที่ยังต้องใช้เดิมสำหรับ remount key
@@ -154,6 +158,7 @@ const BackstageConfigManagement: React.FC = () => {
   const backstageMigrationLatest = latestActor(backstageMigration);
   const googleSignInLatest = latestActor(googleSignIn);
   const storageQuotaLatest = latestActor(storageQuota);
+  const aiCreditLatest = latestActor(aiCredit);
   const externalApiLatest = latestActor(externalApi);
 
   /** แถบ audit ท้ายการ์ด — รูปแบบเดียวกันทุกใบ และอยู่ *ใน* การ์ดที่มันอธิบาย */
@@ -361,6 +366,20 @@ const BackstageConfigManagement: React.FC = () => {
                   onCancelEdit={() => setEditingCard(null)}
                   onSaved={handleSaved}
                   footer={auditFooter(storageQuotaLatest)}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <SectionHeading>{t('pages.aiCredit.configSection')}</SectionHeading>
+                <AiCreditConfigCard
+                  key={`ai_credit-${aiCreditAudit.updated?.at ?? aiCreditAudit.created?.at ?? 'default'}`}
+                  config={aiCredit}
+                  canManage={canManage}
+                  isEditing={editingCard === 'ai_credit'}
+                  onRequestEdit={() => setEditingCard('ai_credit')}
+                  onCancelEdit={() => setEditingCard(null)}
+                  onSaved={handleSaved}
+                  footer={auditFooter(aiCreditLatest)}
                 />
               </div>
 

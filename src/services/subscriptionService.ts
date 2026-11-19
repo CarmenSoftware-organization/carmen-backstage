@@ -68,6 +68,7 @@ const subscriptionService = {
     start_date: string;
     end_date: string;
     status?: Subscription['status'];
+    ai_credits_per_month?: number;
   }) => {
     const response = await api.post(BASE, data);
     return response.data;
@@ -79,7 +80,7 @@ const subscriptionService = {
   update: async (
     id: string,
     // ไม่มี `subscription_number` (ระบบออกให้) และไม่มี `business_unit_id` (แก้ไม่ได้หลังสร้าง)
-    data: Pick<Partial<Subscription>, 'start_date' | 'end_date' | 'status'> & {
+    data: Pick<Partial<Subscription>, 'start_date' | 'end_date' | 'status' | 'ai_credits_per_month'> & {
       doc_version: number;
     },
   ) => {

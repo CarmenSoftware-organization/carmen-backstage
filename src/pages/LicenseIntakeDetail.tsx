@@ -26,6 +26,7 @@ import IntakeSoldCard from './licenseIntakes/IntakeSoldCard';
 import IntakeOverlapPanel from './licenseIntakes/IntakeOverlapPanel';
 import RejectIntakeDialog from './licenseIntakes/RejectIntakeDialog';
 import { fmtDateTime } from './licenseIntakes/format';
+import { LICENSE_SECTION_IDS } from './businessUnitEdit/LicenseSummaryStrip';
 import type { LicenseIntakeBuLicenses, LicenseIntakeDetail as IntakeDetail, LicenseIntakeStatus } from '../types';
 
 const STATUS_VARIANT: Record<LicenseIntakeStatus, 'warning' | 'success' | 'secondary'> = {
@@ -348,7 +349,7 @@ const LicenseIntakeDetail: React.FC = () => {
                           : t('pages.licenseIntakes.no')}
                     </Row>
                     <Row label={t('pages.licenseIntakes.producedTitle')}>
-                      <ProducedLinks produced={intake.produced} />
+                      <ProducedLinks produced={intake.produced} buId={intake.business_unit?.id ?? intake.business_unit_id ?? undefined} />
                     </Row>
                   </dl>
                 </CardContent>
@@ -409,13 +410,14 @@ const LicenseIntakeDetail: React.FC = () => {
   );
 };
 
-const ProducedLinks: React.FC<{ produced?: IntakeDetail['produced'] }> = ({ produced }) => {
+const ProducedLinks: React.FC<{ produced?: IntakeDetail['produced']; buId?: string }> = ({ produced, buId }) => {
   const { t } = useI18n();
   const subs = produced?.subscriptions ?? [];
   const seats = produced?.seats ?? [];
   const ifaces = produced?.interfaces ?? [];
   const storages = produced?.storage ?? [];
-  if (subs.length + seats.length + ifaces.length + storages.length === 0) return <span>-</span>;
+  const aiCredits = produced?.ai_credit ?? [];
+  if (subs.length + seats.length + ifaces.length + storages.length + aiCredits.length === 0) return <span>-</span>;
   // เส้นทางเหล่านี้ใช้ subscription.read เหมือนหน้านี้ จึงลิงก์ได้เลยโดยไม่ต้องเช็คสิทธิ์เพิ่ม
   const linkClass = 'font-mono text-primary underline underline-offset-2';
   return (
@@ -453,6 +455,22 @@ const ProducedLinks: React.FC<{ produced?: IntakeDetail['produced'] }> = ({ prod
           <Link to={`/licenses/storage/${encodeURIComponent(s.id)}/edit`} className={linkClass}>
             {s.license_number || s.id}
           </Link>
+        </li>
+      ))}
+      {aiCredits.map((a) => (
+        <li key={a.id}>
+          <span className="mr-2 text-muted-foreground">{t('pages.licenseIntakes.producedAiCredit')}</span>
+          {/* AI credit ไม่มีหน้าแก้ไขรายใบ — ใบ top-up อยู่ในการ์ด AI credit ของ BU (ledger) จึงลิงก์ไปที่การ์ดนั้น */}
+          {buId ? (
+            <Link
+              to={`/business-units/${encodeURIComponent(buId)}/edit?tab=licenses#${LICENSE_SECTION_IDS.aiCredit}`}
+              className={linkClass}
+            >
+              {a.license_number || a.id}
+            </Link>
+          ) : (
+            <span className="font-mono">{a.license_number || a.id}</span>
+          )}
         </li>
       ))}
     </ul>

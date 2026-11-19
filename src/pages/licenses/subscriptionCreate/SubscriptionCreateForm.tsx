@@ -188,6 +188,27 @@ export function SubscriptionCreateForm({
             {fieldErrors.end_date && <p className="text-destructive text-xs">{fieldErrors.end_date}</p>}
           </div>
 
+          <div className="w-44 space-y-2">
+            <Label htmlFor="ai_credits_per_month">{t('pages.subscriptions.aiCreditsPerMonth')}</Label>
+            <Input
+              type="number"
+              id="ai_credits_per_month"
+              name="ai_credits_per_month"
+              min={0}
+              max={1000000}
+              step={1}
+              value={formData.ai_credits_per_month}
+              onChange={onChange}
+              onBlur={onBlur}
+              onFocus={onFocus}
+              aria-invalid={!!fieldErrors.ai_credits_per_month}
+              className={fieldErrors.ai_credits_per_month ? 'border-destructive' : ''}
+            />
+            {fieldErrors.ai_credits_per_month && (
+              <p className="text-destructive text-xs">{fieldErrors.ai_credits_per_month}</p>
+            )}
+          </div>
+
         </div>
 
         {/* A calendar of month-ends rather than a length: these contracts end on a month boundary,
