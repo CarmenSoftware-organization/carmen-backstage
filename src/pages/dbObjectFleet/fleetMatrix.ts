@@ -207,3 +207,16 @@ export function defaultTargets(row: FleetRow): string[] {
 export function runSignature(sqlText: string, targets: string[]): string {
   return `${[...targets].sort().join(',')}\n${sqlText}`;
 }
+
+// The backend wraps a routine body in a dollar tag derived from the body itself
+// (db-object-spec.ts `dollarTag`: `$b_` + 12 hex + `$`), so two different bodies always carry two
+// different tags, and the tag line would show as changed in every diff.
+const BODY_TAG = /\$b_[0-9a-f]{12}\$/g;
+
+/**
+ * Show every system-made dollar tag as `$body$`, so a diff points only at what really differs.
+ * For display only — never send the result back to be applied.
+ */
+export function withStableBodyTag(ddl: string): string {
+  return ddl.replace(BODY_TAG, '$$body$$');
+}

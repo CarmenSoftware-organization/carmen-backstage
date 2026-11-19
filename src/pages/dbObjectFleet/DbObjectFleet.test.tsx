@@ -156,7 +156,8 @@ describe('DbObjectFleet', () => {
     expect(screen.getByRole('checkbox', { name: 'Apply to B1' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'Apply to C1' })).toBeChecked();
     // comparing is offered for the BU that differs, against the central definition
-    expect(screen.getByRole('button', { name: /compare b1 with the central definition/i })).toBeInTheDocument();
+    // a labelled button, not a bare icon, so it can be found
+    expect(screen.getByRole('button', { name: /compare b1 with the central definition/i })).toHaveTextContent('Compare');
     expect(screen.queryByRole('button', { name: /compare a1/i })).toBeNull();
   });
 

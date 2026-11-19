@@ -3599,6 +3599,7 @@ export const en = {
       buMatch: 'Matches central',
       buOutdated: 'Differs from central',
       buMissing: 'Not installed',
+      compare: 'Compare',
       compareAria: 'Compare {{bu}} with the central definition',
       resultDryOk: 'Dry-run passed',
       resultApplied: 'Applied',
