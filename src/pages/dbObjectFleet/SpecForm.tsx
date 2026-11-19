@@ -7,8 +7,6 @@ import type { DbObjectArg, DbObjectRoutineSpec, DbObjectSpec } from '../../types
 interface SpecFormProps {
   spec: DbObjectSpec;
   onChange: (spec: DbObjectSpec) => void;
-  /** Kind and name identify the object: editable only while creating it. */
-  isNew: boolean;
   readOnly: boolean;
 }
 
@@ -16,28 +14,13 @@ const KINDS = ['view', 'function', 'procedure'] as const;
 const MODES: DbObjectArg['mode'][] = ['in', 'out', 'inout', 'variadic', 'table'];
 const selectClass = 'border-input bg-background h-9 w-full rounded-md border px-2 text-sm disabled:opacity-60';
 
-/** A blank spec of the given kind, keeping the name and body already typed. */
-export function blankSpec(kind: DbObjectSpec['type'], name = '', body = ''): DbObjectSpec {
-  if (kind === 'view') return { type: 'view', name, body };
-  return {
-    type: kind,
-    name,
-    args: [],
-    returns: kind === 'function' ? 'integer' : null,
-    language: 'sql',
-    volatility: 'volatile',
-    strict: false,
-    pin_search_path: true,
-    body,
-  };
-}
-
 /**
  * Everything of a definition except its body: fixed choices and short fields. The DDL header is
  * composed by the backend from these, so nothing here is free-form SQL beyond a type name or a
- * default expression — and those are parsed on save.
+ * default expression — and those are parsed on save. Kind and name identify the object, so they
+ * only show here: a new object comes from an uploaded migration file (UploadPanel).
  */
-export function SpecForm({ spec, onChange, isNew, readOnly }: SpecFormProps) {
+export function SpecForm({ spec, onChange, readOnly }: SpecFormProps) {
   const { t } = useI18n();
   const routine = spec.type === 'view' ? null : spec;
   const patch = (p: Partial<DbObjectRoutineSpec>) => routine && onChange({ ...routine, ...p });
@@ -50,12 +33,7 @@ export function SpecForm({ spec, onChange, isNew, readOnly }: SpecFormProps) {
       <div className="grid gap-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
         <label className="space-y-1 text-xs">
           <span className="block font-medium">{t('pages.dbObjectFleet.fieldKind')}</span>
-          <select
-            className={selectClass}
-            value={spec.type}
-            disabled={!isNew || readOnly}
-            onChange={(e) => onChange(blankSpec(e.target.value as DbObjectSpec['type'], spec.name, spec.body))}
-          >
+          <select className={selectClass} value={spec.type} disabled>
             {KINDS.map((k) => (
               <option key={k} value={k}>
                 {k}
@@ -65,13 +43,7 @@ export function SpecForm({ spec, onChange, isNew, readOnly }: SpecFormProps) {
         </label>
         <label className="space-y-1 text-xs">
           <span className="block font-medium">{t('pages.dbObjectFleet.fieldName')}</span>
-          <Input
-            value={spec.name}
-            disabled={!isNew || readOnly}
-            onChange={(e) => onChange({ ...spec, name: e.target.value })}
-            placeholder="v_new_view"
-            className="h-9 font-mono text-xs"
-          />
+          <Input value={spec.name} disabled className="h-9 font-mono text-xs" />
         </label>
       </div>
 

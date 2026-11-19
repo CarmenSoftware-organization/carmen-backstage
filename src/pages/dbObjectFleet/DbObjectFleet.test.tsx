@@ -47,6 +47,7 @@ vi.mock('../../services/dbObjectService', () => ({
     update: vi.fn(),
     remove: vi.fn(),
     importFromBu: vi.fn(),
+    uploadFile: vi.fn(),
     approve: vi.fn(),
     deployLog: vi.fn(),
     applyToBu: vi.fn(),
@@ -308,31 +309,64 @@ describe('DbObjectFleet', () => {
     expect(screen.getByRole('button', { name: 'Failed only (1)' })).toBeInTheDocument();
   });
 
-  it('creates a new function from the form: kind, name, arguments and body — nothing touches a BU', async () => {
+  it('adds new definitions from a migration file: reads it in the chosen BU, adds only on confirm', async () => {
     const user = userEvent.setup();
-    reg.create.mockResolvedValue(entryOf('id-same', { id: 'id-new' }));
+    const found = [
+      { type: 'view', name: 'v_new', identity_args: '', hash: 'n', definition: 'CREATE OR REPLACE VIEW "v_new" AS\nSELECT 1;\n' },
+      { type: 'view', name: 'v_same', identity_args: '', hash: 'h1', definition: '' },
+      { type: 'view', name: 'v_diff', identity_args: '', hash: 'zz', definition: '' },
+    ] as const;
+    reg.uploadFile.mockImplementation(async ({ dryRun }) => ({
+      bu_code: 'B1',
+      dry_run: dryRun,
+      objects: [
+        { ...found[0], status: dryRun ? 'new' : 'created', id: dryRun ? null : 'id-new' },
+        { ...found[1], status: 'same', id: 'id-same' },
+        { ...found[2], status: 'differs', id: 'id-diff' },
+      ],
+      not_stored: ['DROP VIEW IF EXISTS v_new'],
+    }));
     renderPage();
     await screen.findByRole('button', { name: /v_diff/ });
-    await user.click(screen.getByRole('button', { name: /new object/i }));
-    const create = screen.getByRole('button', { name: 'Create' });
-    expect(create).toBeDisabled();
-    await user.selectOptions(screen.getByLabelText('Kind'), 'function');
-    await user.type(screen.getByLabelText('Name'), 'f_new');
-    await user.click(screen.getByRole('button', { name: 'Add' }));
-    await user.type(screen.getByLabelText('Name of argument 1'), 'p_id');
-    await user.clear(screen.getByLabelText('Type of argument 1'));
-    await user.type(screen.getByLabelText('Type of argument 1'), 'uuid');
-    await user.click(create);
-    await waitFor(() => expect(reg.create).toHaveBeenCalledTimes(1));
-    expect(reg.create.mock.calls[0][0].spec).toMatchObject({
-      type: 'function',
-      name: 'f_new',
-      args: [{ name: 'p_id', type: 'uuid', mode: 'in' }],
-      language: 'sql',
-      pin_search_path: true,
-    });
+    await user.click(screen.getByRole('button', { name: /add from a migration file/i }));
+    const panel = within(screen.getByRole('region', { name: /add from a migration file/i }));
+    const read = panel.getByRole('button', { name: 'Read the file' });
+    expect(read).toBeDisabled();
+
+    const sql = 'DROP VIEW IF EXISTS v_new;\nCREATE VIEW v_new AS SELECT 1;';
+    await user.upload(panel.getByLabelText('Migration file (.sql)'), new File([sql], '178_v_new.up.sql', { type: 'text/plain' }));
+    await user.selectOptions(panel.getByLabelText('Try it in'), 'B1');
+    await waitFor(() => expect(read).toBeEnabled());
+    await user.click(read);
+    await waitFor(() =>
+      expect(reg.uploadFile).toHaveBeenCalledWith({ buCode: 'B1', sqlText: sql, fileName: '178_v_new.up.sql', dryRun: true }),
+    );
+    // what the file makes, against the registry — nothing is written by reading
+    expect(await panel.findByText('New')).toBeInTheDocument();
+    expect(panel.getByText('Already there, same')).toBeInTheDocument();
+    expect(panel.getByText('Already there, differs')).toBeInTheDocument();
+    expect(panel.getByText(/not replaced — edit it on its own page/i)).toBeInTheDocument();
+    expect(panel.getByText('Statements run in the trial but not kept (1)')).toBeInTheDocument();
+    expect(reg.uploadFile).toHaveBeenCalledTimes(1);
     expect(reg.applyToBu).not.toHaveBeenCalled();
+
+    await user.click(panel.getByRole('button', { name: 'Add 1 object(s)' }));
+    await waitFor(() => expect(reg.uploadFile).toHaveBeenCalledTimes(2));
+    expect(reg.uploadFile.mock.calls[1][0]).toMatchObject({ buCode: 'B1', dryRun: false });
     await waitFor(() => expect(reg.list).toHaveBeenCalledTimes(2));
+    expect(reg.applyToBu).not.toHaveBeenCalled();
+  });
+
+  it('refuses a .down.sql file before sending anything', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole('button', { name: /v_diff/ });
+    await user.click(screen.getByRole('button', { name: /add from a migration file/i }));
+    const panel = within(screen.getByRole('region', { name: /add from a migration file/i }));
+    await user.upload(panel.getByLabelText('Migration file (.sql)'), new File(['DROP VIEW v_new;'], '178_v_new.down.sql', { type: 'text/plain' }));
+    expect(await panel.findByRole('alert')).toHaveTextContent(/pick the \.up\.sql file/i);
+    expect(panel.getByRole('button', { name: 'Read the file' })).toBeDisabled();
+    expect(reg.uploadFile).not.toHaveBeenCalled();
   });
 
   it('asks for a re-import when a definition has no structured form, and locks it', async () => {
@@ -388,7 +422,7 @@ describe('DbObjectFleet', () => {
     renderPage();
     await openDiffObject(user);
     expect(screen.getByLabelText('sql')).toHaveAttribute('readonly');
-    expect(screen.queryByRole('button', { name: /new object/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add from a migration file/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /remove from central store/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /try on 2 bu/i })).toBeEnabled();
