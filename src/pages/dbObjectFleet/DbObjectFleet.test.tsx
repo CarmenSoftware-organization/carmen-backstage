@@ -55,6 +55,16 @@ vi.mock('../../services/dbObjectService', () => ({
 }));
 
 // CodeMirror needs layout APIs jsdom lacks — same textarea stand-in SqlWorkbench.test uses.
+// CodeMirror's merge view needs layout APIs jsdom lacks: show both sides as plain text.
+vi.mock('./SqlDiffView', () => ({
+  SqlDiffView: ({ original, current }: { original: string; current: string }) => (
+    <div>
+      <pre aria-label="bu side">{original}</pre>
+      <pre aria-label="central side">{current}</pre>
+    </div>
+  ),
+}));
+
 vi.mock('../sqlWorkbench/SqlEditor', () => ({
   SqlEditor: ({ value, onChange, readOnly }: { value: string; onChange: (v: string) => void; readOnly?: boolean }) => (
     <textarea aria-label="sql" value={value} readOnly={readOnly} onChange={(e) => onChange(e.target.value)} />
@@ -162,15 +172,29 @@ describe('DbObjectFleet', () => {
     expect(screen.queryByRole('button', { name: /compare a1/i })).toBeNull();
   });
 
-  it('lets only the body be written: the header fields are fixed for an existing object', async () => {
+  it('shows the body and the composed DDL — no form for the header', async () => {
     const user = userEvent.setup();
     renderPage();
     await openDiffObject(user);
-    expect(screen.getByLabelText('Kind')).toBeDisabled();
-    expect(screen.getByLabelText('Name')).toBeDisabled();
-    expect(screen.getByLabelText('Name')).toHaveValue('v_diff');
+    expect(screen.queryByLabelText('Kind')).toBeNull();
+    expect(screen.queryByLabelText('Name')).toBeNull();
+    expect(screen.queryByText('Arguments')).toBeNull();
     // the composed DDL is shown, read-only, as the backend returned it
     expect(screen.getByText(/CREATE OR REPLACE VIEW "v_diff" AS/)).toBeInTheDocument();
+  });
+
+  it('compares a BU that differs with the central definition in a popup, both sides labelled', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await openDiffObject(user);
+    await user.click(screen.getByRole('button', { name: /compare b1 with the central definition/i }));
+    const dialog = within(await screen.findByRole('dialog'));
+    expect(dialog.getByText('B1 now ↔ central definition')).toBeInTheDocument();
+    expect(svc.getPortableDefinition).toHaveBeenCalledWith('B1', { type: 'view', name: 'v_diff', identity_args: '' });
+    expect(dialog.getByText('B1 now')).toBeInTheDocument();
+    expect(dialog.getByText('Central definition')).toBeInTheDocument();
+    expect(dialog.getByLabelText('bu side')).toHaveTextContent('SELECT 0');
+    expect(dialog.getByLabelText('central side')).toHaveTextContent(/CREATE OR REPLACE VIEW "v_diff" AS/);
   });
 
   it('saves an edited body as a spec; the edit is unapproved and cannot be applied until approved', async () => {
