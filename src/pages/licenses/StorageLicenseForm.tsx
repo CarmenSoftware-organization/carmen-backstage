@@ -237,7 +237,9 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
   const validate = (): boolean => {
     const next: Record<string, string> = {};
     if (isNew && !bu) next.bu = t('pages.storageLicense.form.buRequired');
-    const dbErr = quotaError(form.db);
+    // ช่อง DB ซ่อนอยู่ = ไม่ตรวจ: ค่าที่เก็บไว้ (เช่นต่ำกว่า 1 GB จากการ migrate) จะทำให้บันทึกเงียบ ๆ โดยไม่มีข้อความให้เห็น
+    // และค่านั้นไม่ถูกส่งไปอยู่แล้ว · hidden DB field is never validated: its error could not be shown
+    const dbErr = dbQuotaOn ? quotaError(form.db) : '';
     const fileErr = quotaError(form.file);
     if (dbErr) next.db = dbErr;
     if (fileErr) next.file = fileErr;
