@@ -112,6 +112,10 @@ export const validateField = (
         ? ''
         : tr('common.validation.invalidAlias', { max });
     }
+    case 'ai_credits_per_month':
+      return /^\d+$/.test(value) && Number(value) <= 1_000_000 ? '' : tr('common.validation.aiCreditsRange');
+    case 'low_threshold':
+      return /^\d+$/.test(value) && Number(value) <= 1_000_000 ? '' : tr('pages.aiCredit.lowThresholdRange');
     case 'max_license_users':
       return /^\d+$/.test(value) && Number(value) >= 0 ? '' : tr('common.validation.nonNegativeInt');
     // ใช้ร่วมกันโดยทั้งใบที่นั่งและใบโควตา BU (LicensePurchaseForm) — ชื่อฟิลด์บนสาย

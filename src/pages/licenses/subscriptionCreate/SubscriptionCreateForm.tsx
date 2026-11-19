@@ -10,6 +10,7 @@ import type { ClusterOption } from '../../../hooks/useClusterSearch';
 import type { BusinessUnit } from '../../../types';
 import type { SubscriptionFormData } from '../subscriptionEdit/SubscriptionInfoCard';
 import { monthEndOptions, yearOf } from './subscriptionTerm';
+import { useFeature } from '../../../hooks/useFeature';
 
 // Same control shape a dozen other pages in this repo spell out inline — there is no shared
 // `<Select>` primitive here, and inventing one for this page would be a new visual system.
@@ -70,6 +71,7 @@ export function SubscriptionCreateForm({
   onCancel,
 }: SubscriptionCreateFormProps) {
   const { t, lang } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
 
   // The month-ends are anchored to the year the term *starts* in, so the calendar the user is
   // offered is the one their own start date sits in — not this browser's current year, which is a
@@ -187,6 +189,29 @@ export function SubscriptionCreateForm({
             />
             {fieldErrors.end_date && <p className="text-destructive text-xs">{fieldErrors.end_date}</p>}
           </div>
+
+          {aiCreditOn && (
+          <div className="w-44 space-y-2">
+            <Label htmlFor="ai_credits_per_month">{t('pages.subscriptions.aiCreditsPerMonth')}</Label>
+            <Input
+              type="number"
+              id="ai_credits_per_month"
+              name="ai_credits_per_month"
+              min={0}
+              max={1000000}
+              step={1}
+              value={formData.ai_credits_per_month}
+              onChange={onChange}
+              onBlur={onBlur}
+              onFocus={onFocus}
+              aria-invalid={!!fieldErrors.ai_credits_per_month}
+              className={fieldErrors.ai_credits_per_month ? 'border-destructive' : ''}
+            />
+            {fieldErrors.ai_credits_per_month && (
+              <p className="text-destructive text-xs">{fieldErrors.ai_credits_per_month}</p>
+            )}
+          </div>
+          )}
 
         </div>
 

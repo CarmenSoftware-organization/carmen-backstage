@@ -63,6 +63,7 @@ const emptyFormData: SubscriptionFormData = {
   start_date: '',
   end_date: '',
   status: 'active',
+  ai_credits_per_month: '0',
 };
 
 const SubscriptionForm: React.FC = () => {
@@ -162,6 +163,7 @@ const SubscriptionForm: React.FC = () => {
         start_date: toYmd(data.start_date),
         end_date: toYmd(data.end_date),
         status: data.status,
+        ai_credits_per_month: String(data.ai_credits_per_month ?? 0),
       };
       setFormData(loaded);
       setSavedFormData(loaded);
@@ -272,6 +274,8 @@ const SubscriptionForm: React.FC = () => {
       required: true, label: t('common.validation.endDate'),
     }, t);
     if (endErr) next.end_date = endErr;
+    const aiErr = validateField('ai_credits_per_month', formData.ai_credits_per_month, undefined, t);
+    if (aiErr) next.ai_credits_per_month = aiErr;
     if (!next.start_date && !next.end_date) {
       const orderErr = endDateOrderError(formData.start_date, formData.end_date, t);
       if (orderErr) next.end_date = orderErr;
@@ -287,7 +291,7 @@ const SubscriptionForm: React.FC = () => {
     setSaving(true);
     setError('');
     try {
-      // Built field-by-field, never `...formData` — create accepts exactly these five keys.
+      // Built field-by-field, never `...formData` — create accepts these keys (plus an optional quota).
       // `subscription_number` is NOT among them: the server issues it (`SUB-YYMM-####`), and
       // formData carries it only to display an existing contract's number.
       const payload = {
@@ -296,6 +300,10 @@ const SubscriptionForm: React.FC = () => {
         start_date: fromYmd(formData.start_date),
         end_date: fromYmd(formData.end_date),
         status: formData.status,
+        // omitted on create = 0, so only send a non-zero quota
+        ...(Number(formData.ai_credits_per_month || 0) > 0
+          ? { ai_credits_per_month: Number(formData.ai_credits_per_month) }
+          : {}),
       };
       const result = await subscriptionService.create(payload);
       const created = (result?.data || result) as { id?: string } | undefined;
@@ -356,6 +364,10 @@ const SubscriptionForm: React.FC = () => {
           start_date: fromYmd(formData.start_date),
           end_date: fromYmd(formData.end_date),
           status: formData.status,
+          // omitted on PATCH = unchanged, so only send the quota when the user changed it
+          ...(formData.ai_credits_per_month !== savedFormData.ai_credits_per_month
+            ? { ai_credits_per_month: Number(formData.ai_credits_per_month || 0) }
+            : {}),
         };
         const result = await subscriptionService.update(id!, payload);
         const updated = (result?.data || result) as SubscriptionDetail | undefined;

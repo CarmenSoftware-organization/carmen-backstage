@@ -36,6 +36,10 @@ export interface FeatureDefinition {
  * ค่าตั้งต้นเป็น `active` ทุกตัวโดยเจตนา: การ deploy ต้องไม่ซ่อนอะไรเองโดยไม่มีคนสั่ง
  * All default to active on purpose: a deploy must never hide anything on its own.
  *
+ * ข้อยกเว้นเดียวคือ `license_ai_credit` (`hide`) — เจ้าของสั่งให้ซ่อนไว้ตั้งแต่ deploy แรก (2026-11-19)
+ * เพราะ backend ยังไม่มีผู้ใช้เครดิตจริง (OCR ยังไม่เรียก reserve) เปิดได้ที่ /backstage/features
+ * The one exception is `license_ai_credit`, hidden by the owner's call until an OCR feature consumes it.
+ *
  * หน้าที่จงใจไม่มี flag เพราะปิดแล้วแอปเข้าไม่ถึงหรือปิดตัวเอง:
  * /dashboard · /backstage/features · /profile · /changelog · /login · / · /403 · /404
  * Deliberately ungated: closing any of them would lock the app or the switch itself.
@@ -58,6 +62,8 @@ export const FEATURE_CATALOG: readonly FeatureDefinition[] = [
   { key: 'license_feature_groups', labelKey: 'nav.licenseFeatureGroups', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
   { key: 'license_features', labelKey: 'nav.licenseFeatures', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
   { key: 'license_intakes', labelKey: 'nav.licenseIntakes', groupKey: 'navGroup.licenseManagement', defaultState: 'active' },
+  // ไม่มีเมนูหรือเส้นทางของตัวเอง — คุมการ์ด/แท็บ/ฟิลด์ AI credit ที่กระจายอยู่หลายหน้า
+  { key: 'license_ai_credit', labelKey: 'nav.licenseAiCredit', groupKey: 'navGroup.licenseManagement', defaultState: 'hide' },
   // Content
   { key: 'report_templates', labelKey: 'nav.reportTemplates', groupKey: 'navGroup.content', defaultState: 'active' },
   { key: 'report_form_groups', labelKey: 'nav.formGroups', groupKey: 'navGroup.content', defaultState: 'active' },

@@ -1522,6 +1522,9 @@ export interface LicenseIntake {
   /** โควตา storage ที่ใบขายสั่ง (ไบต์) — null/ไม่มี = ไม่ออกใบ storage ฝั่งนั้น */
   storage_db_bytes?: number | null;
   storage_file_bytes?: number | null;
+  /** โควตา AI credit รายเดือน / ใบ top-up ที่ใบขายสั่ง — null/ไม่มี = ไม่รวม */
+  ai_credits_per_month?: number | null;
+  ai_credit_topup?: number | null;
   start_date?: string;
   end_date?: string;
   note?: string | null;
@@ -1556,6 +1559,7 @@ export interface LicenseIntakeProduced {
   seats?: { id: string; license_number?: string | null }[];
   interfaces?: { id: string; license_number?: string | null; group_code?: string | null }[];
   storage?: { id: string; license_number?: string | null }[];
+  ai_credit?: { id: string; license_number?: string | null }[];
 }
 
 /** `GET /license-intakes/:id` */
@@ -1912,6 +1916,8 @@ export interface Subscription {
   seat_used: number;
   /** จำนวนเต็มเสมอ ไม่มี null — ไม่มีคำว่า "ไม่จำกัด" ในระบบที่นั่ง 0 คือศูนย์ที่นั่งจริงๆ */
   seat_cap: number;
+  /** โควตา AI credit ต่อเดือนของ BU (int 0..1,000,000) — 0 = ไม่มีโควตารายเดือน · optional เพราะ BE เก่าไม่ส่ง */
+  ai_credits_per_month?: number;
   doc_version: number;
 }
 
@@ -2619,6 +2625,94 @@ export interface BuStorageLicensesResponse {
   paginate: { total: number; page: number; perpage: number; pages: number };
 }
 
+/** ประเภทแถว ledger ของ AI credit — debit ติดลบ, topup +, topup_void −, adjust ± */
+export type AiCreditEntryType = 'debit' | 'topup' | 'topup_void' | 'adjust';
+
+/** ฟีเจอร์ที่ตัด AI credit ได้ — ฟีเจอร์ใหม่เพิ่มค่าที่นี่และที่ backend */
+export type AiCreditFeature = 'ocr_grn_po_match' | 'ocr_ap_invoice' | 'ocr_payment_reconcile';
+
+/** `GET /business-units/:buId/ai-credit` — ยอดคงเหลือ AI credit ของ BU */
+export interface AiCreditBalance {
+  /** เดือน Bangkok รูปแบบ YYYY-MM */
+  month?: string;
+  monthly_quota: number;
+  monthly_used: number;
+  monthly_remaining?: number;
+  /** ติดลบได้หลัง void ใบที่ใช้ไปแล้ว — แสดงค่าดิบ */
+  topup_remaining: number;
+  /** monthly_remaining + max(0, topup_remaining) */
+  available: number;
+  /** เครดิตที่การจอง pending ถืออยู่ */
+  pending?: number;
+  low?: boolean;
+}
+
+/** ใบ top-up `AIC-` — ไม่มีวันหมดอายุ; `deleted_at` มีค่า = void แล้ว */
+export interface AiCreditLicense {
+  id: string;
+  license_number: string;
+  business_unit_id?: string;
+  credits: number;
+  reference_no?: string | null;
+  note?: string | null;
+  license_intake_id?: string | null;
+  doc_version: number;
+  created_at?: string | null;
+  deleted_at?: string | null;
+}
+
+/** แถว ledger (append-only) — `credits` มีเครื่องหมาย */
+export interface AiCreditLedgerEntry {
+  id: string;
+  business_unit_id?: string;
+  entry_type: AiCreditEntryType | string;
+  pool: 'monthly' | 'topup' | string;
+  credits: number;
+  feature?: AiCreditFeature | string | null;
+  /** null สำหรับแถวของ pool top-up (ไม่มีเดือน) */
+  month: string | null;
+  note?: string | null;
+  reason?: string | null;
+  license_number?: string | null;
+  created_at?: string | null;
+}
+
+export interface AiCreditLedgerResponse {
+  data: AiCreditLedgerEntry[];
+  paginate: { total: number; page: number; perpage: number; pages: number };
+}
+
+/** แถวของ `GET /backstage/ai-credit/summary` — หนึ่งแถวต่อ BU ที่มีสิทธิ์ */
+export interface AiCreditSummaryRow {
+  business_unit_id: string;
+  bu_code: string;
+  bu_name: string;
+  cluster_name: string;
+  monthly_quota: number;
+  monthly_used: number;
+  topup_remaining: number;
+  available: number;
+  low: boolean;
+}
+
+export interface AiCreditSummaryResponse {
+  data: AiCreditSummaryRow[];
+  paginate: { total: number; page: number; perpage: number; pages: number };
+}
+
+/** body ออกใบ top-up */
+export interface AiCreditLicenseInput {
+  credits: number;
+  reference_no?: string | null;
+  note?: string | null;
+}
+
+/** body ปรับยอด top-up — credits มีเครื่องหมาย ห้ามเป็น 0 */
+export interface AiCreditAdjustInput {
+  credits: number;
+  reason: string;
+}
+
 /** `GET /backstage/storage-licenses/summary` */
 export interface BuStorageLicenseSummary {
   in_force: number;
@@ -2632,6 +2726,11 @@ export interface BuStorageLicenseInput {
   file_quota_bytes: number | null;
   reference_no?: string | null;
   note?: string | null;
+}
+
+/** คีย์ `ai_credit` ใน Backstage Config — เกณฑ์ยอดเหลือน้อย (int 0..1,000,000) */
+export interface AiCreditConfig {
+  low_threshold: number;
 }
 
 /** คีย์ `storage_quota` ใน Backstage Config (เก็บเป็นไบต์) */

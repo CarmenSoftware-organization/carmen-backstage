@@ -7,6 +7,7 @@ import { ReadOnlyField } from '../../../components/ReadOnlyField';
 import { useI18n } from '../../../hooks/useI18n';
 import type { TKey } from '../../../i18n/types';
 import type { SubscriptionStatus } from '../../../types';
+import { useFeature } from '../../../hooks/useFeature';
 
 export interface SubscriptionFormData {
   cluster_id: string;
@@ -18,6 +19,8 @@ export interface SubscriptionFormData {
   start_date: string;
   end_date: string;
   status: SubscriptionStatus;
+  /** AI credit ต่อเดือน — สตริงดิบจาก <input type="number"> (int 0..1,000,000) แปลงเป็นตัวเลขตอนส่ง */
+  ai_credits_per_month: string;
 }
 
 const STATUS_OPTIONS: SubscriptionStatus[] = ['active', 'inactive', 'expired'];
@@ -58,6 +61,7 @@ export function SubscriptionInfoCard({
   onFocus,
 }: SubscriptionInfoCardProps) {
   const { t } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
   // `|| s` only fires for a value outside the union; translate() returns '' on a miss (same
   // shape as SubscriptionTable's stateLabel).
   const statusLabel = useCallback((s: string) => t(`common.status.${s}` as TKey) || s, [t]);
@@ -69,7 +73,7 @@ export function SubscriptionInfoCard({
         <CardDescription>{t('pages.subscriptions.amendDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="start_date">{t('common.field.startDate')}{editing && ' *'}</Label>
             {editing ? (
@@ -138,6 +142,37 @@ export function SubscriptionInfoCard({
               </div>
             )}
           </div>
+
+          {aiCreditOn && (
+          <div className="space-y-2">
+            <Label htmlFor="ai_credits_per_month">{t('pages.subscriptions.aiCreditsPerMonth')}</Label>
+            {editing ? (
+              <>
+                <Input
+                  type="number"
+                  id="ai_credits_per_month"
+                  name="ai_credits_per_month"
+                  min={0}
+                  max={1000000}
+                  step={1}
+                  value={formData.ai_credits_per_month}
+                  onChange={onChange}
+                  onBlur={onBlur}
+                  onFocus={onFocus}
+                  aria-invalid={!!fieldErrors.ai_credits_per_month}
+                  className={fieldErrors.ai_credits_per_month ? 'border-destructive' : ''}
+                />
+                {fieldErrors.ai_credits_per_month ? (
+                  <p className="text-destructive text-xs">{fieldErrors.ai_credits_per_month}</p>
+                ) : (
+                  <p className="text-muted-foreground text-xs">{t('pages.subscriptions.aiCreditsPerMonthHint')}</p>
+                )}
+              </>
+            ) : (
+              <ReadOnlyField value={formData.ai_credits_per_month} />
+            )}
+          </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -4,6 +4,10 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SubscriptionInfoCard, type SubscriptionFormData } from './SubscriptionInfoCard';
 
+// หน้าเหล่านี้อ่าน feature flag `license_ai_credit` — เทสต์ไม่ได้ห่อ FeatureFlagProvider จึงตัดที่ hook
+// และให้ทุก flag เป็น active เพื่อให้พฤติกรรมเดิมถูกทดสอบเหมือนก่อนมี flag
+vi.mock('../../../hooks/useFeature', () => ({ useFeature: () => 'active' }));
+
 const formData: SubscriptionFormData = {
   cluster_id: 'c1',
   business_unit_id: 'b1',
@@ -11,6 +15,7 @@ const formData: SubscriptionFormData = {
   start_date: '2026-01-01',
   end_date: '2026-12-31',
   status: 'active',
+  ai_credits_per_month: '0',
 };
 
 const base = (over: Record<string, unknown> = {}) => ({

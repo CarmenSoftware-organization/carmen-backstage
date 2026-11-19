@@ -52,6 +52,10 @@ import businessUnitService from '../../services/businessUnitService';
 import clusterService from '../../services/clusterService';
 import type { SubscriptionDetail } from '../../types';
 
+// หน้าเหล่านี้อ่าน feature flag `license_ai_credit` — เทสต์ไม่ได้ห่อ FeatureFlagProvider จึงตัดที่ hook
+// และให้ทุก flag เป็น active เพื่อให้พฤติกรรมเดิมถูกทดสอบเหมือนก่อนมี flag
+vi.mock('../../hooks/useFeature', () => ({ useFeature: () => 'active' }));
+
 const asMock = (fn: unknown) => fn as ReturnType<typeof vi.fn>;
 
 const sampleDetail: SubscriptionDetail = {

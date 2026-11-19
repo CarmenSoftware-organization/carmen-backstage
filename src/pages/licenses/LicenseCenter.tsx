@@ -13,14 +13,16 @@ import ClusterLicenseTable from './ClusterLicenseTable';
 import SubscriptionTable from './SubscriptionTable';
 import { PurchaseLicenseTable } from './PurchaseLicenseTable';
 import { StorageLicenseTable } from './StorageLicenseTable';
+import { AiCreditSummaryTable } from './AiCreditSummaryTable';
 import type { DeletedViewControl } from './DeletedLicenseTable';
 import { SEAT_CONFIG, BU_QUOTA_CONFIG, INTERFACE_CONFIG } from './licenseKindConfig';
 import type { FleetSummary } from '../../types';
+import { useFeature } from '../../hooks/useFeature';
 
-type LicenseView = 'cluster' | 'subscription' | 'seat' | 'bu-quota' | 'interface' | 'storage';
+type LicenseView = 'cluster' | 'subscription' | 'seat' | 'bu-quota' | 'interface' | 'storage' | 'ai-credit';
 const VIEW_KEY = 'license_center_view';
 const VIEW_PARAM = 'tab';
-const VIEWS: LicenseView[] = ['cluster', 'subscription', 'seat', 'bu-quota', 'interface', 'storage'];
+const VIEWS: LicenseView[] = ['cluster', 'subscription', 'seat', 'bu-quota', 'interface', 'storage', 'ai-credit'];
 /** `?deleted=1` = แสดงใบที่ลบแล้วของแท็บปัจจุบัน — อยู่ใน URL ไม่ใช่ localStorage และล้างทิ้งเมื่อสลับแท็บ */
 const DELETED_PARAM = 'deleted';
 
@@ -44,6 +46,7 @@ const readStoredView = (): LicenseView => {
  */
 const LicenseCenter: React.FC = () => {
   const { t } = useI18n();
+  const aiCreditOn = useFeature('license_ai_credit') === 'active';
   const { isSuperAdmin } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   // ลำดับความสำคัญ: `?tab=` > localStorage > 'cluster' — ลิงก์ที่ระบุมุมมองมาต้องชนะเสมอ
@@ -100,9 +103,13 @@ const LicenseCenter: React.FC = () => {
   // `?deleted=1` มาก็ยังเห็นตารางปกติ เพราะ endpoint รายการใบที่ลบตอบเฉพาะ superadmin อยู่แล้ว
   // ทางเข้าคือการ์ด "ลบแล้ว" ในแถบสรุปของแต่ละตาราง (เดิมเป็นปุ่ม "Show deleted" ลอยอยู่แถวของมันเอง
   // แยกจากการ์ดที่พูดเรื่องเดียวกัน) — ไม่ส่ง `deletedView` = ตารางไม่มีทางเข้า
+  // แท็บ AI credit ถูกซ่อนด้วย feature flag แต่ `?tab=ai-credit`/localStorage ยังชี้มาได้ —
+  // แสดง "By cluster" แทน ไม่ปล่อยให้ตารางที่ซ่อนอยู่โผล่ทางลิงก์ตรง
+  const shownView: LicenseView = view === 'ai-credit' && !aiCreditOn ? 'cluster' : view;
+
   const showDeleted = searchParams.get(DELETED_PARAM) === '1';
   const deletedView: DeletedViewControl | undefined =
-    isSuperAdmin && view !== 'cluster' && view !== 'storage'
+    isSuperAdmin && shownView !== 'cluster' && shownView !== 'storage' && shownView !== 'ai-credit'
       ? {
           open: showDeleted,
           onToggle: () => {
@@ -123,7 +130,8 @@ const LicenseCenter: React.FC = () => {
     { id: 'bu-quota', label: t('pages.licenses.viewByBuQuota') },
     { id: 'interface', label: t('pages.licenses.viewByInterface') },
     { id: 'storage', label: t('pages.licenses.viewByStorage') },
-  ], [t]);
+    ...(aiCreditOn ? [{ id: 'ai-credit' as const, label: t('pages.licenses.viewByAiCredit') }] : []),
+  ], [t, aiCreditOn]);
 
   // แถบสรุปอ่านจาก endpoint เฉพาะทางที่ไม่รับตัวกรองเลย จึงเป็นตัวเลขทั้ง fleet เสมอ
   // ตัวกรอง "โควตาใกล้หมดอายุ" ด้านล่างกรองแค่ตาราง ไม่แตะแถบนี้ — พฤติกรรมเดิมไม่เปลี่ยน
@@ -177,10 +185,10 @@ const LicenseCenter: React.FC = () => {
             แต่วัดที่ 386px แล้วแถบกว้าง 348 ส่วนเนื้อในกว้าง 450 — "By BU quota" เหลือโผล่ 4px
             ซึ่งอ่านไม่ออกว่ามีแท็บที่สี่อยู่ <Select> โชว์ครบสี่ตัวเสมอ จอแคบจึงยังเป็นของมัน */}
         <div className="hidden sm:block">
-          <TabStrip tabs={VIEW_TABS} value={view} onChange={changeView} />
+          <TabStrip tabs={VIEW_TABS} value={shownView} onChange={changeView} />
         </div>
         <div className="sm:hidden">
-          <Select value={view} onValueChange={(v) => changeView(v as LicenseView)}>
+          <Select value={shownView} onValueChange={(v) => changeView(v as LicenseView)}>
             <SelectTrigger aria-label={t('pages.licenses.selectViewAria')}>
               <SelectValue />
             </SelectTrigger>
@@ -192,20 +200,22 @@ const LicenseCenter: React.FC = () => {
           </Select>
         </div>
 
-        {view === 'cluster' ? (
+        {shownView === 'cluster' ? (
           <ClusterLicenseTable
             expiringSoonFilter={expiringSoonFilter}
             onExpiringSoonChange={setExpiringSoonFilter}
           />
-        ) : view === 'subscription' ? (
+        ) : shownView === 'subscription' ? (
           <SubscriptionTable embedded deletedView={deletedView} />
-        ) : view === 'seat' ? (
+        ) : shownView === 'seat' ? (
           <PurchaseLicenseTable key="seat" config={SEAT_CONFIG} deletedView={deletedView} />
-        ) : view === 'bu-quota' ? (
+        ) : shownView === 'bu-quota' ? (
           <PurchaseLicenseTable key="bu-quota" config={BU_QUOTA_CONFIG} deletedView={deletedView} />
-        ) : view === 'storage' ? (
+        ) : shownView === 'storage' ? (
           // ไม่มีมุมมองใบที่ลบแล้ว — ใบ storage ถูกแทนที่ ไม่ถูกลบ จึงไม่ส่ง deletedView
           <StorageLicenseTable />
+        ) : shownView === 'ai-credit' ? (
+          <AiCreditSummaryTable />
         ) : (
           <PurchaseLicenseTable key="interface" config={INTERFACE_CONFIG} deletedView={deletedView} />
         )}
