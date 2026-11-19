@@ -8,7 +8,7 @@ import type { FleetRow } from './fleetMatrix';
 
 interface ObjectListProps {
   rows: FleetRow[];
-  /** How many BUs were scanned successfully — the denominator of "x / n BUs up to date". */
+  /** How many BUs were scanned successfully — the denominator of "x / n BUs matching". */
   scannedBus: number;
   /** Shown instead of "no match" when the registry itself is empty. */
   emptyHint?: string;

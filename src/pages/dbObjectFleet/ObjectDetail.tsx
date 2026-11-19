@@ -282,7 +282,7 @@ export function ObjectDetail({
           ]);
           if (res.updated > 0 && !cancelledRef.current) await loadEntry(row.id);
         } catch {
-          // The apply itself succeeded; an unsettled fingerprint only shows those BUs as out of date.
+          // The apply itself succeeded; an unsettled fingerprint only shows those BUs as differing from the registry.
         }
       }
       if (cancelledRef.current) return;
