@@ -4625,6 +4625,7 @@ export const en = {
       storageDbLabel: 'DB {{value}}',
       storageFileLabel: 'File {{value}}',
       overlapStorageReplace: 'Will replace {{number}} (DB {{db}} / File {{file}})',
+      overlapStorageReplaceFileOnly: 'Will replace {{number}} (File {{file}})',
       columnPeriod: 'Period',
       columnReceived: 'Received',
       customerNotFound: 'AR not found',

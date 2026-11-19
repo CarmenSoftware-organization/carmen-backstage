@@ -10,6 +10,7 @@ import { parseApiError } from '../../utils/errorParser';
 import { BYTES_PER_GB, bytesToGbInput, formatBytes, isValidQuotaInput } from '../../utils/storageQuota';
 import type { StorageQuotaConfig, BackstageConfig } from '../../types';
 import { useI18n } from '../../hooks/useI18n';
+import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
 
 interface StorageQuotaConfigCardProps {
   config: BackstageConfig | null;
@@ -77,6 +78,7 @@ export const StorageQuotaConfigCard: React.FC<StorageQuotaConfigCardProps> = ({
   footer,
 }) => {
   const { t } = useI18n();
+  const dbQuotaOn = useDbQuotaOn();
   const [formData, setFormData] = useState<FormData>(() => toForm(config));
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -92,7 +94,7 @@ export const StorageQuotaConfigCard: React.FC<StorageQuotaConfigCardProps> = ({
     const days = Number(formData.grace_days);
     const emails = formData.team_emails.split(',').map((e) => e.trim()).filter(Boolean);
     return {
-      default_db_gb: validateGb(formData.default_db_gb),
+      default_db_gb: dbQuotaOn ? validateGb(formData.default_db_gb) : '',
       default_file_gb: validateGb(formData.default_file_gb),
       grace_days:
         formData.grace_days.trim() !== '' && Number.isInteger(days) && days >= 0 && days <= 365
@@ -112,7 +114,10 @@ export const StorageQuotaConfigCard: React.FC<StorageQuotaConfigCardProps> = ({
     try {
       setSaving(true);
       await backstageConfigService.update('storage_quota', {
-        default_db_bytes: Math.round(Number(formData.default_db_gb) * BYTES_PER_GB),
+        // flag ปิด: ช่อง DB ซ่อนอยู่ ส่งค่าที่โหลดมากลับไปตามเดิม (schema บังคับค่าบวก ห้ามส่ง 0/NaN)
+        default_db_bytes: dbQuotaOn
+          ? Math.round(Number(formData.default_db_gb) * BYTES_PER_GB)
+          : saved.default_db_bytes,
         default_file_bytes: Math.round(Number(formData.default_file_gb) * BYTES_PER_GB),
         team_emails: formData.team_emails.split(',').map((e) => e.trim()).filter(Boolean),
         enforce: formData.enforce,
@@ -154,6 +159,7 @@ export const StorageQuotaConfigCard: React.FC<StorageQuotaConfigCardProps> = ({
         onCancel={handleCancel}
         footer={footer}
       >
+        {dbQuotaOn && (
         <ConfigField
           label={t('pages.storageQuota.defaultDbQuota')}
           htmlFor="storage-quota-default-db"
@@ -171,6 +177,7 @@ export const StorageQuotaConfigCard: React.FC<StorageQuotaConfigCardProps> = ({
             className={fieldErrors.default_db_gb ? 'border-destructive' : ''}
           />
         </ConfigField>
+        )}
         <ConfigField
           label={t('pages.storageQuota.defaultFileQuota')}
           htmlFor="storage-quota-default-file"

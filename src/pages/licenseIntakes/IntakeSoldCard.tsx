@@ -11,6 +11,7 @@ import { useStorageQuotaDefaults } from '../../hooks/useStorageQuotaDefaults';
 import { formatBytes } from '../../utils/storageQuota';
 import { fmtDateTime, periodOf } from './format';
 import { useFeature } from '../../hooks/useFeature';
+import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
 
 const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="grid gap-0.5 sm:grid-cols-[9rem_1fr] sm:gap-4">
@@ -51,6 +52,7 @@ const GroupChips: React.FC<{ groups?: LicenseIntakeGroup[]; codes?: string[] }> 
 const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) => {
   const { t } = useI18n();
   const aiCreditOn = useFeature('license_ai_credit') === 'active';
+  const dbQuotaOn = useDbQuotaOn();
   const customer = intake.customer;
   const quotaDefaults = useStorageQuotaDefaults();
   const dbBytes = intake.storage_db_bytes ?? null;
@@ -59,16 +61,21 @@ const IntakeSoldCard: React.FC<{ intake: LicenseIntakeDetail }> = ({ intake }) =
     def != null
       ? t('pages.licenseIntakes.storageDefaultSized', { size: formatBytes(def) })
       : t('pages.licenseIntakes.storageDefault');
-  const storageText =
-    dbBytes === null && fileBytes === null
+  const fileText = t('pages.licenseIntakes.storageFileLabel', {
+    value: fileBytes !== null ? formatBytes(fileBytes) : defaultLabel(quotaDefaults?.file),
+  });
+  // flag `license_storage_quota` ปิด: บอกแค่โควตาไฟล์ ใบที่ขายมาแต่ DB จึงอ่านว่า "ไม่รวม"
+  const storageText = !dbQuotaOn
+    ? fileBytes === null
+      ? t('pages.licenseIntakes.storageNotIncluded')
+      : fileText
+    : dbBytes === null && fileBytes === null
       ? t('pages.licenseIntakes.storageNotIncluded')
       : [
           t('pages.licenseIntakes.storageDbLabel', {
             value: dbBytes !== null ? formatBytes(dbBytes) : defaultLabel(quotaDefaults?.db),
           }),
-          t('pages.licenseIntakes.storageFileLabel', {
-            value: fileBytes !== null ? formatBytes(fileBytes) : defaultLabel(quotaDefaults?.file),
-          }),
+          fileText,
         ].join(' / ');
   const aiMonthly = intake.ai_credits_per_month ?? null;
   const aiTopup = intake.ai_credit_topup ?? null;

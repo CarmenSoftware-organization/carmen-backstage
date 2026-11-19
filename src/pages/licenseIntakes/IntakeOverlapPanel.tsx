@@ -4,6 +4,7 @@ import { Badge } from '../../components/ui/badge';
 import { FetchErrorState } from '../../components/FetchErrorState';
 import { Skeleton } from '../../components/ui/skeleton';
 import { useI18n } from '../../hooks/useI18n';
+import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
 import type { LicenseIntakeBuLicenses } from '../../types';
 import { formatBytes } from '../../utils/storageQuota';
 import { periodOf } from './format';
@@ -72,6 +73,7 @@ interface IntakeOverlapPanelProps {
 /** ใบสิทธิ์ที่ BU ที่เลือกมีอยู่แล้ว — แถวที่ซ้อนช่วงเวลากับใบขายถูกติดธง */
 const IntakeOverlapPanel: React.FC<IntakeOverlapPanelProps> = ({ buName, data, loading, error, onRetry, intakeHasStorage }) => {
   const { t } = useI18n();
+  const dbQuotaOn = useDbQuotaOn();
 
   if (loading) {
     return (
@@ -110,11 +112,16 @@ const IntakeOverlapPanel: React.FC<IntakeOverlapPanelProps> = ({ buName, data, l
       )}
       {intakeHasStorage && data.storage && (
         <p role="note" className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
-          {t('pages.licenseIntakes.overlapStorageReplace', {
-            number: data.storage.number || data.storage.id,
-            db: data.storage.db_quota_bytes != null ? formatBytes(data.storage.db_quota_bytes) : t('pages.licenseIntakes.storageDefault'),
-            file: data.storage.file_quota_bytes != null ? formatBytes(data.storage.file_quota_bytes) : t('pages.licenseIntakes.storageDefault'),
-          })}
+          {dbQuotaOn
+            ? t('pages.licenseIntakes.overlapStorageReplace', {
+                number: data.storage.number || data.storage.id,
+                db: data.storage.db_quota_bytes != null ? formatBytes(data.storage.db_quota_bytes) : t('pages.licenseIntakes.storageDefault'),
+                file: data.storage.file_quota_bytes != null ? formatBytes(data.storage.file_quota_bytes) : t('pages.licenseIntakes.storageDefault'),
+              })
+            : t('pages.licenseIntakes.overlapStorageReplaceFileOnly', {
+                number: data.storage.number || data.storage.id,
+                file: data.storage.file_quota_bytes != null ? formatBytes(data.storage.file_quota_bytes) : t('pages.licenseIntakes.storageDefault'),
+              })}
         </p>
       )}
       <Section heading={t('pages.licenseIntakes.overlapSeats')} empty={t('pages.licenseIntakes.overlapNone')} count={seats.length}>

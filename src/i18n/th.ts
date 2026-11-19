@@ -3477,6 +3477,7 @@ export const th: Translations = {
       storageDbLabel: 'ฐานข้อมูล {{value}}',
       storageFileLabel: 'ไฟล์ {{value}}',
       overlapStorageReplace: 'จะแทนที่ {{number}} (ฐานข้อมูล {{db}} / ไฟล์ {{file}})',
+      overlapStorageReplaceFileOnly: 'จะแทนที่ {{number}} (ไฟล์ {{file}})',
       columnPeriod: 'ช่วงเวลา',
       columnReceived: 'ได้รับเมื่อ',
       customerNotFound: 'ไม่พบ AR',
