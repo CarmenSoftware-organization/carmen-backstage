@@ -37,6 +37,8 @@ interface ObjectDetailProps {
   scans: Record<string, BuScan>;
   /** May create / edit / remove registry definitions (db_object.manage). */
   canAuthor: boolean;
+  /** Opens the import panel — where a row without a structured form is imported again. */
+  onOpenImport: () => void;
   /** May approve a definition for a real rollout (db_object.approve). */
   canApprove: boolean;
   /** May dry-run and apply to BUs (sql_workbench.manage). */
@@ -70,6 +72,7 @@ export function ObjectDetail({
   bus,
   scans,
   canAuthor,
+  onOpenImport,
   canApprove,
   canApply,
   onRegistryChanged,
@@ -380,9 +383,14 @@ export function ObjectDetail({
         </p>
       )}
       {entry && !hasSpec && (
-        <p role="alert" className="text-warning text-xs">
-          {t('pages.dbObjectFleet.needsReimport')}
-        </p>
+        <div role="alert" className="text-warning flex flex-wrap items-center gap-3 text-xs">
+          <span>{t('pages.dbObjectFleet.needsReimport')}</span>
+          {canAuthor && (
+            <Button size="sm" variant="outline" className="h-7" onClick={onOpenImport}>
+              {t('pages.dbObjectFleet.staleBannerAction')}
+            </Button>
+          )}
+        </div>
       )}
 
       {spec && (

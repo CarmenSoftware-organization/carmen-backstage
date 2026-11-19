@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildFleetRows,
   defaultTargets,
+  findStale,
   findUnregistered,
   matchesFilter,
   objectKey,
@@ -97,6 +98,22 @@ describe('findUnregistered / pickImportBu', () => {
   it('picks the BU holding the most of them, first code on a tie', () => {
     expect(pickImportBu(found)).toBe('A1');
     expect(pickImportBu([])).toBeNull();
+  });
+});
+
+describe('findStale', () => {
+  it('lists registry rows without a structured form, with the BUs that can supply them', () => {
+    const stale = findStale(
+      [{ ...REGISTRY[0], has_spec: false }, { ...REGISTRY[1], has_spec: true }, { ...reg(view('v_nowhere', 'z'), '9'), has_spec: false }],
+      BUS,
+      SCANS,
+    );
+    expect(stale.map((o) => [o.key, o.bus, o.stale])).toEqual([
+      ['view:v()', ['A1', 'B1'], true],
+      ['view:v_nowhere()', [], true],
+    ]);
+    // rows from a backend that predates the field are not stale
+    expect(findStale(REGISTRY, BUS, SCANS)).toEqual([]);
   });
 });
 
