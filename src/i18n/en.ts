@@ -5263,6 +5263,8 @@ export const en = {
       userAdded: 'User added to cluster',
       title: 'Cluster Management',
       subtitle: 'Manage and configure clusters',
+      // active-filter badge for the quota-expiring filter (Dashboard handoff / FleetCapacity click)
+      filterQuotaExpiring: 'Quota expiring',
       addCluster: 'Add Cluster',
       searchPlaceholder: 'Search clusters...',
       filtersDescription: 'Filter clusters by status',
