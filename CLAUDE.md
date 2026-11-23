@@ -118,7 +118,7 @@ Wired pages: Cluster, BusinessUnit, User, ReportTemplate, Application, Role, New
 
 ## Styling Reference
 
-**Color tokens (HSL):** warm-neutral ground + a single blue accent (calm-corporate reskin) — `--accent` is a neutral warm surface, **not** a brand hue, and status accents use dedicated `--success` / `--warning` / `--info` tokens rather than `--accent`. Values live in `src/index.css` + `tailwind.config.js` (the source of truth); the visual system (light + dark roles, type, spacing, radius, shadows, components, do's/don'ts) is **`DESIGN.md`** at the repo root (sidecar `.impeccable/design.json`) — keep it in sync when those change. `.planning/design/system/tokens.md` and `components.md` are superseded stubs.
+**Color tokens (HSL):** warm-neutral ground + a single blue accent (calm-corporate reskin) — `--accent` is a neutral warm surface, **not** a brand hue, and status accents use dedicated `--success` / `--warning` / `--info` tokens rather than `--accent`. Values live in `src/index.css` + `tailwind.config.js` (the source of truth); the visual system (light + dark roles, type, spacing, radius, shadows, components, do's/don'ts) is **`DESIGN.md`** at the repo root (sidecar `.impeccable/design.json`) — keep it in sync when those change. It is the only design doc: the old `.planning/design/` folder (tokens, components, page-patterns, checklist, 2026-07 audit) was removed on 2026-11-23 and lives in git history. Page-archetype rules are in `agent-os/standards/pages/`.
 
 **Surfaces:** glassmorphism (`.glass` / `.glass-strong`) was removed in the enterprise redesign — surfaces are now flat `bg-card` / `bg-background` with a 1px `border`.
 
