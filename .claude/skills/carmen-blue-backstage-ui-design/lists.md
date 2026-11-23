@@ -49,6 +49,23 @@ code, or when one of them looks stretched, use
 
 ## Settings list "label left, value right, full row"
 
+(`/backstage/features`, `/license-features`, `/backstage/migrations` broke this once the shell cap
+came off.) The fix used on all three — groups/cards flow as columns, each row decides on the card's
+own width:
+
+```tsx
+<div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,26rem),1fr))] gap-4 sm:gap-6">
+  <Card><CardContent className="@container …">
+    <div className="flex flex-col gap-2 @md:flex-row @md:items-center @md:justify-between">…</div>
+  </CardContent></Card>
+</div>
+```
+
+The minimum = what a row needs side by side (label ≥ ~150px + the controls) + card padding —
+`FeatureFlagManagement` 26rem, `FeatureCatalogPanel` shelves 32rem (controls 300px). A long list
+inside one card uses a grid by the card's width instead (`BackstageMigrationManagement` ops:
+`@3xl:grid-cols-2 @6xl:grid-cols-3 @[100rem]:grid-cols-4`).
+
 Breaks rule 2 on a wide screen (the value ends up 1000px from its label). Make each item a grid
 cell — label on top, value or control below, description under it only if it adds something
 (rule 9). Name and number of a summary stay together on the left

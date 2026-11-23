@@ -32,7 +32,10 @@ export function OpRow({ op, label, desc, tone, disabled, needsInput, onRun }: Op
   const { t } = useI18n();
   const offTone = tone === 'seed' ? op.readonly === true : op.readonly !== true;
   return (
-    <div className="flex flex-col gap-1.5 border-b py-2.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    // @container: the row is one cell of a multi-column list, so it lays out by its own width,
+    // not the screen's (carmen-blue-backstage-ui-design rule 3).
+    <div className="@container border-b py-2.5">
+    <div className="flex flex-col gap-1.5 @md:flex-row @md:items-center @md:justify-between @md:gap-4">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium">{label}</span>
@@ -59,13 +62,14 @@ export function OpRow({ op, label, desc, tone, disabled, needsInput, onRun }: Op
       <Button
         variant={tone === 'seed' ? 'outline' : 'ghost'}
         size="sm"
-        className="shrink-0 self-start sm:self-auto"
+        className="shrink-0 self-start @md:self-auto"
         disabled={disabled || op.missing}
         onClick={onRun}
       >
         <Play className="mr-2 h-4 w-4" />
         {needsInput ? t('pages.backstageMigration.opRunWithInput') : t('pages.backstageMigration.opRun')}
       </Button>
+    </div>
     </div>
   );
 }

@@ -365,7 +365,10 @@ export const FeatureCatalogPanel: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          // Shelves flow as columns (carmen-blue-backstage-ui-design rule 2): full-width shelves put
+          // each state toggle ~1300px from its feature name at 1920. Rows switch on the shelf's
+          // own width (ModuleShelf's CardContent is an @container).
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,32rem),1fr))] gap-3">
             {groups.map((g) => (
               <ModuleShelf
                 key={g.moduleKey}

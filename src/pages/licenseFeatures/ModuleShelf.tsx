@@ -63,10 +63,10 @@ export const ModuleShelf: React.FC<ModuleShelfProps> = ({
 
   return (
     <Card>
-      <CardContent className="p-0">
+      <CardContent className="@container p-0">
         {/* พื้นหลังของหัวชั้น ไม่ใช่แค่เส้นคั่น — ทุกแถวลูกก็มีเส้นคั่นเหมือนกัน เส้นอย่างเดียว
             จึงบอกไม่ได้ว่าแถวไหนคือหัวเรื่องและแถวไหนคือของบนชั้น */}
-        <div className="flex flex-col gap-3 border-b border-border bg-muted px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 border-b border-border bg-muted px-4 py-2.5 @md:flex-row @md:items-center @md:justify-between">
           <div className="min-w-0">
             {/* 16px/600 เทียบกับ 14px/400 ของแถวลูก — วัดแล้วว่าลำพัง font-weight กับพื้นหลัง
                 จาง ๆ ยังทำให้หัวชั้นสูงและหนักเท่าแถวลูกจนแยกไม่ออกในการกวาดสายตา */}
@@ -97,7 +97,7 @@ export const ModuleShelf: React.FC<ModuleShelfProps> = ({
           </div>
 
           {moduleRow && (
-            <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+            <div className="flex flex-wrap items-center gap-3 @md:justify-end">
               <AffectedBuCount count={moduleRow.affected_bu_count} />
               <FeatureStateToggle
                 value={moduleRow.state}
@@ -121,11 +121,11 @@ export const ModuleShelf: React.FC<ModuleShelfProps> = ({
                 style={{ paddingLeft: `${1 + (row.depth - 1) * 1.25}rem` }}
                 className={cn(
                   'flex flex-col gap-2 py-3 pr-4',
-                  'lg:flex-row lg:items-center lg:justify-between lg:gap-4',
+                  '@md:flex-row @md:items-center @md:justify-between @md:gap-4',
                   savingId === row.id && 'opacity-60',
                 )}
               >
-                <div className="min-w-0 lg:flex-1">
+                <div className="min-w-0 @md:flex-1">
                   <p className="truncate text-sm">{row.label}</p>
                   <p className="truncate font-mono text-[10px] text-muted-foreground sm:text-xs">
                     {row.key}
@@ -136,7 +136,7 @@ export const ModuleShelf: React.FC<ModuleShelfProps> = ({
                     </p>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                <div className="flex flex-wrap items-center gap-3 @md:justify-end">
                   <AffectedBuCount count={row.affected_bu_count} />
                   <FeatureStateToggle
                     value={row.state}
@@ -192,7 +192,7 @@ const AffectedBuCount: React.FC<{ count?: number }> = ({ count }) => {
         // ความกว้างคงที่มีไว้ให้ตัวเลขเรียงตรงกันเป็นคอลัมน์ ซึ่งมีความหมายเฉพาะตอนที่แถว
         // เป็นแถวจริง ๆ · ใต้ lg แถวถูก stack อยู่แล้ว 80px ที่ตายตัวจึงเหลือแค่ผลข้างเคียง
         // คือดันกลุ่มปุ่มตกไปอีกบรรทัดในทุกแถวของทั้งหน้า
-        'shrink-0 text-xs tabular-nums lg:w-20 lg:text-right',
+        'shrink-0 text-xs tabular-nums @md:w-20 @md:text-right',
         count === 0 ? 'text-muted-foreground/60' : 'text-muted-foreground',
       )}
       title={t(

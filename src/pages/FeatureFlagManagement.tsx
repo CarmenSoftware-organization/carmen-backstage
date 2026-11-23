@@ -94,23 +94,23 @@ const FeatureFlagManagement: React.FC = () => {
           }
         />
 
+        {/* Groups flow as columns (carmen-blue-backstage-ui-design rule 2): a full-width row put
+            the state toggle ~1300px from its feature name at 1920. auto-fit collapses the empty
+            tracks, so the existing groups share the width; min(100%,…) keeps a phone at 1 column. */}
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,26rem),1fr))] gap-4 sm:gap-6">
         {!isReady ? (
-          <div className="space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-48 w-full" />
-            ))}
-          </div>
+          Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)
         ) : (
           groups.map((group) => (
             <Card key={group.groupKey}>
               <CardHeader>
                 <CardTitle className="text-base">{t(group.groupKey)}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="@container space-y-4">
                 {group.items.map((f) => (
                   <div
                     key={f.key}
-                    className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-2 @md:flex-row @md:items-center @md:justify-between"
                   >
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium">{t(f.labelKey)}</div>
@@ -148,6 +148,7 @@ const FeatureFlagManagement: React.FC = () => {
             </CardContent>
           </Card>
         )}
+        </div>
 
         <ConfirmDialog
           open={orphanToRemove !== null}

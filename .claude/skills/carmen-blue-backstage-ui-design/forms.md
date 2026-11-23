@@ -48,7 +48,9 @@ Pair cards when the two are close in height and belong together. Do not pair a 3
   and the two titles stop lining up.
 - **Splitting a page into tabs makes tests vacuous** — a test that still passes after a tab split is
   the one to suspect (it may query a panel that is no longer mounted).
-- **View mode boxes** — see rule 7: `ReadOnlyField` draws a bordered box; ask before replacing it.
+- **View mode boxes** — `ReadOnlyField` still draws the old bordered box. Rule 7 wins (user
+  decision 2026-11-23): replace it on the page you are changing, using the unboxed snippet in
+  `src/pages/CLAUDE.md` §Form Field Pattern; leave other pages alone.
 
 ## Save
 

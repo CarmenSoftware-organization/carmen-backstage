@@ -278,15 +278,18 @@ const Layout: React.FC<LayoutProps> = ({ children, navItems: navItemsProp, heade
           )}
         </div>
 
-        {/* Main Content */}
-        <main className="container mx-auto flex-1 px-4 sm:px-6 py-6 sm:py-8">
+        {/* Main Content: full width of the space beside the sidebar, no `container` cap
+            (user decision 2026-11-23, carmen-blue-backstage-ui-design rule 1). A page that
+            looks stretched on a wide screen fixes its own rows (more columns, a capped name
+            column); it does not get a page-level max-w back. */}
+        <main className="w-full flex-1 px-4 sm:px-6 py-6 sm:py-8">
           {children}
         </main>
 
         {/* ติดขอบล่างของจอ ไม่ใช่ท้ายเอกสาร — พื้นหลังต้องทึบ ไม่งั้นเนื้อหาที่เลื่อนผ่าน
             ใต้แถบจะอ่านทะลุขึ้นมา ส่วน py แคบกว่าที่อื่นเพราะแถบนี้กินพื้นที่หน้าจอตลอดเวลา */}
         <footer className="sticky bottom-0 z-20 border-t border-border bg-background">
-          <div className="container mx-auto flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 font-mono text-[11px] text-muted-foreground sm:px-6">
+          <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 font-mono text-[11px] text-muted-foreground sm:px-6">
             <VersionStamp />
             <span className="ml-auto">
               <FooterClock />

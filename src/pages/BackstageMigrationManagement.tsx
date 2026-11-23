@@ -545,7 +545,10 @@ export const BackstageMigrationManagement: React.FC = () => {
                               : t('pages.backstageMigration.checksDescription')}
                           </p>
                         </div>
-                        <div>
+                        {/* Ops flow as columns by the card's width (rule 2): one full-width row
+                            put the Run button ~1300px from its label at 1920. */}
+                        <div className="@container">
+                        <div className="grid gap-x-8 @3xl:grid-cols-2 @6xl:grid-cols-3 @[100rem]:grid-cols-4">
                           {ops.map((op) => (
                             <OpRow
                               key={op.id}
@@ -569,6 +572,7 @@ export const BackstageMigrationManagement: React.FC = () => {
                               }}
                             />
                           ))}
+                        </div>
                         </div>
                       </CardContent>
                     </Card>

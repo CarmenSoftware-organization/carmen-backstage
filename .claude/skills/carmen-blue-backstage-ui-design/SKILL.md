@@ -37,10 +37,13 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
 
 1. **Full width of the shell at every size** — no `max-w-*` around page content, no empty column at
    the side. The only acceptable blank space is the shell gutter and internal gaps. Page width comes
-   **only** from `Layout`'s `<main className="container mx-auto px-4 sm:px-6">`.
-   *Known deviation (shell):* Tailwind's `container` is capped at **1400px** (`tailwind.config.js`
-   `screens["2xl"]`), so at 1920 and 3840 every page is 1400 wide and centred. Changing it moves
-   every page in the app — ask the user first; do not work around it per page.
+   **only** from `Layout`'s `<main className="w-full px-4 sm:px-6">`.
+   *User decision 2026-11-23:* the shell's old `container` cap (1400px) is removed — every page is
+   as wide as the space beside the sidebar. A page that looks stretched fixes its **rows** (more
+   columns, a capped name column — rule 2); it never gets a page-level `max-w` back.
+   Surveyed all 33 nav pages at 1920 when the cap came off: three put a value ~1300px from its
+   label and were fixed the same day by flowing their cards/rows as columns (`lists.md`):
+   `/backstage/features`, `/backstage/migrations`, `/license-features`.
    *Known deviations (pages):* `ClusterEdit` and `UserEdit` cap the **new** form at
    `mx-auto max-w-5xl`; `clusterAdmin/BusinessUnitForm` caps its save bar the same way;
    `Changelog` is `max-w-3xl` (a reading page). Leave them unless asked.
@@ -53,19 +56,20 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
    `localStorage["sidebar-collapsed"]`), so always check both sidebar states.
    *Known deviations:* `DataTable`'s `mobileBreakpoint` is a media query (default
    `(min-width: 1024px)`); Edit pages' `lg:grid-cols-2` is a viewport breakpoint. Do not copy
-   either into new code. Most of `src/pages` still uses viewport breakpoints — move a piece to a
-   container query when you touch it and it misbehaves, not as a sweep.
+   either into new code. Most of `src/pages` still uses viewport breakpoints — *user decision
+   2026-11-23:* move a piece to a container query when you touch it and it misbehaves, not as a
+   sweep.
 4. **Sections that form a pair sit side by side on wide screens; below that they stack.** Cards in
    the same row must be the **same height** — no `items-start` on a grid of cards (see `forms.md`).
 5. **Compact** — spacing must not take more room than the content. Standard values are in
    root `CLAUDE.md` §Styling Reference and `forms.md`; do not go larger without a reason.
-6. **No cross-section side navigation** on new pages. *Known deviation:* `ClusterEdit` has a
-   scrollspy (a deliberate, documented Edit-in-place design — `src/pages/CLAUDE.md`). Ask before
-   removing it.
+6. **No cross-section side navigation** on new pages. *Confirmed exception (user decision
+   2026-11-23):* `ClusterEdit`'s scrollspy (`clusterEdit/useScrollSpy.ts`) stays — do not remove
+   it, and do not copy it to another page.
 7. **View mode does not box its values** — muted label + strong value. Borders are only for fields
-   that can actually be edited. *Conflict to know about:* `ReadOnlyField` (`components/ReadOnlyField.tsx`)
-   and the `ReadOnlyText` snippet in `src/pages/CLAUDE.md` §Form Field Pattern draw a bordered box.
-   Do not convert pages wholesale; ask the user which one wins before changing an Edit page's view mode.
+   that can actually be edited. *User decision 2026-11-23:* this rule wins over the old bordered
+   `ReadOnlyField` / `ReadOnlyText` box; `src/pages/CLAUDE.md` §Form Field Pattern now shows the
+   unboxed form. Convert a page's view mode when you change that page anyway — no sweep.
 8. **Pattern settings show the result first** — `2026-11-12` is the main value, `yyyy-MM-dd` the
    secondary line (live preview: BU Edit `sections/NumberFormatsSection.tsx` + `numberFormatPreview.ts`).
 9. **Help text under a field only when it adds something** — text that merely repeats the label is
@@ -118,6 +122,11 @@ Pages to open as examples:
 - **A viewport breakpoint lies at 768** — the sidebar takes 240px, so `md:` turns on when the content
   box is only ~520px. The Dashboard feed lost its entity names to "TES…" (47px) this way
   (2026-11-23) until the meta column moved from `md:flex` to `@2xl:flex`.
+- **A section heading or toolbar with its action at the right edge is not a rule-2 break** — the
+  `justify-between` probe flags `EmailSettingManagement` `SectionHeading` (+ Add) and the
+  Dashboard Templates filter bar (+ Add Widget); leave them.
+- **Measure the container, not the card** — `@container` on `CardContent` is the card minus its
+  padding (a 534px shelf card gave a 492px container), so `@lg` (512) silently never fired.
 - **Removing a page cap opens a gap inside rows** — a row with name left and meta right stretched to
   1100px puts them 700px apart (rule 2). Cap the *name column* (`@2xl:max-w-lg`), not the page.
 - **A skeleton must have the same structure as the real page**, otherwise the content jumps when
