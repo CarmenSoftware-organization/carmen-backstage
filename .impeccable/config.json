@@ -6,5 +6,17 @@
       "maxFindings": 5,
       "maxChars": 8000
     }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-23T16:19:28.319Z",
+        "reason": "Agent: DESIGN.md (merged in PR #477) records Inter as the system's single typeface"
+      }
+    ]
   }
 }

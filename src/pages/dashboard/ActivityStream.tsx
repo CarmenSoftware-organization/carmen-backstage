@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, History, TriangleAlert } from 'lucide-react';
+import { ChevronDown, ChevronRight, History, TriangleAlert } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Skeleton } from '../../components/ui/skeleton';
 import { FetchErrorState } from '../../components/FetchErrorState';
-import { formatClock, dayGroup, relativeTime } from '../../utils/relativeTime';
+import { formatClock, dayGroup } from '../../utils/relativeTime';
 import { useI18n } from '../../hooks/useI18n';
 import type { TKey } from '../../i18n/types';
-import { ACTIVITY_SOURCES, type ActivityItem, type ActivityVerb } from './activity';
+import { ACTIVITY_SOURCES, foldRuns, type ActivityItem, type ActivityVerb, type ActivityEntry } from './activity';
 
 // The verb is deliberately *quiet* — the entity name is what people scan for. Colour
 // lives on the timeline dot, the word itself rides the right margin as plain meta text.
@@ -36,13 +36,24 @@ export function ActivityStream({ items, loading, error, failedDomains = [], onRe
     return m;
   }, [items]);
 
-  const shown = filter === 'all' ? items : items.filter((i) => i.domainKey === filter);
-
   const failed = new Set(failedDomains);
+  // A refresh can empty the domain the filter points at, and its chip goes with it; fall
+  // back to everything rather than strand the reader on a filter they can no longer see.
+  const activeFilter = filter === 'all' || (perDomain[filter] ?? 0) > 0 || failed.has(filter) ? filter : 'all';
+  const shown = activeFilter === 'all' ? items : items.filter((i) => i.domainKey === activeFilter);
   const failedLabels = ACTIVITY_SOURCES.filter((s) => failed.has(s.key)).map((s) => t(s.labelKey));
 
-  const chips = [{ key: 'all', label: t('pages.dashboard.filterAll'), count: items.length }].concat(
-    ACTIVITY_SOURCES.map((s) => ({ key: s.key, label: t(s.labelKey), count: perDomain[s.key] ?? 0 })),
+  // No counts on the chips: the Estate rail is the one place this page states how many of
+  // anything there are. A chip number meant "rows in this stream", the rail's meant
+  // "active / total", and a Clusters chip of 0 beside a rail of 6 / 6 read as a contradiction.
+  // A domain with nothing in the stream gets no chip at all, rather than a faded one whose
+  // zero was the very thing nobody could read. A failed domain keeps its chip: unknown is
+  // not empty, and the chip is where its warning shows.
+  const chips = [{ key: 'all', label: t('pages.dashboard.filterAll') }].concat(
+    ACTIVITY_SOURCES.filter((s) => (perDomain[s.key] ?? 0) > 0 || failed.has(s.key)).map((s) => ({
+      key: s.key,
+      label: t(s.labelKey),
+    })),
   );
 
   return (
@@ -50,37 +61,27 @@ export function ActivityStream({ items, loading, error, failedDomains = [], onRe
       {/* filter chips */}
       <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label={t('pages.dashboard.filterAria')}>
         {chips.map((c) => {
-          const on = filter === c.key;
-          // A domain with nothing in the stream is a dead end — leave it visible (it still
-          // says "zero"), but don't let anyone click through to an empty list.
-          const dead = c.key !== 'all' && c.count === 0;
-          // A failed domain is not an empty one: "0" would claim nothing changed there.
+          const on = activeFilter === c.key;
           const unavailable = failed.has(c.key);
           return (
             <button
               key={c.key}
               type="button"
               aria-pressed={on}
-              disabled={dead}
               onClick={() => setFilter(c.key)}
               className={cn(
                 'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors',
                 on
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'bg-card text-muted-foreground hover:border-input hover:text-foreground',
-                dead && 'pointer-events-none hover:border-border hover:text-muted-foreground',
-                // Faded means "nothing here"; a failed domain keeps full strength so its warning reads.
-                dead && !unavailable && 'opacity-45',
               )}
             >
               {c.label}
-              {unavailable ? (
+              {unavailable && (
                 <>
                   <TriangleAlert className="text-warning size-3.5" aria-hidden="true" />
                   <span className="sr-only">{t('pages.dashboard.domainUnavailable')}</span>
                 </>
-              ) : (
-                <span className="font-mono text-[11px] tabular-nums opacity-75">{c.count}</span>
               )}
             </button>
           );
@@ -129,24 +130,60 @@ export function ActivityStream({ items, loading, error, failedDomains = [], onRe
 
 function Timeline({ items }: { items: ActivityItem[] }) {
   const { t } = useI18n();
+  const [open, setOpen] = useState<Set<string>>(() => new Set());
   const now = new Date();
+  const entries = foldRuns(items);
+  const first = (e: ActivityEntry) => (e.kind === 'one' ? e.item : e.items[0]);
   let lastDay = '';
+
+  const toggle = (key: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   // @container: the verb/actor column switches on the stream's own width, not the screen's —
   // at a 768px screen the sidebar leaves the stream ~470px, too narrow for a 16rem meta column.
   return (
     <div className="@container">
-      {items.map((it, i) => {
+      {entries.map((e, i) => {
+        const it = first(e);
         const g = dayGroup(it.at, now, t);
         const header = g.key !== lastDay;
         lastDay = g.key;
         // เทียบด้วย `key` ซึ่งไม่ขึ้นกับภาษา — ถ้าเทียบด้วย label การสลับภาษาจะทำให้กลุ่มวันแตก
-        const nextIsNewDay = i === items.length - 1 || dayGroup(items[i + 1].at, now).key !== g.key;
+        const nextIsNewDay = i === entries.length - 1 || dayGroup(first(entries[i + 1]).at, now).key !== g.key;
         const verb = VERB[it.verb];
         const Icon = it.icon;
+        const isRun = e.kind === 'run';
+        const expanded = isRun && open.has(e.key);
+        const listId = isRun ? `run-${e.key}` : undefined;
+
+        // Verb and actor: under the name on a narrow stream, their own column on a wide one.
+        const metaInline = (
+          <span className="@2xl:hidden">
+            {` · ${t(verb.key)}`}
+            {it.who ? ` · ${t('pages.dashboard.by', { who: it.who })}` : ''}
+          </span>
+        );
+        // Fixed widths on purpose: the verbs form a scannable column, and a row
+        // with no known actor must not shift its verb out of that column.
+        const metaColumn = (
+          <span className="text-muted-foreground mt-[3px] hidden w-64 shrink-0 items-baseline gap-1.5 self-start text-xs @2xl:flex">
+            <span className="text-foreground/70 w-[4.75rem] shrink-0 font-medium">{t(verb.key)}</span>
+            {it.who && <span className="truncate">{t('pages.dashboard.by', { who: it.who })}</span>}
+          </span>
+        );
+        const iconTile = (
+          <span className="bg-primary/[0.06] text-muted-foreground grid size-7 shrink-0 place-items-center rounded-lg">
+            <Icon className="size-[15px]" />
+          </span>
+        );
 
         return (
-          <div key={`${it.domainKey}:${it.id}`}>
+          <div key={isRun ? `run:${e.key}` : `${it.domainKey}:${it.id}`}>
             {header && (
               <div className="bg-background text-muted-foreground sticky top-0 z-[1] flex items-baseline gap-2 pb-2 pt-3.5 text-[11px] font-bold uppercase tracking-[0.12em]">
                 {g.label}
@@ -173,39 +210,80 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                 />
               </div>
               {/* body */}
-              <Link
-                to={it.href}
-                title={`${t(VERB[it.verb].key)} ${it.name || (it.nameFallbackKey ? t(it.nameFallbackKey) : '')} · ${relativeTime(it.at, now, t)}`}
-                // min-w-0: as a grid item this link defaults to min-width:auto and would
-                // otherwise refuse to shrink below the longest word in the meta line.
-                className="group hover:bg-primary/5 my-0.5 flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 transition-colors"
-              >
-                <span className="bg-primary/[0.06] text-muted-foreground grid size-7 shrink-0 place-items-center rounded-lg">
-                  <Icon className="size-[15px]" />
-                </span>
-                {/* Capped on wide streams so the meta column stays beside the name. */}
-                <span className="min-w-0 flex-1 @2xl:max-w-lg">
-                  <span className="text-foreground block truncate text-sm font-semibold leading-5">
-                    {it.name || (it.nameFallbackKey ? t(it.nameFallbackKey) : '')}
-                    {it.code && <span className="text-muted-foreground ml-1.5 font-mono text-xs font-medium">{it.code}</span>}
-                  </span>
-                  <span className="text-muted-foreground mt-0.5 block text-xs">
-                    <span className="text-foreground/80 font-medium">{t(it.domainLabelKey)}</span>
-                    {/* on a wide stream the verb and actor get their own column instead */}
-                    <span className="@2xl:hidden">
-                      {` · ${t(verb.key)}`}
-                      {it.who ? ` · ${t('pages.dashboard.by', { who: it.who })}` : ''}
+              {isRun ? (
+                <div className="min-w-0">
+                  <button
+                    type="button"
+                    aria-expanded={expanded}
+                    aria-controls={listId}
+                    aria-label={t(expanded ? 'pages.dashboard.groupHide' : 'pages.dashboard.groupShow', {
+                      count: e.items.length,
+                    })}
+                    onClick={() => toggle(e.key)}
+                    className="group hover:bg-primary/5 my-0.5 flex w-full min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors"
+                  >
+                    {iconTile}
+                    <span className="min-w-0 flex-1 @2xl:max-w-lg">
+                      <span className="text-foreground block truncate text-sm font-semibold leading-5">
+                        {t('pages.dashboard.groupSummary', { count: e.items.length, domain: t(it.domainLabelKey) })}
+                      </span>
+                      <span className="text-muted-foreground mt-0.5 block truncate text-xs">
+                        {e.items
+                          .slice(0, 3)
+                          .map((x) => x.name || (x.nameFallbackKey ? t(x.nameFallbackKey) : ''))
+                          .join(', ')}
+                        {e.items.length > 3 ? ', …' : ''}
+                        {metaInline}
+                      </span>
+                    </span>
+                    {metaColumn}
+                    <ChevronDown
+                      className={cn(
+                        'text-muted-foreground ml-auto size-4 shrink-0 transition-transform',
+                        expanded && 'rotate-180',
+                      )}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {expanded && (
+                    <ul id={listId} className="mb-1 ml-[2.875rem] border-l pl-2">
+                      {e.items.map((x) => (
+                        <li key={`${x.domainKey}:${x.id}`}>
+                          <Link
+                            to={x.href}
+                            className="hover:bg-primary/5 text-foreground flex min-w-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm transition-colors"
+                          >
+                            <span className="truncate">{x.name || (x.nameFallbackKey ? t(x.nameFallbackKey) : '')}</span>
+                            {x.code && <span className="text-muted-foreground shrink-0 font-mono text-xs">{x.code}</span>}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  to={it.href}
+                  // min-w-0: as a grid item this link defaults to min-width:auto and would
+                  // otherwise refuse to shrink below the longest word in the meta line.
+                  className="group hover:bg-primary/5 my-0.5 flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 transition-colors"
+                >
+                  {iconTile}
+                  {/* Capped on wide streams so the meta column stays beside the name. */}
+                  <span className="min-w-0 flex-1 @2xl:max-w-lg">
+                    <span className="text-foreground block truncate text-sm font-semibold leading-5">
+                      {it.name || (it.nameFallbackKey ? t(it.nameFallbackKey) : '')}
+                      {it.code && <span className="text-muted-foreground ml-1.5 font-mono text-xs font-medium">{it.code}</span>}
+                    </span>
+                    <span className="text-muted-foreground mt-0.5 block text-xs">
+                      <span className="text-foreground/80 font-medium">{t(it.domainLabelKey)}</span>
+                      {metaInline}
                     </span>
                   </span>
-                </span>
-                {/* Fixed widths on purpose: the verbs form a scannable column, and a row
-                    with no known actor must not shift its verb out of that column. */}
-                <span className="text-muted-foreground mt-[3px] hidden w-64 shrink-0 items-baseline gap-1.5 self-start text-xs @2xl:flex">
-                  <span className="text-foreground/70 w-[4.75rem] shrink-0 font-medium">{t(verb.key)}</span>
-                  {it.who && <span className="truncate">{t('pages.dashboard.by', { who: it.who })}</span>}
-                </span>
-                <ChevronRight className="text-muted-foreground/50 group-hover:text-primary ml-auto size-4 shrink-0 opacity-0 transition group-hover:opacity-100" />
-              </Link>
+                  {metaColumn}
+                  <ChevronRight className="text-muted-foreground/50 group-hover:text-primary ml-auto size-4 shrink-0 opacity-0 transition group-hover:opacity-100" />
+                </Link>
+              )}
             </div>
           </div>
         );
