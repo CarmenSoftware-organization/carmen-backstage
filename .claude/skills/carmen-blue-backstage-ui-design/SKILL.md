@@ -41,9 +41,9 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
    *User decision 2026-11-23:* the shell's old `container` cap (1400px) is removed — every page is
    as wide as the space beside the sidebar. A page that looks stretched fixes its **rows** (more
    columns, a capped name column — rule 2); it never gets a page-level `max-w` back.
-   Pages measured breaking rule 2 at 1920 right after the cap came off (fix one at a time):
-   `/backstage/features` (name left, state toggle ~1300px right), `/backstage/migrations`,
-   `/license-features`, `/backstage/email-settings` (panel headers), `/dashboard-templates`.
+   Surveyed all 33 nav pages at 1920 when the cap came off: three put a value ~1300px from its
+   label and were fixed the same day by flowing their cards/rows as columns (`lists.md`):
+   `/backstage/features`, `/backstage/migrations`, `/license-features`.
    *Known deviations (pages):* `ClusterEdit` and `UserEdit` cap the **new** form at
    `mx-auto max-w-5xl`; `clusterAdmin/BusinessUnitForm` caps its save bar the same way;
    `Changelog` is `max-w-3xl` (a reading page). Leave them unless asked.
@@ -122,6 +122,11 @@ Pages to open as examples:
 - **A viewport breakpoint lies at 768** — the sidebar takes 240px, so `md:` turns on when the content
   box is only ~520px. The Dashboard feed lost its entity names to "TES…" (47px) this way
   (2026-11-23) until the meta column moved from `md:flex` to `@2xl:flex`.
+- **A section heading or toolbar with its action at the right edge is not a rule-2 break** — the
+  `justify-between` probe flags `EmailSettingManagement` `SectionHeading` (+ Add) and the
+  Dashboard Templates filter bar (+ Add Widget); leave them.
+- **Measure the container, not the card** — `@container` on `CardContent` is the card minus its
+  padding (a 534px shelf card gave a 492px container), so `@lg` (512) silently never fired.
 - **Removing a page cap opens a gap inside rows** — a row with name left and meta right stretched to
   1100px puts them 700px apart (rule 2). Cap the *name column* (`@2xl:max-w-lg`), not the page.
 - **A skeleton must have the same structure as the real page**, otherwise the content jumps when
