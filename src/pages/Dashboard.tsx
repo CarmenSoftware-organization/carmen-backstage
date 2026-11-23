@@ -1,20 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Loader2, RefreshCw } from 'lucide-react';
 import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
+import { Button } from '../components/ui/button';
 import { DevDebugSheet } from '../components/ui/dev-debug-sheet';
 import clusterService from '../services/clusterService';
 import businessUnitService from '../services/businessUnitService';
 import userService from '../services/userService';
 import applicationService from '../services/applicationService';
 import newsService from '../services/newsService';
+import subscriptionService from '../services/subscriptionService';
+import licenseIntakeService from '../services/licenseIntakeService';
 import reportTemplateService from '../services/reportTemplateService';
 import { parseApiError } from '../utils/errorParser';
+import { formatClock } from '../utils/relativeTime';
 import { useI18n } from '../hooks/useI18n';
+import { useAuth } from '../context/AuthContext';
+import { useFeatureFlags } from '../context/FeatureFlagContext';
 import type { PaginateParams } from '../types';
 import { fetchActivity, ACTIVITY_SOURCES, unwrapTotal, type ActivityItem } from './dashboard/activity';
 import { ActivityStream } from './dashboard/ActivityStream';
 import { CountsRail, type DomainCount } from './dashboard/CountsRail';
+import { AttentionBand, type AttentionItem } from './dashboard/AttentionBand';
 
 type ListService = { getAll: (p: PaginateParams) => Promise<unknown> };
 
@@ -30,6 +38,79 @@ const Dashboard: React.FC = () => {
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityError, setActivityError] = useState(false);
   const activityHadErrorRef = useRef(false);
+  // --- attention band: what needs someone today ---
+  // Each source is gated on the permission (and feature flag) of the page it links to: firing a
+  // summary request without the permission gets a 401, and the interceptor signs the user out.
+  const { hasPermission } = useAuth();
+  const { flagOf, isReady: flagsReady } = useFeatureFlags();
+  const canSubs = flagsReady && hasPermission('subscription.read') && flagOf('licenses') === 'active';
+  const canIntakes = flagsReady && hasPermission('subscription.read') && flagOf('license_intakes') === 'active';
+  const canQuota = flagsReady && hasPermission('cluster.read') && flagOf('clusters') === 'active';
+  type Slot = { count: number | null; failed: boolean };
+  const unknown: Slot = { count: null, failed: false };
+  const [attn, setAttn] = useState<Record<'expired' | 'expiring' | 'intakes' | 'quota', Slot>>({
+    expired: unknown, expiring: unknown, intakes: unknown, quota: unknown,
+  });
+  const [attnLoading, setAttnLoading] = useState(true);
+  const loadAttention = useCallback(async () => {
+    setAttnLoading(true);
+    const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+    const settle = async <K extends keyof typeof attn>(keys: K[], run: () => Promise<Record<K, number | null>>) => {
+      try {
+        const res = await run();
+        setAttn((prev) => {
+          const next = { ...prev };
+          // A field the backend didn't send is unknown, not zero.
+          for (const k of keys) next[k] = res[k] === null ? { count: null, failed: true } : { count: res[k], failed: false };
+          return next;
+        });
+      } catch {
+        setAttn((prev) => {
+          const next = { ...prev };
+          for (const k of keys) next[k] = { count: null, failed: true };
+          return next;
+        });
+      }
+    };
+    await Promise.all([
+      canSubs &&
+        settle(['expired', 'expiring'], async () => {
+          const s = await subscriptionService.getSummary();
+          return { expired: num(s?.expired), expiring: num(s?.expiring_soon) };
+        }),
+      canIntakes &&
+        settle(['intakes'], async () => {
+          const res = await licenseIntakeService.getSummary();
+          return { intakes: num((res?.data ?? res)?.pending) };
+        }),
+      canQuota &&
+        settle(['quota'], async () => {
+          const f = await clusterService.getFleetSummary();
+          return { quota: num(f?.expiring_soon) };
+        }),
+    ]);
+    setAttnLoading(false);
+  }, [canSubs, canIntakes, canQuota]);
+
+  useEffect(() => {
+    if (flagsReady) loadAttention();
+  }, [flagsReady, loadAttention]);
+
+  const attentionItems: AttentionItem[] = [
+    canSubs && { key: 'expired', labelKey: 'pages.dashboard.attentionExpired', areaKey: 'pages.dashboard.areaSubscriptions', ...attn.expired, href: '/licenses?tab=subscription&filter=expired', tone: 'destructive' },
+    canSubs && { key: 'expiring', labelKey: 'pages.dashboard.attentionExpiring', areaKey: 'pages.dashboard.areaSubscriptions', ...attn.expiring, href: '/licenses?tab=subscription&filter=expiring', tone: 'warning' },
+    canIntakes && { key: 'intakes', labelKey: 'pages.dashboard.attentionIntakes', areaKey: 'pages.dashboard.areaIntakes', ...attn.intakes, href: '/license-intakes?filter=pending', tone: 'info' },
+    canQuota && { key: 'quota', labelKey: 'pages.dashboard.attentionQuota', areaKey: 'pages.dashboard.areaQuota', ...attn.quota, href: '/clusters?filter=quota-expiring', tone: 'warning' },
+  ].filter(Boolean) as AttentionItem[];
+
+  // When the page last got data back. A feed of "what changed" is only as good as its age.
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const updatedAtRef = useRef<string | null>(null);
+  const markUpdated = useCallback(() => {
+    const now = new Date().toISOString();
+    updatedAtRef.current = now;
+    setUpdatedAt(now);
+  }, []);
 
   // --- per-domain active / total counts (populate the rail) ---
   const loadCounts = useCallback(async () => {
@@ -63,7 +144,8 @@ const Dashboard: React.FC = () => {
     ]);
 
     setCountsLoading(false);
-  }, []);
+    markUpdated();
+  }, [markUpdated]);
 
   useEffect(() => {
     loadCounts();
@@ -77,6 +159,7 @@ const Dashboard: React.FC = () => {
       .then(({ items, failedDomains }) => {
         setActivity(items);
         setActivityFailed(failedDomains);
+        markUpdated();
         if (activityHadErrorRef.current) {
           toast.success(t('pages.dashboard.activityReloaded'));
         }
@@ -91,22 +174,58 @@ const Dashboard: React.FC = () => {
         setActivityError(true);
       })
       .finally(() => setActivityLoading(false));
-  }, [t]);
+  }, [t, markUpdated]);
 
   useEffect(() => {
     loadActivity();
   }, [loadActivity]);
 
+  const refreshing = countsLoading || activityLoading || (attentionItems.length > 0 && attnLoading);
+  const refreshAll = useCallback(() => {
+    loadAttention();
+    loadCounts();
+    loadActivity();
+  }, [loadAttention, loadCounts, loadActivity]);
+
+  // Coming back to a tab left open for a while: reload rather than show an old picture as current.
+  useEffect(() => {
+    const STALE_MS = 60_000;
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      const last = updatedAtRef.current ? Date.parse(updatedAtRef.current) : 0;
+      if (Date.now() - last > STALE_MS) refreshAll();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refreshAll]);
+
   const countsFailed = ACTIVITY_SOURCES.filter((s) => counts[s.key]?.failed).length;
   const countsError = countsFailed === ACTIVITY_SOURCES.length;
-  // A sum over the domains that happened to load would pass for the whole estate — show none.
-  const totals = ACTIVITY_SOURCES.map((s) => counts[s.key]?.total).filter((t): t is number => t != null);
-  const governed = countsFailed === 0 && totals.length ? totals.reduce((a, b) => a + b, 0) : null;
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <PageHeader title={t('pages.dashboard.title')} subtitle={t('pages.dashboard.subtitle')} />
+      {/* Capped to the grid below (46rem + 1.5rem gap + 236px rail) so the header's
+          Refresh sits over the rail it refreshes, not out at the viewport edge. */}
+      <div className="space-y-6 lg:max-w-[calc(47.5rem+236px)]">
+        <PageHeader
+          title={t('pages.dashboard.title')}
+          subtitle={t('pages.dashboard.subtitle')}
+          actions={
+            <>
+              {updatedAt && (
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  {t('pages.dashboard.updatedAt', { time: formatClock(updatedAt) })}
+                </span>
+              )}
+              <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
+                {refreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                {t('pages.dashboard.refresh')}
+              </Button>
+            </>
+          }
+        />
+
+        <AttentionBand items={attentionItems} loading={attnLoading} />
 
         {/* The stream is capped rather than fluid: a log line stretched across a 27" display
             opens a dead gulf between the entity name and its right-margin meta. */}
@@ -121,7 +240,7 @@ const Dashboard: React.FC = () => {
             onRetry={loadActivity}
           />
           <aside className="self-start lg:sticky lg:top-4">
-            <CountsRail counts={counts} governed={governed} loading={countsLoading} error={countsError} onRetry={loadCounts} />
+            <CountsRail counts={counts} loading={countsLoading} error={countsError} onRetry={loadCounts} />
           </aside>
         </div>
 
