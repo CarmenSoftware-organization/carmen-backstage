@@ -217,7 +217,7 @@ const InviteUserDialog: React.FC<InviteUserDialogProps> = ({
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
-            {fieldErrors.email && <p className="text-xs text-destructive">{fieldErrors.email}</p>}
+            {fieldErrors.email && <p className="text-xs text-destructive-ink">{fieldErrors.email}</p>}
           </div>
 
           <div className="space-y-2">

@@ -367,7 +367,7 @@ export const EmailSettingCard: React.FC<EmailSettingCardProps> = ({
                 className={fieldErrors.name ? 'border-destructive' : ''}
                 placeholder={t('pages.emailSettings.profileNamePlaceholder')}
               />
-              {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name}</p>}
+              {fieldErrors.name && <p className="text-xs text-destructive-ink">{fieldErrors.name}</p>}
             </div>
 
             <div className="space-y-2">
@@ -381,7 +381,7 @@ export const EmailSettingCard: React.FC<EmailSettingCardProps> = ({
                 className={fieldErrors.from_email ? 'border-destructive' : ''}
               />
               {fieldErrors.from_email && (
-                <p className="text-xs text-destructive">{fieldErrors.from_email}</p>
+                <p className="text-xs text-destructive-ink">{fieldErrors.from_email}</p>
               )}
             </div>
 
@@ -405,7 +405,7 @@ export const EmailSettingCard: React.FC<EmailSettingCardProps> = ({
                 className={fieldErrors.smtp_host ? 'border-destructive' : ''}
               />
               {fieldErrors.smtp_host && (
-                <p className="text-xs text-destructive">{fieldErrors.smtp_host}</p>
+                <p className="text-xs text-destructive-ink">{fieldErrors.smtp_host}</p>
               )}
             </div>
 
@@ -419,7 +419,7 @@ export const EmailSettingCard: React.FC<EmailSettingCardProps> = ({
                 className={fieldErrors.smtp_port ? 'border-destructive' : ''}
               />
               {fieldErrors.smtp_port && (
-                <p className="text-xs text-destructive">{fieldErrors.smtp_port}</p>
+                <p className="text-xs text-destructive-ink">{fieldErrors.smtp_port}</p>
               )}
             </div>
 
@@ -469,7 +469,7 @@ export const EmailSettingCard: React.FC<EmailSettingCardProps> = ({
               ก็จริง แต่นั่นเกิดหลังจากเมลหยุดส่งไปแล้ว ตรงนี้คือจุดเดียวที่ยังกลับตัวได้ฟรี
             */}
             {!formData.is_active && carried.length > 0 && (
-              <p className="text-destructive flex items-start gap-1.5 text-xs lg:col-span-2">
+              <p className="text-destructive-ink flex items-start gap-1.5 text-xs lg:col-span-2">
                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 {t('pages.emailSettings.deactivateWarning', { count: carried.length })}
               </p>
@@ -532,7 +532,7 @@ export const EmailSettingCard: React.FC<EmailSettingCardProps> = ({
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-destructive"
+                      className="text-destructive-ink"
                       onClick={() => setConfirmUnset(true)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />

@@ -140,7 +140,7 @@ export function NoteItem({ note, ownerId, adapter, canManage, onChanged, onDelet
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={startEdit}>{t('common.action.edit')}</DropdownMenuItem>
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-destructive-ink focus:text-destructive-ink"
                 onSelect={() => setConfirmDelete(true)}
               >
                 {t('common.action.delete')}

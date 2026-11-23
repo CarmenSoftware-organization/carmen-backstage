@@ -303,7 +303,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
         header: t('pages.aiCredit.colAmount'),
         enableSorting: false,
         cell: ({ row }) => (
-          <span className={cn('font-mono tabular-nums', row.original.credits < 0 && 'text-destructive')}>
+          <span className={cn('font-mono tabular-nums', row.original.credits < 0 && 'text-destructive-ink')}>
             {fmtSigned(row.original.credits)}
           </span>
         ),
@@ -355,7 +355,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
       />
       <CardContent className="space-y-6">
         {balanceError ? (
-          <p className="text-destructive text-sm" role="alert">{balanceError}</p>
+          <p className="text-destructive-ink text-sm" role="alert">{balanceError}</p>
         ) : balance ? (
           <div className="grid gap-6 sm:grid-cols-3">
             <div className="space-y-1.5">
@@ -366,9 +366,9 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
               {quota > 0 ? (
                 <>
                   <div className="flex flex-wrap items-baseline gap-x-2 font-mono tabular-nums">
-                    <span className={cn('text-base font-semibold', over && 'text-destructive')}>{fmtNum(used)}</span>
+                    <span className={cn('text-base font-semibold', over && 'text-destructive-ink')}>{fmtNum(used)}</span>
                     <span className="text-muted-foreground text-sm">/ {fmtNum(quota)}</span>
-                    <span className={cn('text-sm', over ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                    <span className={cn('text-sm', over ? 'text-destructive-ink font-semibold' : 'text-muted-foreground')}>
                       {fmtPct(usedPctRaw)}
                     </span>
                   </div>
@@ -385,7 +385,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
             </div>
             <div className="space-y-1.5">
               <span className="text-sm font-medium">{t('pages.aiCredit.topupRemaining')}</span>
-              <div className={cn('font-mono text-base font-semibold tabular-nums', topup < 0 && 'text-destructive')}>
+              <div className={cn('font-mono text-base font-semibold tabular-nums', topup < 0 && 'text-destructive-ink')}>
                 {fmtNum(topup)}
               </div>
               <p className="text-muted-foreground text-xs">{t('pages.aiCredit.topupHint')}</p>
@@ -403,7 +403,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
         <section className="space-y-2">
           <h4 className="text-sm font-medium">{t('pages.aiCredit.licensesTitle')}</h4>
           {licensesError ? (
-            <p className="text-destructive text-sm" role="alert">{licensesError}</p>
+            <p className="text-destructive-ink text-sm" role="alert">{licensesError}</p>
           ) : licensesLoading && licenses.length === 0 ? (
             <p className="text-muted-foreground text-xs">{t('common.busy.loadingEllipsis')}</p>
           ) : licenses.length === 0 ? (
@@ -491,7 +491,7 @@ export default function BusinessUnitAiCreditCard({ buId }: BusinessUnitAiCreditC
             )}
           </div>
           {ledgerError ? (
-            <p className="text-destructive text-sm" role="alert">{ledgerError}</p>
+            <p className="text-destructive-ink text-sm" role="alert">{ledgerError}</p>
           ) : ledgerLoading && rows.length === 0 ? (
             <TableSkeleton columns={7} rows={perpage > 5 ? 5 : perpage} />
           ) : !ledgerLoading && rows.length === 0 ? (
@@ -596,7 +596,7 @@ function IssueDialog({ open, onOpenChange, buId, onDone }: DialogProps) {
               onBlur={() => setTouched(true)}
               aria-invalid={touched && !valid}
             />
-            {touched && !valid && <p className="text-destructive text-xs" role="alert">{t('pages.aiCredit.creditsError')}</p>}
+            {touched && !valid && <p className="text-destructive-ink text-xs" role="alert">{t('pages.aiCredit.creditsError')}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="ai-credit-issue-ref">{t('pages.aiCredit.referenceLabel')}</Label>
@@ -674,7 +674,7 @@ function AdjustDialog({ open, onOpenChange, buId, onDone }: DialogProps) {
               onBlur={() => setTouched(true)}
               aria-invalid={touched && !creditsValid}
             />
-            {touched && !creditsValid && <p className="text-destructive text-xs" role="alert">{t('pages.aiCredit.adjustCreditsError')}</p>}
+            {touched && !creditsValid && <p className="text-destructive-ink text-xs" role="alert">{t('pages.aiCredit.adjustCreditsError')}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="ai-credit-adjust-reason">{t('pages.aiCredit.reasonLabel')}</Label>
@@ -687,7 +687,7 @@ function AdjustDialog({ open, onOpenChange, buId, onDone }: DialogProps) {
               onBlur={() => setTouched(true)}
               aria-invalid={touched && !reasonValid}
             />
-            {touched && !reasonValid && <p className="text-destructive text-xs" role="alert">{t('pages.aiCredit.reasonRequired')}</p>}
+            {touched && !reasonValid && <p className="text-destructive-ink text-xs" role="alert">{t('pages.aiCredit.reasonRequired')}</p>}
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">

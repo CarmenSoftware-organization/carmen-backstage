@@ -73,7 +73,7 @@ export const GroupCard: React.FC<GroupCardProps> = ({
                 role="status"
                 className="mb-2 flex items-center gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-foreground"
               >
-                <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+                <AlertTriangle className="h-4 w-4 shrink-0 text-warning-ink" />
                 {tr('pages.reportFormGroups.noDefaultSet')}
               </div>
             )}

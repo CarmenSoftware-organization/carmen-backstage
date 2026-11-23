@@ -18,8 +18,8 @@ interface Remaining {
 
 const TONE_CLASS: Record<Remaining['tone'], string> = {
   muted: 'text-muted-foreground',
-  warning: 'text-warning',
-  destructive: 'text-destructive',
+  warning: 'text-warning-ink',
+  destructive: 'text-destructive-ink',
 };
 
 /**

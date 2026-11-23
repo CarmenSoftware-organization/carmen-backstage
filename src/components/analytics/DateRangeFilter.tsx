@@ -155,7 +155,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChang
       )}
 
       <p
-        className={`order-last basis-full text-xs ${error ? 'text-destructive' : 'text-muted-foreground'}`}
+        className={`order-last basis-full text-xs ${error ? 'text-destructive-ink' : 'text-muted-foreground'}`}
         aria-live="polite"
       >
         {error || t('components.dateRangeFilter.viewingRange', { range: describeRange(value, lang) })}

@@ -47,7 +47,7 @@ function DraftIdentifier({
         className={cn(
           'truncate font-mono text-sm tracking-wide',
           !set && 'text-muted-foreground/60',
-          invalid && 'text-destructive decoration-destructive/50 underline decoration-wavy underline-offset-4',
+          invalid && 'text-destructive-ink decoration-destructive/50 underline decoration-wavy underline-offset-4',
         )}
       >
         {set ? value : '—'}

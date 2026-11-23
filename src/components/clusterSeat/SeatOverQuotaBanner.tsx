@@ -19,7 +19,7 @@ export const SeatOverQuotaBanner: React.FC<SeatOverQuotaBannerProps> = ({ used, 
       role="alert"
       className="flex items-start gap-3 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"
     >
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-ink" aria-hidden="true" />
       <div className="space-y-1">
         <p>{t('components.clusterSeat.overQuota', { used, cap, over: used - cap })}</p>
         {hidden > 0 && <p>{t('components.clusterSeat.hiddenHolders', { hidden })}</p>}

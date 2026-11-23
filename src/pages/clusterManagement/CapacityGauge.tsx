@@ -10,9 +10,9 @@ export const GAUGE_FILL: Record<CapLevel, string> = {
   none: 'bg-muted-foreground/40',
 };
 export const GAUGE_TEXT: Record<CapLevel, string> = {
-  ok: 'text-success',
-  warn: 'text-warning',
-  over: 'text-destructive',
+  ok: 'text-success-ink',
+  warn: 'text-warning-ink',
+  over: 'text-destructive-ink',
   none: 'text-muted-foreground',
 };
 

@@ -501,7 +501,7 @@ const SubscriptionForm: React.FC = () => {
 
               <div className="min-w-0 space-y-4 sm:space-y-6 lg:order-1">
                 {error && (
-                  <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+                  <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
                 )}
                 <SubscriptionCreateForm
                   formData={formData}
@@ -535,7 +535,7 @@ const SubscriptionForm: React.FC = () => {
             />
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
             )}
 
             {/* ตัวตนของสัญญาทั้งชุด (คลัสเตอร์ · หน่วยธุรกิจ) กับช่วงเวลา ย้ายมาอยู่บนแผ่นเดียว
@@ -595,7 +595,7 @@ const SubscriptionForm: React.FC = () => {
                       type="button"
                       size="sm"
                       variant="outline"
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive-ink hover:text-destructive-ink"
                       disabled={softDeleting || saving}
                       onClick={() => setConfirmSoftDelete(true)}
                     >

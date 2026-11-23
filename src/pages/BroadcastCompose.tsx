@@ -429,7 +429,7 @@ const BroadcastCompose: React.FC = () => {
         />
 
         {sendError && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{sendError}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{sendError}</div>
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_minmax(300px,360px)]">
@@ -475,7 +475,7 @@ const BroadcastCompose: React.FC = () => {
                       error={!!fieldErrors.recipients}
                     />
                     {fieldErrors.recipients && (
-                      <p className="text-xs text-destructive">{fieldErrors.recipients}</p>
+                      <p className="text-xs text-destructive-ink">{fieldErrors.recipients}</p>
                     )}
                   </div>
                 )}
@@ -501,14 +501,14 @@ const BroadcastCompose: React.FC = () => {
                         ))}
                     </select>
                     {buLoadError && (
-                      <p className="text-xs text-destructive" role="alert">
+                      <p className="text-xs text-destructive-ink" role="alert">
                         {buLoadError}{' '}
                         <button type="button" onClick={() => void loadBusinessUnits()} className="underline">
                           {t('common.action.retry')}
                         </button>
                       </p>
                     )}
-                    {fieldErrors.buCode && <p className="text-xs text-destructive">{fieldErrors.buCode}</p>}
+                    {fieldErrors.buCode && <p className="text-xs text-destructive-ink">{fieldErrors.buCode}</p>}
                   </div>
                 )}
               </section>
@@ -531,7 +531,7 @@ const BroadcastCompose: React.FC = () => {
                     placeholder={t('pages.broadcasts.scheduledMaintenancePlaceholder')}
                     className={fieldErrors.title ? 'border-destructive' : ''}
                   />
-                  {fieldErrors.title && <p className="text-xs text-destructive">{fieldErrors.title}</p>}
+                  {fieldErrors.title && <p className="text-xs text-destructive-ink">{fieldErrors.title}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -550,7 +550,7 @@ const BroadcastCompose: React.FC = () => {
                     placeholder={t('pages.broadcasts.systemUnavailablePlaceholder')}
                     className={fieldErrors.message ? 'border-destructive' : ''}
                   />
-                  {fieldErrors.message && <p className="text-xs text-destructive">{fieldErrors.message}</p>}
+                  {fieldErrors.message && <p className="text-xs text-destructive-ink">{fieldErrors.message}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -576,7 +576,7 @@ const BroadcastCompose: React.FC = () => {
                         className={fieldErrors.typeCustom ? 'border-destructive' : ''}
                       />
                       {fieldErrors.typeCustom && (
-                        <p className="text-xs text-destructive">{fieldErrors.typeCustom}</p>
+                        <p className="text-xs text-destructive-ink">{fieldErrors.typeCustom}</p>
                       )}
                     </div>
                   )}
@@ -630,7 +630,7 @@ const BroadcastCompose: React.FC = () => {
                       className={SELECT_CLASS + (fieldErrors.scheduledAtLocal ? ' border-destructive' : '')}
                     />
                     {fieldErrors.scheduledAtLocal && (
-                      <p className="text-xs text-destructive">{fieldErrors.scheduledAtLocal}</p>
+                      <p className="text-xs text-destructive-ink">{fieldErrors.scheduledAtLocal}</p>
                     )}
                   </div>
                 )}
@@ -658,7 +658,7 @@ const BroadcastCompose: React.FC = () => {
                         className={SELECT_CLASS + (fieldErrors.expiresAtLocal ? ' border-destructive' : '')}
                       />
                       {fieldErrors.expiresAtLocal && (
-                        <p className="text-xs text-destructive">{fieldErrors.expiresAtLocal}</p>
+                        <p className="text-xs text-destructive-ink">{fieldErrors.expiresAtLocal}</p>
                       )}
                     </div>
                   )}

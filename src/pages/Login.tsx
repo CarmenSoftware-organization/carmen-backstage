@@ -274,7 +274,7 @@ const Login: React.FC = () => {
                   className={fieldErrors.username ? 'border-destructive' : ''}
                 />
                 {fieldErrors.username && (
-                  <p className="text-xs text-destructive">{fieldErrors.username}</p>
+                  <p className="text-xs text-destructive-ink">{fieldErrors.username}</p>
                 )}
               </div>
 
@@ -293,14 +293,14 @@ const Login: React.FC = () => {
                   className={fieldErrors.password ? 'border-destructive' : ''}
                 />
                 {fieldErrors.password && (
-                  <p className="text-xs text-destructive">{fieldErrors.password}</p>
+                  <p className="text-xs text-destructive-ink">{fieldErrors.password}</p>
                 )}
               </div>
 
               {error && (
                 <div
                   role="alert"
-                  className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
+                  className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive-ink"
                 >
                   {accessDenied && <div className="mb-1 font-bold">{t('login.accessDenied')}</div>}
                   {error}

@@ -203,7 +203,7 @@ const Lane: React.FC<{ lane: RoutingLane; edit?: RoutingEditContext }> = ({ lane
         )}
 
         {broken && (
-          <p className="text-destructive flex items-start gap-1.5 text-xs">
+          <p className="text-destructive-ink flex items-start gap-1.5 text-xs">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             {missing
               ? t('pages.emailSettings.laneMissingWarning')
@@ -234,7 +234,7 @@ export const RoutingPanel: React.FC<RoutingPanelProps> = ({ map, edit }) => {
     <div className="space-y-4">
       {map.unrouted.length > 0 && (
         <div className="border-destructive/40 space-y-2 rounded-md border border-dashed p-3">
-          <p className="text-destructive flex items-start gap-1.5 text-xs">
+          <p className="text-destructive-ink flex items-start gap-1.5 text-xs">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             {t('pages.emailSettings.noDefaultWarning', { count: map.unrouted.length })}
           </p>

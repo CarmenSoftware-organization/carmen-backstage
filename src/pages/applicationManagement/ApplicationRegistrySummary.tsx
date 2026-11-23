@@ -25,10 +25,10 @@ const byPlatform = (devices: DeviceCount[]): DeviceCount[] =>
 
 function ScopeLegend({ swatch, label, value, warn }: { swatch: string; label: string; value: number; warn?: boolean }) {
   return (
-    <span className={`flex items-center gap-2 text-xs ${warn ? 'text-warning' : 'text-muted-foreground'}`}>
+    <span className={`flex items-center gap-2 text-xs ${warn ? 'text-warning-ink' : 'text-muted-foreground'}`}>
       {warn ? <AlertTriangle className="size-3.5" /> : <span className={cn('size-2 rounded-xs', swatch)} />}
       {label}
-      <span className={`font-mono text-[13px] font-semibold tabular-nums ${warn ? 'text-warning' : 'text-foreground'}`}>{value}</span>
+      <span className={`font-mono text-[13px] font-semibold tabular-nums ${warn ? 'text-warning-ink' : 'text-foreground'}`}>{value}</span>
     </span>
   );
 }

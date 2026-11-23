@@ -337,8 +337,8 @@ const LicenseIntakeManagement: React.FC = () => {
   }, [t, statusLabel]);
 
   const bandItems: SummaryBandItem[] = [
-    { key: 'pending', label: t('pages.licenseIntakes.summaryPending'), value: summary?.pending, color: 'text-warning', onClick: () => handleStatusFilter('pending'), active: statusFilter === 'pending' },
-    { key: 'confirmed', label: t('pages.licenseIntakes.summaryConfirmed'), value: summary?.confirmed, color: 'text-success', onClick: () => handleStatusFilter('confirmed'), active: statusFilter === 'confirmed' },
+    { key: 'pending', label: t('pages.licenseIntakes.summaryPending'), value: summary?.pending, color: 'text-warning-ink', onClick: () => handleStatusFilter('pending'), active: statusFilter === 'pending' },
+    { key: 'confirmed', label: t('pages.licenseIntakes.summaryConfirmed'), value: summary?.confirmed, color: 'text-success-ink', onClick: () => handleStatusFilter('confirmed'), active: statusFilter === 'confirmed' },
     { key: 'rejected', label: t('pages.licenseIntakes.summaryRejected'), value: summary?.rejected, color: 'text-muted-foreground', onClick: () => handleStatusFilter('rejected'), active: statusFilter === 'rejected' },
     {
       key: 'all',
@@ -386,7 +386,7 @@ const LicenseIntakeManagement: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && items.length === 0 && !loading ? (
               <ListEmptyState

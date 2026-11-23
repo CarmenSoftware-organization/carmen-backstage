@@ -92,7 +92,7 @@ export default function BusinessUnitInterfaceLicensesCard({
           <LicenseTimeline variant="group" items={licenses.map(toItem)} window={window} now={now} />
         )}
         {capped.length > 0 && (
-          <p className="text-warning text-xs">
+          <p className="text-warning-ink text-xs">
             {t('pages.businessUnits.interfaceCappedHint', {
               state: t(`common.status.${capped[0].contract_state}`),
             })}

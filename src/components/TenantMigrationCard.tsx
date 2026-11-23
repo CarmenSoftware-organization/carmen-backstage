@@ -214,7 +214,7 @@ export const TenantMigrationCard = ({
           <div className="space-y-2">
             <pre
               role="alert"
-              className="max-h-60 w-full overflow-auto whitespace-pre-wrap break-all rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 font-mono text-xs text-destructive"
+              className="max-h-60 w-full overflow-auto whitespace-pre-wrap break-all rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 font-mono text-xs text-destructive-ink"
             >
               {errorMsg}
             </pre>

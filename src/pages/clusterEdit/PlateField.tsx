@@ -116,7 +116,7 @@ export function PlateField({
           {display ?? prompt}
         </button>
       )}
-      {error && <span className="text-destructive text-xs">{error}</span>}
+      {error && <span className="text-destructive-ink text-xs">{error}</span>}
     </span>
   );
 }

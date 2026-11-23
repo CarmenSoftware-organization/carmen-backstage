@@ -205,7 +205,7 @@ const InvitationsTable: React.FC<InvitationsTableProps> = ({ clusterId, invitati
               <DropdownMenuItem
                 disabled={!isActionable}
                 onClick={() => setRevokeTarget(invitation)}
-                className="cursor-pointer text-destructive focus:text-destructive"
+                className="cursor-pointer text-destructive-ink focus:text-destructive-ink"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('pages.clusterAdmin.revoke')}

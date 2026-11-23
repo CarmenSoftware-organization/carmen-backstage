@@ -425,7 +425,7 @@ export default function SqlWorkbench() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-destructive h-7"
+                        className="text-destructive-ink h-7"
                         onClick={() => setDropConfirm(true)}
                         disabled={isDropping}
                       >

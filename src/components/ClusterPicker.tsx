@@ -199,7 +199,7 @@ export const ClusterPicker: React.FC<ClusterPickerProps> = ({
             <button
               type="button"
               onClick={clearSelection}
-              className="shrink-0 rounded hover:text-destructive"
+              className="shrink-0 rounded hover:text-destructive-ink"
               aria-label={t('components.clusterPicker.clearSelectedAria', { name: title })}
             >
               <X className="h-4 w-4" />

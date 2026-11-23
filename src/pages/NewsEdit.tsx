@@ -312,7 +312,7 @@ const NewsEdit: React.FC = () => {
         </div>
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
@@ -355,7 +355,7 @@ const NewsEdit: React.FC = () => {
                   )}
                   required
                 />
-                {fieldErrors.title && <p className="text-xs text-destructive">{fieldErrors.title}</p>}
+                {fieldErrors.title && <p className="text-xs text-destructive-ink">{fieldErrors.title}</p>}
               </div>
             }
             actions={
@@ -404,7 +404,7 @@ const NewsEdit: React.FC = () => {
                           placeholder="https://example.com/news/123"
                           className={fieldErrors.url ? 'border-destructive' : ''}
                         />
-                        {fieldErrors.url && <p className="text-xs text-destructive">{fieldErrors.url}</p>}
+                        {fieldErrors.url && <p className="text-xs text-destructive-ink">{fieldErrors.url}</p>}
                       </>
                     ) : (
                       <ReadOnlyField value={formData.url} />
@@ -476,7 +476,7 @@ const NewsEdit: React.FC = () => {
                           disabled={!editing}
                         />
                         {fieldErrors.business_unit_ids && (
-                          <p className="text-xs text-destructive">{fieldErrors.business_unit_ids}</p>
+                          <p className="text-xs text-destructive-ink">{fieldErrors.business_unit_ids}</p>
                         )}
                       </div>
                     )}

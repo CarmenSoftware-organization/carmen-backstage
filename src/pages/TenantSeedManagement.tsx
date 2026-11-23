@@ -401,7 +401,7 @@ const TenantSeedManagement: React.FC = () => {
               </div>
             )}
             {rs?.errorMsg && (
-              <div role="alert" className="break-all text-xs text-destructive">
+              <div role="alert" className="break-all text-xs text-destructive-ink">
                 {rs.errorMsg}
               </div>
             )}
@@ -554,7 +554,7 @@ const TenantSeedManagement: React.FC = () => {
         )}
 
         {totalRows > bus.length && (
-          <p className="text-warning text-xs">
+          <p className="text-warning-ink text-xs">
             {t('pages.tenantSeed.showingPartial', { shown: bus.length, total: totalRows })}
           </p>
         )}
@@ -573,7 +573,7 @@ const TenantSeedManagement: React.FC = () => {
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">
                 {error}
               </div>
             )}

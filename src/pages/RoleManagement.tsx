@@ -326,7 +326,7 @@ const RoleManagement: React.FC = () => {
             <Can permission="backstage_role.delete">
               <DropdownMenuItem
                 onClick={() => handleDelete(row.original.id)}
-                className="cursor-pointer text-destructive focus:text-destructive"
+                className="cursor-pointer text-destructive-ink focus:text-destructive-ink"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('common.action.delete')}
@@ -485,7 +485,7 @@ const RoleManagement: React.FC = () => {
 
           <CardContent>
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">
                 {error}
               </div>
             )}

@@ -479,7 +479,7 @@ const NewsManagement: React.FC = () => {
               </DropdownMenuItem>
             </Can>
             <Can permission="news.delete">
-              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive-ink focus:text-destructive-ink">
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('common.action.delete')}
               </DropdownMenuItem>
@@ -629,7 +629,7 @@ const NewsManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && newsItems.length === 0 && !loading ? (
               <ListEmptyState
@@ -727,7 +727,7 @@ const NewsManagement: React.FC = () => {
       <Dialog open={bulkOpen} onOpenChange={(open) => { if (!open && !bulkBusy) { setBulkOpen(false); setBulkInput(''); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className={`flex items-center gap-2 ${bulkAction.destructive ? 'text-destructive' : ''}`}>
+            <DialogTitle className={`flex items-center gap-2 ${bulkAction.destructive ? 'text-destructive-ink' : ''}`}>
               <BulkActionIcon className="h-5 w-5" />
               {t(bulkAction.dialogTitleKey, { count: selectedNews.length })}
             </DialogTitle>
@@ -743,7 +743,7 @@ const NewsManagement: React.FC = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="bulkNewsConfirm">
-                {confirmBefore}<span className={`font-mono font-semibold ${bulkAction.destructive ? 'text-destructive' : ''}`}>{bulkCode}</span>{confirmAfter}
+                {confirmBefore}<span className={`font-mono font-semibold ${bulkAction.destructive ? 'text-destructive-ink' : ''}`}>{bulkCode}</span>{confirmAfter}
               </Label>
               <Input
                 id="bulkNewsConfirm"

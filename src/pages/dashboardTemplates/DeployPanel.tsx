@@ -204,7 +204,7 @@ export default function DeployPanel() {
         <CardContent className="space-y-4 pt-6">
           <p className="text-sm text-muted-foreground">{t('pages.dashboardTemplates.deployHint', { version })}</p>
           {emptySet && (
-            <p role="alert" className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p role="alert" className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive-ink">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               {t('pages.dashboardTemplates.deployEmptySet')}
             </p>
@@ -298,7 +298,7 @@ export default function DeployPanel() {
                         <p role="status" className="text-xs text-muted-foreground">{t('pages.dashboardTemplates.rowSkipped')}</p>
                       )}
                       {row?.outcome?.kind === 'error' && (
-                        <p role="alert" className="text-xs text-destructive">{row.outcome.message}</p>
+                        <p role="alert" className="text-xs text-destructive-ink">{row.outcome.message}</p>
                       )}
                     </TableCell>
                     <TableCell>{row?.status?.deployed_version ?? '—'}</TableCell>

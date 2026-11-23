@@ -148,13 +148,13 @@ export function StorageLicenseTable() {
   }, [fetchSummary]);
 
   const summaryItems: SummaryBandItem[] = [
-    { key: 'in_force', label: t('pages.storageLicense.inForce'), value: summary?.in_force, color: 'text-success' },
+    { key: 'in_force', label: t('pages.storageLicense.inForce'), value: summary?.in_force, color: 'text-success-ink' },
     { key: 'replaced', label: t('pages.storageLicense.replaced'), value: summary?.replaced, color: 'text-foreground' },
     {
       key: 'bus_without_license',
       label: t('pages.storageLicense.busWithoutLicense'),
       value: summary?.bus_without_license,
-      color: summary?.bus_without_license ? 'text-warning' : 'text-muted-foreground',
+      color: summary?.bus_without_license ? 'text-warning-ink' : 'text-muted-foreground',
     },
   ];
 

@@ -92,7 +92,7 @@ export function ActivityList({ entries, showObject = false }: ActivityListProps)
                   </span>
                 )}
               </span>
-              {e.error && <span className="text-destructive block break-all">{e.error}</span>}
+              {e.error && <span className="text-destructive-ink block break-all">{e.error}</span>}
               <span className="text-muted-foreground block">
                 {e.actor?.name ?? t('pages.dbObjectFleet.activityUnknownActor')}
                 {e.ip_address ? ` · ${e.ip_address}` : ''}

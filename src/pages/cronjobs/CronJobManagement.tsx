@@ -296,7 +296,7 @@ const CronJobManagement: React.FC = () => {
             </span>
             {job.last_error && (
               <span title={job.last_error} className="shrink-0">
-                <AlertTriangle className="h-3.5 w-3.5 text-warning" aria-hidden="true" />
+                <AlertTriangle className="h-3.5 w-3.5 text-warning-ink" aria-hidden="true" />
               </span>
             )}
           </div>

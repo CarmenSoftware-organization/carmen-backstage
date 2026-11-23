@@ -332,7 +332,7 @@ const BroadcastManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && items.length === 0 && !loading ? (
               <ListEmptyState

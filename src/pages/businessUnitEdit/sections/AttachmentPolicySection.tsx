@@ -85,7 +85,7 @@ const AttachmentPolicySection: React.FC<AttachmentPolicySectionProps> = ({ formD
               </label>
             ))}
           </div>
-          {editing && typesError && <p className="text-sm text-destructive">{t('pages.businessUnits.attachmentTypesRequired')}</p>}
+          {editing && typesError && <p className="text-sm text-destructive-ink">{t('pages.businessUnits.attachmentTypesRequired')}</p>}
           {hasOffice && <p className="text-sm text-muted-foreground">{t('pages.businessUnits.attachmentMacroWarning')}</p>}
         </div>
         <div className="space-y-2 max-w-xs">
@@ -100,7 +100,7 @@ const AttachmentPolicySection: React.FC<AttachmentPolicySectionProps> = ({ formD
             value={effective.max_size_mb}
             onChange={(e) => onAttachmentPolicyChange({ ...effective, max_size_mb: Number(e.target.value) })}
           />
-          {editing && sizeError && <p className="text-sm text-destructive">{t('pages.businessUnits.attachmentMaxSizeRange')}</p>}
+          {editing && sizeError && <p className="text-sm text-destructive-ink">{t('pages.businessUnits.attachmentMaxSizeRange')}</p>}
         </div>
         {editing && current && (
           <Button type="button" variant="outline" size="sm" onClick={() => onAttachmentPolicyChange(null)}>

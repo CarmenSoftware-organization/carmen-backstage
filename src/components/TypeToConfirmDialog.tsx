@@ -46,7 +46,7 @@ export function TypeToConfirmDialog({
     <Dialog open={open} onOpenChange={(next) => { if (!next && busy) return; onOpenChange(next); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-destructive">
+          <DialogTitle className="flex items-center gap-2 text-destructive-ink">
             <AlertTriangle className="h-5 w-5" />
             {title}
           </DialogTitle>

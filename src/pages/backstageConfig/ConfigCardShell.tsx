@@ -156,7 +156,7 @@ export const ConfigField: React.FC<ConfigFieldProps> = ({
         {badge}
       </div>
       {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive-ink">{error}</p>}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

@@ -57,7 +57,7 @@ export const SeatCell: React.FC<SeatCellProps> = ({ seat, quiet = false }) => {
                     !muted
                       ? 'text-foreground'
                       : quiet && link.released
-                        ? 'text-warning line-through'
+                        ? 'text-warning-ink line-through'
                         : 'text-muted-foreground line-through',
                   )}
                 >

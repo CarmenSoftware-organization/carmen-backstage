@@ -66,8 +66,8 @@ export function StepRail({
                   className={cn(
                     'h-4 w-4 shrink-0',
                     spinning && 'animate-spin',
-                    status === 'completed' && 'text-success',
-                    status === 'error' && 'text-destructive',
+                    status === 'completed' && 'text-success-ink',
+                    status === 'error' && 'text-destructive-ink',
                   )}
                 />
                 <span className="min-w-0 flex-1 truncate">{s.display_name}</span>

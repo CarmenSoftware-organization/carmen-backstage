@@ -126,7 +126,7 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
               <option value="">{t('pages.userBackstage.selectRole')}</option>
               {roleOptions.map((r) => (<option key={r.id} value={r.id}>{r.name}</option>))}
             </select>
-            {fieldErrors.role_id && <p className="text-destructive text-xs">{fieldErrors.role_id}</p>}
+            {fieldErrors.role_id && <p className="text-destructive-ink text-xs">{fieldErrors.role_id}</p>}
           </div>
 
           <div className="space-y-2">
@@ -167,7 +167,7 @@ export const AddRoleSheet: React.FC<AddRoleSheetProps> = ({
                 }}
                 invalid={!!fieldErrors.cluster_id}
               />
-              {fieldErrors.cluster_id && <p className="text-destructive text-xs">{fieldErrors.cluster_id}</p>}
+              {fieldErrors.cluster_id && <p className="text-destructive-ink text-xs">{fieldErrors.cluster_id}</p>}
             </div>
           )}
 

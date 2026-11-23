@@ -245,7 +245,7 @@ export const XmlEditor: React.FC<XmlEditorProps> = ({
               type="button"
               size="sm"
               variant="outline"
-              className="h-8 text-destructive hover:text-destructive"
+              className="h-8 text-destructive-ink hover:text-destructive-ink"
               onClick={handleClear}
             >
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
@@ -280,12 +280,12 @@ export const XmlEditor: React.FC<XmlEditorProps> = ({
         {validation.valid && !latestValueRef.current.trim() ? (
           <span className="text-muted-foreground">{t('components.xmlEditor.emptyXml')}</span>
         ) : validation.valid ? (
-          <div className="flex items-center gap-2 text-success">
+          <div className="flex items-center gap-2 text-success-ink">
             <Check className="h-3.5 w-3.5" />
             <span>{t('components.xmlEditor.validXml')}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-destructive">
+          <div className="flex items-center gap-2 text-destructive-ink">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">
               {validation.line

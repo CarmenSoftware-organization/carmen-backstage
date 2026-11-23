@@ -453,7 +453,7 @@ export function DialogLayoutEditor({ xml, parsed, onChange, onDragActiveChange }
                                   type="button"
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                  className="h-6 w-6 text-muted-foreground hover:text-destructive-ink"
                                   aria-label={t('components.dialogPreview.editor.deleteCell', { label: f.label })}
                                   onClick={() => deleteAt(f.key)}
                                 >

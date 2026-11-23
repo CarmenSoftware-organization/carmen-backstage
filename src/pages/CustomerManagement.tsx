@@ -228,7 +228,7 @@ const CustomerManagement: React.FC = () => {
                 {t('common.action.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-destructive-ink focus:text-destructive-ink"
                 onClick={() => setDeleteTarget(row.original)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -243,7 +243,7 @@ const CustomerManagement: React.FC = () => {
 
   const bandItems: SummaryBandItem[] = [
     { key: 'all', label: t('pages.customers.summaryAll'), value: summary?.all, color: 'text-foreground', onClick: () => handleStatusFilter('all'), active: statusFilter === 'all' },
-    { key: 'active', label: t('pages.customers.summaryActive'), value: summary?.active, color: 'text-success', onClick: () => handleStatusFilter('active'), active: statusFilter === 'active' },
+    { key: 'active', label: t('pages.customers.summaryActive'), value: summary?.active, color: 'text-success-ink', onClick: () => handleStatusFilter('active'), active: statusFilter === 'active' },
     { key: 'inactive', label: t('pages.customers.summaryInactive'), value: summary?.inactive, color: 'text-muted-foreground', onClick: () => handleStatusFilter('inactive'), active: statusFilter === 'inactive' },
   ];
 
@@ -290,7 +290,7 @@ const CustomerManagement: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && items.length === 0 && !loading ? (
               <ListEmptyState

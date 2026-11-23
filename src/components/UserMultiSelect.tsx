@@ -143,7 +143,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                     e.stopPropagation();
                     removeUser(u.id);
                   }}
-                  className="ml-0.5 rounded hover:text-destructive"
+                  className="ml-0.5 rounded hover:text-destructive-ink"
                   aria-label={t('common.action.removeAria', { name: label || u.id })}
                 >
                   <X className="h-3 w-3" />

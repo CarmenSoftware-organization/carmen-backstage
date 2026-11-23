@@ -144,7 +144,7 @@ const PoolPicker: React.FC<PoolPickerProps> = ({ formData, fieldErrors, onBlur, 
           </Button>
         </div>
         {fieldErrors.db_schema && (
-          <p className="text-xs text-destructive">{fieldErrors.db_schema}</p>
+          <p className="text-xs text-destructive-ink">{fieldErrors.db_schema}</p>
         )}
       </div>
     </div>

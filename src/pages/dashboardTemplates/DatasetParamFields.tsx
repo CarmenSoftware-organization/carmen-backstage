@@ -28,7 +28,7 @@ export default function DatasetParamFields({ params, value, onChange, disabled }
           <div key={p.name} className="space-y-2">
             <Label htmlFor={id}>
               {p.label}
-              {p.required && <span className="text-destructive"> *</span>}
+              {p.required && <span className="text-destructive-ink"> *</span>}
             </Label>
             {p.options?.length ? (
               <Select

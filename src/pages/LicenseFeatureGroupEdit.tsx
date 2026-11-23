@@ -405,7 +405,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
 
         {error && (
           <Card className="border-destructive">
-            <CardContent className="text-destructive py-4 text-sm">{error}</CardContent>
+            <CardContent className="text-destructive-ink py-4 text-sm">{error}</CardContent>
           </Card>
         )}
 
@@ -436,7 +436,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
                             className={cn('font-mono', fieldErrors.code && 'border-destructive')}
                           />
                           {fieldErrors.code ? (
-                            <p className="text-destructive text-xs">{fieldErrors.code}</p>
+                            <p className="text-destructive-ink text-xs">{fieldErrors.code}</p>
                           ) : (
                             <p className="text-muted-foreground text-xs">
                               {t('pages.licenseFeatureGroups.codeHint')}
@@ -517,7 +517,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
                         <ReadOnlyField value={formData.name} />
                       )}
                       {fieldErrors.name && (
-                        <p className="text-destructive text-xs">{fieldErrors.name}</p>
+                        <p className="text-destructive-ink text-xs">{fieldErrors.name}</p>
                       )}
                     </div>
 
@@ -572,7 +572,7 @@ const LicenseFeatureGroupEdit: React.FC = () => {
                         {t('pages.licenseFeatureGroups.orderOnSalesForm')}
                       </span>
                     </div>
-                    <p className={cn('text-xs', orderDuplicate ? 'text-warning' : 'text-muted-foreground')}>
+                    <p className={cn('text-xs', orderDuplicate ? 'text-warning-ink' : 'text-muted-foreground')}>
                       {orderDuplicate
                         ? t('pages.licenseFeatureGroups.orderDuplicate')
                         : t('pages.licenseFeatureGroups.sortOrderHint')}

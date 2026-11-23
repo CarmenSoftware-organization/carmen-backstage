@@ -58,13 +58,13 @@ export function RoleReachCell({ name, permissionCount, catalogSize, resourceCoun
           </div>
         )}
         <span className="shrink-0 whitespace-nowrap font-mono text-[13px] tabular-nums">
-          <span className={cn('font-semibold', full && 'text-warning')}>{permissionCount}</span>
+          <span className={cn('font-semibold', full && 'text-warning-ink')}>{permissionCount}</span>
           {anchored && <span className="text-muted-foreground">/{catalogSize}</span>}
         </span>
         {/* ถ้อยคำเดียวกับ RoleIdentityHero เพื่อให้รายการกับหน้ารายละเอียดพูดตรงกัน */}
         {full && (
           <span className="flex shrink-0" title={t('pages.roles.fullAccessPermissions')}>
-            <AlertTriangle className="text-warning size-3.5" />
+            <AlertTriangle className="text-warning-ink size-3.5" />
           </span>
         )}
       </div>

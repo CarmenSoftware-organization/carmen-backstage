@@ -36,13 +36,13 @@ function Stat({
   const hot = alert && value > 0;
   const body = (
     <>
-      <span className={cn('font-mono text-base font-semibold tabular-nums', hot ? 'text-warning' : 'text-foreground')}>
+      <span className={cn('font-mono text-base font-semibold tabular-nums', hot ? 'text-warning-ink' : 'text-foreground')}>
         {value}
       </span>
       {label}
     </>
   );
-  const base = cn('flex items-baseline gap-2 text-xs', hot ? 'text-warning' : 'text-muted-foreground');
+  const base = cn('flex items-baseline gap-2 text-xs', hot ? 'text-warning-ink' : 'text-muted-foreground');
 
   if (!onClick) return <div className={base}>{body}</div>;
   return (

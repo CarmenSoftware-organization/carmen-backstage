@@ -271,9 +271,9 @@ export default function CronScheduleField({ value, onChange, readOnly, error }: 
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && <p className="text-xs text-destructive-ink">{error}</p>}
         {!error && sentence === null && (
-          <p className="text-xs text-destructive">{t('cronjob.validation.invalidCron')}</p>
+          <p className="text-xs text-destructive-ink">{t('cronjob.validation.invalidCron')}</p>
         )}
         {sentence && <p className="text-sm text-muted-foreground">{sentence}</p>}
         {upcoming.length > 0 && (

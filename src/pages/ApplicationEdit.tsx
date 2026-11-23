@@ -481,7 +481,7 @@ const ApplicationEdit: React.FC = () => {
         )}
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
@@ -523,7 +523,7 @@ const ApplicationEdit: React.FC = () => {
 
                   {formData.allow_all ? (
                     <div className="space-y-2">
-                      <div className="text-warning bg-warning/10 flex items-start gap-2 rounded-md px-3 py-2.5 text-sm">
+                      <div className="text-warning-ink bg-warning/10 flex items-start gap-2 rounded-md px-3 py-2.5 text-sm">
                         <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                         <span>{t('pages.applications.allowAllWarning')}</span>
                       </div>
@@ -706,7 +706,7 @@ const ApplicationEdit: React.FC = () => {
                                                   size="sm"
                                                   className={cn(
                                                     'h-7 gap-1 text-xs',
-                                                    authority && !selected && 'border-warning/50 text-warning',
+                                                    authority && !selected && 'border-warning/50 text-warning-ink',
                                                     authority && selected && 'bg-warning text-warning-foreground hover:bg-warning/90',
                                                   )}
                                                   title={authority ? t('pages.applications.authorityTitle', { api }) : api}
@@ -750,12 +750,12 @@ const ApplicationEdit: React.FC = () => {
                                 </div>
                               )}
                               <span className="shrink-0 font-mono text-sm tabular-nums">
-                                <span className={cn('font-semibold', grantedReach.full && 'text-warning')}>{grantedReach.granted}</span>
+                                <span className={cn('font-semibold', grantedReach.full && 'text-warning-ink')}>{grantedReach.granted}</span>
                                 {grantedReach.anchored && <span className="text-muted-foreground">/{catalogExtent!.size}</span>}
                               </span>
                             </div>
                             {grantedAuthority > 0 && (
-                              <span className="text-warning shrink-0 text-xs font-medium">
+                              <span className="text-warning-ink shrink-0 text-xs font-medium">
                                 {t('pages.applications.authorityCount', { count: grantedAuthority })}
                               </span>
                             )}
@@ -776,7 +776,7 @@ const ApplicationEdit: React.FC = () => {
                     return (
                       <div className="space-y-3">
                         {grantedAuthority > 0 && (
-                          <p className="text-warning flex items-center gap-1.5 text-xs font-medium">
+                          <p className="text-warning-ink flex items-center gap-1.5 text-xs font-medium">
                             <AlertTriangle className="size-3.5 shrink-0" />
                             {t('pages.applications.authorityLegend', { count: grantedAuthority })}
                           </p>
@@ -808,7 +808,7 @@ const ApplicationEdit: React.FC = () => {
                                 </span>
                                 {stale > 0 && (
                                   <span
-                                    className="text-warning font-mono"
+                                    className="text-warning-ink font-mono"
                                     title={t('pages.applications.staleGrantsTitle', { count: stale })}
                                   >
                                     {' '}+{stale}
@@ -822,7 +822,7 @@ const ApplicationEdit: React.FC = () => {
                                     <Badge
                                       key={api}
                                       variant="outline"
-                                      className={cn('text-xs', authority && 'border-warning/50 text-warning')}
+                                      className={cn('text-xs', authority && 'border-warning/50 text-warning-ink')}
                                       title={authority ? t('pages.applications.authorityTitle', { api }) : api}
                                     >
                                       {actionOf(api)}
@@ -876,7 +876,7 @@ const ApplicationEdit: React.FC = () => {
                           className={fieldErrors.name ? 'border-destructive' : ''}
                           required
                         />
-                        {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name}</p>}
+                        {fieldErrors.name && <p className="text-xs text-destructive-ink">{fieldErrors.name}</p>}
                       </>
                     ) : (
                       <ReadOnlyField value={formData.name} />

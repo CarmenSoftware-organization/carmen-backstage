@@ -164,12 +164,12 @@ export const EmailRoutingCard: React.FC<EmailRoutingCardProps> = ({
         {loading ? (
           <p className="text-muted-foreground text-sm">{t('common.busy.loading')}</p>
         ) : loadError ? (
-          <p className="text-destructive text-sm">{loadError}</p>
+          <p className="text-destructive-ink text-sm">{loadError}</p>
         ) : isEditing ? (
           <>
             <RoutingPanel map={draftMap} edit={editContext} />
 
-            {error && <p className="text-destructive text-xs">{error}</p>}
+            {error && <p className="text-destructive-ink text-xs">{error}</p>}
 
             <div className="flex gap-3 pt-2">
               <Button onClick={handleSave} disabled={saving || !dirty}>

@@ -571,7 +571,7 @@ const TenantMigrationManagement: React.FC = () => {
               const viewsErr = viewsErrorOf(rs);
               if (viewsErr) {
                 return (
-                  <div className="break-all text-xs text-destructive">
+                  <div className="break-all text-xs text-destructive-ink">
                     {t('pages.tenantMigration.viewsError', { message: viewsErr })}
                   </div>
                 );
@@ -592,7 +592,7 @@ const TenantMigrationManagement: React.FC = () => {
               </div>
             )}
             {rs?.errorMsg && (
-              <div role="alert" className="break-all text-xs text-destructive">
+              <div role="alert" className="break-all text-xs text-destructive-ink">
                 {rs.errorMsg}
               </div>
             )}
@@ -736,7 +736,7 @@ const TenantMigrationManagement: React.FC = () => {
         />
 
         {totalRows > bus.length && (
-          <p className="text-warning text-xs">
+          <p className="text-warning-ink text-xs">
             Showing {bus.length} of {totalRows} business units. Increase the page size to see all.
           </p>
         )}
@@ -757,7 +757,7 @@ const TenantMigrationManagement: React.FC = () => {
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">
                 {error}
               </div>
             )}

@@ -95,7 +95,7 @@ export function HeroName({
         {value.trim() || resolvedEmptyText}
       </button>
       {showRequiredMarker && !disabled && (
-        <span className="text-destructive text-base font-normal" aria-hidden="true">
+        <span className="text-destructive-ink text-base font-normal" aria-hidden="true">
           *
         </span>
       )}

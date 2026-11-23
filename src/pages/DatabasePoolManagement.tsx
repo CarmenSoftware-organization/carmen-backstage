@@ -282,7 +282,7 @@ const DatabasePoolManagement: React.FC = () => {
                 {t('common.action.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-destructive-ink focus:text-destructive-ink"
                 onClick={() => setDeleteTarget(row.original)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -399,7 +399,7 @@ const DatabasePoolManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && items.length === 0 && !loading ? (
               <ListEmptyState

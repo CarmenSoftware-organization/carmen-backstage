@@ -88,9 +88,9 @@ export function RunConsole({ runs, running, onClear }: RunConsoleProps) {
   };
 
   const statusIcon = (run: RunEntry) => {
-    if (run.status === 'running') return <Loader2 className="text-warning size-3.5 shrink-0 animate-spin" />;
-    if (run.status === 'success') return <CheckCircle2 className="text-success size-3.5 shrink-0" />;
-    return <XCircle className="text-destructive size-3.5 shrink-0" />;
+    if (run.status === 'running') return <Loader2 className="text-warning-ink size-3.5 shrink-0 animate-spin" />;
+    if (run.status === 'success') return <CheckCircle2 className="text-success-ink size-3.5 shrink-0" />;
+    return <XCircle className="text-destructive-ink size-3.5 shrink-0" />;
   };
 
   return (

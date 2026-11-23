@@ -389,7 +389,7 @@ const UserBackstageManagement: React.FC = () => {
             <Can permission="user_backstage.manage">
               <DropdownMenuItem
                 onClick={() => setRevokeTarget(row.original)}
-                className="cursor-pointer text-destructive"
+                className="cursor-pointer text-destructive-ink"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('pages.userBackstage.revokeAllAccess')}
@@ -580,7 +580,7 @@ const UserBackstageManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
             {!error && rows.length === 0 && !loading ? (
               <ListEmptyState
                 searchTerm={searchTerm}

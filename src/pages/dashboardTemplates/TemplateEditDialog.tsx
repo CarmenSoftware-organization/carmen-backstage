@@ -148,7 +148,7 @@ export default function TemplateEditDialog({
 
         <div className="space-y-4">
           {error && (
-            <div role="alert" className="rounded-md bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+            <div role="alert" className="rounded-md bg-destructive/10 px-3 py-2.5 text-sm text-destructive-ink">
               {error}
             </div>
           )}

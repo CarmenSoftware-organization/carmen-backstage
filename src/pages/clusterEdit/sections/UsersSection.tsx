@@ -253,7 +253,7 @@ export function UsersSection({
                            the abnormal) has to hold for actions too. The red arrives on hover
                            and focus, right before the click that needs the warning, and the
                            confirm dialog is still the thing that actually guards it. */
-                        <Button variant="ghost" size="icon" className={`text-muted-foreground hover:text-destructive focus-visible:text-destructive h-7 w-7 ${HIT_SLOP_44}`}
+                        <Button variant="ghost" size="icon" className={`text-muted-foreground hover:text-destructive-ink focus-visible:text-destructive-ink h-7 w-7 ${HIT_SLOP_44}`}
                           aria-label={t('pages.clusters.removeUserAria', { name: displayName(u) })} onClick={() => setConfirmRemoveOne(u)}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>

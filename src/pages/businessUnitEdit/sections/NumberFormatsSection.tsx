@@ -47,7 +47,7 @@ const FormatField: React.FC<{
       )}
       <p
         id={`${id}-preview`}
-        className={invalid ? 'text-destructive text-xs' : 'text-muted-foreground text-xs'}
+        className={invalid ? 'text-destructive-ink text-xs' : 'text-muted-foreground text-xs'}
         // Announce a format that went from valid to broken while the field is being typed in.
         aria-live="polite"
       >

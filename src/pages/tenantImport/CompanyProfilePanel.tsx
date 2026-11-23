@@ -350,7 +350,7 @@ export function CompanyProfilePanel({
         </div>
       )}
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-destructive-ink">{error}</p>}
 
       {/*
         IMPORTANT 1 (fix round 2): the BU code is the tenant's identity — it is what the
@@ -363,7 +363,7 @@ export function CompanyProfilePanel({
       */}
       {codeMismatch && (
         <div
-          className="flex items-start gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+          className="flex items-start gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive-ink"
           role="alert"
         >
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -450,7 +450,7 @@ export function CompanyProfilePanel({
       )}
 
       {sheetErrors.length > 0 && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">
+        <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive-ink">
           <p className="font-medium">{t('pages.tenantImport.workbookUnusableValues')}</p>
           <ul className="mt-1 space-y-0.5 text-xs">
             {sheetErrors.map((e) => (

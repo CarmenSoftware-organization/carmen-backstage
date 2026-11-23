@@ -53,7 +53,7 @@ export function CellToolbar({ label, span, cols, onSpan, handle, select, onDelet
           type="button"
           variant="ghost"
           size="icon"
-          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+          className="h-6 w-6 text-muted-foreground hover:text-destructive-ink"
           aria-label={t('components.dialogPreview.editor.deleteCell', { label })}
           onClick={onDelete}
         >

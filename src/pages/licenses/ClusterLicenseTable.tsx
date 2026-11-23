@@ -284,7 +284,7 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
           const used = row.original.bu_used ?? 0;
           // cap 0 = ไม่มีใบคุ้มครอง ไม่ใช่ "ไม่จำกัด" — ห้ามแสดง ∞ ที่นี่เด็ดขาด
           // ต้องดักก่อนถึง CapacityMeter เสมอ เพราะ `finite` แปล cap 0 ว่า "เต็ม" ไม่ใช่ "ไม่มีใบ"
-          if (cap === 0) return <span className="text-xs text-destructive">{t('pages.licenses.noLicence')}</span>;
+          if (cap === 0) return <span className="text-xs text-destructive-ink">{t('pages.licenses.noLicence')}</span>;
           // ใช้มิเตอร์ตัวเดียวกับคอลัมน์ Seats: เดิมคอลัมน์นี้เขียนมิเตอร์เอง จึงไม่มีระดับ warn เลย
           // และระบายสีเฉพาะตอน used > cap — คลัสเตอร์ที่ใช้เต็มพอดี (2/2) หน้าตาเหมือน 2/10 ทุก
           // ประการ ทั้งที่แถบสรุปด้านบนนับมันเป็น "near limit" เลขสีส้มในแถบจึงหาไม่เจอในตาราง
@@ -336,7 +336,7 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
           }
           const soon = left <= thresholds.bu_quota_days;
           return (
-            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning font-medium' : ''}`}>
+            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning-ink font-medium' : ''}`}>
               {t('common.state.daysLeft', { count: left })}
             </span>
           );
@@ -495,7 +495,7 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
       </CardHeader>
 
       <CardContent>
-        {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+        {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
         {!error && (
           loading && clusters.length === 0 ? (

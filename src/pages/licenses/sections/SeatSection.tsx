@@ -290,7 +290,7 @@ function BuGroup({ row, now, nowMs, window, canManage, showExpired, saving, onRe
             <span className="text-muted-foreground font-mono text-xs">{row.bu.code}</span>
 
             {row.failed ? (
-              <span className="text-destructive text-xs">{t('pages.licenses.seatCountUnavailable')}</span>
+              <span className="text-destructive-ink text-xs">{t('pages.licenses.seatCountUnavailable')}</span>
             ) : row.licenses.length === 0 ? (
               <span className="text-muted-foreground text-xs">{t('pages.licenses.seatsNoLicenseInline')}</span>
             ) : (
@@ -311,7 +311,7 @@ function BuGroup({ row, now, nowMs, window, canManage, showExpired, saving, onRe
                   now={nowMs}
                   label={t('pages.licenses.coverageBarLabel', { text: endsText })}
                 />
-                <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning' : 'text-muted-foreground'}`}>
+                <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning-ink' : 'text-muted-foreground'}`}>
                   {endsText}
                 </span>
               </>

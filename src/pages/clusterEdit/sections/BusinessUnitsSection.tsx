@@ -98,7 +98,7 @@ export function BusinessUnitsSection({
         }
       />
       {overLimitCount > 0 && (
-        <p className="px-4 pb-3 text-xs text-destructive">
+        <p className="px-4 pb-3 text-xs text-destructive-ink">
           {t('pages.clusters.overLimitNote', { count: overLimitCount, cap: maxLicenseBu ?? 0 })}
         </p>
       )}

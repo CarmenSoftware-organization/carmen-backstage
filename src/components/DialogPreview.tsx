@@ -42,9 +42,9 @@ export const DialogPreview: React.FC<DialogPreviewProps> = ({ xml, onChange, onD
     return (
       <div className="rounded-md border border-dashed border-destructive/40 bg-destructive/5 p-6">
         <div className="flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 shrink-0 text-destructive" />
+          <AlertCircle className="h-5 w-5 shrink-0 text-destructive-ink" />
           <div>
-            <div className="text-sm font-medium text-destructive">{t('components.dialogPreview.previewUnavailable')}</div>
+            <div className="text-sm font-medium text-destructive-ink">{t('components.dialogPreview.previewUnavailable')}</div>
             <div className="mt-1 text-xs text-muted-foreground">{message}</div>
           </div>
         </div>
@@ -96,7 +96,7 @@ export const DialogPreview: React.FC<DialogPreviewProps> = ({ xml, onChange, onD
         <ul className="space-y-1 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
           {notices.map((text, i) => (
             <li key={i} className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-ink" />
               <span>{text}</span>
             </li>
           ))}

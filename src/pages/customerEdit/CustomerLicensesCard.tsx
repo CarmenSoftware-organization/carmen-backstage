@@ -72,7 +72,7 @@ function BuLicenses({ bu }: { bu: CustomerBusinessUnit }) {
       </div>
 
       {failed ? (
-        <p className="text-xs text-destructive">{t('pages.customers.licensesLoadFailed')}</p>
+        <p className="text-xs text-destructive-ink">{t('pages.customers.licensesLoadFailed')}</p>
       ) : loading ? (
         <p className="text-xs text-muted-foreground" role="status">{t('common.busy.loadingEllipsis')}</p>
       ) : (
@@ -93,7 +93,7 @@ function BuLicenses({ bu }: { bu: CustomerBusinessUnit }) {
               {subs.loading ? (
                 <span className="text-muted-foreground">{t('common.busy.loadingEllipsis')}</span>
               ) : subs.failed ? (
-                <span className="text-destructive">{t('pages.customers.licensesLoadFailed')}</span>
+                <span className="text-destructive-ink">{t('pages.customers.licensesLoadFailed')}</span>
               ) : subs.items.length === 0 ? (
                 <span className="text-muted-foreground">{t('pages.customers.licenseNoSubscriptions')}</span>
               ) : (

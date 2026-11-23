@@ -89,8 +89,8 @@ const KindCell: React.FC<{ row: StorageUsageListItem; kind: StorageKind; usedOnl
         {formatBytes(usage.quota_bytes)}{' '}
         <span
           className={cn(
-            tone === 'over' && 'text-destructive font-semibold',
-            tone === 'near' && 'text-warning font-semibold',
+            tone === 'over' && 'text-destructive-ink font-semibold',
+            tone === 'near' && 'text-warning-ink font-semibold',
           )}
         >
           {pct.toFixed(1)}%
@@ -339,7 +339,7 @@ const StorageUsageList: React.FC = () => {
       key: 'near',
       label: t('pages.storageQuota.sumNear'),
       value: loading ? undefined : counts.near,
-      color: counts.near ? 'text-warning' : 'text-muted-foreground',
+      color: counts.near ? 'text-warning-ink' : 'text-muted-foreground',
       onClick: () => toggle('near'),
       active: filter === 'near',
     },
@@ -347,7 +347,7 @@ const StorageUsageList: React.FC = () => {
       key: 'over',
       label: t('pages.storageQuota.sumOver'),
       value: loading ? undefined : counts.over,
-      color: counts.over ? 'text-destructive' : 'text-muted-foreground',
+      color: counts.over ? 'text-destructive-ink' : 'text-muted-foreground',
       onClick: () => toggle('over'),
       active: filter === 'over',
     },
@@ -355,7 +355,7 @@ const StorageUsageList: React.FC = () => {
       key: 'blocked',
       label: t('pages.storageQuota.sumBlocked'),
       value: loading ? undefined : counts.blocked,
-      color: counts.blocked ? 'text-destructive' : 'text-muted-foreground',
+      color: counts.blocked ? 'text-destructive-ink' : 'text-muted-foreground',
       onClick: () => toggle('blocked'),
       active: filter === 'blocked',
     },

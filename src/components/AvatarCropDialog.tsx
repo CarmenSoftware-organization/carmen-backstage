@@ -164,7 +164,7 @@ export function AvatarCropDialog({ file, label, outputSize, onCancel, onConfirm 
               </div>
             )}
             {failed && (
-              <p className="text-destructive absolute inset-0 grid place-items-center p-4 text-center text-sm">
+              <p className="text-destructive-ink absolute inset-0 grid place-items-center p-4 text-center text-sm">
                 {t('common.upload.cropLoadFailed')}
               </p>
             )}

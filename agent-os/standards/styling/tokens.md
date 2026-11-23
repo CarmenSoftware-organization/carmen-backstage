@@ -28,7 +28,7 @@ Alpha goes in the same expression: `hsl(var(--muted-foreground) / 0.4)`.
 
 `--primary` is the single blue accent; `--accent` is a **neutral warm surface**, not a brand
 hue — reach for `--primary` when you mean "the accent colour". `--success` / `--warning` /
-`--info` carry status meaning. `--chart-1` / `--chart-2` exist so a chart series never borrows
+`--info` carry status meaning. As **text or an icon**, a status colour is `text-destructive-ink` / `text-warning-ink` / `text-success-ink`, never the bare fill class: the fills fail as text (light amber 3.08:1, dark red 2.96:1), the `-ink` tokens clear 4.75:1 on every surface and tint in both themes. `bg-*` / `border-*` keep the fill. `--chart-1` / `--chart-2` exist so a chart series never borrows
 a status colour (see `dark-mode.md`).
 
 `--zebra-*`, `--shadow-*` and `--bu-chip-*` are consumed by raw CSS in `index.css`, not by

@@ -596,7 +596,7 @@ const UserEdit: React.FC = () => {
           </>
         )}
 
-        {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+        {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
         {editing && (
           <Card>
@@ -634,7 +634,7 @@ const UserEdit: React.FC = () => {
                           required
                         />
                         {fieldErrors.username ? (
-                          <p className="text-xs text-destructive">{fieldErrors.username}</p>
+                          <p className="text-xs text-destructive-ink">{fieldErrors.username}</p>
                         ) : (
                           /* username ถูก disable ทันทีที่บัญชีมีอยู่จริง — บอกล่วงหน้าตอนที่ยังแก้ได้ */
                           <p className="text-xs text-muted-foreground">{t('pages.users.usernameLocked')}</p>
@@ -662,7 +662,7 @@ const UserEdit: React.FC = () => {
                           required
                         />
                         {fieldErrors.email && (
-                          <p className="text-xs text-destructive">{fieldErrors.email}</p>
+                          <p className="text-xs text-destructive-ink">{fieldErrors.email}</p>
                         )}
                       </>
                     ) : (
@@ -697,7 +697,7 @@ const UserEdit: React.FC = () => {
                           required
                         />
                         {fieldErrors.firstname && (
-                          <p className="text-xs text-destructive">{fieldErrors.firstname}</p>
+                          <p className="text-xs text-destructive-ink">{fieldErrors.firstname}</p>
                         )}
                       </>
                     ) : (
@@ -738,7 +738,7 @@ const UserEdit: React.FC = () => {
                           required
                         />
                         {fieldErrors.lastname && (
-                          <p className="text-xs text-destructive">{fieldErrors.lastname}</p>
+                          <p className="text-xs text-destructive-ink">{fieldErrors.lastname}</p>
                         )}
                       </>
                     ) : (
@@ -763,7 +763,7 @@ const UserEdit: React.FC = () => {
                         className={fieldErrors.alias_name ? 'border-destructive' : ''}
                       />
                       {fieldErrors.alias_name ? (
-                        <p className="text-xs text-destructive">{fieldErrors.alias_name}</p>
+                        <p className="text-xs text-destructive-ink">{fieldErrors.alias_name}</p>
                       ) : (
                         <p className="text-xs text-muted-foreground">{t('pages.users.aliasHint')}</p>
                       )}
@@ -941,7 +941,7 @@ const UserEdit: React.FC = () => {
           </DialogHeader>
           <form onSubmit={handleResetPassword} className="space-y-4">
             {passwordError && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{passwordError}</div>
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md">{passwordError}</div>
             )}
             <div className="space-y-2">
               <Label htmlFor="newPassword">{t('pages.users.newPasswordLabel')}</Label>

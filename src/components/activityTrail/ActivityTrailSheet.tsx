@@ -203,7 +203,7 @@ export const ActivityTrailSheet: React.FC<ActivityTrailSheetProps> = ({
           <div className="mt-4 space-y-4">
             {/* error แสดงในแผ่นเอง ไม่ใช่ toast — แผ่นนี้มีที่แสดงของตัวเองอยู่แล้ว */}
             {trail.error && (
-              <p className="text-destructive text-sm">
+              <p className="text-destructive-ink text-sm">
                 {t('pages.activityTrail.loadError')} — {trail.error}
               </p>
             )}

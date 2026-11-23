@@ -108,7 +108,7 @@ export function SubscriptionCreateForm({
               invalid={!!fieldErrors.cluster_id}
               placeholder={t('common.state.selectACluster')}
             />
-            {fieldErrors.cluster_id && <p className="text-destructive text-xs">{fieldErrors.cluster_id}</p>}
+            {fieldErrors.cluster_id && <p className="text-destructive-ink text-xs">{fieldErrors.cluster_id}</p>}
           </div>
 
           <div className="w-full space-y-2 sm:w-72">
@@ -136,12 +136,12 @@ export function SubscriptionCreateForm({
               ))}
             </select>
             {fieldErrors.business_unit_id && (
-              <p className="text-destructive text-xs">{fieldErrors.business_unit_id}</p>
+              <p className="text-destructive-ink text-xs">{fieldErrors.business_unit_id}</p>
             )}
             {/* A cluster with no BU cannot be issued a contract at all — said here, rather than
                 letting the user press Create and meet a 400 with no idea what it objected to. */}
             {formData.cluster_id && !clusterBusLoading && clusterBus.length === 0 && (
-              <p className="text-destructive text-xs" role="alert">
+              <p className="text-destructive-ink text-xs" role="alert">
                 {t('pages.subscriptions.clusterHasNoBu')}
               </p>
             )}
@@ -171,7 +171,7 @@ export function SubscriptionCreateForm({
               aria-invalid={!!fieldErrors.start_date}
               className={fieldErrors.start_date ? 'border-destructive' : ''}
             />
-            {fieldErrors.start_date && <p className="text-destructive text-xs">{fieldErrors.start_date}</p>}
+            {fieldErrors.start_date && <p className="text-destructive-ink text-xs">{fieldErrors.start_date}</p>}
           </div>
 
           <div className="w-44 space-y-2">
@@ -187,7 +187,7 @@ export function SubscriptionCreateForm({
               aria-invalid={!!fieldErrors.end_date}
               className={fieldErrors.end_date ? 'border-destructive' : ''}
             />
-            {fieldErrors.end_date && <p className="text-destructive text-xs">{fieldErrors.end_date}</p>}
+            {fieldErrors.end_date && <p className="text-destructive-ink text-xs">{fieldErrors.end_date}</p>}
           </div>
 
           {aiCreditOn && (
@@ -208,7 +208,7 @@ export function SubscriptionCreateForm({
               className={fieldErrors.ai_credits_per_month ? 'border-destructive' : ''}
             />
             {fieldErrors.ai_credits_per_month && (
-              <p className="text-destructive text-xs">{fieldErrors.ai_credits_per_month}</p>
+              <p className="text-destructive-ink text-xs">{fieldErrors.ai_credits_per_month}</p>
             )}
           </div>
           )}

@@ -364,7 +364,7 @@ export function PropertyPanel({ xml, parsed, focusKey, onApply, onUngroup, onClo
               type="button"
               variant="ghost"
               size="sm"
-              className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive"
+              className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive-ink"
               aria-label={t('components.dialogPreview.panel.deleteAria', { label: title })}
               onClick={() => focusKey && onDelete(focusKey)}
             >

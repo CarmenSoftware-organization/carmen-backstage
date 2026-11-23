@@ -96,7 +96,7 @@ export const UserPicker: React.FC<UserPickerProps> = ({
           <button
             type="button"
             onClick={clearSelection}
-            className="shrink-0 rounded hover:text-destructive"
+            className="shrink-0 rounded hover:text-destructive-ink"
             aria-label={t('components.userPicker.clearSelectedAria', { name: value.name })}
           >
             <X className="h-4 w-4" />
