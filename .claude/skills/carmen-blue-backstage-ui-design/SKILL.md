@@ -1,5 +1,5 @@
 ---
-name: carmen-blue-ui-design
+name: carmen-blue-backstage-ui-design
 description: Use when laying out or adjusting a carmen-backstage screen (Edit page / Management list / Config cards / Dashboard / shell bars) so it fills the screen width, stays compact, and is correct at all 5 screen sizes (mobile, tablet, 1366, Full HD, 4K) — or when the user says a page is "empty", "stretched", "not compact", "has blank space left and right", "text overlaps", "overflows" (Thai: "โล่ง" "ยืด" "ไม่ compact" "มีที่ว่างซ้ายขวา" "ข้อความทับกัน" "ล้น")
 ---
 

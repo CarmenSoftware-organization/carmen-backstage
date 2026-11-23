@@ -204,7 +204,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <Layout>
-      {/* Full width of the shell (carmen-blue-ui-design rule 1): the rail sits at the right
+      {/* Full width of the shell (carmen-blue-backstage-ui-design rule 1): the rail sits at the right
           edge, so the header's Refresh lands over the rail it refreshes. */}
       <div className="space-y-6">
         <PageHeader
