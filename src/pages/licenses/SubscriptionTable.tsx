@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useGlobalShortcuts } from '../../components/KeyboardShortcuts';
 import { useNavigate, Link } from 'react-router-dom';
+import { useHandoffParam } from '../../hooks/useHandoffParam';
 import Layout from '../../components/Layout';
 import { PageHeader } from '../../components/PageHeader';
 import subscriptionService from '../../services/subscriptionService';
@@ -118,11 +119,16 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState('');
 
-  const storedSearch = localStorage.getItem('search_subscriptions') || '';
-  const storedStates = getStoredJSON<SubscriptionState[]>('filters_subscription_state', []);
-  const storedExpiringSoon = getStoredJSON<boolean>('filter_subscription_expiring_soon', false);
-  const storedCluster = localStorage.getItem('filter_subscription_cluster') || '';
-  const storedPage = Number(localStorage.getItem('page_subscriptions')) || 1;
+  // `?filter=expiring|expired` from the Dashboard attention band: show exactly the set its count
+  // described — so it also drops a stored search and cluster filter that would hide part of it.
+  const handoffRaw = useHandoffParam('filter');
+  const handoff = handoffRaw === 'expiring' || handoffRaw === 'expired' ? handoffRaw : null;
+  const storedSearch = handoff ? '' : localStorage.getItem('search_subscriptions') || '';
+  const storedStates: SubscriptionState[] =
+    handoff === 'expired' ? ['expired'] : handoff === 'expiring' ? [] : getStoredJSON<SubscriptionState[]>('filters_subscription_state', []);
+  const storedExpiringSoon = handoff ? handoff === 'expiring' : getStoredJSON<boolean>('filter_subscription_expiring_soon', false);
+  const storedCluster = handoff ? '' : localStorage.getItem('filter_subscription_cluster') || '';
+  const storedPage = handoff ? 1 : Number(localStorage.getItem('page_subscriptions')) || 1;
   const storedSort = withTiebreaker(localStorage.getItem('sort_subscriptions') || '');
 
   const [searchTerm, setSearchTerm] = useState(storedSearch);
@@ -162,6 +168,18 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
 
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Persist a handed-off filter the way a click would, so a reload keeps showing the same set.
+  useEffect(() => {
+    if (!handoff) return;
+    localStorage.setItem('search_subscriptions', '');
+    localStorage.setItem('filters_subscription_state', JSON.stringify(storedStates));
+    localStorage.setItem('filter_subscription_expiring_soon', JSON.stringify(storedExpiringSoon));
+    localStorage.setItem('filter_subscription_cluster', '');
+    localStorage.setItem('page_subscriptions', '1');
+    // once, on arrival
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useGlobalShortcuts({
     onSearch: () => searchInputRef.current?.focus(),

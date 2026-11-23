@@ -14,6 +14,15 @@ vi.mock('../components/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+// No permissions: the attention band's sources stay gated off, so these tests exercise the
+// stream and rail alone (and never fire a summary request a real user without access would 401 on).
+vi.mock('../context/AuthContext', () => ({
+  useAuth: () => ({ hasPermission: () => false }),
+}));
+vi.mock('../context/FeatureFlagContext', () => ({
+  useFeatureFlags: () => ({ flagOf: () => 'active', isReady: true }),
+}));
+
 // Each service's getAll serves both the counts loader (reads paginate.total) and
 // the activity fetch (reads .data). Factories are fully self-contained — vi.mock
 // is hoisted above module scope, so they can't reference outer variables.
@@ -86,10 +95,11 @@ describe('Dashboard', () => {
     expect(link).toHaveAttribute('href', '/clusters/c1/edit');
   });
 
-  it('shows the counts rail with governed total and per-domain counts', async () => {
+  it('shows the counts rail with per-domain counts', async () => {
     renderPage();
-    expect(await screen.findByText('records governed')).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText('18')).toBeInTheDocument()); // 6 domains × total 3
+    // every domain mock reports total 3 and the same 3 as active
+    await waitFor(() => expect(screen.getAllByLabelText('3 active of 3').length).toBe(5));
+    expect(screen.getByLabelText('3 published of 3')).toBeInTheDocument();
   });
 
   it('filters the stream by domain', async () => {
@@ -105,10 +115,12 @@ describe('Dashboard', () => {
     // Fails one of the six domain fetches feeding CountsRail. Before the fix, the
     // per-domain catch in Dashboard.tsx's load() was empty — the rail would sit
     // silently at "—" forever with no alert and no way to recover.
+    // The same rejection also fails the clusters slice of the activity stream, so both the
+    // rail and the stream raise their own alert — each names the gap it can't fill.
     asMock(clusterService.getAll).mockRejectedValue(new Error('boom'));
     renderPage();
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /retry|try again/i })).toBeInTheDocument();
+    expect((await screen.findAllByRole('alert')).length).toBe(2);
+    expect(screen.getAllByRole('button', { name: /retry|try again/i }).length).toBe(2);
   });
 
   it('clears the counts error on a successful retry', async () => {
@@ -119,9 +131,9 @@ describe('Dashboard', () => {
     asMock(clusterService.getAll).mockResolvedValue(CLUSTER_OK);
     await user.click(retry);
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
-    // All 6 domains healthy again → full governed total (6 × 3), proving recovery
-    // isn't just "error cleared" but the clusters domain's real data came back.
-    await waitFor(() => expect(screen.getByText('18')).toBeInTheDocument());
+    // All 6 domains healthy again, proving recovery isn't just "error cleared" but the
+    // clusters domain's real data came back.
+    await waitFor(() => expect(screen.getAllByLabelText('3 active of 3').length).toBe(5));
   });
 
   it('renders the activity verb as quiet meta text, not a Badge that out-shouts the name', async () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useGlobalShortcuts } from '../components/KeyboardShortcuts';
 import { Link } from 'react-router-dom';
+import { useHandoffParam } from '../hooks/useHandoffParam';
 import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
 import licenseIntakeService from '../services/licenseIntakeService';
@@ -98,10 +99,21 @@ const LicenseIntakeManagement: React.FC = () => {
   const [summaryError, setSummaryError] = useState('');
   const [rawResponse, setRawResponse] = useState<unknown>(null);
 
-  const storedSearch = localStorage.getItem('search_license_intakes') || '';
-  const storedStatusRaw = localStorage.getItem('status_license_intakes');
+  // `?filter=<status>` from the Dashboard attention band — show the set its count described.
+  const handoffRaw = useHandoffParam('filter');
+  const handoff = isStatusFilter(handoffRaw) ? handoffRaw : null;
+  const storedSearch = handoff ? '' : localStorage.getItem('search_license_intakes') || '';
+  const storedStatusRaw = handoff ?? localStorage.getItem('status_license_intakes');
   const storedStatus: StatusFilter = isStatusFilter(storedStatusRaw) ? storedStatusRaw : 'pending';
-  const storedPage = Number(localStorage.getItem('page_license_intakes')) || 1;
+  const storedPage = handoff ? 1 : Number(localStorage.getItem('page_license_intakes')) || 1;
+  useEffect(() => {
+    if (!handoff) return;
+    localStorage.setItem('search_license_intakes', '');
+    localStorage.setItem('status_license_intakes', handoff);
+    localStorage.setItem('page_license_intakes', '1');
+    // once, on arrival
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const storedSort = localStorage.getItem('sort_license_intakes') || 'created_at:desc';
 
   const [searchTerm, setSearchTerm] = useState(storedSearch);

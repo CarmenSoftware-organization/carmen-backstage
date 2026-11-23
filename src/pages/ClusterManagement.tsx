@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useGlobalShortcuts } from '../components/KeyboardShortcuts';
 import { useNavigate, Link } from 'react-router-dom';
+import { useHandoffParam } from '../hooks/useHandoffParam';
 import Layout from '../components/Layout';
 import { PageHeader } from '../components/PageHeader';
 import clusterService from '../services/clusterService';
@@ -71,14 +72,29 @@ const ClusterManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const storedSearch = localStorage.getItem('search_clusters') || '';
-  const storedFilters = getStoredJSON<string[]>('filters_clusters', []);
-  const storedPage = Number(localStorage.getItem('page_clusters')) || 1;
+  // `?filter=quota-expiring` from the Dashboard attention band — show the clusters its count
+  // described, without a stored search or status/deleted filter hiding some of them.
+  const handoff = useHandoffParam('filter') === 'quota-expiring';
+  const storedSearch = handoff ? '' : localStorage.getItem('search_clusters') || '';
+  const storedFilters = handoff ? [] : getStoredJSON<string[]>('filters_clusters', []);
+  const storedPage = handoff ? 1 : Number(localStorage.getItem('page_clusters')) || 1;
+  const storedDeleted = handoff ? false : getStoredJSON<boolean>('filter_clusters_deleted', false);
+  const storedQuotaExpiring = handoff || getStoredJSON<boolean>('filter_clusters_quota_expiring', false);
+  useEffect(() => {
+    if (!handoff) return;
+    localStorage.setItem('search_clusters', '');
+    localStorage.setItem('filters_clusters', '[]');
+    localStorage.setItem('page_clusters', '1');
+    localStorage.setItem('filter_clusters_deleted', 'false');
+    localStorage.setItem('filter_clusters_quota_expiring', 'true');
+    // once, on arrival
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const storedSort = localStorage.getItem('sort_clusters') || 'created_at:desc';
 
   const [searchTerm, setSearchTerm] = useState(storedSearch);
   const [statusFilter, setStatusFilter] = useState<string[]>(storedFilters);
-  const [showDeleted, setShowDeleted] = useState<boolean>(getStoredJSON<boolean>('filter_clusters_deleted', false));
+  const [showDeleted, setShowDeleted] = useState<boolean>(storedDeleted);
   const [showFilters, setShowFilters] = useState(false);
   const [rawResponse, setRawResponse] = useState<unknown>(null);
   const [fleet, setFleet] = useState<FleetSummary | null>(null);
@@ -109,19 +125,13 @@ const ClusterManagement: React.FC = () => {
     perpage: readStoredPerpage("perpage_clusters", 10),
     search: storedSearch,
     sort: storedSort,
-    advance: buildAdvance(
-      storedFilters,
-      getStoredJSON<boolean>('filter_clusters_deleted', false),
-      getStoredJSON<boolean>('filter_clusters_quota_expiring', false),
-    ),
+    advance: buildAdvance(storedFilters, storedDeleted, storedQuotaExpiring),
     filter: {},
   });
 
   // ตัวกรอง "โควตาใกล้หมดอายุ" — persist เหมือนตัวกรองอื่นของหน้านี้ เพื่อให้ผู้ใช้ที่กดไว้แล้ว
   // รีเฟรชหน้ายังเห็นชุดเดิม (pattern เดียวกับ filter_subscription_expiring_soon)
-  const [expiringSoonFilter, setExpiringSoonFilter] = useState<boolean>(
-    getStoredJSON<boolean>('filter_clusters_quota_expiring', false),
-  );
+  const [expiringSoonFilter, setExpiringSoonFilter] = useState<boolean>(storedQuotaExpiring);
 
   const handleExpiringSoonToggle = () => {
     const next = !expiringSoonFilter;
