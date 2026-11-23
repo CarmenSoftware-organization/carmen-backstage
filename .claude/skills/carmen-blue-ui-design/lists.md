@@ -33,7 +33,9 @@ A timeline of rows, each with a name on the left and meta (verb, actor) beside i
 ## Config pages (one card per item)
 
 (`ReportFormGroupManagement`, `EmailSettingManagement`.) A fixed small set — cards, not a table
-(`src/pages/CLAUDE.md` §Configuration Page Pattern). Lay the cards out with
+(`src/pages/CLAUDE.md` §Configuration Page Pattern). The existing pages use
+`grid gap-4 lg:grid-cols-2` — a viewport breakpoint that stays at 2 columns up to 4K. For new
+code, or when one of them looks stretched, use
 `grid-cols-[repeat(auto-fill,minmax(min(100%,<min>),1fr))]`:
 
 - `auto-fill`, not `auto-fit`, when there may be a single card — `auto-fit` stretches it across

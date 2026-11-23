@@ -7,7 +7,8 @@
   borders form one line — do not change one without the other.
 - **Footer** (sticky bottom, opaque): `VersionStamp` left, `FooterClock` right (`ml-auto`), inside
   the same `container` as `<main>`, `flex-wrap` so it drops to two lines on a phone.
-- **Every sticky bar is opaque** (`bg-background`) — no `backdrop-blur` outside `components/ui`.
+- **Every sticky bar is opaque** (`bg-background`) — no `backdrop-blur` outside `components/ui`,
+  with one deliberate exception: `.unsaved-bar` (below).
 
 A bar with two sides pushed apart overlaps when it picks what to show from the screen width.
 When you add something to a shell bar, decide from the bar's own width:
@@ -43,21 +44,39 @@ box is `flex flex-wrap`. What may go there: the Edit toggle (Toggle mode), page-
 
 ## `.unsaved-bar` (Edit pages)
 
-Sticky at the bottom, offset to the sidebar; wrap the page in enough bottom padding (`pb-20` /
-`pb-24`) that the bar never covers the last card. Cancel · Save on the right, `gap-3`.
+Markup: `<div className="unsaved-bar fixed bottom-0 left-0 right-0 md:left-16 lg:left-60 z-40">`
+with the unsaved-changes dot + text on the left and Cancel · Save on the right (`RoleEdit.tsx`).
+The styling lives in `src/index.css` `.unsaved-bar`, outside `@layer`, so it beats the utilities:
+
+- Below 768 it is a full-width bar at the bottom.
+- From 768 it is a **floating pill centred on the viewport** (`left: 50%`, `width: max-content`,
+  `bottom: 1.25rem`, rounded) — the `md:left-16 lg:left-60` classes are overridden, so the bar does
+  not need to know whether the sidebar is collapsed. Do not "fix" those classes; do not add a
+  second offset.
+- It is the one **frosted-glass** surface left (`backdrop-filter`, falls back to opaque without
+  support) — deliberate; do not copy it to other bars.
+- Wrap the page in `pb-24` (Edit pages use `pb-24`; `ReportTemplateEdit` `pb-20`) so the last card
+  is not covered.
 
 ## Search row of a Management page (rule 12)
 
-`SearchInput` → Filter button (opens the filter Sheet) → active-filter badges, together on the
-left. Export / column buttons may sit on the right. The wrapper around the search box must not
-stretch from `md`, or the Filter button drifts to the far right on a wide screen:
+`SearchInput` → Filter button (the `SheetTrigger` of the filter Sheet), together on the left;
+active-filter badges on the line below. Export / Add sit in `PageHeader actions`, not in this row.
+The search box stretches on a phone and stops at `sm:max-w-sm`, so the Filter button stays beside
+it on a wide screen (`ClusterManagement.tsx`):
 
 ```tsx
-<div className="flex w-full flex-wrap items-center gap-2">
-  <div className="flex-1 md:flex-initial md:w-80"><SearchInput … /></div>
-  <Button variant="outline" size="sm" onClick={openFilters}>…</Button>
-  {activeFilterBadges}
-</div>
+<CardHeader className="space-y-3">
+  <div className="flex items-center gap-2">
+    <SearchInput … className="flex-1 sm:max-w-sm" />
+    <Sheet open={showFilters} onOpenChange={setShowFilters}>
+      <SheetTrigger asChild>{/* Filters button + active count */}</SheetTrigger>
+      …
+    </Sheet>
+  </div>
+  {/* active-filter badges */}
+</CardHeader>
 ```
 
-Expected: the `search gap` line of `__vp` is the same at every size from 768 up.
+Expected: the `search gap` line of `__vp` is **8** at every size (`gap-2`) — measured on
+`/clusters` at 390 / 768 / 1366.

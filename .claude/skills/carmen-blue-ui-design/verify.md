@@ -18,7 +18,7 @@ default 9000).
 ```js
 window.__vp = async (W, H, { edit = false, dark = false, collapsed = false, lang, timeout = 9000 } = {}) => {
   const SEL = {
-    skeleton: ".animate-pulse",
+    skeleton: ".animate-pulse.bg-muted",          // ui/skeleton — NOT bare .animate-pulse: the unsaved-bar dot pulses too
     header: "main .sm\\:flex-row:has(h1)",          // PageHeader root
     search: 'main input[placeholder*="Search" i], main input[placeholder*="ค้นหา"]',
     footer: "footer > div",
@@ -81,9 +81,9 @@ window.__vp = async (W, H, { edit = false, dark = false, collapsed = false, lang
   const short = all.filter((e) => getComputedStyle(e).textOverflow === "ellipsis" && e.scrollWidth > e.clientWidth + 1 && e.clientWidth < 48);
   out.push(`trunc-short ${short.length}${short.length ? " " + short.slice(0, 2).map((e) => e.textContent.slice(0, 12)).join(",") : ""}`);
   const tw = d.createTreeWalker(d.body, NodeFilter.SHOW_TEXT);
-  let raw = 0;
-  while (tw.nextNode()) if (/^[a-z][A-Za-z0-9]*(\.[A-Za-z0-9_]+)+$/.test(tw.currentNode.nodeValue.trim())) raw++;
-  out.push(`rawkeys ${raw}`);
+  const raw = [];
+  while (tw.nextNode()) { const v = tw.currentNode.nodeValue.trim(); if (/^[a-z][A-Za-z0-9]*(\.[A-Za-z0-9_]+)+$/.test(v)) raw.push(v); }
+  out.push(`rawkeys ${raw.length}${raw.length ? " " + raw.slice(0, 3).join(",") : ""}`);
 
   // rule 1: the page wrapper against <main>'s content box
   const main = d.querySelector("main");
@@ -138,7 +138,7 @@ res;
 
 Then 1366 / 1920 / 3840 with `{ collapsed: true }` (below `md` the sidebar is a drawer anyway),
 `{ lang: "th" }` at 390 and 1366 at least, `{ dark: true }` at one size, and `{ edit: true }` for
-Toggle-mode Edit pages. Remove the iframe when done: `document.getElementById("__vp")?.remove()`.
+Toggle-mode Edit pages (verified on `RoleEdit`: `edit clicked` at 390 / 1024 / 1366). Remove the iframe when done: `document.getElementById("__vp")?.remove()`.
 
 ## Reading the result
 
@@ -149,17 +149,18 @@ Toggle-mode Edit pages. Remove the iframe when done: `document.getElementById("_
 | `hscroll` | `0` — otherwise the listed box scrolls sideways |
 | `offscreen` | `0` — otherwise something sits past the right edge and the shell hides it |
 | `trunc-short` | `0` — otherwise hide something instead (rule 10) |
-| `rawkeys` | `0` — otherwise a translation key shows raw (or the tab holds old strings: reload) |
+| `rawkeys` | `0`, or every listed hit is **data** — permission / api names (`secret.manage`, `cluster.read`) look like keys and show on Role, Application and licence pages. A hit like `pages.x.title` is a missing translation (or the tab holds old strings: reload) |
 | `main a content b/c` | `b = c` (rule 1). `a` is capped at **1400** from 1920 up — the shell deviation, not your page |
 | `tables i:a/b` | `a ≤ b` for every table |
 | `grids n@w` | the column count you expect at that box width |
-| `header` | `rows 1 fits yes` |
+| `header` | `rows 1 fits yes` · the line is **absent** on pages that draw their own hero instead of `PageHeader` (`RoleIdentityHero`, `UserIdentityHero`, `ClusterPlate`…) — check those header buttons by screenshot |
 | `search gap` | same value at every size from 768 up |
-| `footer` | `scroll` values equal; `lines` 1 from 768 up |
+| `footer` | `scroll` values equal · `lines` 2 at 390 / 768 is fine (it `flex-wrap`s), 1 from 1366 |
 | `edit` | `clicked` — otherwise that run did not test edit mode |
 
-Measured shell numbers (2026-11-23, sidebar expanded): `main` 385 @390 · 523 @768 · 1121 @1366 ·
-1400 @1920 · 1400 @3840; `main` has 16px side padding below `sm`, 24px from `sm`. Re-measure after
+Measured shell numbers (2026-11-23, sidebar expanded — `main` / content box): 385/353 @390 ·
+523/475 @768 · 778/730 @1024 · 1121/1073 @1366 · 1400/1352 @1920 and @3840. Sidebar collapsed at
+1366: 1297/1249. `main` has 16px side padding below `sm`, 24px from `sm`. Re-measure after
 any change to `Layout`, `Sidebar` or `tailwind.config.js` `container`.
 
 Take a screenshot after each size. `zoom` coordinates are screenshot coordinates: the iframe is

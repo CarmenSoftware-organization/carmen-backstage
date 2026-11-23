@@ -10,7 +10,8 @@ that are yours:
 |---|---|---|
 | `tableLayout="fixed"` (default) | equal-width columns | many columns of similar length |
 | `tableLayout="auto"` | columns size to content | a Name column that must not truncate; few short columns |
-| `stickyLeftColumns` 2 / 3 / 4 | freezes index + primary (+ code / avatar) on horizontal scroll | wide tables |
+| `stickyLeftColumns` 2 / 3 / 4 | the first two columns are always frozen; 3 / 4 also freeze the columns after them (cluster Code + Name, user select + avatar) | wide tables |
+| `stickyRightColumn` | the last column is frozen only when its `id` is `'actions'` (automatic); pass it to force on/off | action column with another id |
 | `mobileCards` + column `meta: { card: … }` | one card per row below `mobileBreakpoint` | default on — give every column a card role |
 | `mobileBreakpoint` | **viewport** media query, default `(min-width: 1024px)` | known deviation from rule 3 — see below |
 
@@ -29,7 +30,7 @@ not copy).
 
 ### `mobileBreakpoint` is a viewport query
 
-At 1024 with the sidebar expanded the table box is ~720px, at 1366 ~1070px. A table that needs
+At 1024 with the sidebar expanded the page content box is 730px (1073 at 1366; less a Card's padding for the table). A table that needs
 900px still renders as a table at 1024 and scrolls sideways. Either raise `mobileBreakpoint` for
 that page (e.g. `(min-width: 1280px)`) or hide secondary columns through `columnVisibility`.
 Measure the `tables` line of `__vp` at 1024 **and** 1180 with the sidebar expanded, not just at the
@@ -54,8 +55,12 @@ title={…}>` (`max-w-0` stops the cell pushing the table wider), header `min-w-
 
 ## Gotchas
 
-- **A frozen column must be opaque** — `bg-card` on sticky cells, or scrolled cells show through
-  (frozen-column CSS contract: `agent-os/standards/styling/`).
+- **A frozen column needs the surface it sits on** — `DataTable` defaults `--sticky-right-bg` to
+  `--background`; a hand-written table inside a Card must pass `[--sticky-right-bg:var(--card)]`, or
+  a grey stripe runs down the frozen column in both themes
+  (`agent-os/standards/styling/table-sticky-columns.md`).
+- **Never freeze a data column on the right** (Status, Period) — only a real action column; a
+  hand-written `table-sticky-right` must be gated on the same condition that renders that column.
 - **`shrink-0` hides overflow until labels grow** — a row of `shrink-0` buttons fits in English and
   is clipped in Thai; `scrollWidth` does not catch it. Measure with `lang` = `th`.
 - **Do not use an empty trailing column to absorb width** — make a real column take the rest.

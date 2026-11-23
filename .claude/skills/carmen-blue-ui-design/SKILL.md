@@ -67,7 +67,7 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
    and the `ReadOnlyText` snippet in `src/pages/CLAUDE.md` §Form Field Pattern draw a bordered box.
    Do not convert pages wholesale; ask the user which one wins before changing an Edit page's view mode.
 8. **Pattern settings show the result first** — `2026-11-12` is the main value, `yyyy-MM-dd` the
-   secondary line (BU Edit Formats tab).
+   secondary line (live preview: BU Edit `sections/NumberFormatsSection.tsx` + `numberFormatPreview.ts`).
 9. **Help text under a field only when it adds something** — text that merely repeats the label is
    removed.
 10. **Text must never overflow or overlap at any screen size** — when there is no room, hide the
@@ -89,7 +89,7 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
 | Way back when the page draws its own hero | `components/BackLink.tsx` | never both with `PageHeader backTo` |
 | Section tabs | `components/TabStrip.tsx` | `count`, `hasError` per tab |
 | Card | `components/ui/card.tsx` | flat `bg-card` + 1px border |
-| Table | `components/ui/data-table.tsx` | `tableLayout`, `mobileCards` + `meta.card` hints, `stickyLeftColumns`, `serverSide` |
+| Table | `components/ui/data-table.tsx` | `tableLayout`, `mobileCards` + `meta.card` (`title` / `badge` / `hidden` / `actions`), `stickyLeftColumns`, `stickyRightColumn`, `serverSide` |
 | Search box | `components/SearchInput.tsx` | do not hand-roll a search input |
 | Empty / error | `EmptyState`, `ListEmptyState`, `FetchErrorState` | |
 | Loading | `TableSkeleton`, `ui/skeleton` | skeleton = same structure as the real page |

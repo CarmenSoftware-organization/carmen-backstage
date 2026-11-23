@@ -5,7 +5,7 @@ Structure (which cards, which state, which mode) comes from `src/pages/CLAUDE.md
 
 ```tsx
 <Layout>
-  <div className="space-y-4 sm:space-y-6">           {/* no max-w — rule 1 */}
+  <div className="space-y-4 sm:space-y-6 pb-24">      {/* no max-w — rule 1 · pb-24 clears the unsaved bar */}
     <PageHeader backTo="/items" title={…} afterTitle={<Badge …/>} actions={/* Edit toggle */} />
     <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">   {/* paired cards, same height */}
       <Card>…</Card>
@@ -13,7 +13,11 @@ Structure (which cards, which state, which mode) comes from `src/pages/CLAUDE.md
     </div>
     <Card>{/* wide section */}</Card>
   </div>
-  {hasChanges && <div className="unsaved-bar">…Cancel · Save…</div>}
+  {editing && (   /* Toggle mode: shown while editing, not only when dirty — see RoleEdit.tsx */
+    <div className="unsaved-bar fixed bottom-0 left-0 right-0 md:left-16 lg:left-60 z-40">
+      {/* left: unsaved-changes dot + text · right: Cancel · Save */}
+    </div>
+  )}
 </Layout>
 ```
 
@@ -27,7 +31,8 @@ Structure (which cards, which state, which mode) comes from `src/pages/CLAUDE.md
 | Button gaps | `gap-3` |
 | Fields inside a card | `grid gap-4 @md:grid-cols-2 @3xl:grid-cols-3` under an `@container` card body — **new code**; existing pages use `sm:grid-cols-2` / `lg:grid-cols-2` |
 | Field that needs width (textarea, long name) | `@md:col-span-2` — not `col-span-full` |
-| Paired cards | `lg:grid-cols-2` (viewport — known deviation, rule 3). No `items-start` |
+| Paired cards | `grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2` (viewport — known deviation, rule 3). No `items-start` |
+| Form + side rail in edit mode | `lg:grid-cols-[1fr_minmax(300px,340px)]` (`RoleEdit`) |
 | Error under a field | `text-xs text-destructive`, input gets `border-destructive` |
 
 ## Pairing
