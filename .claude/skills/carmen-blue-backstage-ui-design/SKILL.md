@@ -37,10 +37,13 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
 
 1. **Full width of the shell at every size** — no `max-w-*` around page content, no empty column at
    the side. The only acceptable blank space is the shell gutter and internal gaps. Page width comes
-   **only** from `Layout`'s `<main className="container mx-auto px-4 sm:px-6">`.
-   *Known deviation (shell):* Tailwind's `container` is capped at **1400px** (`tailwind.config.js`
-   `screens["2xl"]`), so at 1920 and 3840 every page is 1400 wide and centred. Changing it moves
-   every page in the app — ask the user first; do not work around it per page.
+   **only** from `Layout`'s `<main className="w-full px-4 sm:px-6">`.
+   *User decision 2026-11-23:* the shell's old `container` cap (1400px) is removed — every page is
+   as wide as the space beside the sidebar. A page that looks stretched fixes its **rows** (more
+   columns, a capped name column — rule 2); it never gets a page-level `max-w` back.
+   Pages measured breaking rule 2 at 1920 right after the cap came off (fix one at a time):
+   `/backstage/features` (name left, state toggle ~1300px right), `/backstage/migrations`,
+   `/license-features`, `/backstage/email-settings` (panel headers), `/dashboard-templates`.
    *Known deviations (pages):* `ClusterEdit` and `UserEdit` cap the **new** form at
    `mx-auto max-w-5xl`; `clusterAdmin/BusinessUnitForm` caps its save bar the same way;
    `Changelog` is `max-w-3xl` (a reading page). Leave them unless asked.
@@ -53,19 +56,20 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
    `localStorage["sidebar-collapsed"]`), so always check both sidebar states.
    *Known deviations:* `DataTable`'s `mobileBreakpoint` is a media query (default
    `(min-width: 1024px)`); Edit pages' `lg:grid-cols-2` is a viewport breakpoint. Do not copy
-   either into new code. Most of `src/pages` still uses viewport breakpoints — move a piece to a
-   container query when you touch it and it misbehaves, not as a sweep.
+   either into new code. Most of `src/pages` still uses viewport breakpoints — *user decision
+   2026-11-23:* move a piece to a container query when you touch it and it misbehaves, not as a
+   sweep.
 4. **Sections that form a pair sit side by side on wide screens; below that they stack.** Cards in
    the same row must be the **same height** — no `items-start` on a grid of cards (see `forms.md`).
 5. **Compact** — spacing must not take more room than the content. Standard values are in
    root `CLAUDE.md` §Styling Reference and `forms.md`; do not go larger without a reason.
-6. **No cross-section side navigation** on new pages. *Known deviation:* `ClusterEdit` has a
-   scrollspy (a deliberate, documented Edit-in-place design — `src/pages/CLAUDE.md`). Ask before
-   removing it.
+6. **No cross-section side navigation** on new pages. *Confirmed exception (user decision
+   2026-11-23):* `ClusterEdit`'s scrollspy (`clusterEdit/useScrollSpy.ts`) stays — do not remove
+   it, and do not copy it to another page.
 7. **View mode does not box its values** — muted label + strong value. Borders are only for fields
-   that can actually be edited. *Conflict to know about:* `ReadOnlyField` (`components/ReadOnlyField.tsx`)
-   and the `ReadOnlyText` snippet in `src/pages/CLAUDE.md` §Form Field Pattern draw a bordered box.
-   Do not convert pages wholesale; ask the user which one wins before changing an Edit page's view mode.
+   that can actually be edited. *User decision 2026-11-23:* this rule wins over the old bordered
+   `ReadOnlyField` / `ReadOnlyText` box; `src/pages/CLAUDE.md` §Form Field Pattern now shows the
+   unboxed form. Convert a page's view mode when you change that page anyway — no sweep.
 8. **Pattern settings show the result first** — `2026-11-12` is the main value, `yyyy-MM-dd` the
    secondary line (live preview: BU Edit `sections/NumberFormatsSection.tsx` + `numberFormatPreview.ts`).
 9. **Help text under a field only when it adds something** — text that merely repeats the label is

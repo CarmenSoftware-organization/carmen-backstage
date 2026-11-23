@@ -49,6 +49,9 @@ code, or when one of them looks stretched, use
 
 ## Settings list "label left, value right, full row"
 
+(`/backstage/features`, `/license-features`, `/backstage/migrations` — all broke this once the
+shell cap came off.)
+
 Breaks rule 2 on a wide screen (the value ends up 1000px from its label). Make each item a grid
 cell — label on top, value or control below, description under it only if it adds something
 (rule 9). Name and number of a summary stay together on the left

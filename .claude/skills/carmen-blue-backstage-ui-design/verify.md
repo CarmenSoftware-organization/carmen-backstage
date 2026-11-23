@@ -150,7 +150,7 @@ Toggle-mode Edit pages (verified on `RoleEdit`: `edit clicked` at 390 / 1024 / 1
 | `offscreen` | `0` — otherwise something sits past the right edge and the shell hides it |
 | `trunc-short` | `0` — otherwise hide something instead (rule 10) |
 | `rawkeys` | `0`, or every listed hit is **data** — permission / api names (`secret.manage`, `cluster.read`) look like keys and show on Role, Application and licence pages. A hit like `pages.x.title` is a missing translation (or the tab holds old strings: reload) |
-| `main a content b/c` | `b = c` (rule 1). `a` is capped at **1400** from 1920 up — the shell deviation, not your page |
+| `main a content b/c` | `b = c` (rule 1). `a` = screen − sidebar − scrollbar (no cap since 2026-11-23) |
 | `tables i:a/b` | `a ≤ b` for every table |
 | `grids n@w` | the column count you expect at that box width |
 | `header` | `rows 1 fits yes` · the line is **absent** on pages that draw their own hero instead of `PageHeader` (`RoleIdentityHero`, `UserIdentityHero`, `ClusterPlate`…) — check those header buttons by screenshot |
@@ -159,8 +159,8 @@ Toggle-mode Edit pages (verified on `RoleEdit`: `edit clicked` at 390 / 1024 / 1
 | `edit` | `clicked` — otherwise that run did not test edit mode |
 
 Measured shell numbers (2026-11-23, sidebar expanded — `main` / content box): 385/353 @390 ·
-523/475 @768 · 778/730 @1024 · 1121/1073 @1366 · 1400/1352 @1920 and @3840. Sidebar collapsed at
-1366: 1297/1249. `main` has 16px side padding below `sm`, 24px from `sm`. Re-measure after
+523/475 @768 · 778/730 @1024 · 1121/1073 @1366 · ~1675/1627 @1920 (after the cap came off; it was
+1400/1352 before). Sidebar collapsed at 1366: 1297/1249. 3840 not re-measured since the cap change. `main` has 16px side padding below `sm`, 24px from `sm`. Re-measure after
 any change to `Layout`, `Sidebar` or `tailwind.config.js` `container`.
 
 Take a screenshot after each size. `zoom` coordinates are screenshot coordinates: the iframe is

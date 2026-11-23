@@ -22,7 +22,7 @@ that are yours:
 
 ### Few short columns on a wide screen (rule 2)
 
-With `tableLayout="fixed"` four short columns on a 1400px box end up ~330px apart. Use
+With `tableLayout="fixed"` four short columns on a 1600px box end up ~400px apart. Use
 `tableLayout="auto"` and let one column take the rest: the long-text column (description, note)
 when there is one, otherwise the last data column. Truncate long text with `block truncate` +
 `title`, not a fixed `max-w-[…]` (several existing cells use `max-w-[220px]` — fine to leave, do

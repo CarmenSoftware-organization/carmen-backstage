@@ -38,15 +38,18 @@ Multiple enums: build a `where` object with `{ in: [...] }`, JSON.stringify only
 
 ## Form Field Pattern
 
-Every field must render two modes — edit (Input/Select/checkbox) and read-only (styled div). Reference: `src/pages/ClusterEdit.tsx`.
+Every field must render two modes — edit (Input/Select/checkbox) and read-only. Reference: `src/pages/ClusterEdit.tsx`.
+
+**Read-only values are not boxed** (user decision 2026-11-23, `carmen-blue-backstage-ui-design` rule 7): a muted label + a strong value, no border, no `bg-muted` — borders mean "you can type here". Write new read-only fields like this:
 
 ```tsx
-const ReadOnlyText = ({ value }: { value: string }) => (
-  <div className="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 py-1 text-sm items-center">
-    {value || '-'}
-  </div>
-);
+<div className="space-y-0.5">
+  <div className="text-muted-foreground text-xs">{label}</div>
+  <div className="text-sm font-medium">{value || <span className="text-muted-foreground/60">—</span>}</div>
+</div>
 ```
+
+`ReadOnlyField` (`components/ReadOnlyField.tsx`) and the page-local `ReadOnlyText` copies still draw the old bordered `bg-muted/50` box. **Do not sweep them** — convert a page's view mode when you are changing that page for another reason, and check its layout at the 5 sizes afterwards (the skill's `verify.md`).
 Active/inactive ⇒ `<Badge variant={x ? 'success' : 'secondary'}>` (never raw green Tailwind).
 
 ## Validation Flow
