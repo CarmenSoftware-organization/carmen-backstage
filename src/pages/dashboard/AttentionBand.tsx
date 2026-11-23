@@ -27,10 +27,15 @@ interface AttentionBandProps {
   loading: boolean;
 }
 
-const TONE: Record<AttentionTone, { box: string; number: string }> = {
-  destructive: { box: 'border-destructive/30 bg-destructive/5 hover:bg-destructive/10', number: 'text-destructive' },
-  warning: { box: 'border-warning/40 bg-warning/10 hover:bg-warning/15', number: 'text-warning' },
-  info: { box: 'border-info/30 bg-info/5 hover:bg-info/10', number: 'text-info' },
+// The tone lives on the box, never on the figure. As text on their own 5-10% tint, amber
+// measures ~3:1 and red 4.2:1 light / 2.9:1 dark, all under 4.5:1 (an 18px semibold
+// figure is not "large" text). So the figure stays Ink and the tinted box and border carry the
+// state, while the label beside the figure keeps it from depending on colour alone.
+// The failed-check icon is Ink too: amber on the amber tint is 2.77:1 in light, under 3:1.
+const TONE: Record<AttentionTone, string> = {
+  destructive: 'border-destructive/30 bg-destructive/5 hover:bg-destructive/10',
+  warning: 'border-warning/40 bg-warning/10 hover:bg-warning/15',
+  info: 'border-info/30 bg-info/5 hover:bg-info/10',
 };
 
 /**
@@ -80,13 +85,13 @@ export function AttentionBand({ items, loading }: AttentionBandProps) {
                 to={item.href}
                 className={cn(
                   'inline-flex min-h-11 items-center gap-2.5 rounded-lg border px-3.5 py-1.5 text-sm transition-colors',
-                  tone.box,
+                  tone,
                 )}
               >
                 {item.failed ? (
-                  <TriangleAlert className={cn('size-4 shrink-0', tone.number)} aria-hidden="true" />
+                  <TriangleAlert className="text-foreground size-4 shrink-0" aria-hidden="true" />
                 ) : (
-                  <span className={cn('font-mono text-lg leading-none font-semibold tabular-nums', tone.number)}>
+                  <span className="text-foreground font-mono text-lg leading-none font-semibold tabular-nums">
                     {item.count}
                   </span>
                 )}

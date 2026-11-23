@@ -31,7 +31,7 @@ export function CountsRail({ counts, loading, error, onRetry }: CountsRailProps)
   const partial = !error && !loading && failedLabels.length > 0;
   return (
     <Card className="overflow-hidden p-0">
-      <div className="text-muted-foreground border-b px-3.5 py-2.5 text-[11px] font-bold tracking-[0.13em] uppercase">
+      <div className="text-muted-foreground border-b px-3.5 py-2.5 text-[11px] font-bold tracking-[0.12em] uppercase">
         {t('pages.dashboard.estate')}
       </div>
       {!error && (
@@ -55,7 +55,7 @@ export function CountsRail({ counts, loading, error, onRetry }: CountsRailProps)
               <p className="text-muted-foreground">
                 {t('pages.dashboard.estatePartial', { domains: failedLabels.join(', ') })}
               </p>
-              <button type="button" onClick={onRetry} className="text-primary mt-1 underline underline-offset-2">
+              <button type="button" onClick={onRetry} className="text-primary mt-1 inline-flex min-h-6 items-center underline underline-offset-2">
                 {t('common.tryAgain')}
               </button>
             </div>
@@ -92,8 +92,8 @@ function DomainRows({ counts }: { counts: Record<string, DomainCount> }) {
               )}
             </span>
             {c.failed ? (
-              <span className="text-warning inline-flex items-center gap-1 text-xs">
-                <TriangleAlert className="size-3.5" aria-hidden="true" />
+              <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+                <TriangleAlert className="text-warning size-3.5" aria-hidden="true" />
                 {t('pages.dashboard.domainUnavailable')}
               </span>
             ) : (

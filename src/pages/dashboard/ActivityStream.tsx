@@ -79,7 +79,7 @@ export function ActivityStream({ items, loading, error, failedDomains = [], onRe
               {c.label}
               {unavailable && (
                 <>
-                  <TriangleAlert className="text-warning size-3.5" aria-hidden="true" />
+                  <TriangleAlert className={cn('size-3.5', !on && 'text-warning')} aria-hidden="true" />
                   <span className="sr-only">{t('pages.dashboard.domainUnavailable')}</span>
                 </>
               )}
@@ -97,7 +97,7 @@ export function ActivityStream({ items, loading, error, failedDomains = [], onRe
           <span className="min-w-0 flex-1">
             {t('pages.dashboard.activityPartial', { domains: failedLabels.join(', ') })}
           </span>
-          <button type="button" onClick={onRetry} className="text-primary underline underline-offset-2">
+          <button type="button" onClick={onRetry} className="text-primary inline-flex min-h-6 items-center underline underline-offset-2">
             {t('common.tryAgain')}
           </button>
         </div>
