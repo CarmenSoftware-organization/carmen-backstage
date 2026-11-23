@@ -1,66 +1,56 @@
-# Forms (form / settings / detail)
+# Edit pages (form / settings / detail)
+
+Structure (which cards, which state, which mode) comes from `src/pages/CLAUDE.md` and
+`agent-os/standards/pages/edit-page-modes.md`. This file only covers how that structure uses width.
 
 ```tsx
-<FormPageShell width="wide" header={<FormToolbar … />}>
-  <form>
-    <CompactSection first title={…} description={…}>
-      <FieldGrid>{/* fields */}</FieldGrid>
-    </CompactSection>
-    <div className={SECTION_PAIR}>
-      <CompactSection title={…}>…</CompactSection>
-      <CompactSection title={…} action={<Button size="sm" … />}>…</CompactSection>
+<Layout>
+  <div className="space-y-4 sm:space-y-6">           {/* no max-w — rule 1 */}
+    <PageHeader backTo="/items" title={…} afterTitle={<Badge …/>} actions={/* Edit toggle */} />
+    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">   {/* paired cards, same height */}
+      <Card>…</Card>
+      <Card>…</Card>
     </div>
-  </form>
-</FormPageShell>
+    <Card>{/* wide section */}</Card>
+  </div>
+  {hasChanges && <div className="unsaved-bar">…Cancel · Save…</div>}
+</Layout>
 ```
 
-## Standard values (rule 5 measures against these)
+## Standard values
 
 | Item | Value |
 |---|---|
-| Field grid (`FieldGrid`) | `grid gap-x-5 gap-y-3 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4 @min-[96rem]:grid-cols-6` under an `@container` wrapper |
-| Field that needs width (textarea, long name) | `@md:col-span-2` — not `col-span-full` and not `sm:col-span-2` |
-| Paired sections (`SECTION_PAIR`) | `min-[1700px]:grid min-[1700px]:grid-cols-2 min-[1700px]:gap-x-5` — no `items-start`; paired cards are the same height. **Viewport breakpoint — known deviation from rule 3**, do not copy it elsewhere |
-| Space between sections | `mt-5`, no divider line |
-| Section heading | `text-sm font-semibold` + description `text-xs text-muted-foreground` on the same line, above the card; action right-aligned |
-| Card | `bg-card rounded-xl border p-4 shadow-sm` |
-| Label in view mode | `text-muted-foreground text-xs` followed by the value `text-sm`, `mt-0.5` apart |
-| Label in edit mode | `text-foreground text-xs font-semibold` |
-| Empty value in view mode | `—` in `text-muted-foreground/60` |
+| Page wrapper | `space-y-4 sm:space-y-6` |
+| Card content | `space-y-4` |
+| Field | `space-y-2` (label, control, error) |
+| Button gaps | `gap-3` |
+| Fields inside a card | `grid gap-4 @md:grid-cols-2 @3xl:grid-cols-3` under an `@container` card body — **new code**; existing pages use `sm:grid-cols-2` / `lg:grid-cols-2` |
+| Field that needs width (textarea, long name) | `@md:col-span-2` — not `col-span-full` |
+| Paired cards | `lg:grid-cols-2` (viewport — known deviation, rule 3). No `items-start` |
+| Error under a field | `text-xs text-destructive`, input gets `border-destructive` |
 
-## Resulting column counts
+## Pairing
 
-`FieldGrid` breakpoints (box width): `@md` 448 · `@3xl` 768 · `@5xl` 1024 · `@min-[96rem]` 1536.
-
-| Screen size | Sections | `FieldGrid` (sidebar expanded) | `FieldGrid` (sidebar collapsed) | `FieldGrid size="item"` |
-|---|---|---|---|---|
-| Mobile (390) | stacked | 1 | 1 | 1 |
-| Tablet (768) | stacked | 2 | 2 | 2 |
-| 1366 | stacked | 3 ⚠ | measure | 2 |
-| Full HD (1920) | paired | full card 6 · paired card 3 | measure | 4 |
-| 4K (3840) | paired | 6 | 6 | 6 |
-
-⚠ At 1366 the card's inner box sits close to the `@5xl` (1024px) step, so a small change to the
-sidebar or gutter flips it to 4 columns. After any shell change, re-measure with the `fieldgrid`
-probe in `verify.md` and fill in the "measure" cells with what you saw.
-
-Pair sections when the two are close in height and belong together (Hotel | Company). Do not pair a
-3-item section with a 13-item section.
+Pair cards when the two are close in height and belong together. Do not pair a 3-field card with a
+13-field card — the short one gets a tall empty bottom (they are the same height by rule 4).
 
 ## Gotchas
 
-- **A long section description goes inside the card, not on the heading line** — on paired sections
-  it wraps and the two headings stop lining up (interface brand forms).
+- **Two adjacent fields that each span 2 columns land on separate rows in a 3-column grid** — keep to
+  one wide field per card.
+- **A long card description goes inside the card**, not beside the title — on paired cards it wraps
+  and the two titles stop lining up.
+- **Splitting a page into tabs makes tests vacuous** — a test that still passes after a tab split is
+  the one to suspect (it may query a panel that is no longer mounted).
+- **View mode boxes** — see rule 7: `ReadOnlyField` draws a bordered box; ask before replacing it.
 
 ## Save
 
-- **A page that returns to view mode after Save must wait for the new data first** — a mutation that
-  only calls `invalidateQueries` and finishes leaves view mode showing the old value for 1–3
-  seconds, and a second Save in that window sends the old `doc_version` and hits a 409. Have the
-  hook's `onSuccess` **return the `invalidateQueries` promise** (the mutation stays pending until
-  the refetch completes). Example: `useUpdateBusinessUnit` in `hooks/use-business-unit.ts`
-- **A form that binds `values` to a query** needs `resetOptions: { keepDirtyValues: true }`, and the
-  mutation must `setQueryData` before invalidating; otherwise editing a value a few seconds after
-  Save leaves the Save button stuck disabled. Example: `useUpdateProfile` in `hooks/use-profile.ts`
+- **Versioned entities (`doc_version`)** — after Save, set the new `doc_version` from the response
+  (or refetch) **before** the user can save again; a second Save with the old version gets 409
+  (`src/utils/docVersion.ts`, reference `ClusterEdit.tsx`).
+- **A PATCH response may not carry every field** — merging it whole over `formData` silently blanks
+  fields. Merge only what the response actually contains.
 
 How to try it → `verify.md` §Check real clicks
