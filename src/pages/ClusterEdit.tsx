@@ -597,7 +597,7 @@ const ClusterEdit: React.FC = () => {
 
               <div className="min-w-0 space-y-4 sm:space-y-6 lg:order-1">
                 {error && (
-                  <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+                  <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
                 )}
                 <ClusterCreateForm
                   formData={formData}
@@ -648,7 +648,7 @@ const ClusterEdit: React.FC = () => {
             />
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
             )}
 
             {activeTab === 'licensing' && (
@@ -852,7 +852,7 @@ const ClusterEdit: React.FC = () => {
 
             {/* Cluster-wide seat cap (Task 3.5) — the seat pool is shared across every BU in
                 the cluster, so membership is a cluster-level fact with no BU to pick here. */}
-            <p className={`text-xs ${userUsed >= userCap ? 'text-destructive' : 'text-muted-foreground'}`}>
+            <p className={`text-xs ${userUsed >= userCap ? 'text-destructive-ink' : 'text-muted-foreground'}`}>
               {userUsed >= userCap
                 ? t('pages.clusters.clusterLimitReached', { used: userUsed, cap: userCap })
                 : t('pages.clusters.licensedUsersInCluster', { used: userUsed, cap: userCap })}

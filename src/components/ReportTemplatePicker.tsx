@@ -125,7 +125,7 @@ export const ReportTemplatePicker: React.FC<ReportTemplatePickerProps> = ({
             <button
               type="button"
               onClick={clearSelection}
-              className="shrink-0 rounded hover:text-destructive"
+              className="shrink-0 rounded hover:text-destructive-ink"
               aria-label={t('components.reportTemplatePicker.clearSelectedAria', { name: title })}
             >
               <X className="h-4 w-4" />

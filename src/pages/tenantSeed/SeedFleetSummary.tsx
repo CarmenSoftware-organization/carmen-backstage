@@ -20,7 +20,7 @@ function Legend({ color, label, value, emphasis = false }: { color: string; labe
       <span
         className={cn(
           'font-mono font-semibold tabular-nums',
-          emphasis ? 'text-warning text-[15px]' : 'text-foreground text-[13px]',
+          emphasis ? 'text-warning-ink text-[15px]' : 'text-foreground text-[13px]',
         )}
       >
         {value}
@@ -78,7 +78,7 @@ export function SeedFleetSummary({ counts, checkable, actions }: SeedFleetSummar
                 {counts.missingRows > 0 && (
                   <span className="text-muted-foreground flex items-baseline gap-1.5 text-xs">
                     ·
-                    <span className="text-warning font-mono text-[13px] font-semibold tabular-nums">{counts.missingRows}</span>
+                    <span className="text-warning-ink font-mono text-[13px] font-semibold tabular-nums">{counts.missingRows}</span>
                     {t('pages.tenantSeed.missingRows')}
                   </span>
                 )}

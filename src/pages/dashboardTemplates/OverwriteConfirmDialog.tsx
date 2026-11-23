@@ -31,7 +31,7 @@ export default function OverwriteConfirmDialog({ open, onOpenChange, customizedC
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-destructive">
+          <DialogTitle className="flex items-center gap-2 text-destructive-ink">
             <AlertTriangle className="h-5 w-5" />
             {t('pages.dashboardTemplates.overwriteTitle')}
           </DialogTitle>
@@ -41,7 +41,7 @@ export default function OverwriteConfirmDialog({ open, onOpenChange, customizedC
         </DialogHeader>
         <div className="space-y-2 py-2">
           <Label htmlFor="dt-overwrite-confirm">
-            {before}<span className="font-mono font-semibold text-destructive">{CONFIRM_CODE}</span>{after}
+            {before}<span className="font-mono font-semibold text-destructive-ink">{CONFIRM_CODE}</span>{after}
           </Label>
           <Input
             id="dt-overwrite-confirm"

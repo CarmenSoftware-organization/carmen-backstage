@@ -152,7 +152,7 @@ export function BroadcastPreview({
         <div
           className={cn(
             'flex items-center gap-2 rounded-md px-2.5 py-2 text-sm',
-            reach.all ? 'bg-warning/10 text-warning' : 'text-foreground',
+            reach.all ? 'bg-warning/10 text-warning-ink' : 'text-foreground',
           )}
         >
           {reach.all ? <AlertTriangle className="size-4 shrink-0" /> : <ReachIcon className="text-muted-foreground size-4 shrink-0" />}

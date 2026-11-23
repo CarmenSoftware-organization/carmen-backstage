@@ -339,7 +339,7 @@ const BroadcastEdit: React.FC = () => {
         />
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         <form ref={formRef} onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
@@ -384,7 +384,7 @@ const BroadcastEdit: React.FC = () => {
                         onChange={handleChange}
                         className={fieldErrors.scheduledAtLocal ? 'border-destructive' : ''}
                       />
-                      {fieldErrors.scheduledAtLocal && <p className="text-xs text-destructive">{fieldErrors.scheduledAtLocal}</p>}
+                      {fieldErrors.scheduledAtLocal && <p className="text-xs text-destructive-ink">{fieldErrors.scheduledAtLocal}</p>}
                       <p className="text-xs text-muted-foreground">{t('pages.broadcasts.leaveEmptyToSendImmediately')}</p>
                     </>
                   ) : (
@@ -393,7 +393,7 @@ const BroadcastEdit: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="expiresAtLocal">{t('common.state.expires')} <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="expiresAtLocal">{t('common.state.expires')} <span className="text-destructive-ink">*</span></Label>
                   {editing ? (
                     <>
                       <Input
@@ -405,7 +405,7 @@ const BroadcastEdit: React.FC = () => {
                         className={fieldErrors.expiresAtLocal ? 'border-destructive' : ''}
                         required
                       />
-                      {fieldErrors.expiresAtLocal && <p className="text-xs text-destructive">{fieldErrors.expiresAtLocal}</p>}
+                      {fieldErrors.expiresAtLocal && <p className="text-xs text-destructive-ink">{fieldErrors.expiresAtLocal}</p>}
                       <div className="flex gap-2 mt-2">
                         <Button type="button" variant="outline" size="sm" onClick={() => applyPreset('7d')}>+7d</Button>
                         <Button type="button" variant="outline" size="sm" onClick={() => applyPreset('30d')}>+30d</Button>
@@ -424,14 +424,14 @@ const BroadcastEdit: React.FC = () => {
               <CardHeader>
                 <CardTitle>{t('common.field.content')}</CardTitle>
                 {!contentEditable && editing && (
-                  <div className="text-xs text-warning mt-1">
+                  <div className="text-xs text-warning-ink mt-1">
                     {t('pages.broadcasts.contentLockedNote')}
                   </div>
                 )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">{t('common.field.title')} {editing && contentEditable && <span className="text-destructive">*</span>}</Label>
+                  <Label htmlFor="title">{t('common.field.title')} {editing && contentEditable && <span className="text-destructive-ink">*</span>}</Label>
                   {editing && contentEditable ? (
                     <>
                       <Input
@@ -444,7 +444,7 @@ const BroadcastEdit: React.FC = () => {
                         maxLength={200}
                         required
                       />
-                      {fieldErrors.title && <p className="text-xs text-destructive">{fieldErrors.title}</p>}
+                      {fieldErrors.title && <p className="text-xs text-destructive-ink">{fieldErrors.title}</p>}
                     </>
                   ) : (
                     <ReadOnlyField value={formData.title} />
@@ -452,7 +452,7 @@ const BroadcastEdit: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="message">{t('pages.broadcasts.message')} {editing && contentEditable && <span className="text-destructive">*</span>}</Label>
+                  <Label htmlFor="message">{t('pages.broadcasts.message')} {editing && contentEditable && <span className="text-destructive-ink">*</span>}</Label>
                   {editing && contentEditable ? (
                     <>
                       <Textarea
@@ -465,7 +465,7 @@ const BroadcastEdit: React.FC = () => {
                         maxLength={2000}
                         required
                       />
-                      {fieldErrors.message && <p className="text-xs text-destructive">{fieldErrors.message}</p>}
+                      {fieldErrors.message && <p className="text-xs text-destructive-ink">{fieldErrors.message}</p>}
                     </>
                   ) : (
                     <ReadOnlyField value={formData.message} />

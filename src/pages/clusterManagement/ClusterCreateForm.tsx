@@ -84,7 +84,7 @@ export function ClusterCreateForm({
               className={`font-mono ${fieldErrors.code ? 'border-destructive' : ''}`}
               required
             />
-            {fieldErrors.code && <p className="text-destructive text-xs">{fieldErrors.code}</p>}
+            {fieldErrors.code && <p className="text-destructive-ink text-xs">{fieldErrors.code}</p>}
           </div>
 
           <div className="w-24 space-y-2">
@@ -103,7 +103,7 @@ export function ClusterCreateForm({
               className={`font-mono ${fieldErrors.alias_name ? 'border-destructive' : ''}`}
             />
             {fieldErrors.alias_name && (
-              <p className="text-destructive text-xs">{fieldErrors.alias_name}</p>
+              <p className="text-destructive-ink text-xs">{fieldErrors.alias_name}</p>
             )}
           </div>
 
@@ -121,7 +121,7 @@ export function ClusterCreateForm({
               className={fieldErrors.name ? 'border-destructive' : ''}
               required
             />
-            {fieldErrors.name && <p className="text-destructive text-xs">{fieldErrors.name}</p>}
+            {fieldErrors.name && <p className="text-destructive-ink text-xs">{fieldErrors.name}</p>}
           </div>
         </div>
       </Card>
@@ -154,7 +154,7 @@ export function ClusterCreateForm({
               required
             />
             {fieldErrors.licensed_bus && (
-              <p className="text-destructive text-xs">{fieldErrors.licensed_bus}</p>
+              <p className="text-destructive-ink text-xs">{fieldErrors.licensed_bus}</p>
             )}
           </div>
 

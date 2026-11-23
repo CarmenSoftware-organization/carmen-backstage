@@ -272,7 +272,7 @@ export function DeletedLicenseTable({ kind, onExit, onChanged }: DeletedLicenseT
             {isSuperAdmin && (
               <DropdownMenuItem
                 onClick={() => setHardDeleteRow(row.original)}
-                className="cursor-pointer text-destructive focus:text-destructive"
+                className="cursor-pointer text-destructive-ink focus:text-destructive-ink"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('pages.licenses.deleted.hardDelete')}

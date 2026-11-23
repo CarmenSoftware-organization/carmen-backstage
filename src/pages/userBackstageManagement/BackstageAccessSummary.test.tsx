@@ -60,7 +60,7 @@ describe('BackstageAccessSummary', () => {
       />,
     );
     const button = screen.getByRole('button', { name: /3 inactive holders still hold access/ });
-    expect(button.className).toContain('text-warning');
+    expect(button.className).toContain('text-warning-ink');
     expect(button.className).not.toMatch(/amber|yellow/);
     await userEvent.click(button);
     expect(onShowInactive).toHaveBeenCalledTimes(1);

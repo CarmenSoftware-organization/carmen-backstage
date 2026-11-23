@@ -138,7 +138,7 @@ export function UploadPanel({ bus, onCreated }: UploadPanelProps) {
         </Button>
       </div>
       {fileError && (
-        <p role="alert" className="text-destructive text-xs">
+        <p role="alert" className="text-destructive-ink text-xs">
           {fileError}
         </p>
       )}

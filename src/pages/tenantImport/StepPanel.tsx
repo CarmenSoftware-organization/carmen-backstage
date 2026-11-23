@@ -383,7 +383,7 @@ export function StepPanel({
                   <td className="px-3 py-2">
                     <Badge variant={VERDICT_VARIANT[r.verdict]}>{r.verdict}</Badge>
                     {r.errors.length > 0 && (
-                      <p className="mt-1 text-xs text-destructive">
+                      <p className="mt-1 text-xs text-destructive-ink">
                         {r.errors.map((e) => `${e.column}: ${e.message}`).join('; ')}
                       </p>
                     )}
@@ -431,7 +431,7 @@ export function StepPanel({
         </p>
       )}
 
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive-ink">{state.error}</p>}
 
       {/*
         Not <ConfirmDialog> (components/ui/confirm-dialog.tsx): its `description` prop is a

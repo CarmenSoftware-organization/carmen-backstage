@@ -114,7 +114,7 @@ export function CoverageCard({
           <LicenseTimeline variant="group" items={items} window={window} now={now} />
         )}
         {!loading && partialFailText && (
-          <p className="text-destructive text-xs">{partialFailText}</p>
+          <p className="text-destructive-ink text-xs">{partialFailText}</p>
         )}
       </div>
 
@@ -125,7 +125,7 @@ export function CoverageCard({
           </div>
         )}
         {!loading && failed && (
-          <p className="text-destructive text-xs">{failedText}</p>
+          <p className="text-destructive-ink text-xs">{failedText}</p>
         )}
         {showList && items.length === 0 && (
           <p className="text-muted-foreground text-xs">{emptyText}</p>

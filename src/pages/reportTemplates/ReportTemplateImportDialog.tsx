@@ -262,18 +262,18 @@ export default function ReportTemplateImportDialog({ open, onOpenChange, onImpor
                           <div>{pickLocalized(nameI18n, r.template.name, lang)}</div>
                           {secondary && <div className="text-xs text-muted-foreground">{secondary}</div>}
                           {r.problems.map((p) => (
-                            <div key={p} className="text-xs text-destructive">
+                            <div key={p} className="text-xs text-destructive-ink">
                               {t(`pages.reportTemplates.importDialog.problem.${p}` as TKey)}
                             </div>
                           ))}
-                          {r.error && <div className="text-xs text-destructive">{r.error}</div>}
+                          {r.error && <div className="text-xs text-destructive-ink">{r.error}</div>}
                         </td>
                         <td className="px-3 py-2">{r.template.report_group}</td>
                         <td className="px-3 py-2">{r.template.template_type ?? 'list'}</td>
                         <td className="px-3 py-2">{statusBadge(r.status)}</td>
                         <td className="px-3 py-2">
                           {r.outcome ? (
-                            <span className={r.outcome === 'failed' ? 'text-destructive' : ''}>
+                            <span className={r.outcome === 'failed' ? 'text-destructive-ink' : ''}>
                               {t(`pages.reportTemplates.importDialog.${
                                 r.outcome === 'created' ? 'resultCreated'
                                 : r.outcome === 'overwritten' ? 'resultOverwritten'

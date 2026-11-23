@@ -119,7 +119,7 @@ export function BackstageAccessSummary({
             <button
               type="button"
               onClick={onShowInactive}
-              className="text-warning inline-flex items-center gap-2 rounded-md border border-warning/40 px-3 py-1.5 text-sm hover:bg-warning/10"
+              className="text-warning-ink inline-flex items-center gap-2 rounded-md border border-warning/40 px-3 py-1.5 text-sm hover:bg-warning/10"
             >
               <AlertTriangle className="h-4 w-4" aria-hidden="true" />
               {summary.inactive === 1

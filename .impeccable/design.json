@@ -259,6 +259,27 @@
           "hsl(32 46.8% 95%)"
         ]
       },
+      "fault-red-ink": {
+        "role": "status",
+        "displayName": "Fault Red Ink",
+        "canonical": "hsl(0 72% 42%)",
+        "dark": "hsl(0 70% 68%)",
+        "cssVar": "--destructive-ink"
+      },
+      "settled-green-ink": {
+        "role": "status",
+        "displayName": "Settled Green Ink",
+        "canonical": "hsl(152 40% 30%)",
+        "dark": "hsl(152 45% 48%)",
+        "cssVar": "--success-ink"
+      },
+      "caution-amber-ink": {
+        "role": "status",
+        "displayName": "Caution Amber Ink",
+        "canonical": "hsl(32 90% 31%)",
+        "dark": "hsl(38 92% 55%)",
+        "cssVar": "--warning-ink"
+      },
       "fill-ink": {
         "role": "neutral",
         "displayName": "Fill Ink",

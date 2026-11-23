@@ -849,7 +849,7 @@ const BusinessUnitEdit: React.FC = () => {
         />
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         <BusinessUnitDocument

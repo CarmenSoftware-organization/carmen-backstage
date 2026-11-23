@@ -407,7 +407,7 @@ const DatabasePoolEdit: React.FC = () => {
         />
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         {editing ? (
@@ -419,7 +419,7 @@ const DatabasePoolEdit: React.FC = () => {
               <CardContent className="space-y-4 pt-6">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name">{t('common.field.name')} <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="name">{t('common.field.name')} <span className="text-destructive-ink">*</span></Label>
                     <Input
                       id="name"
                       name="name"
@@ -429,7 +429,7 @@ const DatabasePoolEdit: React.FC = () => {
                       placeholder={t('pages.databasePools.namePlaceholder')}
                       className={fieldErrors.name ? 'border-destructive' : ''}
                     />
-                    {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name}</p>}
+                    {fieldErrors.name && <p className="text-xs text-destructive-ink">{fieldErrors.name}</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -462,7 +462,7 @@ const DatabasePoolEdit: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="host">{t('pages.databasePools.columnHost')} <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="host">{t('pages.databasePools.columnHost')} <span className="text-destructive-ink">*</span></Label>
                     <Input
                       id="host"
                       name="host"
@@ -472,11 +472,11 @@ const DatabasePoolEdit: React.FC = () => {
                       placeholder={t('pages.databasePools.hostPlaceholder')}
                       className={fieldErrors.host ? 'border-destructive' : ''}
                     />
-                    {fieldErrors.host && <p className="text-xs text-destructive">{fieldErrors.host}</p>}
+                    {fieldErrors.host && <p className="text-xs text-destructive-ink">{fieldErrors.host}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="port">{t('pages.databasePools.columnPort')} <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="port">{t('pages.databasePools.columnPort')} <span className="text-destructive-ink">*</span></Label>
                     <Input
                       type="number"
                       id="port"
@@ -489,11 +489,11 @@ const DatabasePoolEdit: React.FC = () => {
                       max={65535}
                       className={fieldErrors.port ? 'border-destructive' : ''}
                     />
-                    {fieldErrors.port && <p className="text-xs text-destructive">{fieldErrors.port}</p>}
+                    {fieldErrors.port && <p className="text-xs text-destructive-ink">{fieldErrors.port}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="database">{t('pages.databasePools.columnDatabase')} <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="database">{t('pages.databasePools.columnDatabase')} <span className="text-destructive-ink">*</span></Label>
                     <Input
                       id="database"
                       name="database"
@@ -503,11 +503,11 @@ const DatabasePoolEdit: React.FC = () => {
                       placeholder={t('pages.databasePools.databasePlaceholder')}
                       className={fieldErrors.database ? 'border-destructive' : ''}
                     />
-                    {fieldErrors.database && <p className="text-xs text-destructive">{fieldErrors.database}</p>}
+                    {fieldErrors.database && <p className="text-xs text-destructive-ink">{fieldErrors.database}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="username">{t('common.field.username')} <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="username">{t('common.field.username')} <span className="text-destructive-ink">*</span></Label>
                     <Input
                       id="username"
                       name="username"
@@ -517,11 +517,11 @@ const DatabasePoolEdit: React.FC = () => {
                       placeholder={t('pages.databasePools.usernamePlaceholder')}
                       className={fieldErrors.username ? 'border-destructive' : ''}
                     />
-                    {fieldErrors.username && <p className="text-xs text-destructive">{fieldErrors.username}</p>}
+                    {fieldErrors.username && <p className="text-xs text-destructive-ink">{fieldErrors.username}</p>}
                   </div>
 
                   <div className="space-y-2 lg:col-span-2">
-                    <Label htmlFor="password">{t('pages.databasePools.passwordLabel')} {isNew && <span className="text-destructive">*</span>}</Label>
+                    <Label htmlFor="password">{t('pages.databasePools.passwordLabel')} {isNew && <span className="text-destructive-ink">*</span>}</Label>
                     <div className="relative">
                       <Input
                         type={showPassword ? 'text' : 'password'}
@@ -543,7 +543,7 @@ const DatabasePoolEdit: React.FC = () => {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
-                    {fieldErrors.password && <p className="text-xs text-destructive">{fieldErrors.password}</p>}
+                    {fieldErrors.password && <p className="text-xs text-destructive-ink">{fieldErrors.password}</p>}
                     {!isNew && (
                       <p className="text-xs text-muted-foreground">{t('pages.databasePools.passwordKeepHint')}</p>
                     )}

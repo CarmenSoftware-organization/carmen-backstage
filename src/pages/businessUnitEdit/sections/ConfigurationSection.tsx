@@ -88,7 +88,7 @@ const ConfigurationSection: React.FC<ConfigurationSectionProps> = ({ formData, e
                   placeholder={t('pages.businessUnits.configValuePlaceholder')}
                 />
               </div>
-              <Button type="button" variant="ghost" size="icon" onClick={() => onRemoveConfigRow(index)} className="text-destructive hover:text-destructive">
+              <Button type="button" variant="ghost" size="icon" onClick={() => onRemoveConfigRow(index)} className="text-destructive-ink hover:text-destructive-ink">
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>

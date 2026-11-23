@@ -184,7 +184,7 @@ export function BuQuotaSection({
                 : t('pages.licenses.noLicenseInForce')}
             </CardDescription>
             {loadFailed && (
-              <p className="text-xs text-destructive">
+              <p className="text-xs text-destructive-ink">
                 {t('pages.licenses.buQuotaLoadFailedBanner')}
               </p>
             )}
@@ -219,7 +219,7 @@ export function BuQuotaSection({
               <p className="text-xs text-muted-foreground">
                 {t('pages.licenses.businessUnitsInUse', { used: buUsed, total: winning.licensed_bus })}
                 {buUsed > winning.licensed_bus && (
-                  <span className="ml-2 text-destructive">
+                  <span className="ml-2 text-destructive-ink">
                     {t('pages.licenses.overLimitReadOnly', { count: buUsed - winning.licensed_bus })}
                   </span>
                 )}
@@ -559,7 +559,7 @@ function BuSubscriptionCells({ subs, now, nowMs, window, loading, failed }: {
           label={t('pages.licenses.coverageBarLabel', { text: endsText })}
         />
       </td>
-      <td className={`px-2 py-1 text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning' : 'text-muted-foreground'}`}>
+      <td className={`px-2 py-1 text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning-ink' : 'text-muted-foreground'}`}>
         {endsText}
       </td>
     </>

@@ -512,7 +512,7 @@ const RoleEdit: React.FC = () => {
         />
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         <form ref={formRef} onSubmit={handleSubmit}>
@@ -588,7 +588,7 @@ const RoleEdit: React.FC = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">{t('common.field.name')} {editing && <span className="text-destructive">*</span>}</Label>
+                    <Label htmlFor="name">{t('common.field.name')} {editing && <span className="text-destructive-ink">*</span>}</Label>
                     {editing ? (
                       <>
                         <Input
@@ -603,7 +603,7 @@ const RoleEdit: React.FC = () => {
                           required
                         />
                         {fieldErrors.name && (
-                          <p className="text-xs text-destructive">{fieldErrors.name}</p>
+                          <p className="text-xs text-destructive-ink">{fieldErrors.name}</p>
                         )}
                       </>
                     ) : (

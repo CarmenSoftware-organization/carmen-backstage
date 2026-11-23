@@ -55,7 +55,7 @@ export function ClusterPeopleCard({ clusterId, members }: ClusterPeopleCardProps
           description={t('pages.clusterAdmin.noMembersInvitedDescription')}
         />
       ) : admins.length === 0 ? (
-        <p className="text-warning text-sm">
+        <p className="text-warning-ink text-sm">
           {t('pages.clusterAdmin.noClusterAdministrators')}
         </p>
       ) : (

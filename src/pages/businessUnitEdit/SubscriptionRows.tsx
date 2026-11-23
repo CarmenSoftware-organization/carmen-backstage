@@ -44,7 +44,7 @@ export function SubscriptionRows({ subscriptions, subscriptionHref, window, soon
         <p className="text-muted-foreground text-xs" role="status">{t('common.busy.loadingEllipsis')}</p>
       )}
       {!subscriptions.loading && subscriptions.failed && (
-        <p className="text-destructive text-xs">{t('pages.businessUnits.subscriptionsLoadFailed')}</p>
+        <p className="text-destructive-ink text-xs">{t('pages.businessUnits.subscriptionsLoadFailed')}</p>
       )}
       {!subscriptions.loading && !subscriptions.failed && subscriptions.items.length === 0 && (
         <p className="text-muted-foreground text-xs">{t('pages.businessUnits.noSubscriptions')}</p>

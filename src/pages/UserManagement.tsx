@@ -494,7 +494,7 @@ const UserManagement: React.FC = () => {
           return (
             <div className="flex items-center gap-1">
               <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-success font-medium">{active}</span>
+              <span className="text-success-ink font-medium">{active}</span>
               <span className="text-muted-foreground">/</span>
               <span className="text-muted-foreground">{total}</span>
             </div>
@@ -526,7 +526,7 @@ const UserManagement: React.FC = () => {
           <AuditMeta
             variant="cell"
             actor={normalizeAudit(row.original).deleted}
-            className="text-[11px] leading-tight text-destructive space-y-0.5"
+            className="text-[11px] leading-tight text-destructive-ink space-y-0.5"
           />
         ),
         enableSorting: false,
@@ -564,7 +564,7 @@ const UserManagement: React.FC = () => {
               <Can permission="user.delete">
                 <DropdownMenuItem
                   onClick={() => handleDelete(row.original.id)}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+                  className="cursor-pointer text-destructive-ink focus:text-destructive-ink"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t('common.action.delete')}
@@ -574,7 +574,7 @@ const UserManagement: React.FC = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleHardDelete(row.original)}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+                  className="cursor-pointer text-destructive-ink focus:text-destructive-ink"
                 >
                   <AlertTriangle className="mr-2 h-4 w-4" />
                   {t('pages.users.hardDelete')}
@@ -740,7 +740,7 @@ const UserManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
             {!error && users.length === 0 && !loading ? (
               <ListEmptyState
                 searchTerm={searchTerm}
@@ -837,7 +837,7 @@ const UserManagement: React.FC = () => {
       <Dialog open={hardDeleteUser !== null} onOpenChange={(open) => { if (!open && !hardDeleting) { setHardDeleteUser(null); setHardDeleteConfirm(''); setCopiedUsername(false); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
+            <DialogTitle className="flex items-center gap-2 text-destructive-ink">
               <AlertTriangle className="h-5 w-5" />
               {t('pages.users.permanentlyDeleteUser')}
             </DialogTitle>
@@ -869,7 +869,7 @@ const UserManagement: React.FC = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="hardDeleteConfirm">
-                {confirmBefore}<span className="font-mono font-semibold text-destructive">{hardDeleteUser?.username || hardDeleteUser?.email || ''}</span>{confirmAfter}
+                {confirmBefore}<span className="font-mono font-semibold text-destructive-ink">{hardDeleteUser?.username || hardDeleteUser?.email || ''}</span>{confirmAfter}
               </Label>
               <Input
                 id="hardDeleteConfirm"
@@ -901,7 +901,7 @@ const UserManagement: React.FC = () => {
       <Dialog open={bulkHardOpen} onOpenChange={(open) => { if (!open && !bulkDeleting) { setBulkHardOpen(false); setBulkConfirmInput(''); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
+            <DialogTitle className="flex items-center gap-2 text-destructive-ink">
               <AlertTriangle className="h-5 w-5" />
               {t('pages.users.bulkPermanentlyDeleteUsers', { count: selectedUsers.length })}
             </DialogTitle>
@@ -919,7 +919,7 @@ const UserManagement: React.FC = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="bulkHardConfirm">
-                {confirmBefore}<span className="font-mono font-semibold text-destructive">{bulkConfirmCode}</span>{confirmAfter}
+                {confirmBefore}<span className="font-mono font-semibold text-destructive-ink">{bulkConfirmCode}</span>{confirmAfter}
               </Label>
               <Input
                 id="bulkHardConfirm"

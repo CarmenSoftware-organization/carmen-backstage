@@ -26,7 +26,7 @@ export const TypeaheadStatus: React.FC<TypeaheadStatusProps> = ({ loading, error
   }
   if (error) {
     return (
-      <div role="presentation" className="px-3 py-4 text-sm text-destructive">
+      <div role="presentation" className="px-3 py-4 text-sm text-destructive-ink">
         <span>{error}</span>
       </div>
     );

@@ -425,7 +425,7 @@ const ReportTemplateManagement: React.FC = () => {
               </DropdownMenuItem>
             </Can>
             <Can permission="report_template.delete">
-              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive-ink focus:text-destructive-ink">
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('common.action.delete')}
               </DropdownMenuItem>
@@ -688,7 +688,7 @@ const ReportTemplateManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && templates.length === 0 && !loading ? (
               <ListEmptyState

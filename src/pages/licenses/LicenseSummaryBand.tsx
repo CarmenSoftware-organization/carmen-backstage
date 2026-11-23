@@ -9,7 +9,7 @@ export interface SummaryBandItem {
   key: string;
   label: string;
   value: number | undefined;
-  /** คลาสสีของตัวเลข เช่น `text-success` */
+  /** คลาสสีของตัวเลข เช่น `text-success-ink` */
   color: string;
   /** ไม่ส่ง = การ์ดอ่านอย่างเดียว */
   onClick?: () => void;
@@ -113,7 +113,7 @@ export const LicenseSummaryBand: React.FC<LicenseSummaryBandProps> = ({ items, l
 
 /**
  * สีตัวเลขของการ์ด "ลบแล้ว" — 0 คือสถานะปกติที่สุด จึงจางลง · มีใบที่ลบก็แค่ตัวเลขปกติ ไม่ใช่สีแดง
- * เพราะใบที่ลบไม่ใช่ปัญหาที่ต้องรีบแก้ (เดิมเป็น `text-destructive` ทุกค่าแม้แต่ 0)
+ * เพราะใบที่ลบไม่ใช่ปัญหาที่ต้องรีบแก้ (เดิมเป็น `text-destructive-ink` ทุกค่าแม้แต่ 0)
  */
 export const deletedCountColor = (value: number | undefined): string =>
   value ? 'text-foreground' : 'text-muted-foreground';

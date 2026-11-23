@@ -89,7 +89,7 @@ export function SubscriptionInfoCard({
                   className={fieldErrors.start_date ? 'border-destructive' : ''}
                 />
                 {fieldErrors.start_date && (
-                  <p className="text-destructive text-xs">{fieldErrors.start_date}</p>
+                  <p className="text-destructive-ink text-xs">{fieldErrors.start_date}</p>
                 )}
               </>
             ) : (
@@ -112,7 +112,7 @@ export function SubscriptionInfoCard({
                   className={fieldErrors.end_date ? 'border-destructive' : ''}
                 />
                 {fieldErrors.end_date && (
-                  <p className="text-destructive text-xs">{fieldErrors.end_date}</p>
+                  <p className="text-destructive-ink text-xs">{fieldErrors.end_date}</p>
                 )}
               </>
             ) : (
@@ -163,7 +163,7 @@ export function SubscriptionInfoCard({
                   className={fieldErrors.ai_credits_per_month ? 'border-destructive' : ''}
                 />
                 {fieldErrors.ai_credits_per_month ? (
-                  <p className="text-destructive text-xs">{fieldErrors.ai_credits_per_month}</p>
+                  <p className="text-destructive-ink text-xs">{fieldErrors.ai_credits_per_month}</p>
                 ) : (
                   <p className="text-muted-foreground text-xs">{t('pages.subscriptions.aiCreditsPerMonthHint')}</p>
                 )}

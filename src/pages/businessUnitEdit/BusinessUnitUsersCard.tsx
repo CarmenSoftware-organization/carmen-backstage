@@ -112,7 +112,7 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
             </p>
           )}
           {clusterSeat && (
-            <p className={`text-xs mt-1 ${over ? 'text-destructive' : 'text-muted-foreground'}`}>
+            <p className={`text-xs mt-1 ${over ? 'text-destructive-ink' : 'text-muted-foreground'}`}>
               {t('pages.businessUnits.clusterSeatsUsed', { used: clusterSeat.used, cap: clusterSeat.cap })}
               {over && (
                 <> · {t('pages.businessUnits.deactivateMoreHint', { count: clusterSeat.used - clusterSeat.cap })}</>
@@ -199,7 +199,7 @@ const BusinessUnitUsersCard: React.FC<BusinessUnitUsersCardProps> = ({ users, ca
                         <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={t('pages.businessUnits.editUserAria', { name: u.username || u.email || t('entity.user.lower') })} onClick={() => users.handleOpenEditUser(u)}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" aria-label={t('common.action.removeAria', { name: u.username || u.email || t('entity.user.lower') })} onClick={() => users.handleDeleteUser(u)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive-ink hover:text-destructive-ink" aria-label={t('common.action.removeAria', { name: u.username || u.email || t('entity.user.lower') })} onClick={() => users.handleDeleteUser(u)}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>

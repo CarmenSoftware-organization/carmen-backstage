@@ -175,7 +175,7 @@ export function ApplicationStatusCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {status !== 'running' && isPastUntil(statusUntil) && (
-          <div className="text-warning bg-warning/10 flex items-start gap-2 rounded-md px-3 py-2.5 text-sm" role="status">
+          <div className="text-warning-ink bg-warning/10 flex items-start gap-2 rounded-md px-3 py-2.5 text-sm" role="status">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{t('pages.applications.statusUntilPassed', { status: t(STATUS_LABEL_KEY[status]) })}</span>
           </div>
@@ -267,7 +267,7 @@ export function ApplicationStatusCard({
                   className={untilError ? 'border-destructive' : ''}
                 />
                 {untilError ? (
-                  <p className="text-xs text-destructive">{untilError}</p>
+                  <p className="text-xs text-destructive-ink">{untilError}</p>
                 ) : (
                   <p className="text-muted-foreground text-xs">{t('pages.applications.statusUntilHint')}</p>
                 )}

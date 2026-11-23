@@ -368,12 +368,12 @@ export function ObjectDetail({
       </header>
 
       {defError && (
-        <p role="alert" className="text-destructive text-xs">
+        <p role="alert" className="text-destructive-ink text-xs">
           {defError}
         </p>
       )}
       {entry && !hasSpec && (
-        <div role="alert" className="text-warning flex flex-wrap items-center gap-3 text-xs">
+        <div role="alert" className="text-warning-ink flex flex-wrap items-center gap-3 text-xs">
           <span>{t('pages.dbObjectFleet.needsReimport')}</span>
           {canAuthor && (
             <Button size="sm" variant="outline" className="h-7" onClick={onOpenImport}>
@@ -387,7 +387,7 @@ export function ObjectDetail({
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-medium">{t('pages.dbObjectFleet.bodyLabel')}</span>
-          {dirty && <span className="text-warning">{t('pages.dbObjectFleet.unsaved')}</span>}
+          {dirty && <span className="text-warning-ink">{t('pages.dbObjectFleet.unsaved')}</span>}
           {defLoading && <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" aria-hidden />}
           {editable && (
             <Button size="sm" className="ml-auto h-7" disabled={!canSave} onClick={save}>
@@ -509,7 +509,7 @@ export function ObjectDetail({
                       <td className="px-2 py-1.5">
                         {result?.state === 'running' && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
                         {result?.state === 'ok' && (
-                          <span className="text-success inline-flex items-center gap-1">
+                          <span className="text-success-ink inline-flex items-center gap-1">
                             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                             {lastRun === 'dry'
                               ? t('pages.dbObjectFleet.resultDryOk')
@@ -519,7 +519,7 @@ export function ObjectDetail({
                           </span>
                         )}
                         {result?.state === 'error' && (
-                          <span className="text-destructive flex items-start gap-1 break-words">
+                          <span className="text-destructive-ink flex items-start gap-1 break-words">
                             <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                             <span>
                               {result.message}
@@ -548,7 +548,7 @@ export function ObjectDetail({
             {running && lastRun === 'apply' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
             {t('pages.dbObjectFleet.apply', { count: targets.length })}
           </Button>
-          <Button variant="outline" className="text-destructive" disabled={!ready || !approved} onClick={() => setConfirm('drop')}>
+          <Button variant="outline" className="text-destructive-ink" disabled={!ready || !approved} onClick={() => setConfirm('drop')}>
             {running && lastRun === 'drop' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
             {t('pages.dbObjectFleet.drop', { count: targets.length })}
           </Button>
@@ -587,7 +587,7 @@ export function ObjectDetail({
                       <td className="px-2 py-1 font-mono">
                         v{l.doc_version} · {l.hash}
                       </td>
-                      <td className={l.success ? 'text-success px-2 py-1' : 'text-destructive px-2 py-1 break-words'}>
+                      <td className={l.success ? 'text-success-ink px-2 py-1' : 'text-destructive-ink px-2 py-1 break-words'}>
                         {l.success ? t('pages.dbObjectFleet.logOk') : (l.error ?? t('pages.dbObjectFleet.applyFailed'))}
                       </td>
                     </tr>

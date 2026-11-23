@@ -264,7 +264,7 @@ export function SqlEditor({
           <Button
             size="sm"
             variant="ghost"
-            className="text-destructive h-7"
+            className="text-destructive-ink h-7"
             onClick={handleClear}
             title={t('pages.sqlWorkbench.clearEditorTitle')}
           >

@@ -114,8 +114,8 @@ export function LicenseHealthStrip({ facts, loading, onJump }: LicenseHealthStri
                 className={cn(
                   'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors',
                   a.tone === 'destructive'
-                    ? 'border-destructive/30 text-destructive hover:bg-destructive/10'
-                    : 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/20',
+                    ? 'border-destructive/30 text-destructive-ink hover:bg-destructive/10'
+                    : 'border-warning/40 bg-warning/10 text-warning-ink hover:bg-warning/20',
                 )}
               >
                 <AlertTriangle className="h-3 w-3 shrink-0" />

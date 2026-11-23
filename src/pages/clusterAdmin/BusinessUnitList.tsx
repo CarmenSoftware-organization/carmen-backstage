@@ -343,7 +343,7 @@ const BusinessUnitList: React.FC = () => {
         />
 
         {overLimitCount > 0 && (
-          <p className="text-destructive text-sm" role="alert">
+          <p className="text-destructive-ink text-sm" role="alert">
             {t(
               overLimitCount === 1 ? 'pages.clusterAdmin.overLimitCountOne' : 'pages.clusterAdmin.overLimitCountMany',
               { count: overLimitCount, cap: buCap ?? 0 },
@@ -447,7 +447,7 @@ const BusinessUnitList: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && (
               accessLost ? (

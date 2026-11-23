@@ -113,7 +113,7 @@ export function RoleGrantList({
                       )}
                       {selfGranted && (
                         <span
-                          className="text-warning inline-flex items-center gap-1"
+                          className="text-warning-ink inline-flex items-center gap-1"
                           title={t('pages.userBackstage.selfGrantedTitle')}
                         >
                           <AlertTriangle className="h-3 w-3" aria-hidden="true" />
@@ -127,7 +127,7 @@ export function RoleGrantList({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-destructive hover:text-destructive h-7 shrink-0 px-2"
+                    className="text-destructive-ink hover:text-destructive-ink h-7 shrink-0 px-2"
                     onClick={() => onRemove(assignment)}
                     aria-label={t('pages.userBackstage.removeRoleAria', {
                       name: assignment.role_name || t('entity.role.lower'),

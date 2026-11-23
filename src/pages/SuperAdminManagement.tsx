@@ -213,7 +213,7 @@ const SuperAdminManagement: React.FC = () => {
           title={t('pages.superAdmins.title')}
           subtitle={
             <span className="inline-flex items-center gap-1.5">
-              <ShieldAlert className="text-warning h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <ShieldAlert className="text-warning-ink h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               {standing}
             </span>
           }
@@ -233,7 +233,7 @@ const SuperAdminManagement: React.FC = () => {
         />
 
         {error && (
-          <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm" role="alert">
+          <div className="text-destructive-ink bg-destructive/10 rounded-md p-3 text-sm" role="alert">
             {error}
           </div>
         )}
@@ -412,7 +412,7 @@ const RosterRow: React.FC<{ row: SuperAdmin; isSelf: boolean; onRemove: () => vo
       size="sm"
       onClick={onRemove}
       aria-label={t('pages.superAdmins.removeAria', { name: label || row.user_id })}
-      className="text-destructive hover:text-destructive hover:bg-destructive/10 -ml-2 sm:ml-0"
+      className="text-destructive-ink hover:text-destructive-ink hover:bg-destructive/10 -ml-2 sm:ml-0"
     >
       <Trash2 className="mr-2 h-4 w-4" />
       {t('common.action.remove')}

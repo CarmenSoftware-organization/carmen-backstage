@@ -397,7 +397,7 @@ export function ApplicationSecretCard({
                   {busy === 'copy' ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : copied ? (
-                    <Check className="text-success h-5 w-5" />
+                    <Check className="text-success-ink h-5 w-5" />
                   ) : (
                     <Copy className="h-5 w-5" />
                   )}
@@ -407,7 +407,7 @@ export function ApplicationSecretCard({
 
             {rotatedLine && <p className="text-muted-foreground text-xs">{rotatedLine}</p>}
             {graceOpen && (
-              <p className="text-warning text-xs">
+              <p className="text-warning-ink text-xs">
                 {t('pages.applications.secret.previousValidUntil', { when: formatStatusTime(previousExpiresAt) })}
               </p>
             )}

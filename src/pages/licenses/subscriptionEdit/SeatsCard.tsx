@@ -42,7 +42,7 @@ export function SeatsCard({ seat, bu }: SeatsCardProps) {
           <span
             className={cn(
               'text-2xl font-semibold tabular-nums',
-              u.level === 'over' ? 'text-destructive' : u.level === 'warn' ? 'text-warning' : '',
+              u.level === 'over' ? 'text-destructive-ink' : u.level === 'warn' ? 'text-warning-ink' : '',
             )}
           >
             {used} / {cap}
@@ -52,7 +52,7 @@ export function SeatsCard({ seat, bu }: SeatsCardProps) {
 
         {pending_invites > 0 && (
           <p
-            className={cn('text-sm', willExceed ? 'text-warning' : 'text-muted-foreground')}
+            className={cn('text-sm', willExceed ? 'text-warning-ink' : 'text-muted-foreground')}
             role={willExceed ? 'alert' : undefined}
           >
             {t('pages.subscriptions.pendingCount', { count: pending_invites })}

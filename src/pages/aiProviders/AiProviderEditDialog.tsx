@@ -156,7 +156,7 @@ export default function AiProviderEditDialog({ open, onOpenChange, provider, nex
 
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
           {error && (
-            <div role="alert" className="rounded-md bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+            <div role="alert" className="rounded-md bg-destructive/10 px-3 py-2.5 text-sm text-destructive-ink">
               {error}
             </div>
           )}
@@ -175,7 +175,7 @@ export default function AiProviderEditDialog({ open, onOpenChange, provider, nex
                   className={cn('font-mono', !codeValid && code !== '' && 'border-destructive')}
                 />
                 {!codeValid && code !== '' ? (
-                  <p className="text-xs text-destructive">{t('pages.aiProviders.codeInvalid')}</p>
+                  <p className="text-xs text-destructive-ink">{t('pages.aiProviders.codeInvalid')}</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldCodeHint')}</p>
                 )}
@@ -234,7 +234,7 @@ export default function AiProviderEditDialog({ open, onOpenChange, provider, nex
               />
               <div className="flex items-start justify-between gap-3">
                 <p className="text-xs text-muted-foreground">{t('pages.aiProviders.fieldPromptHint')}</p>
-                <span className={cn('shrink-0 text-xs tabular-nums', prompt.length > PROMPT_MAX ? 'text-destructive' : 'text-muted-foreground')}>
+                <span className={cn('shrink-0 text-xs tabular-nums', prompt.length > PROMPT_MAX ? 'text-destructive-ink' : 'text-muted-foreground')}>
                   {prompt.length}/{PROMPT_MAX}
                 </span>
               </div>

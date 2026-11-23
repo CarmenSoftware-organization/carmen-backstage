@@ -14,7 +14,7 @@ export function DeployConsole({ batch }: { batch: BatchProgress | null }) {
     <div className="overflow-hidden rounded-xl border shadow-xs">
       <div className="bg-card flex items-center justify-between gap-2 border-b px-4 py-3">
         <div className="flex items-center gap-2.5 text-sm font-semibold">
-          <Loader2 className="text-warning size-3.5 animate-spin" />
+          <Loader2 className="text-warning-ink size-3.5 animate-spin" />
           {t('pages.tenantMigration.deployingAll')}
           {batch.buCode && <span className="text-muted-foreground font-mono text-xs">({batch.buCode})</span>}
         </div>

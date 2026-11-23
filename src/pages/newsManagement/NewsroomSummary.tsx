@@ -59,7 +59,7 @@ export function timeAgo(iso?: string, now = Date.now(), t?: TFunction): string {
 function Stage({ label, value, tone }: { label: string; value: number; tone: 'muted' | 'success' }) {
   return (
     <div className="text-center">
-      <div className={`font-mono text-2xl font-semibold tabular-nums ${tone === 'success' ? 'text-success' : 'text-foreground'}`}>
+      <div className={`font-mono text-2xl font-semibold tabular-nums ${tone === 'success' ? 'text-success-ink' : 'text-foreground'}`}>
         {value}
       </div>
       <div className="text-muted-foreground mt-0.5 flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.1em]">

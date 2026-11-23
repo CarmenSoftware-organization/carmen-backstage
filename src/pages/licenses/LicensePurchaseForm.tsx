@@ -349,14 +349,14 @@ function LicenseFieldsCard({
                 {/* ช่องเลือกที่เปิดแล้วว่างเปล่าต้องบอกเหตุผลตรงนั้น ไม่ใช่ให้ผู้ใช้ไปค้นพบเองตอนกดบันทึก
                  *  แล้วได้แค่ "ต้องเลือก" ซึ่งไม่บอกว่าเลือกอะไรไม่ได้เพราะอะไร */}
                 {groupOptionsState === 'failed' && (
-                  <p className="text-destructive text-xs">{t('pages.licenses.featureGroupsLoadFailed')}</p>
+                  <p className="text-destructive-ink text-xs">{t('pages.licenses.featureGroupsLoadFailed')}</p>
                 )}
                 {groupOptionsState === 'ready' && groupOptions.length === 0 && (
                   <p className="text-muted-foreground text-xs">
                     {t('pages.licenses.noSellableInterfaceGroups')}
                   </p>
                 )}
-                {fieldErrors.amount && <p className="text-destructive text-xs">{fieldErrors.amount}</p>}
+                {fieldErrors.amount && <p className="text-destructive-ink text-xs">{fieldErrors.amount}</p>}
               </>
             ) : config.selector === 'feature-group' ? (
               // กลุ่มแก้ไม่ได้หลังออกใบ — เปลี่ยนกลุ่ม = เปลี่ยนสิ่งที่ขาย ต้องออกใบใหม่ (เหมือน license_number)
@@ -375,7 +375,7 @@ function LicenseFieldsCard({
                   onFocus={onFocus}
                   className={fieldErrors.amount ? 'border-destructive' : ''}
                 />
-                {fieldErrors.amount && <p className="text-destructive text-xs">{fieldErrors.amount}</p>}
+                {fieldErrors.amount && <p className="text-destructive-ink text-xs">{fieldErrors.amount}</p>}
               </>
             ) : (
               <ReadOnlyField value={draft.amount} />
@@ -443,7 +443,7 @@ function LicenseFieldsCard({
                     onFocus={onFocus}
                     className={fieldErrors.start_date ? 'border-destructive' : ''}
                   />
-                  {fieldErrors.start_date && <p className="text-destructive text-xs">{fieldErrors.start_date}</p>}
+                  {fieldErrors.start_date && <p className="text-destructive-ink text-xs">{fieldErrors.start_date}</p>}
                 </>
               ) : (
                 <ReadOnlyField value={draft.start_date} />
@@ -477,7 +477,7 @@ function LicenseFieldsCard({
                     onFocus={onFocus}
                     className={fieldErrors.end_date ? 'border-destructive' : ''}
                   />
-                  {fieldErrors.end_date && <p className="text-destructive text-xs">{fieldErrors.end_date}</p>}
+                  {fieldErrors.end_date && <p className="text-destructive-ink text-xs">{fieldErrors.end_date}</p>}
                 </>
               )}
             </div>
@@ -1018,7 +1018,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
               subtitle={t('pages.licenses.createSubtitle', { owner: ownerTypeLabelLower })}
             />
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
             )}
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               <LicenseFieldsCard
@@ -1067,7 +1067,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
             />
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+              <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
             )}
 
             {status && statusBadge && (
@@ -1090,7 +1090,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
             )}
 
             {cappedByContract && interfaceRow && (
-              <p className="text-xs text-warning">
+              <p className="text-xs text-warning-ink">
                 {t('pages.licenses.cappedByContract', {
                   state: t(`common.status.${interfaceRow.contract_state}` as TKey),
                 })}
@@ -1102,7 +1102,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
              *  เพิ่งผิดพลาดขึ้นตอนนี้ */}
             {isCancelled && canEdit && (
               <div className="border-warning/40 bg-warning/10 text-foreground flex items-start gap-2 rounded-md border p-3 text-sm">
-                <AlertTriangle className="text-warning mt-0.5 size-4 shrink-0" />
+                <AlertTriangle className="text-warning-ink mt-0.5 size-4 shrink-0" />
                 {t('pages.licenses.cancelledReadOnly')}
               </div>
             )}
@@ -1140,7 +1140,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="text-destructive hover:text-destructive"
+                    className="text-destructive-ink hover:text-destructive-ink"
                     disabled={cancelling || saving}
                     onClick={() => setConfirmCancel(true)}
                   >
@@ -1159,7 +1159,7 @@ const LicensePurchaseForm: React.FC<LicensePurchaseFormProps> = ({ config, mode 
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="text-destructive hover:text-destructive"
+                    className="text-destructive-ink hover:text-destructive-ink"
                     disabled={softDeleting || saving}
                     onClick={() => setConfirmSoftDelete(true)}
                   >

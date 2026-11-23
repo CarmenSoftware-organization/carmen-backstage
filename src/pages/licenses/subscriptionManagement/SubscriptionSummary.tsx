@@ -60,9 +60,9 @@ export const SubscriptionSummary: React.FC<SubscriptionSummaryProps> = ({
 
   const items: SummaryBandItem[] = [
     filterItem('total', t('common.option.all'), summary?.total, 'text-foreground'),
-    filterItem('active', t('common.status.active'), summary?.active, 'text-success'),
+    filterItem('active', t('common.status.active'), summary?.active, 'text-success-ink'),
     filterItem('expired', t('common.status.expired'), summary?.expired, 'text-muted-foreground'),
-    filterItem('expiring_soon', t('common.state.expiringSoon'), summary?.expiring_soon, 'text-warning'),
+    filterItem('expiring_soon', t('common.state.expiringSoon'), summary?.expiring_soon, 'text-warning-ink'),
     {
       key: 'deleted',
       label: t('common.status.deleted'),

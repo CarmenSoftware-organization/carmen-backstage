@@ -91,7 +91,7 @@ export function CommitInput({ id, label, value, onCommit, validate, warn, hint, 
         }}
       />
       {note && (
-        <p id={`${id}-note`} className={error ? 'text-[11px] text-destructive' : warning ? 'text-[11px] text-warning' : 'text-[11px] text-muted-foreground'}>
+        <p id={`${id}-note`} className={error ? 'text-[11px] text-destructive-ink' : warning ? 'text-[11px] text-warning-ink' : 'text-[11px] text-muted-foreground'}>
           {note}
         </p>
       )}
@@ -245,7 +245,7 @@ export function RowsEditor({
         {t('components.dialogPreview.panel.addRow')}
       </Button>
       {error && (
-        <p id={errId} className="text-[11px] text-destructive">
+        <p id={errId} className="text-[11px] text-destructive-ink">
           {error}
         </p>
       )}

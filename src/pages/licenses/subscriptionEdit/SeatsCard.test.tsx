@@ -47,12 +47,12 @@ describe('SeatsCard — cluster-level pool, never "unlimited"', () => {
 
   it('applies the destructive style once used reaches cap', () => {
     renderCard({ used: 10, cap: 10, pending_invites: 0 }, null);
-    expect(screen.getByText('10 / 10')).toHaveClass('text-destructive');
+    expect(screen.getByText('10 / 10')).toHaveClass('text-destructive-ink');
   });
 
   it('applies the warning style at 90%+ but under cap', () => {
     renderCard({ used: 9, cap: 10, pending_invites: 0 }, null);
-    expect(screen.getByText('9 / 10')).toHaveClass('text-warning');
+    expect(screen.getByText('9 / 10')).toHaveClass('text-warning-ink');
   });
 
   it('does not show a pending-invite line when there are none', () => {
@@ -70,7 +70,7 @@ describe('SeatsCard — cluster-level pool, never "unlimited"', () => {
     renderCard({ used: 9, cap: 10, pending_invites: 3 }, null);
     const line = screen.getByText(/3 pending/);
     expect(line).toHaveTextContent('up to 12/10');
-    expect(line).toHaveClass('text-warning');
+    expect(line).toHaveClass('text-warning-ink');
   });
 
   it("shows the contract's BU with what it bought and a link to fix its cap on the BU edit page", () => {

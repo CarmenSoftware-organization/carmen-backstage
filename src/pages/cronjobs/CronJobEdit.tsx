@@ -331,12 +331,12 @@ const CronJobEdit: React.FC = () => {
         <PageHeader backTo="/cronjobs" title={headerTitle} />
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         {foreignOwned && (
           <div className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm" role="note">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-ink" aria-hidden="true" />
             <span>{t('cronjob.foreignOwnedBanner', { service: sourceService ?? '' })}</span>
           </div>
         )}
@@ -349,7 +349,7 @@ const CronJobEdit: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="name">{t('common.field.name')} <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="name">{t('common.field.name')} <span className="text-destructive-ink">*</span></Label>
                   <Input
                     id="name"
                     name="name"
@@ -358,7 +358,7 @@ const CronJobEdit: React.FC = () => {
                     onBlur={handleNameBlur}
                     className={fieldErrors.name ? 'border-destructive' : ''}
                   />
-                  {fieldErrors.name && <p className="text-xs text-destructive">{fieldErrors.name}</p>}
+                  {fieldErrors.name && <p className="text-xs text-destructive-ink">{fieldErrors.name}</p>}
                 </div>
 
                 <div className="space-y-2">

@@ -228,7 +228,7 @@ export function InlineField({
         {label}
         {/* Required markers only mean something where the field can be filled in. */}
         {required && !disabled && (
-          <span className="text-destructive ml-0.5" aria-hidden="true">
+          <span className="text-destructive-ink ml-0.5" aria-hidden="true">
             *
           </span>
         )}
@@ -323,7 +323,7 @@ export function InlineField({
         ) : (
           renderRead()
         )}
-        {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
+        {error && <p className="text-destructive-ink mt-1 text-xs">{error}</p>}
       </div>
     </div>
   );

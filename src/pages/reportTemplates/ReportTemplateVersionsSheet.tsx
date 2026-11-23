@@ -135,7 +135,7 @@ export const ReportTemplateVersionsSheet: React.FC<Props> = ({ templateId, curre
 
           <div className="mt-4 space-y-4">
             {v.error && (
-              <p className="text-destructive text-sm">{t('pages.reportTemplates.versions.loadError')} — {v.error}</p>
+              <p className="text-destructive-ink text-sm">{t('pages.reportTemplates.versions.loadError')} — {v.error}</p>
             )}
             {v.loading && v.versions.length === 0 && <Skeleton className="h-24 w-full" />}
             {!v.loading && !v.error && v.versions.length === 0 && (
@@ -179,7 +179,7 @@ export const ReportTemplateVersionsSheet: React.FC<Props> = ({ templateId, curre
                       {isOpen && (
                         <div className="space-y-4 pb-4">
                           {detailError && !detail ? (
-                            <p className="text-destructive text-sm">{detailError}</p>
+                            <p className="text-destructive-ink text-sm">{detailError}</p>
                           ) : v.detailLoading[row.version] || !detail ? (
                             <Skeleton className="h-40 w-full" />
                           ) : (

@@ -65,7 +65,7 @@ export function AttentionBand({ items, loading }: AttentionBandProps) {
         aria-label={t('pages.dashboard.attentionAria')}
         className="text-muted-foreground flex min-h-11 items-center gap-2 rounded-lg border px-3.5 text-sm"
       >
-        <CheckCircle2 className="text-success size-4 shrink-0" aria-hidden="true" />
+        <CheckCircle2 className="text-success-ink size-4 shrink-0" aria-hidden="true" />
         <span className="min-w-0">
           <span className="text-foreground font-medium">{t('pages.dashboard.attentionClear')}</span>
           <span> · {t('pages.dashboard.attentionChecked', { areas })}</span>

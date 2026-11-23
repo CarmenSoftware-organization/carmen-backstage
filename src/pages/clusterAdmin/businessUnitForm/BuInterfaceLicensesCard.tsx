@@ -50,7 +50,7 @@ export function BuInterfaceLicensesCard({ licenses, loading, now = new Date() }:
           )}
         </div>
         {capped.length > 0 && (
-          <p className="text-warning text-xs">
+          <p className="text-warning-ink text-xs">
             {t('pages.businessUnits.interfaceCappedHint', { state: t(`common.status.${capped[0].contract_state}`) })}
           </p>
         )}

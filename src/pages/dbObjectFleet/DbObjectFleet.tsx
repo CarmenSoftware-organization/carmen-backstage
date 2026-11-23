@@ -199,8 +199,8 @@ export default function DbObjectFleet() {
 
   const filterTiles: { key: RowFilter; label: string; value: number; tone: string }[] = [
     { key: 'all', label: t('pages.dbObjectFleet.tileAll'), value: summary.total, tone: '' },
-    { key: 'synced', label: t('pages.dbObjectFleet.tileSynced'), value: summary.synced, tone: 'text-success' },
-    { key: 'needs', label: t('pages.dbObjectFleet.tileNeeds'), value: summary.needs, tone: 'text-warning' },
+    { key: 'synced', label: t('pages.dbObjectFleet.tileSynced'), value: summary.synced, tone: 'text-success-ink' },
+    { key: 'needs', label: t('pages.dbObjectFleet.tileNeeds'), value: summary.needs, tone: 'text-warning-ink' },
   ];
 
   return (
@@ -246,7 +246,7 @@ export default function DbObjectFleet() {
         />
 
         {registryError && (
-          <p role="alert" className="text-destructive text-sm">
+          <p role="alert" className="text-destructive-ink text-sm">
             {registryError}
           </p>
         )}
@@ -259,7 +259,7 @@ export default function DbObjectFleet() {
           </div>
         )}
         {busError && (
-          <p role="alert" className="text-destructive text-sm">
+          <p role="alert" className="text-destructive-ink text-sm">
             {busError}
           </p>
         )}
@@ -274,7 +274,7 @@ export default function DbObjectFleet() {
               </span>
             )}
             {scanErrors.length > 0 && (
-              <span className="text-destructive">
+              <span className="text-destructive-ink">
                 {t('pages.dbObjectFleet.scanErrors', {
                   count: scanErrors.length,
                   bus: scanErrors.map((b) => b.code).join(', '),

@@ -459,7 +459,7 @@ export const BackstageMigrationManagement: React.FC = () => {
                           className="font-mono text-xs"
                         />
                         {migrationName.trim() !== '' && !resolveNameValid && (
-                          <p className="text-xs text-destructive">
+                          <p className="text-xs text-destructive-ink">
                             {t('pages.backstageMigration.migrationNameInvalid')}
                           </p>
                         )}

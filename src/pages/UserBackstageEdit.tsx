@@ -267,7 +267,7 @@ const UserBackstageEdit: React.FC = () => {
 
         {error && (
           <div
-            className="border-destructive/50 bg-destructive/10 text-destructive rounded-md border px-4 py-3 text-sm"
+            className="border-destructive/50 bg-destructive/10 text-destructive-ink rounded-md border px-4 py-3 text-sm"
             role="alert"
           >
             {error}
@@ -282,7 +282,7 @@ const UserBackstageEdit: React.FC = () => {
         */}
         {!isActive && roleAssignments.length > 0 && (
           <div
-            className="text-warning border-warning/40 bg-warning/10 flex items-start gap-2 rounded-md border px-4 py-3 text-sm"
+            className="text-warning-ink border-warning/40 bg-warning/10 flex items-start gap-2 rounded-md border px-4 py-3 text-sm"
             role="alert"
           >
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />

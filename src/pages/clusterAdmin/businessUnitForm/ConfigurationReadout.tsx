@@ -25,7 +25,7 @@ function Row({
       <div className="min-w-0 px-2 py-1.5 text-sm">
         {children}
         {sub && <div className="text-muted-foreground mt-0.5 text-xs">{sub}</div>}
-        {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
+        {error && <p className="text-destructive-ink mt-1 text-xs">{error}</p>}
       </div>
     </div>
   );
@@ -78,7 +78,7 @@ export function ConfigurationReadout({
         ) : preview.kind === 'empty' ? (
           <Empty />
         ) : (
-          <span className="text-destructive">
+          <span className="text-destructive-ink">
             {preview.reason === 'json'
               ? t('pages.businessUnits.formatPreviewInvalidJson')
               : t('pages.businessUnits.formatPreviewInvalidOptions')}

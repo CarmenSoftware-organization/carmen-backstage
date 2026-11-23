@@ -43,13 +43,13 @@ export const StatusPage: React.FC<StatusPageProps> = ({
             <Icon
               className={cn(
                 'h-8 w-8',
-                tone === 'danger' ? 'text-destructive' : 'text-muted-foreground',
+                tone === 'danger' ? 'text-destructive-ink' : 'text-muted-foreground',
               )}
             />
           </div>
         </div>
         <p className="text-xs font-mono tracking-widest text-muted-foreground">{code}</p>
-        <CardTitle className={cn('text-2xl', tone === 'danger' && 'text-destructive')}>
+        <CardTitle className={cn('text-2xl', tone === 'danger' && 'text-destructive-ink')}>
           {title}
         </CardTitle>
       </CardHeader>

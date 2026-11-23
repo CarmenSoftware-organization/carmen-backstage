@@ -373,7 +373,7 @@ const CustomerEdit: React.FC = () => {
         />
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         {editing ? (
@@ -382,7 +382,7 @@ const CustomerEdit: React.FC = () => {
               <CardContent className="space-y-4 pt-6">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="ar_number">{t('pages.customers.arNumber')} <span className="text-destructive">*</span></Label>
+                    <Label htmlFor="ar_number">{t('pages.customers.arNumber')} <span className="text-destructive-ink">*</span></Label>
                     <Input
                       id="ar_number"
                       name="ar_number"
@@ -394,7 +394,7 @@ const CustomerEdit: React.FC = () => {
                       className={fieldErrors.ar_number ? 'border-destructive font-mono' : 'font-mono'}
                     />
                     {fieldErrors.ar_number
-                      ? <p className="text-xs text-destructive">{fieldErrors.ar_number}</p>
+                      ? <p className="text-xs text-destructive-ink">{fieldErrors.ar_number}</p>
                       : <p className="text-xs text-muted-foreground">{t('pages.customers.arHint')}</p>}
                   </div>
 

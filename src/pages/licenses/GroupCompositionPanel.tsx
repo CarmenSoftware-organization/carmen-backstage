@@ -100,7 +100,7 @@ export function GroupCompositionPanel({
       {subscriptionCount > 0 && (
         <div className="border-warning/40 bg-warning/5 space-y-1 rounded-md border p-3">
           <p className="flex items-start gap-2 text-sm font-medium">
-            <AlertTriangle className="text-warning mt-0.5 h-4 w-4 shrink-0" />
+            <AlertTriangle className="text-warning-ink mt-0.5 h-4 w-4 shrink-0" />
             {subscriptionCount === 1
               ? t('pages.licenseFeatureGroups.inUseWarningTitleOne')
               : t('pages.licenseFeatureGroups.inUseWarningTitle', { count: subscriptionCount })}
@@ -114,7 +114,7 @@ export function GroupCompositionPanel({
           <p
             aria-hidden={!willDeactivate}
             className={cn(
-              'text-warning pl-6 text-xs font-medium',
+              'text-warning-ink pl-6 text-xs font-medium',
               willDeactivate ? 'visible' : 'invisible',
             )}
           >

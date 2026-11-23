@@ -170,7 +170,7 @@ export function NoteHistorySheet({ ownerId, adapter, noteId, open, onOpenChange 
 
         <div className="mt-4 space-y-4">
           {error && (
-            <p className="text-sm text-destructive">
+            <p className="text-sm text-destructive-ink">
               {t('pages.activityTrail.loadError')} — {error}
             </p>
           )}

@@ -85,7 +85,7 @@ export const CustomerPicker: React.FC<CustomerPickerProps> = ({
           <button
             type="button"
             onClick={clearSelection}
-            className="shrink-0 rounded hover:text-destructive"
+            className="shrink-0 rounded hover:text-destructive-ink"
             aria-label={t('components.customerPicker.clearSelectedAria', { name: optionLabel(value) })}
           >
             <X className="h-4 w-4" />

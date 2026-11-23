@@ -566,7 +566,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
           // สีเตือนใช้เกณฑ์เดียวกับป้าย "ใกล้หมดอายุ" ในคอลัมน์ State — ห้ามตั้งเกณฑ์ของตัวเอง
           const soon = isExpiringSoon(state, end_date, thresholds.subscription_days);
           return (
-            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning font-medium' : ''}`}>
+            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning-ink font-medium' : ''}`}>
               {t('common.state.daysLeft', { count: left })}
             </span>
           );
@@ -773,7 +773,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && items.length === 0 && !loading ? (
               <ListEmptyState

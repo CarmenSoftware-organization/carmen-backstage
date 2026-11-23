@@ -107,7 +107,7 @@ export function RoleIdentityHero({ name, isActive, permissions, catalogSize, rea
               11px meta type beside the audit line: the shape first, the sentence under it. */}
           {shape && <div className="mt-3">{shape}</div>}
           <div
-            className={`mt-1.5 flex items-center gap-1.5 text-sm ${reach.full ? 'text-warning' : 'text-muted-foreground'}`}
+            className={`mt-1.5 flex items-center gap-1.5 text-sm ${reach.full ? 'text-warning-ink' : 'text-muted-foreground'}`}
           >
             {reach.full && <AlertTriangle className="size-4 shrink-0" />}
             {reach.text}
@@ -116,7 +116,7 @@ export function RoleIdentityHero({ name, isActive, permissions, catalogSize, rea
             // Amber carries the icon only: `--warning` as text on the light ground is 3.08:1
             // (see the code-palette note in index.css), below AA for body type.
             <div className="mt-1 flex items-start gap-1.5 text-sm">
-              <AlertTriangle className="text-warning mt-0.5 size-4 shrink-0" />
+              <AlertTriangle className="text-warning-ink mt-0.5 size-4 shrink-0" />
               <span>
                 {t('pages.roles.escalationWarning')}{' '}
                 {escalationKeys.map((k, i) => (

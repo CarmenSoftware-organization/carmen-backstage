@@ -85,7 +85,7 @@ const RejectIntakeDialog: React.FC<RejectIntakeDialogProps> = ({ open, onOpenCha
             aria-invalid={!!errorText}
           />
           <div className="flex justify-between gap-2 text-xs">
-            <span className="text-destructive">{errorText}</span>
+            <span className="text-destructive-ink">{errorText}</span>
             <span className="text-muted-foreground">
               {trimmed.length}/{REJECT_REASON_MAX}
             </span>

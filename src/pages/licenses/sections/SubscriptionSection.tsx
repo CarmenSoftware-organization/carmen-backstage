@@ -112,7 +112,7 @@ export function SubscriptionSection({
           <TableSkeleton columns={6} rows={3} />
         ) : failed ? (
           <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <p className="text-destructive text-sm">
+            <p className="text-destructive-ink text-sm">
               {errorMsg
                 ? `${t('pages.licenses.subscriptionsLoadFailedPrefix')}${errorMsg}`
                 : t('pages.licenses.subscriptionsLoadFailed')}

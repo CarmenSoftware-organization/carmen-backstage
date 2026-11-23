@@ -60,8 +60,8 @@ function remainingOf(
 
 const TONE_CLASS: Record<Remaining['tone'], string> = {
   muted: 'text-muted-foreground',
-  warning: 'text-warning',
-  destructive: 'text-destructive',
+  warning: 'text-warning-ink',
+  destructive: 'text-destructive-ink',
 };
 
 export interface IssuedLicensePlateProps {
@@ -142,7 +142,7 @@ export function IssuedLicensePlate({
               <p
                 className={cn(
                   'text-xs tabular-nums',
-                  used > cap ? 'text-destructive' : used === cap ? 'text-warning' : 'text-muted-foreground',
+                  used > cap ? 'text-destructive-ink' : used === cap ? 'text-warning-ink' : 'text-muted-foreground',
                 )}
               >
                 {t('pages.licenses.usageLine', { used, cap })}

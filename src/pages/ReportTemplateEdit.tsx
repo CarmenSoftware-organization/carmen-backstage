@@ -623,7 +623,7 @@ const ReportTemplateEdit: React.FC = () => {
         )}
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">
             {error}
           </div>
         )}
@@ -671,7 +671,7 @@ const ReportTemplateEdit: React.FC = () => {
                               <option value="form">{t('pages.reportTemplates.templateTypeForm')}</option>
                             </select>
                             {fieldErrors.template_type && (
-                              <p className="text-xs text-destructive">{fieldErrors.template_type}</p>
+                              <p className="text-xs text-destructive-ink">{fieldErrors.template_type}</p>
                             )}
                           </>
                         ) : (
@@ -700,7 +700,7 @@ const ReportTemplateEdit: React.FC = () => {
                               required
                             />
                             {fieldErrors.name && (
-                              <p className="text-xs text-destructive">{fieldErrors.name}</p>
+                              <p className="text-xs text-destructive-ink">{fieldErrors.name}</p>
                             )}
                           </>
                         ) : (
@@ -795,7 +795,7 @@ const ReportTemplateEdit: React.FC = () => {
                                 ))}
                               </select>
                               {fieldErrors.report_group && (
-                                <p className="text-xs text-destructive">{fieldErrors.report_group}</p>
+                                <p className="text-xs text-destructive-ink">{fieldErrors.report_group}</p>
                               )}
                             </>
                           ) : (
@@ -813,7 +813,7 @@ const ReportTemplateEdit: React.FC = () => {
                                 required
                               />
                               {fieldErrors.report_group && (
-                                <p className="text-xs text-destructive">{fieldErrors.report_group}</p>
+                                <p className="text-xs text-destructive-ink">{fieldErrors.report_group}</p>
                               )}
                             </>
                           )}
@@ -893,7 +893,7 @@ const ReportTemplateEdit: React.FC = () => {
                               </label>
                               {formData.allow_export && !formData.export_xml.trim() && (
                                 <p className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs">
-                                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-ink" />
                                   <span>{t('pages.reportTemplates.allowExportNoXml')}</span>
                                 </p>
                               )}
@@ -1037,7 +1037,7 @@ const ReportTemplateEdit: React.FC = () => {
                           className={fieldErrors.source_name ? 'border-destructive' : ''}
                         />
                         {fieldErrors.source_name && (
-                          <p className="text-xs text-destructive">{fieldErrors.source_name}</p>
+                          <p className="text-xs text-destructive-ink">{fieldErrors.source_name}</p>
                         )}
 
                         {/* Probe-BU picker — browse what exists in a tenant schema */}
@@ -1351,7 +1351,7 @@ const ReportTemplateEdit: React.FC = () => {
                           <ul className="mt-3 space-y-1 rounded-md border border-warning/40 bg-warning/10 p-3 text-xs">
                             {exportWarnings.map((text, i) => (
                               <li key={i} className="flex items-start gap-2">
-                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning-ink" />
                                 <span>{text}</span>
                               </li>
                             ))}

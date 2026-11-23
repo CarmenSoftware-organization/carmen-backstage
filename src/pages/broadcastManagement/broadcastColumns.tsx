@@ -135,7 +135,7 @@ export const createBroadcastColumns = ({
         }
 
         return (
-          <span className={`text-sm whitespace-nowrap ${isExpiringSoon ? 'text-warning font-medium' : ''}`}>
+          <span className={`text-sm whitespace-nowrap ${isExpiringSoon ? 'text-warning-ink font-medium' : ''}`}>
             {formatDt(endAt)}
           </span>
         );
@@ -158,7 +158,7 @@ export const createBroadcastColumns = ({
       header: t('common.audit.deletedDate'),
       meta: { headerClassName: 'w-36', cellClassName: 'w-36' },
       cell: ({ row }) => (
-        <div className="text-[11px] leading-tight text-destructive space-y-0.5">
+        <div className="text-[11px] leading-tight text-destructive-ink space-y-0.5">
           <div>{formatDt(row.original.deleted_at)}</div>
         </div>
       ),
@@ -208,7 +208,7 @@ export const createBroadcastColumns = ({
               <Can permission="broadcast.delete">
                 <DropdownMenuItem
                   onClick={() => onDelete(d.id, d.doc_version)}
-                  className="cursor-pointer text-destructive focus:text-destructive"
+                  className="cursor-pointer text-destructive-ink focus:text-destructive-ink"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   {t('common.action.delete')}

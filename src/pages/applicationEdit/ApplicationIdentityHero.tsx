@@ -52,7 +52,7 @@ function AppIdChip({ appId }: { appId: string }) {
         aria-label={copied ? t('pages.applications.appIdCopied') : t('pages.applications.copyAppId')}
         className="hover:text-foreground grid size-5 shrink-0 place-items-center rounded transition-colors"
       >
-        {copied ? <Check className="text-success size-3" /> : <Copy className="size-3" />}
+        {copied ? <Check className="text-success-ink size-3" /> : <Copy className="size-3" />}
       </button>
     </span>
   );
@@ -149,11 +149,11 @@ export function ApplicationIdentityHero({
                   />
                 </div>
                 <span className="shrink-0 whitespace-nowrap font-mono text-sm tabular-nums">
-                  <span className={cn('font-semibold', reach.full && 'text-warning')}>{reach.granted}</span>
+                  <span className={cn('font-semibold', reach.full && 'text-warning-ink')}>{reach.granted}</span>
                   <span className="text-muted-foreground">/{catalog!.size}</span>
                 </span>
                 {reach.full && (
-                  <AlertTriangle className="text-warning size-4 shrink-0" aria-hidden="true" />
+                  <AlertTriangle className="text-warning-ink size-4 shrink-0" aria-hidden="true" />
                 )}
               </div>
               <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
@@ -162,7 +162,7 @@ export function ApplicationIdentityHero({
                   <>
                     <span aria-hidden="true">·</span>
                     {/* วาดเฉพาะข้อยกเว้น: ตัวเลขนี้คือสิ่งที่ App ID ใบนี้ลบหรืออนุมัติแทนใครได้ */}
-                    <span className="text-warning font-medium">
+                    <span className="text-warning-ink font-medium">
                       {t('pages.applications.authorityCount', { count: authority })}
                     </span>
                   </>
@@ -171,7 +171,7 @@ export function ApplicationIdentityHero({
             </div>
           ) : (
             <div
-              className={`mt-2 flex items-center gap-1.5 text-[11px] ${allowAll ? 'text-warning' : 'text-muted-foreground/80'}`}
+              className={`mt-2 flex items-center gap-1.5 text-[11px] ${allowAll ? 'text-warning-ink' : 'text-muted-foreground/80'}`}
             >
               {allowAll && <AlertTriangle className="size-3.5 shrink-0" />}
               {accessSummary(allowAll, apiNames, t)}

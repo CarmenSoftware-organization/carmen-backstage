@@ -18,6 +18,9 @@ colors:
   settled-green: "hsl(152 40% 36%)"
   caution-amber: "hsl(32 90% 44%)"
   chart-amber: "hsl(32 85% 45%)"
+  fault-red-ink: "hsl(0 72% 42%)"
+  settled-green-ink: "hsl(152 40% 30%)"
+  caution-amber-ink: "hsl(32 90% 31%)"
 typography:
   title:
     fontFamily: "Inter, system-ui, -apple-system, sans-serif"
@@ -178,6 +181,7 @@ Values are HSL channels in `src/index.css` (`:root` and `.dark`) and are consume
 - **Caution Amber** (`--warning`; dark `38 92% 55%`): at risk, expiring, partial. Text on it is Fill Ink in **both** themes: white measures 3.24:1 on the light amber.
 - **Fill Ink** (`20 14% 8%`): text on a status or primary fill wherever white would miss 4.5:1. That covers warning in both themes, and primary, info and success in dark theme. Light primary, success and destructive and dark destructive keep white. Every fill/text pair measures ≥4.5:1 in both themes.
 - **Fault Red** (`--destructive`; dark `0 62% 45%`): delete, failure, validation error.
+- **Status Ink** (`--destructive-ink` / `--warning-ink` / `--success-ink`; light `0 72% 42%` / `32 90% 31%` / `152 40% 30%`, dark `0 70% 68%` / `38 92% 55%` / `152 45% 48%`): the status colour **as text or an icon**, via `text-destructive-ink` / `text-warning-ink` / `text-success-ink`. The fills above are tuned as chip backgrounds and fail as text in one theme each: light amber 3.08:1, light green 4.49:1, dark red 2.96:1. Each ink clears 4.75:1 on the ground, a card, muted, and its own status's 5–15% tint. `bg-*` and `border-*` keep the fill token.
 - **Chart Amber** (`--chart-2`; dark `36 88% 58%`): the second series in charts. `--chart-1` is Signal Blue.
 
 ### Special-purpose
@@ -298,5 +302,5 @@ This is the one floating glass slab described under Elevation. It holds Save and
 - **Don't** hand-roll an `<h1>`, nest a badge inside the heading, or put Save/Cancel in the header actions.
 - **Don't** cap the page at a max width. Cap the column that needs a measure. If a page looks stretched, fix its rows: add columns or cap the name column.
 - **Don't** box read-only values in a bordered field in view mode.
-- **Don't** use `--warning` or `--success` as text colours on the ground; they are chip fills (3.08:1 as text).
+- **Don't** use a status fill as a text colour (`text-destructive`, `text-warning`, `text-success`). Those are chip fills; as text they measure 3.08:1 (light amber) and 2.96:1 (dark red). Use the `-ink` class: `text-warning-ink`.
 - **Don't** modify `src/components/ui/` primitives to restyle a single page.

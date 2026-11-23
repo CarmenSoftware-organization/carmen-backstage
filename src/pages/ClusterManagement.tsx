@@ -518,7 +518,7 @@ const ClusterManagement: React.FC = () => {
         <AuditMeta
           variant="cell"
           actor={normalizeAudit(row.original).deleted}
-          className="text-[11px] leading-tight text-destructive space-y-0.5"
+          className="text-[11px] leading-tight text-destructive-ink space-y-0.5"
         />
       ),
       enableSorting: false,
@@ -554,7 +554,7 @@ const ClusterManagement: React.FC = () => {
               </DropdownMenuItem>
             </Can>
             <Can permission="cluster.delete" clusterId={row.original.id}>
-              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive-ink focus:text-destructive-ink">
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('common.action.delete')}
               </DropdownMenuItem>
@@ -710,7 +710,7 @@ const ClusterManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && clusters.length === 0 && !loading ? (
               <ListEmptyState

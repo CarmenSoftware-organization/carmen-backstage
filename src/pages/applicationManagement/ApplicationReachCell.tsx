@@ -65,18 +65,18 @@ export function ApplicationReachCell({ name, allowAll, apiNames, catalogSize }: 
         <span className="shrink-0 whitespace-nowrap font-mono text-[13px] tabular-nums">
           {anchored || !allowAll ? (
             <>
-              <span className={cn('font-semibold', full && 'text-warning')}>{granted}</span>
+              <span className={cn('font-semibold', full && 'text-warning-ink')}>{granted}</span>
               {anchored && <span className="text-muted-foreground">/{catalogSize}</span>}
             </>
           ) : (
             /* allow_all with no catalog to divide by — the grant is all this row can honestly say */
-            <span className="text-warning font-semibold">{t('pages.applications.allApis')}</span>
+            <span className="text-warning-ink font-semibold">{t('pages.applications.allApis')}</span>
           )}
         </span>
         {/* ถ้อยคำเดียวกับ ApplicationIdentityHero เพื่อให้รายการกับหน้ารายละเอียดพูดตรงกัน */}
         {full && (
           <span className="flex shrink-0" title={t('pages.applications.fullAccessEndpoints')}>
-            <AlertTriangle className="text-warning size-3.5" />
+            <AlertTriangle className="text-warning-ink size-3.5" />
           </span>
         )}
       </div>

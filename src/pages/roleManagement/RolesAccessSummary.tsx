@@ -100,8 +100,8 @@ export function RolesAccessSummary({ summary, loading, error = false, onRetry = 
                           <span />
                         )}
                         <span className="flex items-center justify-end gap-1 font-mono text-[13px] tabular-nums">
-                          {full && <AlertTriangle className="text-warning size-3.5 shrink-0" aria-hidden="true" />}
-                          <span className={cn('font-semibold', full && 'text-warning')}>{r.permission_count}</span>
+                          {full && <AlertTriangle className="text-warning-ink size-3.5 shrink-0" aria-hidden="true" />}
+                          <span className={cn('font-semibold', full && 'text-warning-ink')}>{r.permission_count}</span>
                           {anchored && <span className="text-muted-foreground">/{catalogSize}</span>}
                         </span>
                       </Fragment>

@@ -420,7 +420,7 @@ export function BuSwitcher({
           )}
           {!pending && error && (
             <div role="presentation" className="flex items-center justify-between gap-2 px-4 py-4 text-sm">
-              <span className="text-destructive">{error}</span>
+              <span className="text-destructive-ink">{error}</span>
               <Button variant="ghost" size="sm" className="h-7" onClick={refresh}>
                 {t('common.action.retry')}
               </Button>

@@ -639,7 +639,7 @@ const BusinessUnitForm: React.FC = () => {
         />
 
         {error && (
-          <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm" role="alert">{error}</div>
+          <div className="text-destructive-ink bg-destructive/10 rounded-md p-3 text-sm" role="alert">{error}</div>
         )}
 
         {!error && (accessLost ? <ClusterAccessLost /> : (

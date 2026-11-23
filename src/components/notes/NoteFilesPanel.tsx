@@ -78,7 +78,7 @@ export function NoteFilesPanel({ ownerId, adapter, refreshKey, onCountChange }: 
             <Skeleton className="h-4 w-2/3" />
           </div>
         ) : failed ? (
-          <p className="text-xs text-destructive">{t('pages.clusterNotes.filesLoadError')}</p>
+          <p className="text-xs text-destructive-ink">{t('pages.clusterNotes.filesLoadError')}</p>
         ) : files.length === 0 ? (
           <p className="text-xs text-muted-foreground">{t('pages.clusterNotes.filesEmpty')}</p>
         ) : (

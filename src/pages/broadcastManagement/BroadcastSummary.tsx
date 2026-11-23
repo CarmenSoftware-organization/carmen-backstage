@@ -45,10 +45,10 @@ export const BroadcastSummary: React.FC<BroadcastSummaryProps> = ({
   // + deleted ถ้าไม่แสดง deleted ผู้ใช้จะเห็น All ไม่เท่าผลรวมช่องที่เหลือทันทีที่มีแถวถูกลบ
   const items = [
     { key: 'all', label: t('common.option.all'), value: summary?.all, color: 'text-foreground' },
-    { key: 'active', label: t('common.status.active'), value: summary?.active, color: 'text-success' },
+    { key: 'active', label: t('common.status.active'), value: summary?.active, color: 'text-success-ink' },
     { key: 'scheduled', label: t('common.status.scheduled'), value: summary?.scheduled, color: 'text-info' },
     { key: 'expired', label: t('common.status.expired'), value: summary?.expired, color: 'text-muted-foreground' },
-    { key: 'deleted', label: t('common.status.deleted'), value: summary?.deleted, color: 'text-destructive' },
+    { key: 'deleted', label: t('common.status.deleted'), value: summary?.deleted, color: 'text-destructive-ink' },
   ] as const;
 
   return (

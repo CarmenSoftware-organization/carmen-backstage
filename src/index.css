@@ -37,6 +37,13 @@
   --warning-foreground: 20 14% 8%;
   --info: 221 61% 48%;
   --info-foreground: 0 0% 100%;
+  /* Status INK: the status colour as text or an icon on the ground, a card, muted, or the
+   * status's own 5-15% tint. The fills above are chip backgrounds and fail as text: light amber
+   * 3.08:1, light green 4.49:1, dark red 2.96:1. Each ink clears 4.75:1 on every one of those
+   * surfaces in its theme. Use `text-*-ink`; keep `bg-*` / `border-*` on the fill token. */
+  --destructive-ink: 0 72% 42%;
+  --warning-ink: 32 90% 31%;
+  --success-ink: 152 40% 30%;
   /* usage analytics chart series — kept distinct from --primary/--info (which are
      identical) and from --success/--warning (which carry status meaning) */
   --chart-1: 221 61% 48%;
@@ -93,6 +100,11 @@
   --warning-foreground: 20 14% 8%;
   --info: 217 70% 60%;
   --info-foreground: 20 14% 8%;
+  /* Status ink, see :root. Dark red lifts (the fill is 2.96:1 as text); amber and green
+   * already read on the dark ground, so they stay at or near their fill. */
+  --destructive-ink: 0 70% 68%;
+  --warning-ink: 38 92% 55%;
+  --success-ink: 152 45% 48%;
   --chart-1: 217 70% 60%;
   --chart-2: 36 88% 58%;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);

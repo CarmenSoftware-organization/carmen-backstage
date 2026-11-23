@@ -23,7 +23,7 @@ type Tone = 'default' | 'warning' | 'destructive';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const toneText = (tone: Tone) =>
-  tone === 'destructive' ? 'text-destructive' : tone === 'warning' ? 'text-warning' : 'text-muted-foreground';
+  tone === 'destructive' ? 'text-destructive-ink' : tone === 'warning' ? 'text-warning-ink' : 'text-muted-foreground';
 const toneBar = (tone: Tone) =>
   tone === 'destructive' ? 'bg-destructive' : tone === 'warning' ? 'bg-warning' : 'bg-primary';
 
@@ -66,7 +66,7 @@ function Cell({ target, label, loading, value, unit, meterPct, status, tone = 'd
       ) : (
         <>
           <span className="flex flex-wrap items-baseline gap-x-1.5">
-            <span className={cn('font-mono text-2xl font-semibold tabular-nums tracking-tight', tone === 'destructive' && 'text-destructive')}>
+            <span className={cn('font-mono text-2xl font-semibold tabular-nums tracking-tight', tone === 'destructive' && 'text-destructive-ink')}>
               {value}
             </span>
             {unit && <span className="text-muted-foreground text-xs">{unit}</span>}

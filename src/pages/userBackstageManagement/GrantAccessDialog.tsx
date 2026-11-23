@@ -142,11 +142,11 @@ export const GrantAccessDialog: React.FC<GrantAccessDialogProps> = ({
                     disabled={saving}
                     className="h-4 w-4 rounded border-input"
                   />
-                  <span className={conflictRoleIds.includes(role.id) ? 'text-destructive' : ''}>
+                  <span className={conflictRoleIds.includes(role.id) ? 'text-destructive-ink' : ''}>
                     {role.name}
                   </span>
                   {conflictRoleIds.includes(role.id) && (
-                    <span className="text-destructive text-xs">{t('pages.userBackstage.alreadyGranted')}</span>
+                    <span className="text-destructive-ink text-xs">{t('pages.userBackstage.alreadyGranted')}</span>
                   )}
                 </label>
               ))}

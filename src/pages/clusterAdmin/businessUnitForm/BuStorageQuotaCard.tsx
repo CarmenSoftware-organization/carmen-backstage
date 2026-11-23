@@ -283,7 +283,7 @@ export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardPr
       {!loading && (
       <CardContent className="space-y-4">
         {error || !view || !form ? (
-          <p className="text-destructive text-sm" role="alert">{error}</p>
+          <p className="text-destructive-ink text-sm" role="alert">{error}</p>
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2">
@@ -369,7 +369,7 @@ export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardPr
                     <p className="font-medium">
                       {t('pages.storageQuota.reclaimTitle')}
                       {': '}
-                      <span className={job.status === 'failed' ? 'text-destructive' : ''}>
+                      <span className={job.status === 'failed' ? 'text-destructive-ink' : ''}>
                         {t(RECLAIM_STATUS_KEY[job.status])}
                       </span>
                     </p>
@@ -392,12 +392,12 @@ export function BuStorageQuotaCard({ buId, onStateChange }: BuStorageQuotaCardPr
                       </p>
                     )}
                     {job.skipped_tables?.length > 0 && (
-                      <p className="text-warning text-xs break-words">
+                      <p className="text-warning-ink text-xs break-words">
                         {t('pages.storageQuota.reclaimSkipped', { tables: job.skipped_tables.join(', ') })}
                       </p>
                     )}
                     {job.status === 'failed' && job.error && (
-                      <p className="text-destructive text-xs break-words">{job.error}</p>
+                      <p className="text-destructive-ink text-xs break-words">{job.error}</p>
                     )}
                   </div>
                 )}

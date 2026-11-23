@@ -135,7 +135,7 @@ export function ResultPanel({
       {/* Header */}
       <div className="bg-muted/30 flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2">
         {error ? (
-          <AlertTriangle className="text-destructive size-4" />
+          <AlertTriangle className="text-destructive-ink size-4" />
         ) : (
           <TableIcon className="text-muted-foreground size-4" />
         )}
@@ -196,7 +196,7 @@ export function ResultPanel({
         <div className="min-h-0 flex-1 overflow-auto p-3">
           <pre
             role="alert"
-            className="border-destructive/30 bg-destructive/5 text-destructive rounded border p-3 text-xs whitespace-pre-wrap"
+            className="border-destructive/30 bg-destructive/5 text-destructive-ink rounded border p-3 text-xs whitespace-pre-wrap"
           >
             {error}
           </pre>

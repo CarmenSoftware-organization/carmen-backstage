@@ -93,7 +93,7 @@ function DomainRows({ counts }: { counts: Record<string, DomainCount> }) {
             </span>
             {c.failed ? (
               <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-                <TriangleAlert className="text-warning size-3.5" aria-hidden="true" />
+                <TriangleAlert className="text-warning-ink size-3.5" aria-hidden="true" />
                 {t('pages.dashboard.domainUnavailable')}
               </span>
             ) : (

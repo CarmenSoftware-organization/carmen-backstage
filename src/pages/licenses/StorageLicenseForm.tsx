@@ -436,7 +436,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
         )}
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>
         )}
 
         {!isNew && detail && (
@@ -481,7 +481,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
                       placeholder={t('pages.storageLicense.form.businessUnitPlaceholder')}
                       disabled={!canEdit}
                     />
-                    {fieldErrors.bu && <p className="text-destructive text-xs">{fieldErrors.bu}</p>}
+                    {fieldErrors.bu && <p className="text-destructive-ink text-xs">{fieldErrors.bu}</p>}
                   </div>
                 )}
 
@@ -506,7 +506,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
                     <ReadOnlyField value={form.db ? `${form.db} GB` : quotaLabel(null, defaults?.db)} />
                   )}
                   {editing && <p className="text-muted-foreground text-xs">{blankHint(defaults?.db)}</p>}
-                  {fieldErrors.db && <p className="text-destructive text-xs">{fieldErrors.db}</p>}
+                  {fieldErrors.db && <p className="text-destructive-ink text-xs">{fieldErrors.db}</p>}
                 </div>
                 )}
 
@@ -530,11 +530,11 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
                     <ReadOnlyField value={form.file ? `${form.file} GB` : quotaLabel(null, defaults?.file)} />
                   )}
                   {editing && <p className="text-muted-foreground text-xs">{blankHint(defaults?.file)}</p>}
-                  {fieldErrors.file && <p className="text-destructive text-xs">{fieldErrors.file}</p>}
+                  {fieldErrors.file && <p className="text-destructive-ink text-xs">{fieldErrors.file}</p>}
                 </div>
 
                 {fieldErrors.figures && (
-                  <p className="text-destructive text-xs lg:col-span-2" role="alert">{fieldErrors.figures}</p>
+                  <p className="text-destructive-ink text-xs lg:col-span-2" role="alert">{fieldErrors.figures}</p>
                 )}
 
                 <div className="space-y-2">
@@ -559,7 +559,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
           </Card>
 
           {isNew && current && (
-            <p className="text-sm text-warning" role="status">
+            <p className="text-sm text-warning-ink" role="status">
               {t('pages.storageLicense.form.replacesNotice', { number: current.license_number })}
             </p>
           )}
@@ -587,7 +587,7 @@ const StorageLicenseForm: React.FC<StorageLicenseFormProps> = ({ mode }) => {
                 type="button"
                 size="sm"
                 variant="outline"
-                className="text-destructive hover:text-destructive"
+                className="text-destructive-ink hover:text-destructive-ink"
                 disabled={saving}
                 onClick={() => setConfirmDelete(true)}
               >

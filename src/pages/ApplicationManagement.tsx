@@ -330,7 +330,7 @@ const ApplicationManagement: React.FC = () => {
                 aria-label={copied ? t('pages.applications.appIdCopied') : t('pages.applications.copyAppId')}
                 onClick={() => handleCopyId(id)}
               >
-                {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? <Check className="h-3.5 w-3.5 text-success-ink" /> : <Copy className="h-3.5 w-3.5" />}
               </Button>
             </div>
             {row.original.description && (
@@ -374,7 +374,7 @@ const ApplicationManagement: React.FC = () => {
             <span aria-hidden className={cn('size-1.5 shrink-0 rounded-full', STATUS_DOT[s])} />
             {t(STATUS_LABEL_KEY[s])}
             {s !== 'running' && isPastUntil(until) && (
-              <AlertTriangle className="text-warning size-3.5 shrink-0" aria-hidden />
+              <AlertTriangle className="text-warning-ink size-3.5 shrink-0" aria-hidden />
             )}
           </span>
         );
@@ -439,7 +439,7 @@ const ApplicationManagement: React.FC = () => {
               </DropdownMenuItem>
             </Can>
             <Can permission="application.delete">
-              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={() => handleDelete(row.original.id)} className="cursor-pointer text-destructive-ink focus:text-destructive-ink">
                 <Trash2 className="mr-2 h-4 w-4" />
                 {t('common.action.delete')}
               </DropdownMenuItem>
@@ -559,7 +559,7 @@ const ApplicationManagement: React.FC = () => {
             )}
           </CardHeader>
           <CardContent>
-            {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
+            {error && <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">{error}</div>}
 
             {!error && applications.length === 0 && !loading ? (
               <ListEmptyState

@@ -106,7 +106,7 @@ export const TenantMigrationResolveDialog = ({
               disabled={resolving}
             />
             {trimmed !== '' && !nameValid && (
-              <p className="text-xs text-destructive" role="alert">
+              <p className="text-xs text-destructive-ink" role="alert">
                 {t('pages.tenantMigration.migrationNameInvalid')}
               </p>
             )}

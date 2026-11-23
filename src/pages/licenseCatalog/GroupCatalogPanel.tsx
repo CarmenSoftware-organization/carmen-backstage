@@ -176,7 +176,7 @@ export const GroupCatalogPanel: React.FC = () => {
             }
             className={cn(
               'inline-flex h-6 min-w-6 items-center justify-center rounded-md border bg-background px-1.5 font-mono text-xs tabular-nums',
-              dupe ? 'border-warning text-warning' : 'text-muted-foreground',
+              dupe ? 'border-warning text-warning-ink' : 'text-muted-foreground',
             )}
           >
             {row.original.sort_order}
@@ -312,7 +312,7 @@ export const GroupCatalogPanel: React.FC = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-destructive-ink focus:text-destructive-ink"
                 onClick={() => setPendingDelete(row.original)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />

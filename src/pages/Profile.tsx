@@ -372,14 +372,14 @@ const Profile: React.FC = () => {
         <PageHeader title={t('pages.profile.title')} subtitle={t('pages.profile.subtitle')} />
 
         {success && (
-          <div className="flex items-center gap-2 text-sm text-success bg-success/10 p-3 rounded-md" role="status" aria-live="polite">
+          <div className="flex items-center gap-2 text-sm text-success-ink bg-success/10 p-3 rounded-md" role="status" aria-live="polite">
             <CheckCircle2 className="h-4 w-4" />
             {success}
           </div>
         )}
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">
+          <div className="text-sm text-destructive-ink bg-destructive/10 p-3 rounded-md" role="alert">
             {error}
           </div>
         )}
@@ -472,7 +472,7 @@ const Profile: React.FC = () => {
                     </div>
                   )}
                   {editingProfile && fieldErrors.alias_name && (
-                    <p className="text-xs text-destructive">{fieldErrors.alias_name}</p>
+                    <p className="text-xs text-destructive-ink">{fieldErrors.alias_name}</p>
                   )}
                 </div>
 
@@ -560,7 +560,7 @@ const Profile: React.FC = () => {
                     </div>
                   )}
                   {editingProfile && fieldErrors.telephone && (
-                    <p className="text-xs text-destructive">{fieldErrors.telephone}</p>
+                    <p className="text-xs text-destructive-ink">{fieldErrors.telephone}</p>
                   )}
                 </div>
 

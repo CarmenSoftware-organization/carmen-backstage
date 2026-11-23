@@ -142,7 +142,7 @@ const HeaderUserMenu = ({ userInfo, onLogout, compact = false }: HeaderUserMenuP
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={onLogout} className="text-destructive">
+        <DropdownMenuItem onClick={onLogout} className="text-destructive-ink">
           <LogOut className="mr-2 h-4 w-4" />
           <span>{t('header.logOut')}</span>
         </DropdownMenuItem>

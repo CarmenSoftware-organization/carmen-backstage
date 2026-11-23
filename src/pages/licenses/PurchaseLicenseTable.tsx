@@ -296,9 +296,9 @@ export interface PurchaseLicenseTableProps {
 
 /** สีตัวเลขของการ์ดสถานะ — ชุดเดียวกับแถบสรุปของแท็บสัญญา (active เขียว · expired จาง) */
 const SUMMARY_COLOR: Record<StatusFilterValue, string> = {
-  active: 'text-success',
+  active: 'text-success-ink',
   superseded: 'text-foreground',
-  capped: 'text-warning',
+  capped: 'text-warning-ink',
   scheduled: 'text-foreground',
   expired: 'text-muted-foreground',
   cancelled: 'text-muted-foreground',
@@ -580,7 +580,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
       label: t('common.state.expiringSoon'),
       value: expiringCount,
       // ส้มเฉพาะตอนมีใบให้ดูจริง — 0 ใบเป็นข่าวดี ไม่ควรแย่งสายตาจากการ์ดอื่น
-      color: expiringCount ? 'text-warning' : 'text-muted-foreground',
+      color: expiringCount ? 'text-warning-ink' : 'text-muted-foreground',
       active: !showingDeleted && expiringSoonFilter,
       onClick: () => {
         if (showingDeleted) {
@@ -749,7 +749,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
           }
           const soon = left <= expiringSoonDays;
           return (
-            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning font-medium' : ''}`}>
+            <span className={`text-xs whitespace-nowrap tabular-nums ${soon ? 'text-warning-ink font-medium' : ''}`}>
               {t('common.state.daysLeft', { count: left })}
             </span>
           );
@@ -791,7 +791,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  className="h-8 w-8 text-destructive-ink hover:text-destructive-ink"
                   aria-label={t('pages.licenses.deleted.hardDeleteRowAria', { number: row.original.license_number })}
                   title={t('pages.licenses.deleted.hardDelete')}
                   onClick={() => setHardDeleteRow(row.original)}
