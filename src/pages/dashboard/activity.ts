@@ -144,15 +144,24 @@ export function mergeAndSort(items: ActivityItem[], cap = 15): ActivityItem[] {
   return [...items].sort((a, b) => ts(b.at) - ts(a.at)).slice(0, cap);
 }
 
+export interface ActivityResult {
+  items: ActivityItem[];
+  /** Source keys whose fetch failed. The stream is missing their rows, so the UI must say so. */
+  failedDomains: string[];
+}
+
 /**
  * Fetch recent activity across every domain and merge into one stream. Each
- * domain is fetched independently; a failing domain is skipped, not fatal.
+ * domain is fetched independently; a failing domain is reported in
+ * `failedDomains` rather than silently dropped, so a partial stream never
+ * passes for a complete one. When every domain fails there is no stream at
+ * all, so the first error is rethrown and the caller shows its error state.
  *
  * Ordering is guaranteed client-side by `mergeAndSort`, so the stream is always
  * correctly ordered even if a backend ignores `sort=updated_at:desc` — at worst
  * it means the per-domain page we pulled isn't the very newest slice.
  */
-export async function fetchActivity(perDomain = 8, cap = 15): Promise<ActivityItem[]> {
+export async function fetchActivity(perDomain = 8, cap = 15): Promise<ActivityResult> {
   const results = await Promise.allSettled(
     ACTIVITY_SOURCES.map((source) =>
       source.service
@@ -167,12 +176,19 @@ export async function fetchActivity(perDomain = 8, cap = 15): Promise<ActivityIt
   );
 
   const items: ActivityItem[] = [];
-  for (const result of results) {
-    if (result.status !== 'fulfilled') continue;
+  const failedDomains: string[] = [];
+  let firstError: unknown;
+  results.forEach((result, i) => {
+    if (result.status !== 'fulfilled') {
+      failedDomains.push(ACTIVITY_SOURCES[i].key);
+      firstError ??= result.reason;
+      return;
+    }
     for (const raw of result.value.data) {
       const item = toActivityItem(result.value.source, raw);
       if (item) items.push(item);
     }
-  }
-  return mergeAndSort(items, cap);
+  });
+  if (failedDomains.length === ACTIVITY_SOURCES.length) throw firstError;
+  return { items: mergeAndSort(items, cap), failedDomains };
 }

@@ -112,7 +112,7 @@ describe('fetchActivity', () => {
     }
   });
 
-  it('merges domains, sorts newest-first, and skips a failing domain', async () => {
+  it('merges domains, sorts newest-first, and reports a failing domain', async () => {
     vi.mocked(clusterService.getAll).mockResolvedValue({
       data: [{ id: 'c1', code: 'AC', name: 'Acme', is_active: true, updated_at: '2026-07-14T08:00:00Z', created_at: '2026-07-14T08:00:00Z' }],
     });
@@ -127,8 +127,9 @@ describe('fetchActivity', () => {
       { data: { data: [{ id: 'r1', name: 'v_sales', updated_at: '2026-07-14T07:00:00Z', created_at: '2026-07-14T07:00:00Z' }], paginate: { total: 1 } } },
     );
 
-    const items = await fetchActivity();
+    const { items, failedDomains } = await fetchActivity();
     expect(items.map((i) => i.id)).toEqual(['n1', 'c1', 'r1']); // newest→oldest; user domain skipped; nested r1 unwrapped
+    expect(failedDomains).toEqual(['users']); // the skipped domain is reported, not hidden
     expect(items[1]).toMatchObject({ verb: 'created', domainKey: 'clusters' });
   });
 });

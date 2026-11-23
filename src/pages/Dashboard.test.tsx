@@ -105,10 +105,12 @@ describe('Dashboard', () => {
     // Fails one of the six domain fetches feeding CountsRail. Before the fix, the
     // per-domain catch in Dashboard.tsx's load() was empty — the rail would sit
     // silently at "—" forever with no alert and no way to recover.
+    // The same rejection also fails the clusters slice of the activity stream, so both the
+    // rail and the stream raise their own alert — each names the gap it can't fill.
     asMock(clusterService.getAll).mockRejectedValue(new Error('boom'));
     renderPage();
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /retry|try again/i })).toBeInTheDocument();
+    expect((await screen.findAllByRole('alert')).length).toBe(2);
+    expect(screen.getAllByRole('button', { name: /retry|try again/i }).length).toBe(2);
   });
 
   it('clears the counts error on a successful retry', async () => {

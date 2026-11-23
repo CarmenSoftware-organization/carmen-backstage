@@ -25,8 +25,8 @@ const Dashboard: React.FC = () => {
   const { t } = useI18n();
   const [counts, setCounts] = useState<Record<string, DomainCount>>(emptyCounts);
   const [countsLoading, setCountsLoading] = useState(true);
-  const [countsError, setCountsError] = useState(false);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
+  const [activityFailed, setActivityFailed] = useState<string[]>([]);
   const [activityLoading, setActivityLoading] = useState(true);
   const [activityError, setActivityError] = useState(false);
   const activityHadErrorRef = useRef(false);
@@ -34,7 +34,6 @@ const Dashboard: React.FC = () => {
   // --- per-domain active / total counts (populate the rail) ---
   const loadCounts = useCallback(async () => {
     setCountsLoading(true);
-    setCountsError(false);
 
     const where = (w: Record<string, unknown>) => JSON.stringify({ where: { ...w, deleted_at: null } });
 
@@ -49,8 +48,8 @@ const Dashboard: React.FC = () => {
           [key]: { active: unwrapTotal(activeRes), total: unwrapTotal(totalRes) },
         }));
       } catch {
-        // leave the domain at null — CountsRail switches to its error state below
-        setCountsError(true);
+        // Unknown, not zero: CountsRail marks this row and keeps the domains that loaded.
+        setCounts((prev) => ({ ...prev, [key]: { active: null, total: null, failed: true } }));
       }
     };
 
@@ -75,8 +74,9 @@ const Dashboard: React.FC = () => {
     setActivityLoading(true);
     setActivityError(false);
     fetchActivity()
-      .then((items) => {
+      .then(({ items, failedDomains }) => {
         setActivity(items);
+        setActivityFailed(failedDomains);
         if (activityHadErrorRef.current) {
           toast.success(t('pages.dashboard.activityReloaded'));
         }
@@ -87,6 +87,7 @@ const Dashboard: React.FC = () => {
           toast.error(parseApiError(err).message);
         }
         activityHadErrorRef.current = true;
+        setActivityFailed([]);
         setActivityError(true);
       })
       .finally(() => setActivityLoading(false));
@@ -96,8 +97,11 @@ const Dashboard: React.FC = () => {
     loadActivity();
   }, [loadActivity]);
 
+  const countsFailed = ACTIVITY_SOURCES.filter((s) => counts[s.key]?.failed).length;
+  const countsError = countsFailed === ACTIVITY_SOURCES.length;
+  // A sum over the domains that happened to load would pass for the whole estate — show none.
   const totals = ACTIVITY_SOURCES.map((s) => counts[s.key]?.total).filter((t): t is number => t != null);
-  const governed = totals.length ? totals.reduce((a, b) => a + b, 0) : null;
+  const governed = countsFailed === 0 && totals.length ? totals.reduce((a, b) => a + b, 0) : null;
 
   return (
     <Layout>
@@ -113,6 +117,7 @@ const Dashboard: React.FC = () => {
             items={activity}
             loading={activityLoading}
             error={activityError}
+            failedDomains={activityFailed}
             onRetry={loadActivity}
           />
           <aside className="self-start lg:sticky lg:top-4">

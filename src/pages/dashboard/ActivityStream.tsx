@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, History } from 'lucide-react';
+import { ChevronRight, History, TriangleAlert } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Skeleton } from '../../components/ui/skeleton';
 import { FetchErrorState } from '../../components/FetchErrorState';
@@ -21,10 +21,12 @@ interface ActivityStreamProps {
   items: ActivityItem[];
   loading: boolean;
   error: boolean;
+  /** Domains whose fetch failed while the rest loaded. Their rows are missing from `items`. */
+  failedDomains?: string[];
   onRetry: () => void;
 }
 
-export function ActivityStream({ items, loading, error, onRetry }: ActivityStreamProps) {
+export function ActivityStream({ items, loading, error, failedDomains = [], onRetry }: ActivityStreamProps) {
   const { t } = useI18n();
   const [filter, setFilter] = useState<string>('all');
 
@@ -35,6 +37,9 @@ export function ActivityStream({ items, loading, error, onRetry }: ActivityStrea
   }, [items]);
 
   const shown = filter === 'all' ? items : items.filter((i) => i.domainKey === filter);
+
+  const failed = new Set(failedDomains);
+  const failedLabels = ACTIVITY_SOURCES.filter((s) => failed.has(s.key)).map((s) => t(s.labelKey));
 
   const chips = [{ key: 'all', label: t('pages.dashboard.filterAll'), count: items.length }].concat(
     ACTIVITY_SOURCES.map((s) => ({ key: s.key, label: t(s.labelKey), count: perDomain[s.key] ?? 0 })),
@@ -49,6 +54,8 @@ export function ActivityStream({ items, loading, error, onRetry }: ActivityStrea
           // A domain with nothing in the stream is a dead end — leave it visible (it still
           // says "zero"), but don't let anyone click through to an empty list.
           const dead = c.key !== 'all' && c.count === 0;
+          // A failed domain is not an empty one: "0" would claim nothing changed there.
+          const unavailable = failed.has(c.key);
           return (
             <button
               key={c.key}
@@ -61,15 +68,39 @@ export function ActivityStream({ items, loading, error, onRetry }: ActivityStrea
                 on
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'bg-card text-muted-foreground hover:border-input hover:text-foreground',
-                dead && 'pointer-events-none opacity-45 hover:border-border hover:text-muted-foreground',
+                dead && 'pointer-events-none hover:border-border hover:text-muted-foreground',
+                // Faded means "nothing here"; a failed domain keeps full strength so its warning reads.
+                dead && !unavailable && 'opacity-45',
               )}
             >
               {c.label}
-              <span className="font-mono text-[10px] tabular-nums opacity-75">{c.count}</span>
+              {unavailable ? (
+                <>
+                  <TriangleAlert className="text-warning size-3.5" aria-hidden="true" />
+                  <span className="sr-only">{t('pages.dashboard.domainUnavailable')}</span>
+                </>
+              ) : (
+                <span className="font-mono text-[11px] tabular-nums opacity-75">{c.count}</span>
+              )}
             </button>
           );
         })}
       </div>
+
+      {!loading && !error && failedLabels.length > 0 && (
+        <div
+          role="alert"
+          className="border-warning/40 bg-warning/10 mb-3 flex flex-wrap items-start gap-x-2 gap-y-1 rounded-md border px-3 py-2 text-xs"
+        >
+          <TriangleAlert className="text-warning mt-px size-3.5 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            {t('pages.dashboard.activityPartial', { domains: failedLabels.join(', ') })}
+          </span>
+          <button type="button" onClick={onRetry} className="text-primary underline underline-offset-2">
+            {t('common.tryAgain')}
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <StreamSkeleton />
