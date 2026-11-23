@@ -203,7 +203,7 @@ const Login: React.FC = () => {
           </div>
           <div className="leading-none">
             <div className="text-lg font-extrabold tracking-tight">CARMEN BLUE</div>
-            <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.3em] text-primary-foreground/60">
+            <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.3em] text-primary-foreground/90">
               Backstage
             </div>
           </div>
@@ -211,7 +211,7 @@ const Login: React.FC = () => {
 
         {/* Positioning — the hero: what this console actually runs */}
         <div className="relative max-w-md">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.28em] text-primary-foreground/60">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.28em] text-primary-foreground/90">
             {t('login.operationsConsole')}
           </p>
           <p className="text-2xl xl:text-[1.75rem] font-semibold leading-snug tracking-tight text-primary-foreground">
@@ -220,11 +220,11 @@ const Login: React.FC = () => {
         </div>
 
         {/* Honest system status — which environment you're badging into */}
-        <div className="relative flex items-center gap-2.5 text-xs text-primary-foreground/70">
+        <div className="relative flex items-center gap-2.5 text-xs text-primary-foreground/90">
           <span className="h-2 w-2 rounded-full bg-success ring-2 ring-success/30" aria-hidden />
           <span>{t('login.allSystemsOperational')}</span>
           {env && (
-            <span className="ml-1 font-mono uppercase tracking-wider text-primary-foreground/45">
+            <span className="ml-1 font-mono uppercase tracking-wider text-primary-foreground/90">
               · {env}
             </span>
           )}
