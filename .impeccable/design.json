@@ -258,6 +258,22 @@
           "hsl(32 68.0% 85%)",
           "hsl(32 46.8% 95%)"
         ]
+      },
+      "fill-ink": {
+        "role": "neutral",
+        "displayName": "Fill Ink",
+        "canonical": "hsl(20 14% 8%)",
+        "cssVar": "--warning-foreground (and dark --primary/--info/--success-foreground)",
+        "tonalRamp": [
+          "hsl(20 7.7% 15%)",
+          "hsl(20 11.2% 25%)",
+          "hsl(20 14% 35%)",
+          "hsl(20 14% 45%)",
+          "hsl(20 14% 55%)",
+          "hsl(20 14% 70%)",
+          "hsl(20 11.2% 85%)",
+          "hsl(20 7.7% 95%)"
+        ]
       }
     },
     "typographyMeta": {

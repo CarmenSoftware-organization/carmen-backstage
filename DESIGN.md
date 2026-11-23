@@ -7,6 +7,7 @@ colors:
   sheet-white: "hsl(0 0% 100%)"
   signal-blue: "hsl(221 61% 48%)"
   on-signal: "hsl(0 0% 100%)"
+  fill-ink: "hsl(20 14% 8%)"
   pencil-grey-fill: "hsl(40 8% 94%)"
   pencil-grey-ink: "hsl(30 10% 20%)"
   muted-paper: "hsl(40 8% 95.5%)"
@@ -115,7 +116,7 @@ components:
     padding: "2px 10px"
   badge-warning:
     backgroundColor: "{colors.caution-amber}"
-    textColor: "{colors.on-signal}"
+    textColor: "{colors.fill-ink}"
     typography: "{typography.label}"
     rounded: "{rounded.md}"
     padding: "2px 10px"
@@ -160,7 +161,7 @@ A warm off-white and warm near-black ledger with one trustworthy blue. Status co
 Values are HSL channels in `src/index.css` (`:root` and `.dark`) and are consumed as `hsl(var(--token))` through `tailwind.config.js`. Those two files are the source of truth. The frontmatter records the light theme; dark values are listed below and in `.impeccable/design.json`.
 
 ### Primary
-- **Signal Blue** (`--primary`, `--ring`, `--info`; dark `217 70% 60%`): primary buttons, links on identity columns, the active nav item (10% tint plus a 4px bar on the left edge), the active tab underline, focus outlines and informational badges. It is dark enough in light theme that white text clears AA (about 5.3:1). Check that again before you adjust its lightness.
+- **Signal Blue** (`--primary`, `--ring`, `--info`; dark `217 70% 60%`): primary buttons, links on identity columns, the active nav item (10% tint plus a 4px bar on the left edge), the active tab underline, focus outlines and informational badges. In light theme white text on it measures 5.88:1. In dark theme the blue has to stay light enough to read as link text on the ground (5.09:1), and no lightness also lets white text clear 4.5:1 on it. So in dark theme the text on the fill is Fill Ink (5.24:1), not white.
 
 ### Neutral
 - **Ledger Paper** (`--background`; dark `30 6% 9%`): the app canvas, sidebar and outline-button fill.
@@ -174,7 +175,8 @@ Values are HSL channels in `src/index.css` (`:root` and `.dark`) and are consume
 
 ### Status
 - **Settled Green** (`--success`; dark `152 45% 45%`): active, healthy, applied.
-- **Caution Amber** (`--warning`; dark `38 92% 55%` with dark ink `20 14% 8%` on it): at risk, expiring, partial.
+- **Caution Amber** (`--warning`; dark `38 92% 55%`): at risk, expiring, partial. Text on it is Fill Ink in **both** themes: white measures 3.24:1 on the light amber.
+- **Fill Ink** (`20 14% 8%`): text on a status or primary fill wherever white would miss 4.5:1. That covers warning in both themes, and primary, info and success in dark theme. Light primary, success and destructive and dark destructive keep white. Every fill/text pair measures ≥4.5:1 in both themes.
 - **Fault Red** (`--destructive`; dark `0 62% 45%`): delete, failure, validation error.
 - **Chart Amber** (`--chart-2`; dark `36 88% 58%`): the second series in charts. `--chart-1` is Signal Blue.
 
@@ -249,7 +251,7 @@ Quiet and exact.
 - **Icons:** 16px with an 8px gap inside labelled buttons; 20px in icon-only buttons, which need an `aria-label`.
 
 ### Status Badges
-- **Style:** 6px radius, padding 2px 10px, 12px medium text, a solid status fill with white text. In dark theme, warning uses dark ink.
+- **Style:** 6px radius, padding 2px 10px, 12px medium text, a solid status fill. Text on it is white or Fill Ink, whichever clears 4.5:1 for that token (see Colors).
 - **Variants:** `success` · `warning` · `destructive` · `info` · `secondary` (neutral or deleted) · `outline` (counts, such as the `TabStrip` count). These are the only sanctioned status markers.
 
 ### Cards / Containers
