@@ -132,8 +132,10 @@ function Timeline({ items }: { items: ActivityItem[] }) {
   const now = new Date();
   let lastDay = '';
 
+  // @container: the verb/actor column switches on the stream's own width, not the screen's —
+  // at a 768px screen the sidebar leaves the stream ~470px, too narrow for a 16rem meta column.
   return (
-    <div>
+    <div className="@container">
       {items.map((it, i) => {
         const g = dayGroup(it.at, now, t);
         const header = g.key !== lastDay;
@@ -181,15 +183,16 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                 <span className="bg-primary/[0.06] text-muted-foreground grid size-7 shrink-0 place-items-center rounded-lg">
                   <Icon className="size-[15px]" />
                 </span>
-                <span className="min-w-0 flex-1">
+                {/* Capped on wide streams so the meta column stays beside the name. */}
+                <span className="min-w-0 flex-1 @2xl:max-w-lg">
                   <span className="text-foreground block truncate text-sm font-semibold leading-5">
                     {it.name || (it.nameFallbackKey ? t(it.nameFallbackKey) : '')}
                     {it.code && <span className="text-muted-foreground ml-1.5 font-mono text-xs font-medium">{it.code}</span>}
                   </span>
                   <span className="text-muted-foreground mt-0.5 block text-xs">
                     <span className="text-foreground/80 font-medium">{t(it.domainLabelKey)}</span>
-                    {/* md and up, the verb and actor ride the right margin instead */}
-                    <span className="md:hidden">
+                    {/* on a wide stream the verb and actor get their own column instead */}
+                    <span className="@2xl:hidden">
                       {` · ${t(verb.key)}`}
                       {it.who ? ` · ${t('pages.dashboard.by', { who: it.who })}` : ''}
                     </span>
@@ -197,11 +200,11 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                 </span>
                 {/* Fixed widths on purpose: the verbs form a scannable column, and a row
                     with no known actor must not shift its verb out of that column. */}
-                <span className="text-muted-foreground mt-[3px] hidden w-64 shrink-0 items-baseline gap-1.5 self-start text-xs md:flex">
+                <span className="text-muted-foreground mt-[3px] hidden w-64 shrink-0 items-baseline gap-1.5 self-start text-xs @2xl:flex">
                   <span className="text-foreground/70 w-[4.75rem] shrink-0 font-medium">{t(verb.key)}</span>
                   {it.who && <span className="truncate">{t('pages.dashboard.by', { who: it.who })}</span>}
                 </span>
-                <ChevronRight className="text-muted-foreground/50 group-hover:text-primary size-4 shrink-0 opacity-0 transition group-hover:opacity-100" />
+                <ChevronRight className="text-muted-foreground/50 group-hover:text-primary ml-auto size-4 shrink-0 opacity-0 transition group-hover:opacity-100" />
               </Link>
             </div>
           </div>

@@ -204,9 +204,9 @@ const Dashboard: React.FC = () => {
 
   return (
     <Layout>
-      {/* Capped to the grid below (46rem + 1.5rem gap + 236px rail) so the header's
-          Refresh sits over the rail it refreshes, not out at the viewport edge. */}
-      <div className="space-y-6 lg:max-w-[calc(47.5rem+236px)]">
+      {/* Full width of the shell (carmen-blue-backstage-ui-design rule 1): the rail sits at the right
+          edge, so the header's Refresh lands over the rail it refreshes. */}
+      <div className="space-y-6">
         <PageHeader
           title={t('pages.dashboard.title')}
           subtitle={t('pages.dashboard.subtitle')}
@@ -227,11 +227,11 @@ const Dashboard: React.FC = () => {
 
         <AttentionBand items={attentionItems} loading={attnLoading} />
 
-        {/* The stream is capped rather than fluid: a log line stretched across a 27" display
-            opens a dead gulf between the entity name and its right-margin meta. */}
+        {/* The stream takes the rest of the width; each row keeps its meta beside the name
+            (ActivityStream caps the name column) so a wide screen opens no gulf between them. */}
         {/* grid-cols-1 is load-bearing below lg: without it the single implicit column is an
             auto track that sizes to max-content, and a long activity line scrolls the page. */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,46rem)_236px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_236px]">
           <ActivityStream
             items={activity}
             loading={activityLoading}
