@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
           actions={
             <>
               {updatedAt && (
-                <span className="text-muted-foreground text-xs tabular-nums">
+                <span className="text-muted-foreground text-xs tabular-nums" aria-live="polite">
                   {t('pages.dashboard.updatedAt', { time: formatClock(updatedAt) })}
                 </span>
               )}
