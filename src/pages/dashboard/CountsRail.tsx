@@ -82,7 +82,15 @@ function DomainRows({ counts }: { counts: Record<string, DomainCount> }) {
             <span className="text-muted-foreground grid size-[22px] shrink-0 place-items-center rounded-md">
               <Icon className="size-[13px]" />
             </span>
-            <span className="text-foreground/90 flex-1 truncate text-xs">{t(s.labelKey)}</span>
+            <span className="text-foreground/90 min-w-0 flex-1 truncate text-xs">
+              {t(s.labelKey)}
+              {/* News counts published, not active. The column legend says "Active / total",
+                  so this row names its own first number where everyone can see it, not only
+                  in the aria-label. */}
+              {s.key === 'news' && (
+                <span className="text-muted-foreground"> · {t('pages.dashboard.countsPublishedHint')}</span>
+              )}
+            </span>
             {c.failed ? (
               <span className="text-warning inline-flex items-center gap-1 text-xs">
                 <TriangleAlert className="size-3.5" aria-hidden="true" />

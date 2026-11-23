@@ -7,6 +7,7 @@ import newsService from '../../services/newsService';
 import reportTemplateService from '../../services/reportTemplateService';
 import type { ApiListResponse, Audit, PaginateParams } from '../../types';
 import { normalizeAudit } from '../../utils/audit';
+import { formatClock } from '../../utils/relativeTime';
 import type { TKey } from '../../i18n/types';
 
 export type ActivityVerb = 'created' | 'updated' | 'published';
@@ -191,4 +192,34 @@ export async function fetchActivity(perDomain = 8, cap = 15): Promise<ActivityRe
   });
   if (failedDomains.length === ACTIVITY_SOURCES.length) throw firstError;
   return { items: mergeAndSort(items, cap), failedDomains };
+}
+
+/** Rows this long or longer, from one actor doing one thing in one domain in one minute, fold. */
+const RUN_MIN = 3;
+
+export type ActivityEntry = { kind: 'one'; item: ActivityItem } | { kind: 'run'; key: string; items: ActivityItem[] };
+
+/**
+ * Folds bulk runs: consecutive rows with the same domain, verb, actor and clock minute. A
+ * batch job (a seed, a template re-save) is one event to an operator, but as separate rows it
+ * filled the first screen and pushed the one different change out of view. Pairs stay apart
+ * because two rows are not a flood, and folding them would only hide them.
+ */
+export function foldRuns(items: ActivityItem[]): ActivityEntry[] {
+  const out: ActivityEntry[] = [];
+  let i = 0;
+  while (i < items.length) {
+    const head = items[i];
+    const sig = `${head.domainKey}|${head.verb}|${head.who ?? ''}|${formatClock(head.at)}|${head.at.slice(0, 10)}`;
+    let j = i + 1;
+    while (
+      j < items.length &&
+      `${items[j].domainKey}|${items[j].verb}|${items[j].who ?? ''}|${formatClock(items[j].at)}|${items[j].at.slice(0, 10)}` === sig
+    )
+      j++;
+    if (j - i >= RUN_MIN) out.push({ kind: 'run', key: `${head.domainKey}:${head.id}`, items: items.slice(i, j) });
+    else for (let k = i; k < j; k++) out.push({ kind: 'one', item: items[k] });
+    i = j;
+  }
+  return out;
 }
