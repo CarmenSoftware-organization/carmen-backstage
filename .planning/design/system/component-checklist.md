@@ -1,7 +1,7 @@
 # Carmen Platform — Component Coverage Checklist
 
 > Checklist view of the design-system component inventory. For full descriptions and the
-> page-pattern map, see **[`components.md`](./components.md)**. Verified from
+> page-pattern map, see **[`DESIGN.md`](../../../DESIGN.md)** (visual specs) — `components.md` is superseded. Verified from
 > `src/components/` on 2026-07-17.
 >
 > - `[x]` = built and in use.

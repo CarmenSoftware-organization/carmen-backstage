@@ -7,7 +7,7 @@ description: Use when laying out or adjusting a carmen-backstage screen (Edit pa
 
 Rules the user set themselves. They cover **use of space** only — colour, type and primitives
 belong to `src/index.css` + `tailwind.config.js` (source of truth) and
-`.planning/design/system/tokens.md` (reference). Page structure (which sections an Edit or
+`DESIGN.md` (reference). Page structure (which sections an Edit or
 Management page must have) belongs to `src/pages/CLAUDE.md` and `agent-os/standards/pages/` —
 this skill only decides how that structure uses the width.
 

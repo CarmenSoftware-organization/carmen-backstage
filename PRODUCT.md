@@ -58,3 +58,11 @@ It is the one place where Carmen's multi-tenant fleet is administered end to end
 2. **Safe by construction.** The more an action can break customer data, the more deliberate the path to it: dry run, confirm, then apply.
 3. **Fleet-first, then drill down.** An operator sees the whole fleet's state at a glance, then goes down to one cluster, BU or object.
 4. **Equal in every condition.** Thai or English, light or dark, desktop or a 390px phone: none is a second-class version.
+
+## Accessibility & Inclusion
+
+- **Target: WCAG 2.2 AA** on every surface, in both themes and both languages.
+- Text contrast at least 4.5:1 (3:1 for large text and UI component boundaries), checked in light **and** dark.
+- Every action is reachable and operable by keyboard alone, with a visible focus indicator; focus is never trapped or lost when dialogs and sheets open and close.
+- Status is never carried by colour alone: partial failure, per-BU errors and licence state also need text or an icon.
+- Controls and live regions carry accessible names in both TH and EN; target size at least 24×24 CSS px, including at 390px.
