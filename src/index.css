@@ -32,7 +32,9 @@
   --success: 152 40% 36%;
   --success-foreground: 0 0% 100%;
   --warning: 32 90% 44%;
-  --warning-foreground: 0 0% 100%;
+  /* Dark ink, not white: white on this amber measures 3.24:1, under the 4.5:1 a 12px badge
+   * label needs (WCAG 2.2 AA, PRODUCT.md). Dark ink measures 5.67:1. */
+  --warning-foreground: 20 14% 8%;
   --info: 221 61% 48%;
   --info-foreground: 0 0% 100%;
   /* usage analytics chart series — kept distinct from --primary/--info (which are
@@ -68,7 +70,10 @@
   --popover: 30 6% 12%;
   --popover-foreground: 40 8% 90%;
   --primary: 217 70% 60%;
-  --primary-foreground: 0 0% 100%;
+  /* Dark ink, not white. This blue has to be light enough to read as link text on the dark
+   * ground (5.09:1), and that makes white on it 3.51:1. No lightness clears both, so the
+   * text on the fill flips to ink (5.24:1) instead of the fill getting darker. */
+  --primary-foreground: 20 14% 8%;
   --secondary: 30 5% 17%;
   --secondary-foreground: 40 8% 95%;
   --muted: 30 5% 16%;
@@ -82,11 +87,12 @@
   --ring: 217 70% 60%;
   --radius: 0.5rem;
   --success: 152 45% 45%;
-  --success-foreground: 0 0% 100%;
+  /* Dark ink: white on this green is 3.02:1, ink is 6.09:1. */
+  --success-foreground: 20 14% 8%;
   --warning: 38 92% 55%;
   --warning-foreground: 20 14% 8%;
   --info: 217 70% 60%;
-  --info-foreground: 0 0% 100%;
+  --info-foreground: 20 14% 8%;
   --chart-1: 217 70% 60%;
   --chart-2: 36 88% 58%;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
