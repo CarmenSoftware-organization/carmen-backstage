@@ -118,7 +118,7 @@ Wired pages: Cluster, BusinessUnit, User, ReportTemplate, Application, Role, New
 
 ## Styling Reference
 
-**Color tokens (HSL):** warm-neutral ground + a single blue accent (calm-corporate reskin) — `--accent` is a neutral warm surface, **not** a brand hue, and status accents use dedicated `--success` / `--warning` / `--info` tokens rather than `--accent`. Values live in `src/index.css` + `tailwind.config.js` (the source of truth); the full reference (light + dark, all roles, hex, spacing, shadows, contrast) is **`.planning/design/system/tokens.md`** — keep it in sync when those change.
+**Color tokens (HSL):** warm-neutral ground + a single blue accent (calm-corporate reskin) — `--accent` is a neutral warm surface, **not** a brand hue, and status accents use dedicated `--success` / `--warning` / `--info` tokens rather than `--accent`. Values live in `src/index.css` + `tailwind.config.js` (the source of truth); the visual system (light + dark roles, type, spacing, radius, shadows, components, do's/don'ts) is **`DESIGN.md`** at the repo root (sidecar `.impeccable/design.json`) — keep it in sync when those change. `.planning/design/system/tokens.md` and `components.md` are superseded stubs.
 
 **Surfaces:** glassmorphism (`.glass` / `.glass-strong`) was removed in the enterprise redesign — surfaces are now flat `bg-card` / `bg-background` with a 1px `border`.
 

@@ -1,8 +1,7 @@
 # Carmen Platform — Page Patterns (canonical, elevated)
 
 > The north-star UX contract per page **archetype**. Sits beside
-> [`tokens.md`](./tokens.md) (visual layer) and [`components.md`](./components.md)
-> (component inventory). Every page must meet its archetype's contract.
+> [`DESIGN.md`](../../../DESIGN.md) (visual layer). Every page must meet its archetype's contract.
 > Source: `docs/superpowers/specs/2026-07-17-ux-unification-redesign-design.md`.
 
 ## Archetypes at a glance

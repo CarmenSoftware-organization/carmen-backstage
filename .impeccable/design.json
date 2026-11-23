@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-23T11:21:00+00:00",
+  "title": "Design System: Carmen Blue Backstage",
+  "extensions": {
+    "colorMeta": {
+      "ledger-paper": {
+        "role": "neutral",
+        "displayName": "Ledger Paper",
+        "canonical": "hsl(40 9% 97.5%)",
+        "dark": "hsl(30 6% 9%)",
+        "cssVar": "--background",
+        "tonalRamp": [
+          "hsl(40 5.0% 15%)",
+          "hsl(40 7.2% 25%)",
+          "hsl(40 9.0% 35%)",
+          "hsl(40 9.0% 45%)",
+          "hsl(40 9.0% 55%)",
+          "hsl(40 9.0% 70%)",
+          "hsl(40 7.2% 85%)",
+          "hsl(40 5.0% 95%)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "hsl(30 7% 12%)",
+        "dark": "hsl(40 8% 90%)",
+        "cssVar": "--foreground",
+        "tonalRamp": [
+          "hsl(30 3.9% 15%)",
+          "hsl(30 5.6% 25%)",
+          "hsl(30 7.0% 35%)",
+          "hsl(30 7.0% 45%)",
+          "hsl(30 7.0% 55%)",
+          "hsl(30 7.0% 70%)",
+          "hsl(30 5.6% 85%)",
+          "hsl(30 3.9% 95%)"
+        ]
+      },
+      "sheet-white": {
+        "role": "neutral",
+        "displayName": "Sheet White",
+        "canonical": "hsl(0 0% 100%)",
+        "dark": "hsl(30 6% 12%)",
+        "cssVar": "--card",
+        "tonalRamp": [
+          "hsl(0 0.0% 15%)",
+          "hsl(0 0.0% 25%)",
+          "hsl(0 0.0% 35%)",
+          "hsl(0 0.0% 45%)",
+          "hsl(0 0.0% 55%)",
+          "hsl(0 0.0% 70%)",
+          "hsl(0 0.0% 85%)",
+          "hsl(0 0.0% 95%)"
+        ]
+      },
+      "signal-blue": {
+        "role": "primary",
+        "displayName": "Signal Blue",
+        "canonical": "hsl(221 61% 48%)",
+        "dark": "hsl(217 70% 60%)",
+        "cssVar": "--primary",
+        "tonalRamp": [
+          "hsl(221 33.6% 15%)",
+          "hsl(221 48.8% 25%)",
+          "hsl(221 61.0% 35%)",
+          "hsl(221 61.0% 45%)",
+          "hsl(221 61.0% 55%)",
+          "hsl(221 61.0% 70%)",
+          "hsl(221 48.8% 85%)",
+          "hsl(221 33.6% 95%)"
+        ]
+      },
+      "on-signal": {
+        "role": "neutral",
+        "displayName": "On Signal",
+        "canonical": "hsl(0 0% 100%)",
+        "dark": "hsl(0 0% 100%)",
+        "cssVar": "--primary-foreground",
+        "tonalRamp": [
+          "hsl(0 0.0% 15%)",
+          "hsl(0 0.0% 25%)",
+          "hsl(0 0.0% 35%)",
+          "hsl(0 0.0% 45%)",
+          "hsl(0 0.0% 55%)",
+          "hsl(0 0.0% 70%)",
+          "hsl(0 0.0% 85%)",
+          "hsl(0 0.0% 95%)"
+        ]
+      },
+      "pencil-grey-fill": {
+        "role": "neutral",
+        "displayName": "Pencil Grey Fill",
+        "canonical": "hsl(40 8% 94%)",
+        "dark": "hsl(30 5% 17%)",
+        "cssVar": "--secondary",
+        "tonalRamp": [
+          "hsl(40 4.4% 15%)",
+          "hsl(40 6.4% 25%)",
+          "hsl(40 8.0% 35%)",
+          "hsl(40 8.0% 45%)",
+          "hsl(40 8.0% 55%)",
+          "hsl(40 8.0% 70%)",
+          "hsl(40 6.4% 85%)",
+          "hsl(40 4.4% 95%)"
+        ]
+      },
+      "pencil-grey-ink": {
+        "role": "neutral",
+        "displayName": "Pencil Grey Ink",
+        "canonical": "hsl(30 10% 20%)",
+        "dark": "hsl(40 8% 95%)",
+        "cssVar": "--secondary-foreground",
+        "tonalRamp": [
+          "hsl(30 5.5% 15%)",
+          "hsl(30 8.0% 25%)",
+          "hsl(30 10.0% 35%)",
+          "hsl(30 10.0% 45%)",
+          "hsl(30 10.0% 55%)",
+          "hsl(30 10.0% 70%)",
+          "hsl(30 8.0% 85%)",
+          "hsl(30 5.5% 95%)"
+        ]
+      },
+      "muted-paper": {
+        "role": "neutral",
+        "displayName": "Muted Paper",
+        "canonical": "hsl(40 8% 95.5%)",
+        "dark": "hsl(30 5% 16%)",
+        "cssVar": "--muted",
+        "tonalRamp": [
+          "hsl(40 4.4% 15%)",
+          "hsl(40 6.4% 25%)",
+          "hsl(40 8.0% 35%)",
+          "hsl(40 8.0% 45%)",
+          "hsl(40 8.0% 55%)",
+          "hsl(40 8.0% 70%)",
+          "hsl(40 6.4% 85%)",
+          "hsl(40 4.4% 95%)"
+        ]
+      },
+      "margin-note": {
+        "role": "neutral",
+        "displayName": "Margin Note",
+        "canonical": "hsl(33 5% 43%)",
+        "dark": "hsl(35 6% 62%)",
+        "cssVar": "--muted-foreground",
+        "tonalRamp": [
+          "hsl(33 2.8% 15%)",
+          "hsl(33 4.0% 25%)",
+          "hsl(33 5.0% 35%)",
+          "hsl(33 5.0% 45%)",
+          "hsl(33 5.0% 55%)",
+          "hsl(33 5.0% 70%)",
+          "hsl(33 4.0% 85%)",
+          "hsl(33 2.8% 95%)"
+        ]
+      },
+      "rule-line": {
+        "role": "neutral",
+        "displayName": "Rule Line",
+        "canonical": "hsl(40 8% 90%)",
+        "dark": "hsl(30 5% 20%)",
+        "cssVar": "--border",
+        "tonalRamp": [
+          "hsl(40 4.4% 15%)",
+          "hsl(40 6.4% 25%)",
+          "hsl(40 8.0% 35%)",
+          "hsl(40 8.0% 45%)",
+          "hsl(40 8.0% 55%)",
+          "hsl(40 8.0% 70%)",
+          "hsl(40 6.4% 85%)",
+          "hsl(40 4.4% 95%)"
+        ]
+      },
+      "field-edge": {
+        "role": "neutral",
+        "displayName": "Field Edge",
+        "canonical": "hsl(40 8% 87%)",
+        "dark": "hsl(30 5% 22%)",
+        "cssVar": "--input",
+        "tonalRamp": [
+          "hsl(40 4.4% 15%)",
+          "hsl(40 6.4% 25%)",
+          "hsl(40 8.0% 35%)",
+          "hsl(40 8.0% 45%)",
+          "hsl(40 8.0% 55%)",
+          "hsl(40 8.0% 70%)",
+          "hsl(40 6.4% 85%)",
+          "hsl(40 4.4% 95%)"
+        ]
+      },
+      "fault-red": {
+        "role": "status",
+        "displayName": "Fault Red",
+        "canonical": "hsl(0 72% 51%)",
+        "dark": "hsl(0 62% 45%)",
+        "cssVar": "--destructive",
+        "tonalRamp": [
+          "hsl(0 39.6% 15%)",
+          "hsl(0 57.6% 25%)",
+          "hsl(0 72.0% 35%)",
+          "hsl(0 72.0% 45%)",
+          "hsl(0 72.0% 55%)",
+          "hsl(0 72.0% 70%)",
+          "hsl(0 57.6% 85%)",
+          "hsl(0 39.6% 95%)"
+        ]
+      },
+      "settled-green": {
+        "role": "status",
+        "displayName": "Settled Green",
+        "canonical": "hsl(152 40% 36%)",
+        "dark": "hsl(152 45% 45%)",
+        "cssVar": "--success",
+        "tonalRamp": [
+          "hsl(152 22.0% 15%)",
+          "hsl(152 32.0% 25%)",
+          "hsl(152 40.0% 35%)",
+          "hsl(152 40.0% 45%)",
+          "hsl(152 40.0% 55%)",
+          "hsl(152 40.0% 70%)",
+          "hsl(152 32.0% 85%)",
+          "hsl(152 22.0% 95%)"
+        ]
+      },
+      "caution-amber": {
+        "role": "status",
+        "displayName": "Caution Amber",
+        "canonical": "hsl(32 90% 44%)",
+        "dark": "hsl(38 92% 55%)",
+        "cssVar": "--warning",
+        "tonalRamp": [
+          "hsl(32 49.5% 15%)",
+          "hsl(32 72.0% 25%)",
+          "hsl(32 90.0% 35%)",
+          "hsl(32 90.0% 45%)",
+          "hsl(32 90.0% 55%)",
+          "hsl(32 90.0% 70%)",
+          "hsl(32 72.0% 85%)",
+          "hsl(32 49.5% 95%)"
+        ]
+      },
+      "chart-amber": {
+        "role": "status",
+        "displayName": "Chart Amber",
+        "canonical": "hsl(32 85% 45%)",
+        "dark": "hsl(36 88% 58%)",
+        "cssVar": "--chart-2",
+        "tonalRamp": [
+          "hsl(32 46.8% 15%)",
+          "hsl(32 68.0% 25%)",
+          "hsl(32 85.0% 35%)",
+          "hsl(32 85.0% 45%)",
+          "hsl(32 85.0% 55%)",
+          "hsl(32 85.0% 70%)",
+          "hsl(32 68.0% 85%)",
+          "hsl(32 46.8% 95%)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "The single page <h1> via PageHeader or a hero at the same scale."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "CardTitle and in-page section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, table cells, inputs."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Badges, small buttons, table headers."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Timestamps, authors, audit lines in Margin Note."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Codes, IDs, SQL, XML."
+      }
+    },
+    "shadows": [
+      {
+        "name": "xs",
+        "value": "0 1px 2px rgba(24,20,16,0.04)",
+        "dark": "0 1px 2px rgba(0,0,0,0.3)",
+        "purpose": "Resting cards and inputs."
+      },
+      {
+        "name": "sm",
+        "value": "0 1px 2px rgba(24,20,16,0.05)",
+        "dark": "0 1px 2px rgba(0,0,0,0.35)",
+        "purpose": "Slightly raised controls."
+      },
+      {
+        "name": "md",
+        "value": "0 4px 12px rgba(24,20,16,0.06)",
+        "dark": "0 4px 12px rgba(0,0,0,0.45)",
+        "purpose": "Floating menus."
+      },
+      {
+        "name": "unsaved-bar",
+        "value": "inset 0 1px 0 hsl(0 0% 100% / 0.55), 0 10px 34px -12px hsl(var(--foreground) / 0.28)",
+        "purpose": "The glass save bar only (desktop)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Sidebar width (300ms) and nav items (200ms)."
+      },
+      {
+        "name": "zebra-hover",
+        "value": "150ms ease",
+        "purpose": "Table row hover wash and edge bar."
+      },
+      {
+        "name": "accordion",
+        "value": "0.2s ease-out",
+        "purpose": "Radix accordion height."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "390px"
+      },
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "wide",
+        "value": "3840px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one Signal Blue action per region: Save, Add, Apply.",
+      "html": "<button class=\"ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;height:36px;padding:8px 16px;border:0;border-radius:6px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font:500 14px/1 Inter,system-ui,sans-serif;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover{background:hsl(var(--primary)/.9)}.ds-btn-primary:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary page action such as Export; neutral until hovered.",
+      "html": "<button class=\"ds-btn-outline\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><polyline points=\"7 10 12 15 17 10\"/><line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\"/></svg>Export CSV</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px solid hsl(var(--input));border-radius:6px;background:hsl(var(--background));color:hsl(var(--foreground));font:500 12px/1 Inter,system-ui,sans-serif;cursor:pointer;transition:background-color .15s}.ds-btn-outline:hover{background:hsl(var(--accent));color:hsl(var(--accent-foreground))}.ds-btn-outline:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Delete or drop; always opens ConfirmDialog first.",
+      "html": "<button class=\"ds-btn-danger\">Delete cluster</button>",
+      "css": ".ds-btn-danger{display:inline-flex;align-items:center;height:36px;padding:8px 16px;border:0;border-radius:6px;background:hsl(var(--destructive));color:hsl(var(--destructive-foreground));font:500 14px/1 Inter,system-ui,sans-serif;cursor:pointer}.ds-btn-danger:hover{background:hsl(var(--destructive)/.9)}.ds-btn-danger:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "36px field with Field Edge border; Fault Red border and message on blur-validation error.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Cluster code</span><input class=\"ds-input\" placeholder=\"e.g. T2V\"></label>",
+      "css": ".ds-field{display:grid;gap:8px;font-family:Inter,system-ui,sans-serif}.ds-field-label{font-size:14px;font-weight:500;color:hsl(var(--foreground))}.ds-input{height:36px;padding:4px 12px;border:1px solid hsl(var(--input));border-radius:6px;background:transparent;color:hsl(var(--foreground));font-size:14px;box-shadow:var(--shadow-xs)}.ds-input::placeholder{color:hsl(var(--muted-foreground))}.ds-input:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}"
+    },
+    {
+      "name": "Status Badges",
+      "kind": "chip",
+      "refersTo": "badge-success",
+      "description": "The only sanctioned status markers; always a text label, never colour alone.",
+      "html": "<span class=\"ds-badges\"><span class=\"ds-badge ds-ok\">Active</span><span class=\"ds-badge ds-warn\">Expiring</span><span class=\"ds-badge ds-err\">Failed</span><span class=\"ds-badge ds-neutral\">Inactive</span></span>",
+      "css": ".ds-badges{display:inline-flex;gap:8px}.ds-badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:6px;font:500 12px/16px Inter,system-ui,sans-serif}.ds-ok{background:hsl(var(--success));color:hsl(var(--success-foreground))}.ds-warn{background:hsl(var(--warning));color:hsl(var(--warning-foreground))}.ds-err{background:hsl(var(--destructive));color:hsl(var(--destructive-foreground))}.ds-neutral{background:hsl(var(--secondary));color:hsl(var(--secondary-foreground))}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Sheet White panel, 1px Rule Line, 8px corners, hairline shadow.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Licences</h3><p class=\"ds-card-desc\">12 active · 2 expiring within 30 days</p></div>",
+      "css": ".ds-card{display:flex;flex-direction:column;gap:4px;padding:20px;border:1px solid hsl(var(--border));border-radius:8px;background:hsl(var(--card));color:hsl(var(--card-foreground));box-shadow:var(--shadow-xs);font-family:Inter,system-ui,sans-serif}.ds-card-title{margin:0;font-size:16px;font-weight:600;letter-spacing:-.025em}.ds-card-desc{margin:0;font-size:14px;color:hsl(var(--muted-foreground));font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Active item: 10% blue tint, blue text, 4px blue edge bar.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" href=\"#\">Clusters</a><a class=\"ds-nav-item\" href=\"#\">Business units</a><a class=\"ds-nav-item\" href=\"#\">Licences</a></nav>",
+      "css": ".ds-nav{display:grid;gap:2px;width:240px;padding:8px;background:hsl(var(--background));border-right:1px solid hsl(var(--border));font:500 14px/20px Inter,system-ui,sans-serif}.ds-nav-item{position:relative;display:block;padding:8px 12px;border-radius:6px;color:hsl(var(--muted-foreground));text-decoration:none;transition:all .2s cubic-bezier(.4,0,.2,1)}.ds-nav-item:hover{background:hsl(var(--accent));color:hsl(var(--foreground))}.ds-nav-item.is-active{background:hsl(var(--primary)/.1);color:hsl(var(--primary))}.ds-nav-item.is-active::before{content:'';position:absolute;left:0;top:16.5%;width:4px;height:67%;border-radius:0 9999px 9999px 0;background:hsl(var(--primary))}.ds-nav-item:focus-visible{outline:2px solid hsl(var(--ring));outline-offset:2px}"
+    },
+    {
+      "name": "Unsaved-changes Bar",
+      "kind": "custom",
+      "description": "The single deliberate glass pane: floating Save/Cancel slab, shown only when the form is dirty.",
+      "html": "<div class=\"ds-unsaved\"><span class=\"ds-unsaved-text\">Unsaved changes</span><button class=\"ds-unsaved-cancel\">Cancel</button><button class=\"ds-unsaved-save\">Save</button></div>",
+      "css": ".ds-unsaved{display:inline-flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border:1px solid hsl(0 0% 100%/.5);border-radius:16px;background:hsl(var(--background)/.45);-webkit-backdrop-filter:blur(30px) saturate(200%) brightness(1.08);backdrop-filter:blur(30px) saturate(200%) brightness(1.08);box-shadow:inset 0 1px 0 hsl(0 0% 100%/.55),0 10px 34px -12px hsl(var(--foreground)/.28);font:400 14px Inter,system-ui,sans-serif;color:hsl(var(--foreground))}.ds-unsaved-cancel,.ds-unsaved-save{height:32px;padding:0 12px;border-radius:6px;font:500 12px Inter,system-ui,sans-serif;cursor:pointer}.ds-unsaved-cancel{border:1px solid hsl(var(--input));background:hsl(var(--background));color:hsl(var(--foreground))}.ds-unsaved-save{border:0;background:hsl(var(--primary));color:hsl(var(--primary-foreground))}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Control Room Ledger",
+    "overview": "Backstage is the book an operator keeps while running a fleet of hotel tenants. The ground is warm paper rather than clinical white. Text is near-black ink. Ruled lines separate entries, and figures sit in aligned columns. The room is quiet by default: no gradients, no glass panels, no decorative colour. When colour does appear it is reporting something true. Blue means \"you can act here\" or \"you are here\". Green, amber and red mean a state the operator has to know about. Because the rest of the page stays neutral, those states are the loudest thing on screen whenever they exist.\n\nDensity is that of a working register, not a marketing page. Body text is 14px, meta is 11–12px, and page titles stop at 20px. A screen should hold a whole cluster's state without scrolling past decoration. The design never smooths over partial truth: a BU that failed is drawn as failed beside the ones that succeeded, and a count that couldn't load reads \"unknown\", never zero. Every surface must hold up equally in light and dark, in Thai and English, and from a 3840px monitor down to a 390px phone.\n\nThe look replaced an earlier glassmorphism skin (frosted `.glass` panels), and that look is now an anti-reference. One element keeps glass on purpose: the floating unsaved-changes bar (see Elevation).",
+    "keyCharacteristics": [
+      "Warm-neutral paper ground; one blue accent (`signal-blue`); status hues used only for status.",
+      "Flat surfaces separated by 1px rule lines; shadows are barely there.",
+      "Compact, information-dense type in a single family (Inter) plus a system mono.",
+      "Gently curved corners (4–8px). Nothing is pill-shaped except avatars, counters and the floating save bar.",
+      "Full parity across both themes: every token has a tuned dark value. Dark is a second set of ink, not an inversion."
+    ],
+    "rules": [
+      {
+        "name": "The Status-Only Hue Rule",
+        "body": "Green, amber and red appear only when they report a real state, and only through `<Badge variant=\"success|warning|destructive\">` or the status tokens. Never use raw Tailwind greens or ambers, and never use them for decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never-Colour-Alone Rule",
+        "body": "A state carried by colour must also be carried by text or an icon. Partial failure, per-BU errors and licence state all have to be readable in greyscale.",
+        "section": "colors"
+      },
+      {
+        "name": "The Token-Only Rule",
+        "body": "No hex, no `bg-blue-500`, no per-component dark overrides. Semantic classes flip with `.dark` automatically. Where a class won't fit, write `hsl(var(--token))`.",
+        "section": "colors"
+      },
+      {
+        "name": "The One-Title Rule",
+        "body": "One `<h1>` per page, always at 20px semibold. The brand name in the shell is a `<span>`. A status badge beside the title goes in `afterTitle`, outside the heading. `Login` and `Landing` are the only pages with their own scale.",
+        "section": "typography"
+      },
+      {
+        "name": "The Aligned-Figures Rule",
+        "body": "Any column or counter that compares numbers uses `tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Ledger Rule",
+        "body": "Surfaces are opaque and flat. Sticky bars, headers and table chrome are solid; there is no `backdrop-blur` outside `src/components/ui`.",
+        "section": "elevation & depth"
+      },
+      {
+        "name": "The One Glass Pane Rule",
+        "body": "The floating unsaved-changes bar (`.unsaved-bar`) is the single deliberate exception. It is frosted glass (`blur(30px) saturate(200%)`, a 45% ground with an inner highlight) so it reads as a layer floating above the ledger. On desktop it is a centred 16px-radius slab 20px above the bottom of the viewport; on mobile it is a full-width bar. Without `backdrop-filter` support it falls back to opaque. Do not copy this treatment to any other element.",
+        "section": "elevation & depth"
+      }
+    ],
+    "dos": [
+      "**Do** reach for a semantic token (`bg-card`, `text-muted-foreground`, `border-border`, `bg-primary`) and let `.dark` flip it.",
+      "**Do** show status as `<Badge variant>` with a text label. Pair colour with text or an icon every time.",
+      "**Do** render partial failure and unknown counts as their own visible state (\"couldn't check\", per-BU error rows). Never show a green summary over them.",
+      "**Do** keep page titles at `text-xl font-semibold tracking-tight` through `PageHeader` or a hero at the same scale.",
+      "**Do** separate surfaces with a 1px Rule Line and one tone step: Ledger Paper → Sheet White.",
+      "**Do** check every new surface in light and dark, in Thai (longer labels) and English, and at 390px and 3840px.",
+      "**Do** keep text contrast at least 4.5:1 and targets at least 24×24px (WCAG 2.2 AA, per PRODUCT.md)."
+    ],
+    "donts": [
+      "**Don't** bring back glassmorphism (`.glass`, `backdrop-blur`) on cards, headers or sticky bars. The unsaved-changes bar is the only glass.",
+      "**Don't** use raw Tailwind palettes (`bg-blue-500`, `text-green-600`) or hex in components.",
+      "**Don't** use Signal Blue as decoration, and don't introduce a second brand hue, purple, or a gradient hero.",
+      "**Don't** hand-roll an `<h1>`, nest a badge inside the heading, or put Save/Cancel in the header actions.",
+      "**Don't** cap the page at a max width. Cap the column that needs a measure. If a page looks stretched, fix its rows: add columns or cap the name column.",
+      "**Don't** box read-only values in a bordered field in view mode.",
+      "**Don't** use `--warning` or `--success` as text colours on the ground; they are chip fills (3.08:1 as text).",
+      "**Don't** modify `src/components/ui/` primitives to restyle a single page."
+    ]
+  }
+}
