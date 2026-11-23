@@ -693,6 +693,16 @@ const ClusterManagement: React.FC = () => {
                     </button>
                   </Badge>
                 )}
+                {/* Counted in activeFilterCount, so it needs a badge too — without one a Dashboard
+                    handoff left "Filters 1 · Clear all" with nothing saying what was filtered. */}
+                {expiringSoonFilter && (
+                  <Badge variant="secondary" className="text-xs gap-1 pr-1">
+                    {t('pages.clusters.filterQuotaExpiring')}
+                    <button onClick={handleExpiringSoonToggle} className="ml-0.5 hover:text-foreground">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
                 <button onClick={handleClearAllFilters} className="text-xs text-muted-foreground hover:text-foreground underline">
                   {t('common.action.clearAll')}
                 </button>

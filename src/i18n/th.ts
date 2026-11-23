@@ -4087,6 +4087,7 @@ export const th: Translations = {
       userAdded: 'เพิ่มผู้ใช้เข้า cluster แล้ว',
       title: 'จัดการ Cluster',
       subtitle: 'จัดการและตั้งค่า Cluster',
+      filterQuotaExpiring: 'โควตาใกล้หมดอายุ',
       addCluster: 'เพิ่ม Cluster',
       searchPlaceholder: 'ค้นหา Cluster...',
       filtersDescription: 'กรอง Cluster ตามสถานะ',
