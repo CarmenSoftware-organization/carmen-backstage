@@ -84,12 +84,12 @@ export const ModuleShelf: React.FC<ModuleShelfProps> = ({
                   : t('pages.licenseFeatures.moduleFeatureCount', { count: totalChildren })}
               </span>
               {childStates.inactive > 0 && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary">
                   {t('pages.licenseFeatures.moduleClosedCount', { count: childStates.inactive })}
                 </Badge>
               )}
               {childStates.hide > 0 && (
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary">
                   {t('pages.licenseFeatures.moduleHiddenCount', { count: childStates.hide })}
                 </Badge>
               )}

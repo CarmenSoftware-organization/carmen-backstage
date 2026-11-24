@@ -111,7 +111,7 @@ export function QuotaLedgerCard({ licenses, loading, loadFailed, onRetry }: Quot
                     <td className="px-2 py-2 whitespace-nowrap">
                       <Badge variant={badge.variant}>{t(badge.labelKey)}</Badge>
                       {winning?.id === l.id && (
-                        <Badge variant="outline" className="ml-1.5 text-[10px]">
+                        <Badge variant="outline" className="ml-1.5">
                           {t('pages.clusterAdmin.inForceBadge')}
                         </Badge>
                       )}

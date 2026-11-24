@@ -434,7 +434,7 @@ const RosterRow: React.FC<{ row: SuperAdmin; isSelf: boolean; onRemove: () => vo
               {label || '—'}
             </span>
             {isSelf && (
-              <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+              <Badge variant="outline" className="px-1.5 py-0">
                 {t('pages.superAdmins.selfBadge')}
               </Badge>
             )}

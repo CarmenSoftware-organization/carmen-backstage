@@ -171,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {showLabel && (
             <>
               <span className="truncate">{t(item.labelKey)}</span>
-              <Badge variant="secondary" className="ml-auto shrink-0 text-[10px] font-normal">
+              <Badge variant="secondary" className="ml-auto shrink-0 text-[11px] font-normal">
                 {t('common.comingSoon')}
               </Badge>
             </>
@@ -198,13 +198,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         {showLabel && <span className="truncate">{t(item.labelKey)}</span>}
         {count > 0 &&
           (showLabel ? (
-            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px] font-semibold tabular-nums" aria-label={String(count)}>
+            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[11px] font-semibold tabular-nums" aria-label={String(count)}>
               {count > 99 ? '99+' : count}
             </Badge>
           ) : (
             <span
               aria-label={String(count)}
-              className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none tabular-nums text-primary-foreground"
+              className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold leading-none tabular-nums text-primary-foreground"
             >
               {count > 99 ? '99+' : count}
             </span>
@@ -415,7 +415,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           <Icon className={cn('h-4 w-4 shrink-0 transition-transform duration-200', !active && 'group-hover:scale-110')} />
                           <span>{t(row.labelKey)}</span>
                           {count > 0 && (
-                            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px] font-semibold tabular-nums" aria-label={String(count)}>
+                            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[11px] font-semibold tabular-nums" aria-label={String(count)}>
                               {count > 99 ? '99+' : count}
                             </Badge>
                           )}

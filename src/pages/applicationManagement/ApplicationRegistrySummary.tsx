@@ -169,7 +169,7 @@ export function ApplicationRegistrySummary({ summary, loading, error = false, on
                     {byPlatform(summary.devices ?? []).map((d) => (
                       <span key={d.device} className="text-muted-foreground inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs">
                         {formatDevice(d.device)}
-                        <span className="text-foreground font-mono text-[12px] font-semibold tabular-nums">{d.count}</span>
+                        <span className="text-foreground font-mono text-xs font-semibold tabular-nums">{d.count}</span>
                       </span>
                     ))}
                   </div>

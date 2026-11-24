@@ -134,7 +134,7 @@ export function BroadcastPreview({
       <div className="flex overflow-hidden rounded-lg border">
         <div className={cn('w-1 shrink-0', sev.bar)} aria-hidden />
         <div className="min-w-0 flex-1 space-y-1.5 p-3">
-          <Badge variant={sev.variant} className="text-[10px] font-bold uppercase tracking-wide">
+          <Badge variant={sev.variant} className="text-[11px] font-semibold uppercase tracking-wide">
             {typeLabel}
           </Badge>
           <div className={cn('text-sm font-semibold leading-snug', !title.trim() && 'text-muted-foreground/50 font-normal italic')}>
