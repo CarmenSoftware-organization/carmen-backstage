@@ -197,7 +197,7 @@ describe('ReportFormGroupManagement — grouping', () => {
 
     await screen.findByText('Zulu');
 
-    const names = Array.from(container.querySelectorAll('.truncate.text-sm.font-medium')).map(
+    const names = Array.from(container.querySelectorAll('div.text-sm.font-medium')).map(
       (el) => el.textContent,
     );
     expect(names).toEqual(['Zulu', 'Alpha', 'Bravo']);
