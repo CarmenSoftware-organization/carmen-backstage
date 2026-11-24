@@ -324,7 +324,7 @@ export function StepPanel({
             className="h-2 w-full overflow-hidden rounded-full bg-muted"
           >
             <div
-              className="h-full bg-primary transition-all"
+              className="h-full bg-primary transition-[width] duration-300 ease-linear"
               style={{ width: `${Math.round((state.progress.index / Math.max(state.progress.total, 1)) * 100)}%` }}
             />
           </div>

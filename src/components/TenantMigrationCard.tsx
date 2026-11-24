@@ -248,7 +248,7 @@ export const TenantMigrationCard = ({
                 aria-valuenow={progress.applied}
                 aria-valuemin={0}
                 aria-valuemax={progress.total}
-                className="h-full bg-primary transition-all"
+                className="h-full bg-primary transition-[width] duration-300 ease-linear"
                 style={{ width: `${progress.total ? (progress.applied / progress.total) * 100 : 0}%` }}
               />
             </div>

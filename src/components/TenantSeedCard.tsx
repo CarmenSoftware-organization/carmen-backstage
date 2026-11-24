@@ -271,7 +271,7 @@ export const TenantSeedCard = ({
                 aria-valuenow={progress.done}
                 aria-valuemin={0}
                 aria-valuemax={progress.total}
-                className="h-full bg-primary transition-all"
+                className="h-full bg-primary transition-[width] duration-300 ease-linear"
                 style={{ width: `${progress.total ? (progress.done / progress.total) * 100 : 0}%` }}
               />
             </div>
