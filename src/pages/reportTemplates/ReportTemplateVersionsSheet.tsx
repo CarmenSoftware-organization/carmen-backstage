@@ -25,6 +25,7 @@ import { buildBackup, backupFileName, downloadJSON, toBackupTemplate } from '../
 import { useI18n } from '../../hooks/useI18n';
 import { cn } from '../../lib/utils';
 import { useReportTemplateVersions } from './useReportTemplateVersions';
+import { formatRevision, nextRevision, revisionOf } from '../../utils/reportRevision';
 
 interface Props {
   templateId: string;
@@ -77,6 +78,7 @@ export const ReportTemplateVersionsSheet: React.FC<Props> = ({ templateId, curre
   const [confirmVersion, setConfirmVersion] = useState<number | null>(null);
   // hook probe ให้เองครั้งเดียวตอน mount (รู้ `unsupported` ก่อนผู้ใช้เปิด) แล้วโหลดใหม่ทุกครั้งที่เปิดแผ่น
   const v = useReportTemplateVersions(templateId, open);
+  const currentRevision = revisionOf(current);
 
   const changeLabel = (row: ReportTemplateVersionSummary) =>
     row.change_type === 'restore'
@@ -162,6 +164,14 @@ export const ReportTemplateVersionsSheet: React.FC<Props> = ({ templateId, curre
                         className="focus-visible:ring-ring flex w-full items-center gap-3 py-3 text-left focus-visible:ring-1 focus-visible:outline-hidden"
                       >
                         <span className="font-mono text-sm font-medium">v{row.version}</span>
+                        {row.revision && (
+                          <span
+                            className="text-muted-foreground font-mono text-xs"
+                            title={t('pages.reportTemplates.revision.badgeTitle')}
+                          >
+                            {t('pages.reportTemplates.revision.badge', { revision: row.revision })}
+                          </span>
+                        )}
                         <Badge variant="outline">{changeLabel(row)}</Badge>
                         {isCurrent && <Badge variant="secondary">{t('pages.reportTemplates.versions.current')}</Badge>}
                         <span className="min-w-0 flex-1">
@@ -239,7 +249,15 @@ export const ReportTemplateVersionsSheet: React.FC<Props> = ({ templateId, curre
           if (!o) setConfirmVersion(null);
         }}
         title={t('pages.reportTemplates.versions.restoreTitle', { version: confirmVersion ?? '' })}
-        description={t('pages.reportTemplates.versions.restoreDescription', { version: confirmVersion ?? '', next: nextVersion })}
+        description={
+          t('pages.reportTemplates.versions.restoreDescription', { version: confirmVersion ?? '', next: nextVersion }) +
+          // กู้คืนก็คือการแก้ครั้งใหม่ — เลข revision เดินหน้าแบบ minor ไม่ถอยตามเวอร์ชันต้นทาง
+          (currentRevision
+            ? ' ' + t('pages.reportTemplates.revision.restoreNote', {
+                next: formatRevision(nextRevision(currentRevision, 'minor')),
+              })
+            : '')
+        }
         confirmText={t('pages.reportTemplates.versions.restore')}
         onConfirm={restore}
       />

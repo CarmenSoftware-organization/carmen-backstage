@@ -364,7 +364,7 @@ describe('ReportFormGroupManagement — activating and deactivating', () => {
   const openRowMenu = async (user: ReturnType<typeof userEvent.setup>, name: string) =>
     user.click(screen.getByRole('button', { name: `Actions for ${name}` }));
 
-  it('deactivates with the record\'s doc_version attached', async () => {
+  it('deactivates with the record\'s doc_version attached, keeping the printed revision', async () => {
     asMock(reportTemplateService.getAll).mockResolvedValue(page(rows));
     const user = userEvent.setup();
     renderPage();
@@ -376,6 +376,8 @@ describe('ReportFormGroupManagement — activating and deactivating', () => {
     await waitFor(() =>
       expect(reportTemplateService.update).toHaveBeenCalledWith('a', {
         is_active: false,
+        // on/off does not change the print — the footer revision stays
+        revision_bump: 'none',
         doc_version: 4,
       }),
     );

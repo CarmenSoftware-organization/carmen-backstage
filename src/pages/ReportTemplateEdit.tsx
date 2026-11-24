@@ -30,6 +30,8 @@ import Can from '../components/Can';
 import { validateField } from '../utils/validation';
 import { getErrorDetail, devLog, isNotFoundError } from '../utils/errorParser';
 import { getDocVersion, isVersionConflict, notifyVersionConflict } from '../utils/docVersion';
+import { formatRevision, revisionOf } from '../utils/reportRevision';
+import { RevisionBumpToggle } from './reportTemplates/RevisionBumpToggle';
 import { normalizeAudit } from '../utils/audit';
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges';
 import { countLines, type XmlValidation } from '../utils/xml';
@@ -164,6 +166,8 @@ const ReportTemplateEdit: React.FC = () => {
   const [error, setError] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [docVersion, setDocVersion] = useState<number | undefined>(undefined);
+  // เลข revision ท้ายกระดาษรายงานที่บันทึกครั้งนี้จะบวก — เริ่มที่ minor ทุกครั้งที่กดแก้
+  const [revisionBump, setRevisionBump] = useState<'minor' | 'major'>('minor');
   const [rawResponse, setRawResponse] = useState<unknown>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'dialog' | 'content' | 'export' | 'preview'>('dialog');
@@ -248,6 +252,7 @@ const ReportTemplateEdit: React.FC = () => {
 
   const handleEditToggle = () => {
     setSavedFormData(formData);
+    setRevisionBump('minor');
     setEditing(true);
   };
 
@@ -457,7 +462,11 @@ const ReportTemplateEdit: React.FC = () => {
           navigate('/report-templates');
         }
       } else {
-        await reportTemplateService.update(id!, { ...payload, ...(docVersion != null ? { doc_version: docVersion } : {}) });
+        await reportTemplateService.update(id!, {
+          ...payload,
+          ...(docVersion != null ? { doc_version: docVersion } : {}),
+          revision_bump: revisionBump,
+        });
         toast.success(t('toast.saved'));
         await fetchTemplate();
         setEditing(false);
@@ -476,6 +485,9 @@ const ReportTemplateEdit: React.FC = () => {
 
   // Not-found gate: a bad/deleted id must never render the edit shell (form,
   // data source, XML tabs) over blank data with just a banner on top.
+  // เลข revision ที่บันทึกไว้ (ไม่ใช่ formData) · null = backend ยังไม่มีคอลัมน์นี้ → ซ่อนป้ายและตัวเลือก
+  const revision = isNew ? null : revisionOf(templateRecord as Record<string, unknown> | null);
+
   if (notFound) {
     return (
       <Layout>
@@ -545,7 +557,18 @@ const ReportTemplateEdit: React.FC = () => {
               t('pages.reportTemplates.editSubtitle')
             )
           }
-          afterTitle={!isNew && templateRecord != null && docVersion != null ? <Badge variant="secondary">v{docVersion}</Badge> : undefined}
+          afterTitle={
+            !isNew && templateRecord != null && (revision || docVersion != null) ? (
+              <span className="inline-flex items-center gap-1.5">
+                {revision && (
+                  <Badge variant="outline" title={t('pages.reportTemplates.revision.badgeTitle')}>
+                    {t('pages.reportTemplates.revision.badge', { revision: formatRevision(revision) })}
+                  </Badge>
+                )}
+                {docVersion != null && <Badge variant="secondary">v{docVersion}</Badge>}
+              </span>
+            ) : undefined
+          }
           audit={!isNew && !loading ? normalizeAudit(templateRecord) : undefined}
           // gate บน "โหลด record แล้ว" ไม่ใช่ !loading — refetch (หลังบันทึก/กู้คืนเวอร์ชัน) ตั้ง loading=true
           // ถ้าผูกกับ loading แผ่นเวอร์ชันที่เปิดอยู่จะถูก unmount กลางการกู้คืน; ปุ่มที่ห้ามกดระหว่าง refetch ใช้ disabled แทน
@@ -1377,18 +1400,29 @@ const ReportTemplateEdit: React.FC = () => {
       {/* Sticky action bar */}
       {editing && (
         <div className="unsaved-bar fixed bottom-0 left-0 right-0 md:left-16 lg:left-60 z-40">
-          <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-3">
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              {hasChanges ? (
-                <>
-                  <span className="h-2 w-2 rounded-full bg-warning animate-pulse" />
-                  <span>{t('common.state.unsavedChanges')}</span>
-                </>
-              ) : (
-                <span className="text-muted-foreground">{t('common.state.noChanges')}</span>
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 sm:px-6 py-3">
+            {/* ตัวเลือก revision อยู่ฝั่งสถานะ — จอแคบได้ 2 แถว (สถานะ+ตัวเลือก / ยกเลิก+บันทึก) ไม่ใช่ 3 */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <div className="flex items-center gap-2 text-xs sm:text-sm">
+                {hasChanges ? (
+                  <>
+                    <span className="h-2 w-2 rounded-full bg-warning animate-pulse" />
+                    <span>{t('common.state.unsavedChanges')}</span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">{t('common.state.noChanges')}</span>
+                )}
+              </div>
+              {revision && (
+                <RevisionBumpToggle
+                  current={revision}
+                  value={revisionBump}
+                  onChange={setRevisionBump}
+                  disabled={saving}
+                />
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2">
               {!isNew && (
                 <Button
                   type="button"

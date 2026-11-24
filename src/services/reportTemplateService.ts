@@ -1,6 +1,7 @@
 import api from './api';
 import { buildQuery } from '../utils/buildQuery';
 import type { PaginateParams, ApiListResponse, LocalizedText } from '../types';
+import type { RevisionBump } from '../utils/reportRevision';
 
 export type ReportSourceType = "view" | "function" | "procedure";
 
@@ -56,6 +57,11 @@ export interface ReportTemplate {
   updated_at?: string;
   updated_by_id?: string;
   doc_version?: number; // optimistic-lock token
+  // revision printed on the report footer ("Rev. 1.2") — absent on backends that predate it
+  revision_major?: number;
+  revision_minor?: number;
+  // write-only: how this save moves the revision (omitted = minor on the server)
+  revision_bump?: RevisionBump;
 }
 
 export type ReportTemplateVersionChange = 'create' | 'update' | 'restore' | 'import';
@@ -65,6 +71,8 @@ export interface ReportTemplateVersionSummary {
   version: number;
   change_type: ReportTemplateVersionChange;
   restored_from_version?: number | null;
+  // revision right after this write ("1.2"); null on versions written before revisions existed
+  revision?: string | null;
   created_at?: string;
   created_by_id?: string | null;
   created_by_name?: string;
@@ -73,7 +81,16 @@ export interface ReportTemplateVersionSummary {
 
 export type ReportTemplateSnapshot = Omit<
   ReportTemplate,
-  'id' | 'doc_version' | 'created_at' | 'created_by_id' | 'updated_at' | 'updated_by_id' | 'change_type'
+  | 'id'
+  | 'doc_version'
+  | 'created_at'
+  | 'created_by_id'
+  | 'updated_at'
+  | 'updated_by_id'
+  | 'change_type'
+  | 'revision_major'
+  | 'revision_minor'
+  | 'revision_bump'
 >;
 
 export interface ReportTemplateVersion extends ReportTemplateVersionSummary {
@@ -124,13 +141,16 @@ const reportTemplateService = {
   }): Promise<void> => {
     if (current && current.id === target.id) return;
     if (current) {
+      // สลับฟอร์มเริ่มต้นไม่เปลี่ยนหน้าตาใบพิมพ์ — คงเลข revision ไว้
       await api.put(`/api-system/report-templates/${current.id}`, {
         is_default: false,
+        revision_bump: 'none',
         ...(current.doc_version != null ? { doc_version: current.doc_version } : {}),
       });
     }
     await api.put(`/api-system/report-templates/${target.id}`, {
       is_default: true,
+      revision_bump: 'none',
       ...(target.doc_version != null ? { doc_version: target.doc_version } : {}),
     });
   },

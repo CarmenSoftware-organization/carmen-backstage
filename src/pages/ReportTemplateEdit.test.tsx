@@ -447,3 +447,66 @@ describe('ReportTemplateEdit — BU Scope read-only in form mode', () => {
     expect(screen.getByRole('button', { name: /Remove BU1/i })).toBeInTheDocument();
   });
 });
+
+describe('ReportTemplateEdit — revision printed on the report footer', () => {
+  const withRevision = { ...fakeTemplate, revision_major: 1, revision_minor: 2 };
+
+  async function editAndChangeDescription(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(await screen.findByRole('button', { name: /^edit$/i }));
+    const description = screen.getByLabelText(/^Description \(EN\)/);
+    await user.clear(description);
+    await user.type(description, 'Changed');
+  }
+
+  it('shows the saved revision beside the title', async () => {
+    asMock(reportTemplateService.getById).mockResolvedValue({ data: withRevision });
+    renderAt('/report-templates/rt1/edit');
+    expect(await screen.findByText('Rev. 1.2')).toBeInTheDocument();
+  });
+
+  it('saves as a minor bump unless Major is picked, and names the revision each one gives', async () => {
+    const user = userEvent.setup();
+    asMock(reportTemplateService.getById).mockResolvedValue({ data: withRevision });
+    asMock(reportTemplateService.update).mockResolvedValue({ data: { id: 'rt1', doc_version: 4 } });
+    renderAt('/report-templates/rt1/edit');
+    await editAndChangeDescription(user);
+
+    const group = screen.getByRole('radiogroup', { name: /revision of this save/i });
+    expect(within(group).getByRole('radio', { name: 'Minor 1.3' })).toHaveAttribute('aria-checked', 'true');
+    expect(within(group).getByRole('radio', { name: 'Major 2.0' })).toHaveAttribute('aria-checked', 'false');
+
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+    await waitFor(() =>
+      expect(reportTemplateService.update).toHaveBeenCalledWith(
+        'rt1',
+        expect.objectContaining({ revision_bump: 'minor', doc_version: 3 }),
+      ),
+    );
+  });
+
+  it('sends a major bump when Major is picked', async () => {
+    const user = userEvent.setup();
+    asMock(reportTemplateService.getById).mockResolvedValue({ data: withRevision });
+    asMock(reportTemplateService.update).mockResolvedValue({ data: { id: 'rt1', doc_version: 4 } });
+    renderAt('/report-templates/rt1/edit');
+    await editAndChangeDescription(user);
+
+    await user.click(screen.getByRole('radio', { name: 'Major 2.0' }));
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+    await waitFor(() =>
+      expect(reportTemplateService.update).toHaveBeenCalledWith(
+        'rt1',
+        expect.objectContaining({ revision_bump: 'major' }),
+      ),
+    );
+  });
+
+  it('hides the choice on a backend that has no revision yet', async () => {
+    const user = userEvent.setup();
+    asMock(reportTemplateService.getById).mockResolvedValue({ data: fakeTemplate });
+    renderAt('/report-templates/rt1/edit');
+    await user.click(await screen.findByRole('button', { name: /^edit$/i }));
+    expect(screen.queryByRole('radiogroup', { name: /revision of this save/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Rev\. /)).not.toBeInTheDocument();
+  });
+});
