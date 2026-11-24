@@ -102,7 +102,8 @@ export const GroupCard: React.FC<GroupCardProps> = ({
                   </label>
 
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium">{t.name}</div>
+                    {/* ตัดขึ้นบรรทัดใหม่ ไม่ตัดท้าย — ชื่อในกลุ่มเดียวกันต่างกันแค่คำท้าย ("… Landscape") */}
+                    <div className="text-sm font-medium [overflow-wrap:anywhere]">{t.name}</div>
                     <AuditMeta
                       variant="compact"
                       verbKey={latest?.verbKey}

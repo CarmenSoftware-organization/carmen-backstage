@@ -231,8 +231,9 @@ const ReportFormGroupManagement: React.FC = () => {
         />
 
         <Card>
+          {/* ช่องค้นหาไม่ยืดเต็มแถว — ตัวกรอง (Active only) อยู่ติดช่องค้นหา (rule 12) */}
           <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
+            <div className="relative flex-1 sm:max-w-sm">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 ref={searchInputRef}
@@ -262,7 +263,7 @@ const ReportFormGroupManagement: React.FC = () => {
             </CardContent>
           </Card>
         ) : loading ? (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,30rem),1fr))] gap-4">
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-48 w-full" />
             ))}
@@ -274,7 +275,10 @@ const ReportFormGroupManagement: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,30rem),1fr))] gap-4">
+            {/* การ์ดไหลเป็นคอลัมน์ตามความกว้าง (auto-fit: จำนวนกลุ่มมาจากข้อมูล ให้เต็มแถว) — เดิม
+                lg:grid-cols-2 ตายตัวถึง 4K ชื่อแม่แบบกับป้าย/ปุ่มทางขวาห่างกันหลายร้อย px (rule 2) ·
+                30rem = 2 คอลัมน์ที่ 1366 (กล่อง 1031) · ชื่อที่ยาวกว่าที่เหลือตัดบรรทัดใน GroupCard */}
             {groups.map((g) => (
               <GroupCard
                 key={g.code}
