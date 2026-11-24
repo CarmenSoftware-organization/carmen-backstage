@@ -194,7 +194,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {active && (
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-primary rounded-r-full" />
         )}
-        <Icon className={cn('h-4 w-4 shrink-0 transition-transform duration-200', !active && 'group-hover:scale-110')} />
+        <Icon className="h-4 w-4 shrink-0" />
         {showLabel && <span className="truncate">{t(item.labelKey)}</span>}
         {count > 0 &&
           (showLabel ? (
@@ -233,10 +233,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             {isProduct ? (
               <ProductLogo
                 variant={isCollapsed ? 'mark' : 'lockup'}
-                className={cn(
-                  'transition-transform duration-300 group-hover:scale-105',
-                  isCollapsed ? 'h-11 w-11 shadow-xs' : 'h-11',
-                )}
+                className={isCollapsed ? 'h-11 w-11 shadow-xs' : 'h-11'}
               />
             ) : (
               <>
@@ -244,7 +241,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     ตัวย่อ) เพราะโลโก้กว้างย่อลงช่อง 36px แล้วอ่านไม่ออก (ผู้ใช้เคาะไว้) */}
                 <BrandLogo
                   src={isCollapsed ? undefined : brand.logoUrl}
-                  className="h-9 transition-transform duration-300 group-hover:scale-105"
+                  className="h-9"
                   fallback={
                     <BrandMark
                       name={brand.name}
@@ -252,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       src={brand.avatarUrl}
                       tone="primary"
                       size="md"
-                      className="shadow-xs transition-transform duration-300 group-hover:scale-105"
+                      className="shadow-xs"
                     />
                   }
                 />
@@ -347,7 +344,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   /* The lockup spells the product name, so the accessible name moves off-screen
                      rather than being printed twice. */
                   <>
-                    <ProductLogo className="h-11 transition-transform duration-300 group-hover:scale-105" />
+                    <ProductLogo className="h-11" />
                     <span className="sr-only">{brand.name}</span>
                   </>
                 ) : (
@@ -355,7 +352,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {/* ลิ้นชักมือถือคือ sidebar ตอนกาง — โลโก้ก่อน ถอยไปสัญลักษณ์จัตุรัส */}
                     <BrandLogo
                       src={brand.logoUrl}
-                      className="h-9 transition-transform duration-300 group-hover:scale-105"
+                      className="h-9"
                       fallback={
                         <BrandMark
                           name={brand.name}
@@ -363,7 +360,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           src={brand.avatarUrl}
                           tone="primary"
                           size="md"
-                          className="shadow-xs transition-transform duration-300 group-hover:scale-105"
+                          className="shadow-xs"
                         />
                       }
                     />
@@ -412,7 +409,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           {active && (
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-2/3 bg-primary rounded-r-full" />
                           )}
-                          <Icon className={cn('h-4 w-4 shrink-0 transition-transform duration-200', !active && 'group-hover:scale-110')} />
+                          <Icon className="h-4 w-4 shrink-0" />
                           <span>{t(row.labelKey)}</span>
                           {count > 0 && (
                             <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[11px] font-semibold tabular-nums" aria-label={String(count)}>

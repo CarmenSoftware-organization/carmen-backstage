@@ -42,7 +42,7 @@ export function CapacityMeter({ used, cap, finite = false }: CapacityMeterProps)
     <div className="flex items-center gap-2">
       <div className="bg-muted h-1 w-10 shrink-0 overflow-hidden rounded-full">
         <div
-          className={cn('h-full rounded-full transition-[width] duration-500', FILL[u.level])}
+          className={cn('h-full rounded-full transition-[width] duration-200 ease-out', FILL[u.level])}
           style={{ width: `${Math.min(100, u.ratio * 100)}%` }}
         />
       </div>

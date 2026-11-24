@@ -511,12 +511,14 @@
 
 /* Sidebar transitions */
 .sidebar-transition {
-  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1),
-              margin 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* On-screen movement: strong ease-in-out, kept short because the toggle is pressed often. */
+  transition: width 220ms cubic-bezier(0.77, 0, 0.175, 1),
+              margin 220ms cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 .sidebar-item-transition {
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* Colour only — `all` also animated padding/width while the sidebar collapsed. */
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
 /* Smooth scrollbar */

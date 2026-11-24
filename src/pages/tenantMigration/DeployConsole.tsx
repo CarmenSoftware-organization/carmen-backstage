@@ -29,7 +29,7 @@ export function DeployConsole({ batch }: { batch: BatchProgress | null }) {
           aria-valuenow={batch.applied}
           aria-valuemin={0}
           aria-valuemax={batch.total}
-          className="bg-primary h-full transition-all"
+          className="bg-primary h-full transition-[width] duration-300 ease-linear"
           style={{ width: `${pct}%` }}
         />
       </div>
