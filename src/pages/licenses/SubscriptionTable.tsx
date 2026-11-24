@@ -29,6 +29,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ClusterPicker, useClusterById } from '../../components/ClusterPicker';
 import type { ClusterOption } from '../../hooks/useClusterSearch';
 import { auditColumns } from '../../components/auditColumns';
+import { hugColumns } from '../../utils/hugColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { useI18n } from '../../hooks/useI18n';
 import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
@@ -482,6 +483,9 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
         // ได้อะไร ยอด feature distinct ย้ายไปอยู่ใน title ของเซลล์ · เรียงไม่ได้: รายการกลุ่มไม่มีลำดับที่มีความหมาย
         id: 'groups',
         header: t('pages.subscriptions.featureGroups'),
+        // ชิป flex-wrap ไม่โดน white-space — hugColumns ให้คอลัมน์สุดท้าย w-full ซึ่งบีบคอลัมน์นี้
+        // เหลือชิปละบรรทัด · ตอนกล่องกว้างให้ได้ความกว้างเท่าเพดาน max-w-[16rem] ของชิปเอง
+        meta: { headerClassName: '@[1340px]:min-w-[16rem]' },
         enableSorting: false,
         cell: ({ row }) => {
           const { groups, feature_count } = row.original;
@@ -576,6 +580,8 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
       updatedColumn,
     ];
   }, [t, stateLabel, thresholds.subscription_days, aiCreditOn]);
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์ข้อมูลสุดท้ายรับที่ว่างที่เหลือ — ดู utils/hugColumns
+  const huggedColumns = useMemo(() => hugColumns(columns), [columns]);
   // No actions column: the only row action would be "Edit", which just duplicates the
   // already-clickable Subscription/Cluster links above — a one-item navigate-only dropdown is
   // redundant chrome. Soft-delete lives on the edit page (the place you decide), and deleted
@@ -792,7 +798,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                 }
               />
             ) : !error ? (
-              <div className="relative">
+              <div className="relative @container">
                 {loading && items.length === 0 ? (
                   <TableSkeleton columns={columns.length + 1} rows={paginate.perpage || 10} />
                 ) : (
@@ -803,7 +809,7 @@ const SubscriptionTable: React.FC<SubscriptionTableProps> = ({ embedded = false,
                       </div>
                     )}
                     <DataTable
-                      columns={columns}
+                      columns={huggedColumns}
                       data={items}
                       serverSide
                       tableLayout="auto"
