@@ -429,7 +429,10 @@ const UserManagement: React.FC = () => {
         header: t('pages.users.identityColumn'),
         // card: 'title' — หน้านี้ไม่เคยประกาศ meta.card เลย การ์ดบนมือถือจึงเป็นแถว
         // label/value ล้วนโดยไม่มีหัว พอมีเซลล์ระบุตัวตนเดียวแล้วมันคือหัวการ์ดที่ชัดที่สุด
-        meta: { headerClassName: "min-w-[16rem]", card: 'title' as const },
+        // w-px + min-w: คอลัมน์ข้อมูลกว้างเท่าเนื้อหา (ชื่อ/อีเมลตัดท้ายด้วย truncate จึงยึดที่ 16rem)
+        // เดิมคอลัมน์นี้ไม่มีความกว้างจึงกินที่ว่างทั้งหมด จน BU/Status/Created ไปอยู่ห่างจากชื่อ ~900px;
+        // ที่เหลือให้คอลัมน์ข้อมูลสุดท้ายรับ (ดู auditColumns ข้างล่าง)
+        meta: { headerClassName: "w-px min-w-[16rem] pr-10", cellClassName: "pr-10", card: 'title' as const },
         cell: ({ row }) => {
           const u = row.original;
           const name = getNameDisplay(u);
@@ -485,7 +488,7 @@ const UserManagement: React.FC = () => {
         header: t('pages.users.buColumn'),
         // เรียงตาม total (ตัวเลขหลัง /) — backend ใช้ _count ของ relation เดียวกับที่ประกอบ business_unit
         accessorFn: (row) => row.business_unit?.length ?? 0,
-        meta: { headerClassName: "w-16" },
+        meta: { headerClassName: "w-px whitespace-nowrap pr-10", cellClassName: "pr-10" },
         cell: ({ row }) => {
           const bus = row.original.business_unit || [];
           const active = bus.filter(b => b.is_active).length;
@@ -504,7 +507,7 @@ const UserManagement: React.FC = () => {
       {
         accessorKey: "is_active",
         header: t('common.status.label'),
-        meta: { headerClassName: "w-24", card: 'badge' as const },
+        meta: { headerClassName: "w-px whitespace-nowrap pr-10", cellClassName: "pr-10", card: 'badge' as const },
         // ผู้ใช้ 44/44 คน active — ป้ายเขียวทุกแถวคือหมึกเต็มคอลัมน์ที่ไม่บอกอะไรเลย
         // เน้นเฉพาะสิ่งที่ผิดปกติ: active เป็นข้อความจาง ๆ, inactive เท่านั้นที่ได้ป้าย
         cell: ({ row }) =>
@@ -514,14 +517,21 @@ const UserManagement: React.FC = () => {
             <Badge variant="secondary">{t('common.status.inactive')}</Badge>
           ),
       },
-      // auditColumns() ไม่ส่ง meta.headerClassName มา — คอลัมน์ Created/Updated เดิมของหน้านี้มี
-      // w-40 (ดู git show 8efd263) การ spread ตรง ๆ เลยทำความกว้างเปลี่ยน map ทับ meta แต่คง
-      // property อื่น (cell, accessorFn, header, id) ของแต่ละคอลัมน์ไว้ทั้งหมด
-      ...auditColumns<UserRecord>({ t }).map((c) => ({ ...c, meta: { ...c.meta, headerClassName: 'w-40' } })),
+      // auditColumns() ไม่ส่ง meta.headerClassName มา — map ทับ meta แต่คง property อื่น (cell,
+      // accessorFn, header, id) ไว้ทั้งหมด Created/Updated กว้างเท่าเนื้อหา ยกเว้นคอลัมน์ข้อมูล
+      // สุดท้าย (Updated หรือ Deleted by ตอนเปิด showDeleted) ที่ไม่ตรึงความกว้างเพื่อรับที่ว่างที่เหลือ
+      // — ถ้าคอลัมน์ที่รับที่ว่างไม่ใช่ตัวสุดท้าย ช่องว่างแค่ย้ายไปอยู่หน้าคอลัมน์ถัดไป
+      ...auditColumns<UserRecord>({ t }).map((c, i, arr) => ({
+        ...c,
+        meta: {
+          ...c.meta,
+          headerClassName: i === arr.length - 1 && !showDeleted ? '' : 'w-px whitespace-nowrap pr-10',
+          cellClassName: i === arr.length - 1 && !showDeleted ? '' : 'pr-10',
+        },
+      })),
       ...(showDeleted ? [{
         id: 'deleted_at',
         header: t('pages.users.deletedBy'),
-        meta: { headerClassName: "w-40" },
         cell: ({ row }: { row: { original: UserRecord } }) => (
           <AuditMeta
             variant="cell"
