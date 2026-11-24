@@ -43,9 +43,11 @@ export function FleetSync({ total, summary, actions }: FleetSyncProps) {
   const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0);
 
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="grid gap-6 sm:grid-cols-[auto_1fr_auto] sm:items-center">
-        <div className="border-border sm:border-r sm:pr-6">
+    <Card className="@container p-4 sm:p-5">
+      {/* ตัดสินจากความกว้างของการ์ดเอง: แคบ = ซ้อนกัน · @xl = ตัวเลข|แถบ แล้วปุ่มเป็นแถวด้านล่าง ·
+          @4xl = สามช่องในแถวเดียว ปุ่มเรียงแนวนอน (เดิม flex-col ทำให้การ์ดสูงเท่าปุ่มสามปุ่มซ้อนกัน) */}
+      <div className="grid items-center gap-x-6 gap-y-4 @xl:grid-cols-[auto_1fr] @4xl:grid-cols-[auto_1fr_auto]">
+        <div className="border-border @xl:border-r @xl:pr-6">
           <div className="font-mono text-3xl font-semibold tabular-nums tracking-tight">
             {checked ? summary.up_to_date : '-'}
             <span className="text-muted-foreground text-base font-medium"> / {total}</span>
@@ -108,7 +110,7 @@ export function FleetSync({ total, summary, actions }: FleetSyncProps) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">{actions}</div>
+        <div className="flex flex-wrap gap-2 @xl:col-span-2 @4xl:col-span-1">{actions}</div>
       </div>
     </Card>
   );
