@@ -498,6 +498,9 @@ const TenantMigrationManagement: React.FC = () => {
       header: t('common.field.name'),
       // ค้นหาด้วยรหัสได้เหมือนเดิม: รหัสอยู่ในเซลล์นี้ และ global filter อ่านจาก accessorFn
       accessorFn: (row) => `${row.name} ${row.code}`,
+      // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา (w-px) — เดิม Name ไม่มีความกว้างจึงกินที่ว่างทั้งหมด
+      // (1352px ที่จอ 2318) จน Schema/Status ไปกองที่ขอบขวา ห่างจากชื่อ BU ~1300px; ที่เหลือให้ Status รับ
+      meta: { headerClassName: 'w-px pr-10', cellClassName: 'w-px pr-10' },
       cell: ({ row }) => (
         <div className="min-w-0">
           <Link to={`/business-units/${row.original.id}/edit`} className="block whitespace-nowrap text-primary hover:underline">
@@ -513,22 +516,22 @@ const TenantMigrationManagement: React.FC = () => {
       // ค่านี้เป็นชื่อ schema จริง ไม่ใช่อันดับเหมือน status/last_checked ข้างล่าง จึงตั้งใจปล่อยให้
       // ติดช่องค้นหาด้วย — พิมพ์ชื่อ schema แล้วต้องเจอแถวที่ชี้ไปที่นั่น
       accessorFn: (row) => row.db_schema ?? '',
-      meta: { headerClassName: 'w-48', cellClassName: 'w-48' },
+      meta: { headerClassName: 'w-px pr-10', cellClassName: 'w-px pr-10' },
       cell: ({ row }) => {
         const bu = row.original;
         return (
           <div className="space-y-0.5">
             {bu.db_schema ? (
-              <span className="block break-all font-mono text-xs">{bu.db_schema}</span>
+              <span className="block break-all font-mono text-xs lg:whitespace-nowrap">{bu.db_schema}</span>
             ) : (
               <span className="text-muted-foreground text-xs">—</span>
             )}
             {bu.database_pool?.name && (
-              // ตัดท้ายเฉพาะในตาราง (lg ขึ้นไป) ที่คอลัมน์กว้างคงที่ — ใต้ lg DataTable วาดเป็นการ์ด
-              // หนึ่งใบต่อแถว ถ้าตัดตรงนั้นด้วย ชื่อ pool ยาว ๆ จะขาดหายโดยไม่มีทางกางดู
-              // (วัดที่ 390px: ข้อความ 218px ในช่อง 206px) จึงให้ขึ้นบรรทัดใหม่แทน
+              // ในตาราง (lg ขึ้นไป) คอลัมน์นี้กว้างเท่าเนื้อหา จึงไม่ตัดบรรทัดและไม่ตัดท้าย — ใต้ lg
+              // DataTable วาดเป็นการ์ดหนึ่งใบต่อแถว ชื่อ pool ยาว ๆ ต้องขึ้นบรรทัดใหม่
+              // (วัดที่ 390px: ข้อความ 218px ในช่อง 206px)
               <span
-                className="text-muted-foreground block break-words text-[11px] lg:truncate"
+                className="text-muted-foreground block break-words text-[11px] lg:whitespace-nowrap"
                 title={bu.database_pool.name}
               >
                 {t('pages.tenantMigration.columnPool', { name: bu.database_pool.name })}
@@ -538,13 +541,28 @@ const TenantMigrationManagement: React.FC = () => {
         );
       },
     },
+    // Last Checked มาก่อน Status: Status เป็นคอลัมน์ที่รับที่ว่างที่เหลือ ถ้า Last Checked อยู่ถัดไป
+    // จะไปอยู่ห่างจากแถวข้อมูล ~800px ที่จอ 1920 (วัดได้ก่อนสลับ)
+    {
+      id: 'last_checked',
+      header: t('pages.tenantMigration.columnLastChecked'),
+      // 'HH:mm:ss' เรียงเป็นสตริงได้ตรงตามเวลา; แถวที่ยังไม่เคยเช็คไปหัวด้วย '' ตอน asc
+      // accessorFn มีไว้เปิดปุ่มเรียงเท่านั้น — ห้ามให้ค่าอันดับ/เวลาไปติดช่องค้นหา (TanStack เปิด global filter ให้ทุกคอลัมน์ที่มี accessor)
+      accessorFn: (row) => rowState[row.id]?.lastChecked ?? '',
+      enableGlobalFilter: false,
+      meta: { headerClassName: 'w-px whitespace-nowrap pr-10', cellClassName: 'w-px pr-10' },
+      cell: ({ row }) => {
+        const rs = rowState[row.original.id];
+        return <span className="whitespace-nowrap text-xs text-muted-foreground">{rs?.lastChecked ?? '-'}</span>;
+      },
+    },
     {
       id: 'status',
       header: t('common.status.label'),
       // accessorFn มีไว้เปิดปุ่มเรียงเท่านั้น — ห้ามให้ค่าอันดับ/เวลาไปติดช่องค้นหา (TanStack เปิด global filter ให้ทุกคอลัมน์ที่มี accessor)
       accessorFn: (row) => STATUS_RANK[rowStatusOf(rowState[row.id])],
       enableGlobalFilter: false,
-      meta: { headerClassName: 'w-32', cellClassName: 'w-32' },
+      // คอลัมน์เดียวที่ไม่ตรึงความกว้าง: รับที่ว่างที่เหลือ เพราะมีข้อความยาว (error / views error / progress)
       cell: ({ row }) => {
         const rs = rowState[row.original.id];
         const st = rowStatusOf(rs);
@@ -604,20 +622,6 @@ const TenantMigrationManagement: React.FC = () => {
     // คอลัมน์ตัวเลขข้าง ๆ จึงเป็นข้อเท็จจริงเดียวกันเขียนสองที่ กินความกว้าง 121px
     // และหัวคอลัมน์ชิดซ้ายแต่ค่าอยู่กึ่งกลาง ไฟล์ CSV ยังมีคอลัมน์นี้ (ดู handleExport) —
     // ที่นั่นแยกเป็นตัวเลขมีประโยชน์จริงเพราะเอาไปคำนวณต่อได้
-    {
-      id: 'last_checked',
-      header: t('pages.tenantMigration.columnLastChecked'),
-      // 'HH:mm:ss' เรียงเป็นสตริงได้ตรงตามเวลา; แถวที่ยังไม่เคยเช็คไปหัวด้วย '' ตอน asc
-      // accessorFn มีไว้เปิดปุ่มเรียงเท่านั้น — ห้ามให้ค่าอันดับ/เวลาไปติดช่องค้นหา (TanStack เปิด global filter ให้ทุกคอลัมน์ที่มี accessor)
-      accessorFn: (row) => rowState[row.id]?.lastChecked ?? '',
-      enableGlobalFilter: false,
-      // เวลา 8 ตัวอักษรไม่ต้องการ 175px — ตรึงความกว้างไว้ ไม่ให้ auto layout แจกที่ว่างให้
-      meta: { headerClassName: 'w-28', cellClassName: 'w-28' },
-      cell: ({ row }) => {
-        const rs = rowState[row.original.id];
-        return <span className="whitespace-nowrap text-xs text-muted-foreground">{rs?.lastChecked ?? '-'}</span>;
-      },
-    },
     {
       id: 'actions',
       header: '',
