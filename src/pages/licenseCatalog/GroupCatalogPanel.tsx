@@ -161,7 +161,9 @@ export const GroupCatalogPanel: React.FC = () => {
     {
       accessorKey: 'sort_order',
       header: t('pages.licenseFeatureGroups.sortOrder'),
-      meta: { headerClassName: 'w-24', cellClassName: 'w-24', card: 'badge' },
+      // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา (w-px) — ความกว้างคงที่เดิม (w-24/w-48/w-44) กินที่เกินเนื้อหา
+      // จน Name เหลือ 122px ที่ 1366 แต่ยืดถึง 676px ที่ 1920 · ที่ว่างที่เหลือให้ Status (คอลัมน์สุดท้าย)
+      meta: { headerClassName: 'w-px whitespace-normal', cellClassName: 'whitespace-nowrap', card: 'badge' },
       // ลำดับที่ชนกันถูกทำให้เห็น ไม่ใช่ทำให้เนียน: ถ้าสองกลุ่มถือเลขเดียวกัน ลำดับบนฟอร์มขาย
       // ตกไปอยู่กับ tie-break ของ backend ซึ่งไม่มีใครตั้งใจ — การวาดชิปให้เท่ากันหมดจะทำให้
       // ตารางนี้รับรองลำดับที่ตัวเองไม่รู้
@@ -187,7 +189,7 @@ export const GroupCatalogPanel: React.FC = () => {
     {
       accessorKey: 'code',
       header: t('pages.licenseFeatureGroups.code'),
-      meta: { headerClassName: 'w-48', cellClassName: 'w-48', card: 'title' },
+      meta: { headerClassName: 'w-px whitespace-nowrap', card: 'title' },
       cell: ({ row }) => (
         <>
           <Link
@@ -212,11 +214,16 @@ export const GroupCatalogPanel: React.FC = () => {
       header: t('pages.licenseFeatureGroups.name'),
       // คำอธิบายอยู่ใต้ชื่อในเซลล์เดียวกัน ไม่แยกคอลัมน์ — มันคือประโยคที่บอกว่าชุดนี้ขายให้ใคร
       // คอลัมน์คำอธิบายของตัวเองจะถูกบีบจนเหลือแต่ ellipsis ในทุกความกว้างจอที่ใช้จริง
+      // w-px + กรอบ 12–16rem ที่เซลล์: ชื่อตัดบรรทัดภายในกรอบ คำอธิบายตัดท้ายด้วย truncate (title ให้อ่านเต็ม)
+      // เดิมคอลัมน์นี้ไม่มีความกว้างจึงรับที่ว่างทั้งหมด — ที่ 1920 Features ไปอยู่ห่างจากชื่อ ~500px
+      meta: { headerClassName: 'w-px' },
       cell: ({ row }) => (
-        <div className="min-w-0 space-y-0.5">
+        <div className="min-w-[12rem] max-w-[16rem] space-y-0.5">
           <div className="text-sm font-medium">{row.original.name}</div>
           {row.original.description && (
-            <p className="line-clamp-1 text-xs text-muted-foreground">{row.original.description}</p>
+            <p className="truncate text-xs text-muted-foreground" title={row.original.description}>
+              {row.original.description}
+            </p>
           )}
         </div>
       ),
@@ -226,7 +233,7 @@ export const GroupCatalogPanel: React.FC = () => {
       accessorFn: (g) => g.feature_count,
       header: t('pages.licenseFeatureGroups.featureCount'),
       // ความกว้างคงที่ — แถบใช้แกนร่วม ถ้าคอลัมน์ยืดตามเนื้อหา ความยาวเท่ากันจะเลิกแปลว่าเท่ากัน
-      meta: { headerClassName: 'w-56', cellClassName: 'w-56' },
+      meta: { headerClassName: 'w-44', cellClassName: 'w-44' },
       cell: ({ row }) => {
         const g = row.original;
         /**
@@ -259,7 +266,7 @@ export const GroupCatalogPanel: React.FC = () => {
     {
       accessorKey: 'subscription_count',
       header: t('pages.licenseFeatureGroups.subscriptionCount'),
-      meta: { headerClassName: 'w-44', cellClassName: 'w-44' },
+      meta: { headerClassName: 'w-px whitespace-nowrap', cellClassName: 'whitespace-nowrap' },
       // บนหน้ารายการเลขนี้คือ "รู้ไว้" — มันกลายเป็นคำเตือนสีส้มบนหน้าแก้ไข ซึ่งเป็นจุดที่
       // การกระทำเกิดจริง ถ้าเตือนตั้งแต่หน้ารายการ ทุกชุดที่ขายได้ก็จะเป็นสีเตือนตลอดเวลา
       cell: ({ row }) => {
@@ -280,7 +287,8 @@ export const GroupCatalogPanel: React.FC = () => {
     {
       accessorKey: 'is_active',
       header: t('common.status.label'),
-      meta: { headerClassName: 'w-28', cellClassName: 'w-28', card: 'badge' },
+      // ไม่ตรึงความกว้าง — คอลัมน์ข้อมูลสุดท้ายรับที่ว่างที่เหลือ (ถ้าอยู่กลางแถว ช่องว่างแค่ย้ายที่)
+      meta: { card: 'badge' },
       cell: ({ row }) => (
         <Badge variant={row.original.is_active ? 'success' : 'secondary'}>
           {row.original.is_active ? t('common.status.active') : t('common.status.inactive')}
@@ -329,8 +337,9 @@ export const GroupCatalogPanel: React.FC = () => {
     <>
       <div className="space-y-4 sm:space-y-6">
         <Card>
+          {/* ช่องค้นหาไม่ยืดเต็มแถว — ตัวกรอง (Active only) อยู่ติดช่องค้นหา ปุ่มตาราง/ปุ่มหลักไปขวา (rule 12) */}
           <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
+            <div className="relative flex-1 sm:max-w-sm">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 ref={searchInputRef}
@@ -350,7 +359,7 @@ export const GroupCatalogPanel: React.FC = () => {
               />
               {t('pages.licenseFeatureGroups.activeOnly')}
             </label>
-            <div className="flex shrink-0 gap-3">
+            <div className="flex shrink-0 gap-3 sm:ml-auto">
               <Button size="sm" variant="outline" onClick={handleExport} disabled={filtered.length === 0}>
                 <Download className="mr-2 h-4 w-4" />
                 {t('common.action.export')}
@@ -391,6 +400,9 @@ export const GroupCatalogPanel: React.FC = () => {
                 data={filtered}
                 pageSize={25}
                 tableLayout="auto"
+                // ตารางต้องการ ~1000px (Features ตรึง w-44 ไว้ให้แถบใช้แกนร่วม) — ที่ 1366 กล่องกว้าง
+                // 1031 พอดี ต่ำกว่านั้นการ์ดอ่านง่ายกว่าเลื่อนข้าง (ค่าเดียวกับ /clusters)
+                mobileBreakpoint="(min-width: 1340px)"
                 stickyLeftColumns={3}
                 defaultSort={{ id: 'sort_order', desc: false }}
               />
