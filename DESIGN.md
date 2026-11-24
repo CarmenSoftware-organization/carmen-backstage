@@ -224,7 +224,7 @@ Values are HSL channels in `src/index.css` (`:root` and `.dark`) and are consume
 - **Label** (500, 12px): badges, small buttons and table header text.
 - **Meta** (400, 11–12px, Margin Note): timestamps, authors and audit lines under identity cells.
 - **Mono** (10–12px): codes, IDs, SQL and XML.
-- **Figure** (mono 600, 13px, `tabular-nums`): a count or code set inline with 14px body: summary bands, reach cells, linked IDs in a table. Mono draws larger than Inter at the same size, so 13px mono sits level with 14px text. **Figure Emphasis** (15px, status ink) lifts only the exception in a row of figures, such as the "behind" count in `FleetSync`.
+- **Figure** (mono 600, 13px, `tabular-nums`): a count or code set inline with 14px body: summary bands, reach cells, linked IDs in a table. Mono draws larger than Inter at the same size, so 13px mono sits level with 14px text. **Figure Emphasis** (15px) lifts only the exception in a row of figures on a plain card, such as the "behind" count in `FleetSync`. Its colour comes from an `-ink` token (Status Ink); on a status-tinted tile the figure stays in ink and the tile carries the colour.
 
 **Nothing smaller than 11px in Inter.** A badge is Label (12px, the `Badge` default): don't shrink it with `text-[10px]`. A counter or tag inside dense chrome (sidebar counts, tree-row counts, the label under a stat) takes Meta at 11px. Only mono may go to 10px. Monogram initials drawn inside a fixed avatar box (`BrandMark`, the BU swatch in `BuSwitcher`) are sized to the box, not to the ramp.
 
