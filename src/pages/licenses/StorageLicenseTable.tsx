@@ -15,6 +15,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { generateCSV, downloadCSV } from '../../utils/csvExport';
 import { devLog } from '../../utils/errorParser';
 import { auditColumns } from '../../components/auditColumns';
+import { hugColumns } from '../../utils/hugColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { formatBytes } from '../../utils/storageQuota';
 import { readStoredPerpage } from '../../utils/pageRange';
@@ -315,6 +316,8 @@ export function StorageLicenseTable() {
       createdColumn,
     ];
   }, [t, quotaLabel, defaults, sourceLabel, dbQuotaOn]);
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์ข้อมูลสุดท้ายรับที่ว่างที่เหลือ — ดู utils/hugColumns
+  const huggedColumns = useMemo(() => hugColumns(columns), [columns]);
 
   const filtered = !!search;
 
@@ -384,7 +387,7 @@ export function StorageLicenseTable() {
               }
             />
           ) : (
-            <div className="relative">
+            <div className="relative @container">
               {loading && (
                 <div
                   className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"
@@ -395,7 +398,7 @@ export function StorageLicenseTable() {
                 </div>
               )}
               <DataTable
-                columns={columns}
+                columns={huggedColumns}
                 data={rows}
                 serverSide
                 tableLayout="auto"

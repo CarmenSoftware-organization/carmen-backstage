@@ -23,6 +23,7 @@ import { fmtDate, isPerpetual, daysLeft } from './licenseDates';
 import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
 import type { ExpiryThresholdsConfig } from '../../types';
 import { auditColumns } from '../../components/auditColumns';
+import { hugColumns } from '../../utils/hugColumns';
 import { normalizeAudit, auditCsvFields } from '../../utils/audit';
 import { licenseStatus as buLicenseStatus } from '../../utils/buLicense';
 import { licenseStatus as clusterLicenseStatus } from '../../utils/clusterLicense';
@@ -803,6 +804,8 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
         : []),
     ];
   }, [config, t, ownerLabel, amountLabel, rowStatusLabel, canHardDeleteCancelled, expiringSoonDays]);
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์ข้อมูลสุดท้ายรับที่ว่างที่เหลือ — ดู utils/hugColumns
+  const huggedColumns = useMemo(() => hugColumns(columns), [columns]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -935,7 +938,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
               }
             />
           ) : (
-            <div className="relative">
+            <div className="relative @container">
               {loading && (
                 <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"
                      role="status" aria-label={t('pages.licenses.loadingLicensesAria')}>
@@ -943,7 +946,7 @@ export function PurchaseLicenseTable({ config, deletedView }: PurchaseLicenseTab
                 </div>
               )}
               <DataTable
-                columns={columns}
+                columns={huggedColumns}
                 data={rows}
                 serverSide
                 tableLayout="auto"

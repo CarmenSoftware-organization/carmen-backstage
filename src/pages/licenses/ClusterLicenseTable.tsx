@@ -19,6 +19,7 @@ import { useExpiryThresholds } from '../../context/ExpiryThresholdContext';
 import { CapacityMeter } from '../clusterManagement/CapacityMeter';
 import { isPerpetual, daysLeft, fmtDate } from './licenseDates';
 import { auditColumns } from '../../components/auditColumns';
+import { hugColumns } from '../../utils/hugColumns';
 import type { Cluster, PaginateParams } from '../../types';
 import type { TKey } from '../../i18n/types';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -365,6 +366,8 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
     // ป้าย "เหลืออีก N วัน" จะค้างที่เกณฑ์ตอน mount แล้วไม่อัปเดตตอน context โหลดค่าจริงเสร็จ
     // Required: the end-date cell reads it, and without it the badge freezes at the boot value.
   }, [t, thresholds.bu_quota_days]);
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์ข้อมูลสุดท้ายรับที่ว่างที่เหลือ — ดู utils/hugColumns
+  const huggedColumns = useMemo(() => hugColumns(columns), [columns]);
 
   return (
     <Card>
@@ -517,7 +520,7 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
               }
             />
           ) : (
-            <div className="relative">
+            <div className="relative @container">
               {loading && (
                 <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10"
                      role="status" aria-label={t('pages.licenses.loadingClustersAria')}>
@@ -525,7 +528,7 @@ const ClusterLicenseTable: React.FC<ClusterLicenseTableProps> = ({
                 </div>
               )}
               <DataTable
-                columns={columns}
+                columns={huggedColumns}
                 data={clusters}
                 serverSide
                 tableLayout="auto"
