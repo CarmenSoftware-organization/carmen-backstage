@@ -400,13 +400,17 @@ export function CompanyProfilePanel({
             )}
           </div>
 
-          <div className="overflow-x-auto rounded-md border">
+          <div className="@container overflow-x-auto rounded-md border">
             <table className="w-full text-sm [&_th]:whitespace-nowrap">
               <thead className="bg-muted/50 text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">{t('pages.tenantImport.cpColumnField')}</th>
-                  <th className="px-3 py-2 text-left font-medium">{t('pages.tenantImport.cpColumnCurrent')}</th>
-                  <th className="px-3 py-2 text-left font-medium">{t('pages.tenantImport.cpColumnWorkbook')}</th>
+                  {/* Field / Current / Workbook กว้างเท่าเนื้อหา (w-px) โดยค่าห่อด้วย span w-max max-w-xs (ยาวเกิน 320px ค่อยขึ้นบรรทัด)
+                      — ค่าที่อยู่หรือชื่อบริษัทยาวจะขึ้นบรรทัดใหม่แทนที่จะดันตารางให้เลื่อนข้าง — แล้ว Status
+                      ท้ายสุดรับที่ว่างที่เหลือ เดิมทุกคอลัมน์ยืดเท่ากันจนค่า Workbook กับ Status ห่างกัน ~500px
+                      (เฉพาะกรอบตั้งแต่ @6xl (1152) — ค่ายาวสุดสองฝั่งรวมแล้ว ~1140px กรอบแคบกว่านั้นจะเลื่อนข้าง จึงใช้การแบ่งแบบเดิม) */}
+                  <th className="@6xl:w-px px-3 py-2 @6xl:pr-10 text-left font-medium">{t('pages.tenantImport.cpColumnField')}</th>
+                  <th className="@6xl:w-px px-3 py-2 @6xl:pr-10 text-left font-medium">{t('pages.tenantImport.cpColumnCurrent')}</th>
+                  <th className="@6xl:w-px px-3 py-2 @6xl:pr-10 text-left font-medium">{t('pages.tenantImport.cpColumnWorkbook')}</th>
                   <th className="px-3 py-2 text-left font-medium">{t('common.status.label')}</th>
                 </tr>
               </thead>
@@ -415,9 +419,9 @@ export function CompanyProfilePanel({
                   // Read-only identity row — deliberately not a `FieldRow`: it never has a
                   // Changed/Same verdict and can never be applied (see IMPORTANT 1 above).
                   <tr className={cn('border-t', codeMismatch && 'bg-destructive/5')}>
-                    <td className="px-3 py-2 font-medium">{t('pages.tenantImport.cpBuCode')}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{bu.code}</td>
-                    <td className="px-3 py-2">{sheetCode || '-'}</td>
+                    <td className="@6xl:whitespace-nowrap px-3 py-2 @6xl:pr-10 font-medium">{t('pages.tenantImport.cpBuCode')}</td>
+                    <td className="px-3 py-2 @6xl:pr-10 text-muted-foreground"><span className="block @6xl:w-max @6xl:max-w-xs">{bu.code}</span></td>
+                    <td className="px-3 py-2 @6xl:pr-10"><span className="block @6xl:w-max @6xl:max-w-xs">{sheetCode || '-'}</span></td>
                     <td className="px-3 py-2">
                       <Badge variant={codeMismatch ? 'destructive' : 'secondary'}>
                         {codeMismatch ? t('pages.tenantImport.cpMismatchReadOnly') : t('pages.tenantImport.cpMatchReadOnly')}
@@ -427,17 +431,17 @@ export function CompanyProfilePanel({
                 )}
                 {rows.map((r) => (
                   <tr key={r.key} className="border-t">
-                    <td className="px-3 py-2">{r.label}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r.buValue || '-'}</td>
-                    <td className="px-3 py-2">{r.sheetValue || '-'}</td>
+                    <td className="@6xl:whitespace-nowrap px-3 py-2 @6xl:pr-10">{r.label}</td>
+                    <td className="px-3 py-2 @6xl:pr-10 text-muted-foreground"><span className="block @6xl:w-max @6xl:max-w-xs">{r.buValue || '-'}</span></td>
+                    <td className="px-3 py-2 @6xl:pr-10"><span className="block @6xl:w-max @6xl:max-w-xs">{r.sheetValue || '-'}</span></td>
                     <td className="px-3 py-2">{renderStatus(r, t)}</td>
                   </tr>
                 ))}
                 {NOT_APPLIED_LABELS.map((label) => (
                   <tr key={label} className="border-t text-muted-foreground">
-                    <td className="px-3 py-2">{label}</td>
-                    <td className="px-3 py-2">-</td>
-                    <td className="px-3 py-2">-</td>
+                    <td className="@6xl:whitespace-nowrap px-3 py-2 @6xl:pr-10">{label}</td>
+                    <td className="px-3 py-2 @6xl:pr-10">-</td>
+                    <td className="px-3 py-2 @6xl:pr-10">-</td>
                     <td className="px-3 py-2">
                       <Badge variant="outline">{t('pages.tenantImport.notApplied')}</Badge>
                     </td>

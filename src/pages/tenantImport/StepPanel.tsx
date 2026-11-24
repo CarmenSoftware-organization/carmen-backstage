@@ -362,13 +362,17 @@ export function StepPanel({
       )}
 
       {visibleRows.length > 0 && (
-        <div className="overflow-x-auto rounded-md border">
+        <div className="@container overflow-x-auto rounded-md border">
           <table className="w-full text-sm [&_th]:whitespace-nowrap">
             <thead className="bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th className="px-3 py-2 text-left font-medium">Row</th>
+                {/* Row และคอลัมน์จากชีตกว้างเท่าเนื้อหา (w-px + nowrap — เป็นภาพสะท้อนชีต ชีตกว้างก็
+                    เลื่อนแนวนอนในกรอบนี้) แล้วให้ Verdict ซึ่งอยู่ท้ายสุดและมีข้อความ error ยาวรับที่ว่าง
+                    เดิมทุกคอลัมน์ยืดเท่ากันจนเลข Row กว้าง 200px และ Verdict ไปอยู่ขอบขวา
+                    ทั้งหมดนี้เฉพาะกรอบตั้งแต่ @3xl — กรอบแคบกว่านั้นไม่มีที่ว่างเหลือ ปล่อยให้ข้อความขึ้นบรรทัดตามเดิม */}
+                <th className="@3xl:w-px px-3 py-2 @3xl:pr-6 text-left font-medium">Row</th>
                 {columns.map((c) => (
-                  <th key={c} className="px-3 py-2 text-left font-medium">{c}</th>
+                  <th key={c} className="@3xl:w-px px-3 py-2 @3xl:pr-10 text-left font-medium">{c}</th>
                 ))}
                 <th className="px-3 py-2 text-left font-medium">{t('pages.tenantImport.columnVerdict')}</th>
               </tr>
@@ -376,11 +380,12 @@ export function StepPanel({
             <tbody>
               {visibleRows.map((r) => (
                 <tr key={r.row_number} className="border-t">
-                  <td className="px-3 py-2 tabular-nums text-muted-foreground">{r.row_number}</td>
+                  <td className="px-3 py-2 @3xl:pr-6 tabular-nums text-muted-foreground">{r.row_number}</td>
                   {columns.map((c) => (
-                    <td key={c} className="px-3 py-2">{String(r.values[c] ?? '')}</td>
+                    <td key={c} className="@3xl:whitespace-nowrap px-3 py-2 @3xl:pr-10">{String(r.values[c] ?? '')}</td>
                   ))}
-                  <td className="px-3 py-2">
+                  {/* min-w-80: ชีตหลายคอลัมน์ (Products 9 คอลัมน์) บีบ Verdict จนข้อความ error ขึ้น 7 บรรทัด/แถว */}
+                  <td className="min-w-80 px-3 py-2">
                     <Badge variant={VERDICT_VARIANT[r.verdict]}>{r.verdict}</Badge>
                     {r.errors.length > 0 && (
                       <p className="mt-1 text-xs text-destructive-ink">
