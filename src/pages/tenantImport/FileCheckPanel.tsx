@@ -49,15 +49,18 @@ export function FileCheckPanel({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-md border">
+      <div className="@container overflow-x-auto rounded-md border">
         <table className="w-full text-sm [&_th]:whitespace-nowrap">
           <thead className="bg-muted/50 text-xs text-muted-foreground">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">{t('pages.tenantImport.columnStep')}</th>
-              <th className="px-3 py-2 text-left font-medium">{t('pages.tenantImport.columnSheet')}</th>
-              <th className="px-3 py-2 text-right font-medium">{t('pages.tenantImport.columnRows')}</th>
+              {/* คอลัมน์ข้อมูลกว้างเท่าเนื้อหา (w-px) และ Missing — รายชื่อคอลัมน์ที่ขาด ยาวได้ —
+                  อยู่ท้ายสุดรับที่ว่างที่เหลือ เดิมทุกคอลัมน์ยืดเท่า ๆ กันจน Step กับ Sheet ห่างกัน ~450px
+                  (เฉพาะกรอบตั้งแต่ @3xl — กรอบแคบกว่านั้นปล่อยให้ขึ้นบรรทัดตามเดิม ไม่ดันตารางให้เลื่อนข้าง) */}
+              <th className="@3xl:w-px px-3 py-2 @3xl:pr-10 text-left font-medium">{t('pages.tenantImport.columnStep')}</th>
+              <th className="@3xl:w-px px-3 py-2 @3xl:pr-10 text-left font-medium">{t('pages.tenantImport.columnSheet')}</th>
+              <th className="@3xl:w-px px-3 py-2 text-right font-medium">{t('pages.tenantImport.columnRows')}</th>
+              <th className="@3xl:w-px px-3 py-2 @3xl:pl-10 @3xl:pr-10 text-left font-medium">{t('common.status.label')}</th>
               <th className="px-3 py-2 text-left font-medium">{t('pages.tenantImport.columnMissing')}</th>
-              <th className="px-3 py-2 text-left font-medium">{t('common.status.label')}</th>
             </tr>
           </thead>
           <tbody>
@@ -66,16 +69,16 @@ export function FileCheckPanel({
               const missing = [...s.missing_required_columns, ...s.missing_optional_columns];
               return (
                 <tr key={s.step_id} className="border-t">
-                  <td className="px-3 py-2">{meta?.display_name ?? s.step_id}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{meta?.sheet_name ?? '-'}</td>
+                  <td className="@3xl:whitespace-nowrap px-3 py-2 @3xl:pr-10">{meta?.display_name ?? s.step_id}</td>
+                  <td className="@3xl:whitespace-nowrap px-3 py-2 @3xl:pr-10 text-muted-foreground">{meta?.sheet_name ?? '-'}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{s.row_count || '-'}</td>
-                  <td className="px-3 py-2 text-xs text-muted-foreground">
-                    {missing.length ? missing.join(', ') : '-'}
-                  </td>
-                  <td className="px-3 py-2">
+                  <td className="@3xl:whitespace-nowrap px-3 py-2 @3xl:pl-10 @3xl:pr-10">
                     <Badge variant={s.status === 'ready' ? 'success' : 'secondary'}>
                       {t(STATUS_LABEL[s.status])}
                     </Badge>
+                  </td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground">
+                    {missing.length ? missing.join(', ') : '-'}
                   </td>
                 </tr>
               );
