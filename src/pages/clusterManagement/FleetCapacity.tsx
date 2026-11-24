@@ -34,9 +34,17 @@ function Stat({
   active?: boolean;
 }) {
   const hot = alert && value > 0;
+  // An alert counter at zero is the all-clear: its figure drops to muted so "0 near limit" no
+  // longer carries the same ink as "6 clusters", and a non-zero one is the only figure that pops.
+  const quiet = alert && value === 0;
   const body = (
     <>
-      <span className={cn('font-mono text-base font-semibold tabular-nums', hot ? 'text-warning-ink' : 'text-foreground')}>
+      <span
+        className={cn(
+          'font-mono text-base font-semibold tabular-nums',
+          hot ? 'text-warning-ink' : quiet ? 'text-muted-foreground' : 'text-foreground',
+        )}
+      >
         {value}
       </span>
       {label}

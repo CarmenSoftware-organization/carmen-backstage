@@ -398,11 +398,19 @@ const ClusterManagement: React.FC = () => {
     toast.success(t('toast.exported'));
   };
 
+  // Width (carmen-blue-backstage-ui-design rule 2 / tables.md): under `table-auto` every column
+  // without a width shares the spare room, so at 3840 Name, Business Units, Quota and Users
+  // grew to ~1000 / 690 / 670 / 660px around ~100px of content. Data columns hug their content
+  // (`w-px whitespace-nowrap`; the cells' own px-3 is the gap) and the last column, Updated,
+  // takes the rest. No extra `pr-*`: it raises the table's minimum width, and at 1366 with the
+  // sidebar open `pr-8` on four columns (1085px) no longer fit the 1031px card.
+  const hug = 'w-px whitespace-nowrap';
+
   const columns = useMemo<ColumnDef<Cluster, unknown>[]>(() => [
     {
       accessorKey: 'name',
       header: t('common.field.name'),
-      meta: { card: 'title' },
+      meta: { card: 'title', headerClassName: hug, cellClassName: hug },
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <BrandMark
@@ -414,8 +422,12 @@ const ClusterManagement: React.FC = () => {
             <Link to={`/clusters/${row.original.id}/edit`} className="block text-primary hover:underline whitespace-nowrap">
               {row.original.name}
             </Link>
-            {/* รหัสเป็นข้อมูลรอง: บรรทัดที่สองใต้ชื่อ ไม่ใช่คอลัมน์นำหน้า */}
-            <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+            {/* รหัสเป็นข้อมูลรอง: บรรทัดที่สองใต้ชื่อ ไม่ใช่คอลัมน์นำหน้า · ถ้ารหัสตรงกับชื่อ
+                (TEST-CLUSTER / TEST-CLUSTER) บรรทัดนี้ไม่ได้บอกอะไรเพิ่ม จึงไม่วาด — Created/Updated
+                สองบรรทัดยังคุมความสูงแถวไว้เท่าเดิม */}
+            {row.original.code && row.original.code.trim().toLowerCase() !== row.original.name?.trim().toLowerCase() && (
+              <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+            )}
           </div>
           {row.original.deleted_at && (
             <Badge variant="destructive" className="text-xs px-1.5 py-0" title={row.original.deleted_by_name ? t('pages.clusters.deletedByTitle', { name: row.original.deleted_by_name }) : undefined}>
@@ -465,6 +477,7 @@ const ClusterManagement: React.FC = () => {
       cell: ({ row }) => (
         <CapacityMeter used={row.original.bu_used} cap={row.original.bu_cap} finite />
       ),
+      meta: { headerClassName: hug, cellClassName: hug },
       // เรียงตาม **used** (ตัวเลขตัวแรกที่หัวคอลัมน์แสดง) ไม่ใช่ cap — backend ทำใน SQL
       // ผ่านคิวรีที่ join view (`sortedClusterIdsByViewColumn`) เพราะค่าไม่ได้อยู่ใน tb_cluster
       enableSorting: true,
@@ -490,6 +503,7 @@ const ClusterManagement: React.FC = () => {
       // cluster ที่ไม่มีใบโควตาจะอยู่ท้ายเสมอทั้งสองทิศ (NULLS LAST ฝั่ง SQL) — "ไม่มีใบ"
       // ไม่ใช่ "หมดอายุเร็วที่สุด"
       enableSorting: true,
+      meta: { headerClassName: hug, cellClassName: hug },
     },
     {
       id: 'user_count',
@@ -500,6 +514,7 @@ const ClusterManagement: React.FC = () => {
       cell: ({ row }) => (
         <CapacityMeter used={row.original.users_count} cap={row.original.total_max_license_users} finite />
       ),
+      meta: { headerClassName: hug, cellClassName: hug },
       // เรียงตามจำนวนผู้ถือที่นั่งจริง (`users_count`) ด้วยนิยามเดียวกับที่ตัวเลขในช่องใช้ —
       // backend อ่านจาก `clusterHeadsSubquery()` ตัวเดียวกับ `countClusterHeads`
       enableSorting: true,
@@ -507,10 +522,14 @@ const ClusterManagement: React.FC = () => {
     // สองคอลัมน์นี้เป็นเมตาดาต้า ไม่ใช่คำตอบของคำถามที่คนเปิดหน้านี้มาถาม — คงคอลัมน์ไว้ครบ
     // (ทั้งคู่ยังเรียงได้ และ created_at ยังเป็น default sort) แต่ลดน้ำหนักหัวคอลัมน์ลงจาก
     // ระดับเดียวกับ Name/Users และตรึงความกว้างไม่ให้ชื่อคนยาว ๆ ดันคอลัมน์ข้อมูลจริงให้แคบลง
-    ...auditColumns<Cluster>({ hideUpdatedOnCard: true, t }).map((c) => ({
-      ...c,
-      meta: { ...(c.meta ?? {}), headerClassName: 'w-28 font-normal text-muted-foreground/70', cellClassName: 'w-28' },
-    })),
+    // The last of them (Updated) takes the table's spare width — see `hug` above.
+    ...auditColumns<Cluster>({ hideUpdatedOnCard: true, t }).map((c, i, all) => {
+      const w = i === all.length - 1 ? 'min-w-28' : 'w-28';
+      return {
+        ...c,
+        meta: { ...(c.meta ?? {}), headerClassName: `${w} font-normal text-muted-foreground/70`, cellClassName: w },
+      };
+    }),
     ...(showDeleted ? [{
       id: 'deleted_at',
       header: t('common.audit.deletedDate'),
@@ -756,6 +775,11 @@ const ClusterManagement: React.FC = () => {
                   data={clusters}
                   serverSide
                   tableLayout="auto"
+                  // The table's minimum is ~1005px; with the sidebar open the card only reaches
+                  // that from a 1340px viewport (1180 → 845px, scrolled sideways). Below it,
+                  // one card per row. A viewport query cannot see a collapsed sidebar, so a
+                  // collapsed 1180–1339 screen gets cards too — the safe side (tables.md).
+                  mobileBreakpoint="(min-width: 1340px)"
                   stickyLeftColumns={canBulkDelete ? 3 : 2}
                   totalRows={totalRows}
                   page={paginate.page}
