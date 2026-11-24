@@ -1,8 +1,8 @@
 name: Deploy carmen-backstage (Dev)
 
+# Manual only (user decision 2026-11-24): merging to main no longer deploys DEV.
+# Ship with `gh workflow run deploy-dev.yml --ref main`.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 # การ deploy สลับทั้งไดเรกทอรี ปล่อยให้สอง run ทับกันแปลว่า swap ของคนละ build

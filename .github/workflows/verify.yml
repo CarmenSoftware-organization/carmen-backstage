@@ -4,13 +4,10 @@ name: Verify
 # Uses only repo contents (checkout) and pinned actions — does not consume
 # any untrusted user input from PR titles/bodies/comments.
 
+# Manual only (user decision 2026-11-24): no run on PRs or pushes. Before merging, run it
+# against the branch yourself: `gh workflow run verify.yml --ref <branch>`, or locally
+# `bun run test && bun run build`. A PR shows no checks until someone does.
 on:
-  pull_request:
-    branches: [main]
-  push:
-    # `vercel` คือกิ่ง deploy ของ Vercel — ทุก commit ที่ไปถึงมันผ่าน CI มาแล้วตอนเป็น PR
-    # (main เป็น base เดียวและ push ตรงเข้ากิ่งนี้เป็น fast-forward จาก main เท่านั้น)
-    branches-ignore: [main, vercel]
   workflow_dispatch:
 
 jobs:
