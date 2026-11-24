@@ -36,9 +36,11 @@ export function SeedFleetSummary({ counts, checkable, actions }: SeedFleetSummar
   const pct = (n: number) => (checkable > 0 ? (n / checkable) * 100 : 0);
 
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="grid gap-6 sm:grid-cols-[auto_1fr_auto] sm:items-center">
-        <div className="border-border sm:border-r sm:pr-6">
+    <Card className="@container p-4 sm:p-5">
+      {/* เหมือน FleetSync ของ /tenant-migrations: ตัดสินจากความกว้างของการ์ด — แคบ = ซ้อนกัน ·
+          @xl = ตัวเลข|แถบ ปุ่มแถวล่าง · @4xl = สามช่องแถวเดียว ปุ่มเรียงแนวนอน */}
+      <div className="grid items-center gap-x-6 gap-y-4 @xl:grid-cols-[auto_1fr] @4xl:grid-cols-[auto_1fr_auto]">
+        <div className="border-border @xl:border-r @xl:pr-6">
           <div className="font-mono text-3xl font-semibold tabular-nums tracking-tight">
             {checked ? counts.seeded : '-'}
             <span className="text-muted-foreground text-base font-medium"> / {checkable}</span>
@@ -92,7 +94,7 @@ export function SeedFleetSummary({ counts, checkable, actions }: SeedFleetSummar
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">{actions}</div>
+        <div className="flex flex-wrap gap-2 @xl:col-span-2 @4xl:col-span-1">{actions}</div>
       </div>
     </Card>
   );
