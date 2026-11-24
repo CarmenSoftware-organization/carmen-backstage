@@ -27,6 +27,7 @@ import { StorageFlagBadge } from '../clusterAdmin/businessUnitForm/StorageMeter'
 import { LicenseSummaryBand, type SummaryBandItem } from './LicenseSummaryBand';
 import { Skeleton } from '../../components/ui/skeleton';
 import { useDbQuotaOn } from '../../hooks/useDbQuotaOn';
+import { hugColumns } from '../../utils/hugColumns';
 
 /** ระดับที่ถือว่า "ใกล้เต็ม" — ตรงกับสีเตือนของ StorageMeter */
 const NEAR_PCT = 80;
@@ -448,6 +449,9 @@ const StorageUsageList: React.FC = () => {
     ],
     [t, canOpenBu, dbQuotaOn],
   );
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์สุดท้าย (Measured) รับที่ว่างที่เหลือ — ดู utils/hugColumns
+  // ไม่ตัดบรรทัดเมื่อกล่อง ≥ 920px (ตารางนี้กว้าง ~908px เมื่อไม่ตัดบรรทัด วัดที่ 1920)
+  const huggedColumns = useMemo(() => hugColumns(columns, { nowrapClass: '@[920px]:whitespace-nowrap' }), [columns]);
 
   const handleExport = () => {
     const db = t('pages.storageQuota.database');
@@ -571,7 +575,9 @@ const StorageUsageList: React.FC = () => {
                 }
               />
             ) : (
-              <DataTable columns={columns} data={visible} tableLayout="auto" pageSize={50} />
+              <div className="@container">
+                <DataTable columns={huggedColumns} data={visible} tableLayout="auto" pageSize={50} />
+              </div>
             )}
           </CardContent>
         </Card>
