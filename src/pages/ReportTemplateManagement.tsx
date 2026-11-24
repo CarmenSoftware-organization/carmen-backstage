@@ -25,6 +25,7 @@ import { useRowActivityTrail } from '../components/activityTrail/useRowActivityT
 import { AUDIT_RECORDING_STARTED_ON_PHASE_2 } from '../components/activityTrail/constants';
 import { BACKSTAGE_SCOPED_RECORD } from '../utils/permissions';
 import { auditColumns } from '../components/auditColumns';
+import { hugColumns } from '../utils/hugColumns';
 import { useI18n } from '../hooks/useI18n';
 import { pickLocalized, secondaryLocalized, withPlainEn } from '../utils/localized';
 import { normalizeAudit, auditCsvFields } from '../utils/audit';
@@ -380,7 +381,6 @@ const ReportTemplateManagement: React.FC = () => {
     {
       accessorKey: 'is_active',
       header: t('common.status.label'),
-      meta: { headerClassName: 'w-32', cellClassName: 'w-32' },
       cell: ({ row }) => (
         <Badge variant={row.original.is_active ? 'success' : 'secondary'}>
           {row.original.is_active ? t('common.status.active') : t('common.status.inactive')}
@@ -435,6 +435,9 @@ const ReportTemplateManagement: React.FC = () => {
       ),
     },
   ], [navigate, handleDelete, runBackup, t, lang, activityTrail]);
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์สุดท้าย (Updated) รับที่ว่างที่เหลือ — ดู utils/hugColumns
+  // ไม่ตัดบรรทัดเมื่อกล่อง ≥ 1240px (ตารางนี้กว้าง ~1225px เมื่อไม่ตัดบรรทัด วัดที่ 1366)
+  const huggedColumns = useMemo(() => hugColumns(columns, { nowrapClass: '@[1240px]:whitespace-nowrap' }), [columns]);
 
   // Selection is current-page only: discard whenever the result set changes.
   useEffect(() => {
@@ -720,7 +723,7 @@ const ReportTemplateManagement: React.FC = () => {
                   </div>
                 </div>
               )}
-              <div className="relative">
+              <div className="relative @container">
                 {loading && templates.length === 0 ? (
                   // +1 accounts for the `#` row-index column DataTable always prepends,
                   // so the skeleton matches the loaded table's actual header count.
@@ -733,7 +736,7 @@ const ReportTemplateManagement: React.FC = () => {
                   </div>
                 )}
                 <DataTable
-                  columns={columns}
+                  columns={huggedColumns}
                   data={templates}
                   serverSide
                   tableLayout="auto"

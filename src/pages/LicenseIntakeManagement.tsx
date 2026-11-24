@@ -28,6 +28,7 @@ import type {
   PaginateParams,
 } from '../types';
 import type { ColumnDef } from '@tanstack/react-table';
+import { hugColumns } from '../utils/hugColumns';
 
 type StatusFilter = LicenseIntakeStatus | 'all';
 
@@ -307,6 +308,8 @@ const LicenseIntakeManagement: React.FC = () => {
         id: 'modules',
         accessorFn: (row: LicenseIntake) => row.module_groups?.length ?? 0,
         header: t('pages.licenseIntakes.columnModules'),
+        // ชิป flex-wrap ไม่โดน white-space — hugColumns บีบคอลัมน์นี้เหลือชิปละบรรทัด ถ้าไม่ให้ความกว้างตอนกล่องกว้าง
+        meta: { headerClassName: '@[1340px]:min-w-[14rem]' },
         enableSorting: false,
         cell: ({ row }) => (
           <GroupChips groups={row.original.module_groups} missingLabel={missingLabel} missingTitle={missingTitle} />
@@ -316,6 +319,7 @@ const LicenseIntakeManagement: React.FC = () => {
         id: 'interfaces',
         accessorFn: (row: LicenseIntake) => row.interface_groups?.length ?? 0,
         header: t('pages.licenseIntakes.columnInterfaces'),
+        meta: { headerClassName: '@[1340px]:min-w-[14rem]' },
         enableSorting: false,
         cell: ({ row }) => (
           <GroupChips groups={row.original.interface_groups} missingLabel={missingLabel} missingTitle={missingTitle} />
@@ -335,6 +339,8 @@ const LicenseIntakeManagement: React.FC = () => {
       },
     ];
   }, [t, statusLabel]);
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์สุดท้าย (Received) รับที่ว่างที่เหลือ — ดู utils/hugColumns
+  const huggedColumns = useMemo(() => hugColumns(columns, { nowrapClass: '@5xl:whitespace-nowrap' }), [columns]);
 
   const bandItems: SummaryBandItem[] = [
     { key: 'pending', label: t('pages.licenseIntakes.summaryPending'), value: summary?.pending, color: 'text-warning-ink', onClick: () => handleStatusFilter('pending'), active: statusFilter === 'pending' },
@@ -397,7 +403,7 @@ const LicenseIntakeManagement: React.FC = () => {
                 emptyDescription={t('pages.licenseIntakes.emptyDescription')}
               />
             ) : !error ? (
-              <div className="relative">
+              <div className="relative @container">
                 {loading && items.length === 0 ? (
                   <TableSkeleton columns={columns.length + 1} rows={paginate.perpage || 5} />
                 ) : (
@@ -408,10 +414,12 @@ const LicenseIntakeManagement: React.FC = () => {
                       </div>
                     )}
                     <DataTable
-                      columns={columns}
+                      columns={huggedColumns}
                       data={items}
                       serverSide
                       tableLayout="auto"
+                      // ตารางต้องการ ~925px — ที่ 1180 กล่อง 850 ต้องเลื่อนข้าง ต่ำกว่า 1280 ให้เป็นการ์ด
+                      mobileBreakpoint="(min-width: 1280px)"
                       totalRows={totalRows}
                       page={paginate.page}
                       perpage={paginate.perpage}

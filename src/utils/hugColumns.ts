@@ -16,8 +16,15 @@ import { cn } from '../lib/utils';
  *
  * ต้องมี ancestor ที่เป็น `@container` (กล่องที่ห่อ DataTable) ไม่งั้น nowrap ไม่ทำงานเลยโดยไม่มี error
  * คอลัมน์ที่เนื้อหาเป็นชิป flex-wrap ไม่โดน white-space — ใส่ min-w ใน meta ของคอลัมน์นั้นเอง
+ *
+ * `nowrapClass` — เกณฑ์ต่อตาราง = ความกว้างของตารางนั้นเมื่อไม่ตัดบรรทัด (วัดจริง) · ต้องเป็น literal
+ * ในไฟล์ของผู้เรียก ไม่งั้น Tailwind ไม่สร้างคลาสให้ · ค่าเริ่มต้นมาจากตาราง license ที่กว้างที่สุด ตาราง
+ * ที่แคบกว่ามากใช้ค่านี้แล้วจะตัดบรรทัดทั้งที่คอลัมน์สุดท้ายยังว่าง 200–460px (/license-intakes ที่ 1366)
  */
-export function hugColumns<T>(columns: ColumnDef<T, unknown>[]): ColumnDef<T, unknown>[] {
+export function hugColumns<T>(
+  columns: ColumnDef<T, unknown>[],
+  { nowrapClass = '@[1340px]:whitespace-nowrap' }: { nowrapClass?: string } = {},
+): ColumnDef<T, unknown>[] {
   let fill = -1;
   for (let i = columns.length - 1; i >= 0; i--) {
     if (columns[i].id !== 'actions') { fill = i; break; }
@@ -32,7 +39,7 @@ export function hugColumns<T>(columns: ColumnDef<T, unknown>[]): ColumnDef<T, un
       ...c,
       meta: i === fill
         ? { ...meta, headerClassName: cn(header, 'w-full') }
-        : { ...meta, cellClassName: cn(cell, '@[1340px]:whitespace-nowrap') },
+        : { ...meta, cellClassName: cn(cell, nowrapClass) },
     } as ColumnDef<T, unknown>;
   });
 }
