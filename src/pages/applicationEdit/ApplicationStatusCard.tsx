@@ -221,7 +221,7 @@ export function ApplicationStatusCard({
                     <span className="flex flex-wrap items-center gap-2 font-medium">
                       <span className={cn(locked && 'opacity-50')}>{t(STATUS_LABEL_KEY[s])}</span>
                       {s === status && (
-                        <Badge variant={STATUS_BADGE_VARIANT[s]} className="text-[10px]">
+                        <Badge variant={STATUS_BADGE_VARIANT[s]}>
                           {t('pages.applications.statusCurrent')}
                         </Badge>
                       )}

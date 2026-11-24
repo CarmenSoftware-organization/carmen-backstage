@@ -78,7 +78,7 @@ export function BuRankingCard({ businessUnits, clusterId, cap }: BuRankingCardPr
                         {bu.name || bu.code || t('pages.clusterAdmin.unnamed')}
                       </Link>
                       {bu.is_hq && (
-                        <Badge variant="secondary" className="ml-2 text-[10px]">
+                        <Badge variant="secondary" className="ml-2">
                           {t('common.label.hq')}
                         </Badge>
                       )}
@@ -88,7 +88,7 @@ export function BuRankingCard({ businessUnits, clusterId, cap }: BuRankingCardPr
                         {bu.is_active ? t('common.status.active') : t('common.status.inactive')}
                       </Badge>
                       {over && (
-                        <Badge variant="destructive" className="ml-1.5 text-[10px]">
+                        <Badge variant="destructive" className="ml-1.5">
                           {t('pages.clusterAdmin.beyondQuotaBadge')}
                         </Badge>
                       )}

@@ -93,7 +93,7 @@ export const createBroadcastColumns = ({
         const raw = (row.original.severity || 'INFO').toLowerCase();
         const label = t(`common.severity.${raw}` as TKey) || raw.toUpperCase();
         return (
-          <Badge variant={severityVariants[raw.toUpperCase()] || 'secondary'} className="text-[10px] px-1.5 py-0">
+          <Badge variant={severityVariants[raw.toUpperCase()] || 'secondary'} className="px-1.5 py-0">
             {label.toUpperCase()}
           </Badge>
         );

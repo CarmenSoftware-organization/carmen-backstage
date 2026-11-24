@@ -86,7 +86,7 @@ export function LicenseCoverageBar({
           ไม่ว่าจะมีใบที่เลยขอบหรือไม่ (ถ้าความกว้างต่างกัน แกนเวลาก็เทียบข้ามแถวไม่ได้อีก) */}
       <span
         aria-hidden
-        className={cn('text-muted-foreground text-[10px] leading-none', overflowsRight ? 'visible' : 'invisible')}
+        className={cn('text-muted-foreground text-[11px] leading-none', overflowsRight ? 'visible' : 'invisible')}
       >
         ›
       </span>

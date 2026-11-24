@@ -397,13 +397,13 @@ export function FeatureSelectionCard({
                           {/* chip อยู่ใน flex-wrap การเยื้องด้วย padding จึงอ่านไม่ออกหลังตัดบรรทัด
                               — ใช้เครื่องหมายนำหน้าบอกว่านี่คือของที่ห้อยอยู่ใต้ chip ก่อนหน้า */}
                           {c.depth > 1 && (
-                            <span className="text-[10px] opacity-60" aria-hidden="true">
+                            <span className="text-[11px] opacity-60" aria-hidden="true">
                               ↳
                             </span>
                           )}
                           {c.label}
                           {c.state === 'inactive' && (
-                            <span className="text-[10px] opacity-70">
+                            <span className="text-[11px] opacity-70">
                               ({t('pages.licenseFeatures.state.inactive')})
                             </span>
                           )}

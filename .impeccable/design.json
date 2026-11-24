@@ -321,6 +321,18 @@
       "mono": {
         "displayName": "Mono",
         "purpose": "Codes, IDs, SQL, XML."
+      },
+      "mono-dense": {
+        "displayName": "Mono Dense",
+        "purpose": "10px mono for codes and kbd hints in tight rows; the only role below 11px."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "13px mono tabular count or code set inline with 14px body."
+      },
+      "figure-emphasis": {
+        "displayName": "Figure Emphasis",
+        "purpose": "15px mono figure in status ink, lifting the one exception in a row of figures."
       }
     },
     "shadows": [

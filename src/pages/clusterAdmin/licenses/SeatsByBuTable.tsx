@@ -119,7 +119,7 @@ export function SeatsByBuTable({ rows, loading, clusterId, onRetry }: SeatsByBuT
                           {row.bu.name || row.bu.code || t('pages.clusterAdmin.unnamed')}
                         </Link>
                         {row.bu.is_hq && (
-                          <Badge variant="secondary" className="ml-2 text-[10px]">
+                          <Badge variant="secondary" className="ml-2">
                             {t('common.label.hq')}
                           </Badge>
                         )}
@@ -170,7 +170,7 @@ export function SeatsByBuTable({ rows, loading, clusterId, onRetry }: SeatsByBuT
                               <span className="inline-flex items-center gap-2 tabular-nums">
                                 {fmtDate(date)}
                                 {soon && (
-                                  <Badge variant="warning" className="text-[10px]">
+                                  <Badge variant="warning">
                                     {t('common.state.daysLeft', { count: daysLeft(date, now) })}
                                   </Badge>
                                 )}

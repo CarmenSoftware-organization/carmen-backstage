@@ -215,7 +215,7 @@ function Section({
         )}
         {icon}
         <span>{title}</span>
-        <span className="ml-auto text-[10px]">
+        <span className="ml-auto text-[11px] tabular-nums">
           {count === total ? count : `${count}/${total}`}
         </span>
       </button>
@@ -249,7 +249,7 @@ function ItemRow({
       {loading && <Loader2 className="size-3 animate-spin" />}
       <span className="truncate">{name}</span>
       {badge && (
-        <Badge variant="secondary" className="ml-auto px-1 py-0 text-[9px] font-semibold">
+        <Badge variant="secondary" className="ml-auto px-1 py-0 text-[11px] font-medium">
           {badge}
         </Badge>
       )}
