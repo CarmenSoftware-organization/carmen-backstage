@@ -14,8 +14,10 @@ A timeline of rows, each with a name on the left and meta (verb, actor) beside i
 
 // feed: the meta column switches on the feed's own width (rule 3)
 <div className="@container">
-  <Link className="flex min-w-0 items-center gap-3 …">
-    <span className="min-w-0 flex-1 @2xl:max-w-lg">{/* name — capped so meta stays beside it (rule 2) */}
+  {/* the whole row is capped (32rem name + 16rem meta + icon/chevron/gaps = 54.25rem), not just
+      the name — otherwise the chevron and hover band ride the far edge (rule 2) */}
+  <Link className="flex min-w-0 items-center gap-3 @2xl:max-w-[54.25rem] …">
+    <span className="min-w-0 flex-1">{/* name */}
       <span className="block truncate">{name}</span>
       <span className="@2xl:hidden">{` · ${verb} · ${who}`}</span>  {/* narrow: meta inline */}
     </span>
@@ -27,6 +29,9 @@ A timeline of rows, each with a name on the left and meta (verb, actor) beside i
 
 - `grid-cols-1` below `lg` is load-bearing: without it the implicit column sizes to max-content and
   a long line scrolls the page.
+- Draw the default state quietly: nearly every row is "updated", so it gets a neutral dot and no
+  visible word (sr-only text as a **direct child of the flex row** — inside a `truncate` line an
+  `sr-only` span escapes the clip and widens the page). created/published keep colour + label.
 - The switch point = name minimum (~200px) + the meta column (256px) + clock/rail/icon/gaps
   (~150px) ≈ 600 → `@2xl` (672). Measured: feed 474 at 768 → inline; 736 at 1366 → column.
 

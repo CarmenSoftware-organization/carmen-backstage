@@ -11,9 +11,12 @@ import { ACTIVITY_SOURCES, foldRuns, type ActivityItem, type ActivityVerb, type 
 
 // The verb is deliberately *quiet* — the entity name is what people scan for. Colour
 // lives on the timeline dot, the word itself rides the right margin as plain meta text.
-const VERB: Record<ActivityVerb, { dot: string; key: TKey }> = {
+// "updated" is the default and nearly every row is one (created only means "never edited
+// since", activity.ts deriveVerb), so it is drawn as the exception rule says: neutral dot,
+// no visible word (screen readers still get it). Only created/published stand out.
+const VERB: Record<ActivityVerb, { dot: string; key: TKey; quiet?: boolean }> = {
   created: { dot: 'bg-success', key: 'pages.dashboard.verbCreated' },
-  updated: { dot: 'bg-info', key: 'pages.dashboard.verbUpdated' },
+  updated: { dot: 'bg-muted-foreground/40', key: 'pages.dashboard.verbUpdated', quiet: true },
   published: { dot: 'bg-warning', key: 'pages.dashboard.verbPublished' },
 };
 
@@ -144,6 +147,11 @@ function Timeline({ items }: { items: ActivityItem[] }) {
       return next;
     });
 
+  // Row cap on wide streams: name 32rem + meta 16rem + icon, chevron, gaps and padding
+  // (28+16+3×12+20 px = 6.25rem). Capping the row rather than the name keeps the chevron and
+  // the hover band beside the content instead of ~600px away at the stream's right edge.
+  const rowCap = '@2xl:max-w-[54.25rem]';
+
   // @container: the verb/actor column switches on the stream's own width, not the screen's —
   // at a 768px screen the sidebar leaves the stream ~470px, too narrow for a 16rem meta column.
   return (
@@ -164,7 +172,7 @@ function Timeline({ items }: { items: ActivityItem[] }) {
         // Verb and actor: under the name on a narrow stream, their own column on a wide one.
         const metaInline = (
           <span className="@2xl:hidden">
-            {` · ${t(verb.key)}`}
+            {verb.quiet ? '' : ` · ${t(verb.key)}`}
             {it.who ? ` · ${t('pages.dashboard.by', { who: it.who })}` : ''}
           </span>
         );
@@ -172,10 +180,14 @@ function Timeline({ items }: { items: ActivityItem[] }) {
         // with no known actor must not shift its verb out of that column.
         const metaColumn = (
           <span className="text-muted-foreground mt-[3px] hidden w-64 shrink-0 items-baseline gap-1.5 self-start text-xs @2xl:flex">
-            <span className="text-foreground/70 w-[4.75rem] shrink-0 font-medium">{t(verb.key)}</span>
+            <span className="text-foreground/70 w-[4.75rem] shrink-0 font-medium">{verb.quiet ? '' : t(verb.key)}</span>
             {it.who && <span className="truncate">{t('pages.dashboard.by', { who: it.who })}</span>}
           </span>
         );
+        // The quiet verb, for screen readers only. It must be a direct child of the flex row:
+        // an sr-only span is position:absolute, and nested in the truncated meta line its static
+        // position sits past the line's end, escapes the clip and widens the page (706px at 390).
+        const quietVerb = verb.quiet ? <span className="sr-only">{t(verb.key)}</span> : null;
         const iconTile = (
           <span className="bg-primary/[0.06] text-muted-foreground grid size-7 shrink-0 place-items-center rounded-lg">
             <Icon className="size-[15px]" />
@@ -220,10 +232,10 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                       count: e.items.length,
                     })}
                     onClick={() => toggle(e.key)}
-                    className="group hover:bg-primary/5 my-0.5 flex w-full min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors"
+                    className={cn('group hover:bg-primary/5 my-0.5 flex w-full min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors', rowCap)}
                   >
                     {iconTile}
-                    <span className="min-w-0 flex-1 @2xl:max-w-lg">
+                    <span className="min-w-0 flex-1">
                       <span className="text-foreground block truncate text-sm font-semibold leading-5">
                         {t('pages.dashboard.groupSummary', { count: e.items.length, domain: t(it.domainLabelKey) })}
                       </span>
@@ -236,6 +248,7 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                         {metaInline}
                       </span>
                     </span>
+                    {quietVerb}
                     {metaColumn}
                     <ChevronDown
                       className={cn(
@@ -246,7 +259,7 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                     />
                   </button>
                   {expanded && (
-                    <ul id={listId} className="mb-1 ml-[2.875rem] border-l pl-2">
+                    <ul id={listId} className="mb-1 ml-[2.875rem] border-l pl-2 @2xl:max-w-[51.375rem]">
                       {e.items.map((x) => (
                         <li key={`${x.domainKey}:${x.id}`}>
                           <Link
@@ -266,11 +279,10 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                   to={it.href}
                   // min-w-0: as a grid item this link defaults to min-width:auto and would
                   // otherwise refuse to shrink below the longest word in the meta line.
-                  className="group hover:bg-primary/5 my-0.5 flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 transition-colors"
+                  className={cn('group hover:bg-primary/5 my-0.5 flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-2 transition-colors', rowCap)}
                 >
                   {iconTile}
-                  {/* Capped on wide streams so the meta column stays beside the name. */}
-                  <span className="min-w-0 flex-1 @2xl:max-w-lg">
+                  <span className="min-w-0 flex-1">
                     <span className="text-foreground block truncate text-sm font-semibold leading-5">
                       {it.name || (it.nameFallbackKey ? t(it.nameFallbackKey) : '')}
                       {it.code && <span className="text-muted-foreground ml-1.5 font-mono text-xs font-medium">{it.code}</span>}
@@ -280,6 +292,7 @@ function Timeline({ items }: { items: ActivityItem[] }) {
                       {metaInline}
                     </span>
                   </span>
+                  {quietVerb}
                   {metaColumn}
                   <ChevronRight className="text-muted-foreground/50 group-hover:text-primary ml-auto size-4 shrink-0 opacity-0 transition group-hover:opacity-100" />
                 </Link>

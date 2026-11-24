@@ -40,7 +40,7 @@ When done, check against `verify.md` every time — rules 1–3 and 10 can be br
    **only** from `Layout`'s `<main className="w-full px-4 sm:px-6">`.
    *User decision 2026-11-23:* the shell's old `container` cap (1400px) is removed — every page is
    as wide as the space beside the sidebar. A page that looks stretched fixes its **rows** (more
-   columns, a capped name column — rule 2); it never gets a page-level `max-w` back.
+   columns, a capped row — rule 2); it never gets a page-level `max-w` back.
    Surveyed all 33 nav pages at 1920 when the cap came off: three put a value ~1300px from its
    label and were fixed the same day by flowing their cards/rows as columns (`lists.md`):
    `/backstage/features`, `/backstage/migrations`, `/license-features`.
@@ -128,7 +128,9 @@ Pages to open as examples:
 - **Measure the container, not the card** — `@container` on `CardContent` is the card minus its
   padding (a 534px shelf card gave a 492px container), so `@lg` (512) silently never fired.
 - **Removing a page cap opens a gap inside rows** — a row with name left and meta right stretched to
-  1100px puts them 700px apart (rule 2). Cap the *name column* (`@2xl:max-w-lg`), not the page.
+  1100px puts them 700px apart (rule 2). Cap the *row* (name + meta + trailing control), not the
+  page. Capping only the name column is not enough: the row stays full width, so an `ml-auto`
+  chevron and the hover band end up ~600px from the content (Dashboard run rows, 2026-11-24).
 - **A skeleton must have the same structure as the real page**, otherwise the content jumps when
   data arrives.
 - **Passing every screen size does not mean the form works** — press Save for real, then edit again
