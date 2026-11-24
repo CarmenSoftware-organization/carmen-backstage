@@ -422,8 +422,12 @@ const ClusterManagement: React.FC = () => {
             <Link to={`/clusters/${row.original.id}/edit`} className="block text-primary hover:underline whitespace-nowrap">
               {row.original.name}
             </Link>
-            {/* รหัสเป็นข้อมูลรอง: บรรทัดที่สองใต้ชื่อ ไม่ใช่คอลัมน์นำหน้า */}
-            <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+            {/* รหัสเป็นข้อมูลรอง: บรรทัดที่สองใต้ชื่อ ไม่ใช่คอลัมน์นำหน้า · ถ้ารหัสตรงกับชื่อ
+                (TEST-CLUSTER / TEST-CLUSTER) บรรทัดนี้ไม่ได้บอกอะไรเพิ่ม จึงไม่วาด — Created/Updated
+                สองบรรทัดยังคุมความสูงแถวไว้เท่าเดิม */}
+            {row.original.code && row.original.code.trim().toLowerCase() !== row.original.name?.trim().toLowerCase() && (
+              <span className="block font-mono text-xs text-muted-foreground">{row.original.code}</span>
+            )}
           </div>
           {row.original.deleted_at && (
             <Badge variant="destructive" className="text-xs px-1.5 py-0" title={row.original.deleted_by_name ? t('pages.clusters.deletedByTitle', { name: row.original.deleted_by_name }) : undefined}>
