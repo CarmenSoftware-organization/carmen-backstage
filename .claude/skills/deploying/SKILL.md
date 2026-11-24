@@ -5,7 +5,8 @@ description: Deployment mechanics for carmen-backstage — how deploy-dev.yml ac
 
 # Deploying carmen-backstage
 
-The three-workflow table, the fact that **a push to `main` auto-deploys to DEV**, and the
+The three-workflow table, the fact that **every workflow is manual-only since 2026-11-24** (a push
+to `main` no longer deploys DEV; PRs get no automatic checks), and the
 `git push origin main:vercel` production step live in the root `CLAUDE.md` — they have to be
 known before you push, not after you open this file. This skill is the mechanics behind them.
 
@@ -22,10 +23,12 @@ means rebuilding, not reconfiguring.
 
 `.env.dev` is gitignored, so CI passes `REACT_APP_*` through process env.
 
-## Why `verify.yml` skips the `vercel` branch
+## `verify.yml` and the `vercel` branch
 
-Every commit that reaches `vercel` already passed CI as a PR into `main`, and the push is always
-a fast-forward from `main` — re-running the same checks buys nothing.
+Until 2026-11-24 `verify.yml` ran on pushes but skipped `vercel`: every commit there had already
+passed CI as a PR into `main`. Now it runs only when dispatched, so a commit reaches `vercel`
+verified only if someone ran `gh workflow run verify.yml --ref <branch>` (or
+`bun run test && bun run build` locally) before merging.
 
 `vercel --prod` from the CLI still works and bypasses the branch entirely. Use it only when you
 deliberately want to ship a working tree that is not on `vercel`.
