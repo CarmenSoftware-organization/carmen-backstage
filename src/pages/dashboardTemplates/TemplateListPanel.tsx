@@ -150,18 +150,20 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
               emptyDescription=""
             />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="@container overflow-x-auto">
               <table className="w-full min-w-[720px] text-sm">
                 <thead>
+                  {/* คอลัมน์ข้อมูลกว้างเท่าเนื้อหา (w-px + nowrap) เมื่อกล่อง ≥ 1040px (ตารางกว้าง ~1026px เมื่อไม่ตัดบรรทัด) Status รับที่ว่างที่เหลือ ปุ่มจัดการกว้างเท่าปุ่ม —
+                      เดิมทุกคอลัมน์ไม่มีความกว้าง ค่าในแถวจึงกระจายห่างกันทั่วการ์ด (tables.md §Plain table) */}
                   <tr className="border-b text-left text-muted-foreground">
-                    <th className="px-3 py-2 font-medium">{t('pages.dashboardTemplates.columnTitle')}</th>
-                    <th className="px-3 py-2 font-medium">{t('pages.dashboardTemplates.columnDataset')}</th>
-                    <th className="px-3 py-2 font-medium">{t('pages.dashboardTemplates.columnType')}</th>
+                    <th className="px-3 py-2 font-medium @[1040px]:w-px @[1040px]:whitespace-nowrap @[1040px]:pr-10">{t('pages.dashboardTemplates.columnTitle')}</th>
+                    <th className="px-3 py-2 font-medium @[1040px]:w-px @[1040px]:whitespace-nowrap @[1040px]:pr-10">{t('pages.dashboardTemplates.columnDataset')}</th>
+                    <th className="px-3 py-2 font-medium @[1040px]:w-px @[1040px]:whitespace-nowrap @[1040px]:pr-10">{t('pages.dashboardTemplates.columnType')}</th>
                     {kind === 'system' && (
-                      <th className="px-3 py-2 font-medium">{t('pages.dashboardTemplates.columnScope')}</th>
+                      <th className="px-3 py-2 font-medium @[1040px]:w-px @[1040px]:whitespace-nowrap @[1040px]:pr-10">{t('pages.dashboardTemplates.columnScope')}</th>
                     )}
                     <th className="px-3 py-2 font-medium">{t('pages.dashboardTemplates.columnStatus')}</th>
-                    <th className="px-3 py-2" />
+                    <th className="w-px px-3 py-2" />
                   </tr>
                 </thead>
                 <tbody>
@@ -176,7 +178,7 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
                     const deny = row.deny_business_unit ?? [];
                     return (
                       <tr key={row.id} className={`border-b align-top last:border-0 ${row.is_active ? '' : 'text-muted-foreground'}`}>
-                        <td className="px-3 py-2.5">
+                        <td className="px-3 py-2.5 @[1040px]:whitespace-nowrap @[1040px]:pr-10">
                           {primary ? (
                             <div className="font-medium">{primary}</div>
                           ) : (
@@ -194,7 +196,7 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
                             <div className="mt-0.5 text-xs italic text-muted-foreground">{t('pages.dashboardTemplates.thMissing')}</div>
                           ))}
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="px-3 py-2.5 @[1040px]:whitespace-nowrap @[1040px]:pr-10">
                           {ds && <div>{ds.name}</div>}
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="font-mono text-xs text-muted-foreground">{row.dataset_id}</span>
@@ -203,14 +205,14 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
                             )}
                           </div>
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="px-3 py-2.5 @[1040px]:whitespace-nowrap @[1040px]:pr-10">
                           <span className="inline-flex items-center gap-1.5">
                             <Icon className="h-4 w-4 text-muted-foreground" aria-hidden />
                             {row.widget_type}
                           </span>
                         </td>
                         {kind === 'system' && (
-                          <td className="px-3 py-2.5">
+                          <td className="px-3 py-2.5 @[1040px]:whitespace-nowrap @[1040px]:pr-10">
                             {allow.length === 0 && deny.length === 0 ? (
                               <span className="text-muted-foreground">{t('pages.dashboardTemplates.scopeAll')}</span>
                             ) : (
@@ -230,7 +232,7 @@ export default function TemplateListPanel({ kind }: { kind: DashboardTemplateKin
                             {t(row.is_active ? 'common.status.active' : 'common.status.inactive')}
                           </Badge>
                         </td>
-                        <td className="px-3 py-1.5">
+                        <td className="w-px px-3 py-1.5">
                           <div className="flex justify-end gap-1">
                             <Can permission="dashboard_template.update" clusterId={BACKSTAGE_SCOPED_RECORD}>
                               <Button

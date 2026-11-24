@@ -244,6 +244,10 @@ export default function DeployPanel() {
             </Can>
           </div>
 
+          {/* คอลัมน์ข้อมูลกว้างเท่าเนื้อหาเมื่อกล่อง ≥ 60rem (ตาราง ~870px เมื่อไม่ตัดบรรทัด) Customized at
+              (คอลัมน์สุดท้าย) รับที่ว่างที่เหลือ — เดิมกระจายห่างกันทั่วการ์ด · Status มี min-w เพราะข้อความ
+              error ในเซลล์ต้องตัดบรรทัดได้ ไม่งั้น w-px บีบเหลือคำละบรรทัด */}
+          <div className="@container">
           <Table>
             <TableHeader>
               <TableRow>
@@ -256,10 +260,10 @@ export default function DeployPanel() {
                     disabled={running || bus.length === 0}
                   />
                 </TableHead>
-                <TableHead>{t('pages.dashboardTemplates.columnBu')}</TableHead>
-                <TableHead>{t('pages.dashboardTemplates.columnDeployStatus')}</TableHead>
-                <TableHead>{t('pages.dashboardTemplates.columnDeployedVersion')}</TableHead>
-                <TableHead>{t('pages.dashboardTemplates.columnDeployedAt')}</TableHead>
+                <TableHead className="@[60rem]:w-px">{t('pages.dashboardTemplates.columnBu')}</TableHead>
+                <TableHead className="@[60rem]:w-px @[60rem]:min-w-[12rem]">{t('pages.dashboardTemplates.columnDeployStatus')}</TableHead>
+                <TableHead className="@[60rem]:w-px">{t('pages.dashboardTemplates.columnDeployedVersion')}</TableHead>
+                <TableHead className="@[60rem]:w-px">{t('pages.dashboardTemplates.columnDeployedAt')}</TableHead>
                 <TableHead>{t('pages.dashboardTemplates.columnCustomizedAt')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -283,7 +287,7 @@ export default function DeployPanel() {
                         disabled={running}
                       />
                     </TableCell>
-                    <TableCell>{bu.name} <span className="font-mono text-xs text-muted-foreground">{bu.code}</span></TableCell>
+                    <TableCell className="@[60rem]:whitespace-nowrap">{bu.name} <span className="font-mono text-xs text-muted-foreground">{bu.code}</span></TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Badge variant={DEPLOY_BADGE[s]}>{t(STATUS_LABEL_KEY[s])}</Badge>
@@ -301,14 +305,15 @@ export default function DeployPanel() {
                         <p role="alert" className="text-xs text-destructive-ink">{row.outcome.message}</p>
                       )}
                     </TableCell>
-                    <TableCell>{row?.status?.deployed_version ?? '—'}</TableCell>
-                    <TableCell>{formatAt(row?.status?.deployed_at)}</TableCell>
+                    <TableCell className="@[60rem]:whitespace-nowrap">{row?.status?.deployed_version ?? '—'}</TableCell>
+                    <TableCell className="@[60rem]:whitespace-nowrap">{formatAt(row?.status?.deployed_at)}</TableCell>
                     <TableCell>{formatAt(row?.status?.customized_at)}</TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
