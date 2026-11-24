@@ -38,6 +38,7 @@ import { useI18n } from '../hooks/useI18n';
 import type { TKey } from '../i18n/types';
 import type { News, NewsStatus, PaginateParams } from '../types';
 import type { ColumnDef } from '@tanstack/react-table';
+import { hugColumns } from '../utils/hugColumns';
 import { readStoredPerpage } from '../utils/pageRange';
 
 const getStoredJSON = <T,>(key: string, fallback: T): T => {
@@ -386,7 +387,6 @@ const NewsManagement: React.FC = () => {
     {
       accessorKey: 'status',
       header: t('common.status.label'),
-      meta: { headerClassName: 'w-32', cellClassName: 'w-32' },
       cell: ({ row }) => (
         <Badge variant={statusVariant(row.original.status)}>
           {statusLabel(row.original.status || 'draft')}
@@ -419,6 +419,9 @@ const NewsManagement: React.FC = () => {
     {
       id: 'tags',
       header: t('pages.news.tags'),
+      // ชิป flex-wrap ไม่โดน white-space — ให้ความกว้างตอนกล่องกว้าง ไม่งั้น hugColumns บีบเหลือชิปละบรรทัด
+      // 8rem ไม่ใช่ 12rem: ข่าวส่วนใหญ่ไม่มีแท็ก คอลัมน์ 192px ที่มีแต่ "-" คือช่องว่างกลางแถว
+      meta: { headerClassName: '@4xl:min-w-[8rem]' },
       accessorFn: (row) => row.tags?.length ?? 0,
       cell: ({ row }) => {
         const tags = row.original.tags ?? [];
@@ -489,6 +492,9 @@ const NewsManagement: React.FC = () => {
       ),
     },
   ], [navigate, handleDelete, t, statusLabel, activityTrail]);
+  // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา คอลัมน์สุดท้าย (Updated) รับที่ว่างที่เหลือ — ดู utils/hugColumns
+  // ไม่ตัดบรรทัดเมื่อกล่อง ≥ 896px (ตารางนี้กว้าง ~850px เมื่อไม่ตัดบรรทัด)
+  const huggedColumns = useMemo(() => hugColumns(columns, { nowrapClass: '@4xl:whitespace-nowrap' }), [columns]);
 
   const bulkAction = BULK_ACTIONS[bulkMode];
   const BulkActionIcon = bulkAction.icon;
@@ -677,7 +683,7 @@ const NewsManagement: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <div className="relative">
+                <div className="relative @container">
                 {loading && newsItems.length === 0 ? (
                   <TableSkeleton columns={canSelect ? 9 : 8} rows={paginate.perpage || 5} />
                 ) : (
@@ -688,7 +694,7 @@ const NewsManagement: React.FC = () => {
                       </div>
                     )}
                     <DataTable
-                      columns={columns}
+                      columns={huggedColumns}
                       data={newsItems}
                       serverSide
                       tableLayout="auto"
