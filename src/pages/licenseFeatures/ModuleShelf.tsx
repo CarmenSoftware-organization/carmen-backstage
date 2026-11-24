@@ -125,13 +125,19 @@ export const ModuleShelf: React.FC<ModuleShelfProps> = ({
                   savingId === row.id && 'opacity-60',
                 )}
               >
+                {/* ชื่อกับ key ตัดขึ้นบรรทัดใหม่ ไม่ตัดท้าย — ชั้นกว้าง ~490px ที่ 1366/1920 และปุ่มสถานะ
+                    + จำนวน BU กินไป ~250px · truncate เดิมซ่อนท้าย key 82 จาก 112 แถว ซึ่ง key คือ
+                    ตัวระบุที่ admin ต้องอ่านให้ครบ · คำอธิบายยังตัดท้ายได้ (title ให้อ่านเต็ม) */}
                 <div className="min-w-0 @md:flex-1">
-                  <p className="truncate text-sm">{row.label}</p>
-                  <p className="truncate font-mono text-[10px] text-muted-foreground sm:text-xs">
-                    {row.key}
+                  <p className="text-sm [overflow-wrap:anywhere]">{row.label}</p>
+                  <p className="font-mono text-[10px] text-muted-foreground [overflow-wrap:anywhere] sm:text-xs">
+                    {/* <wbr> หลัง . และ _ — ให้ key ตัดบรรทัดที่รอยต่อของคำก่อน (anywhere เป็นแค่ทางสุดท้าย) */}
+                    {row.key.split(/(?<=[._])/).map((part, i) => (
+                      <React.Fragment key={i}>{i > 0 && <wbr />}{part}</React.Fragment>
+                    ))}
                   </p>
                   {informativeDescription(row, moduleKey) && (
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground" title={row.description ?? undefined}>
                       {row.description}
                     </p>
                   )}
