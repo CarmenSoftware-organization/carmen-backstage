@@ -169,7 +169,9 @@ const CustomerManagement: React.FC = () => {
     {
       accessorKey: 'ar_number',
       header: t('pages.customers.columnArNumber'),
-      meta: { card: 'title' },
+      // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา (w-px) — tableLayout auto เดิมกระจายที่ว่างให้ทุกคอลัมน์จน
+      // ค่าห่างกันหลายร้อย px บนจอกว้าง; ที่ว่างที่เหลือให้คอลัมน์ข้อมูลสุดท้าย (Updated) รับ
+      meta: { headerClassName: 'w-px whitespace-nowrap pr-6', cellClassName: 'pr-6 whitespace-nowrap', card: 'title' },
       cell: ({ row }) => (
         <Link
           to={`/customers/${row.original.id}/edit`}
@@ -182,11 +184,16 @@ const CustomerManagement: React.FC = () => {
     {
       accessorKey: 'company_name',
       header: t('pages.customers.columnCompany'),
-      cell: ({ row }) => row.original.company_name || <span className="text-muted-foreground">-</span>,
+      // w-px + min-w: ชื่อยาวตัดท้ายด้วย truncate (title ให้อ่านเต็ม) แทนการดันตารางให้กว้าง
+      meta: { headerClassName: 'w-px min-w-[12rem] pr-6', cellClassName: 'pr-6' },
+      cell: ({ row }) => row.original.company_name
+        ? <span className="block truncate" title={row.original.company_name}>{row.original.company_name}</span>
+        : <span className="text-muted-foreground">-</span>,
     },
     {
       accessorKey: 'tax_no',
       header: t('pages.customers.columnTaxNo'),
+      meta: { headerClassName: 'w-px whitespace-nowrap pr-6', cellClassName: 'pr-6 whitespace-nowrap' },
       cell: ({ row }) => row.original.tax_no
         ? <span className="font-mono text-xs">{row.original.tax_no}</span>
         : <span className="text-muted-foreground">-</span>,
@@ -194,7 +201,7 @@ const CustomerManagement: React.FC = () => {
     {
       accessorKey: 'status',
       header: t('common.status.label'),
-      meta: { card: 'badge' },
+      meta: { headerClassName: 'w-px whitespace-nowrap pr-6', cellClassName: 'pr-6', card: 'badge' },
       cell: ({ row }) => (
         <Badge variant={row.original.status === 'active' ? 'success' : 'secondary'}>
           {row.original.status === 'active' ? t('common.status.active') : t('common.status.inactive')}
@@ -207,9 +214,14 @@ const CustomerManagement: React.FC = () => {
       accessorFn: (row: Customer) => row.bu_count ?? 0,
       header: t('pages.customers.columnBuCount'),
       enableSorting: false,
+      meta: { headerClassName: 'w-px whitespace-nowrap pr-6', cellClassName: 'pr-6' },
       cell: ({ row }) => <span className="tabular-nums">{row.original.bu_count ?? 0}</span>,
     },
-    ...auditColumns<Customer>({ t }),
+    // Created กว้างเท่าเนื้อหา; Updated (คอลัมน์ข้อมูลสุดท้าย) ไม่ตรึงความกว้างเพื่อรับที่ว่างที่เหลือ
+    ...auditColumns<Customer>({ t }).map((c, i, arr) => (i === arr.length - 1 ? c : {
+      ...c,
+      meta: { ...c.meta, headerClassName: 'w-px whitespace-nowrap pr-6', cellClassName: 'pr-6' },
+    })),
     {
       id: 'actions',
       header: '',
@@ -324,6 +336,7 @@ const CustomerManagement: React.FC = () => {
                       data={items}
                       serverSide
                       tableLayout="auto"
+                      mobileBreakpoint="(min-width: 1280px)"
                       totalRows={totalRows}
                       page={paginate.page}
                       perpage={paginate.perpage}
