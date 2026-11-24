@@ -198,13 +198,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         {showLabel && <span className="truncate">{t(item.labelKey)}</span>}
         {count > 0 &&
           (showLabel ? (
-            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px]" aria-label={String(count)}>
+            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px] font-semibold tabular-nums" aria-label={String(count)}>
               {count > 99 ? '99+' : count}
             </Badge>
           ) : (
             <span
               aria-label={String(count)}
-              className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
+              className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none tabular-nums text-primary-foreground"
             >
               {count > 99 ? '99+' : count}
             </span>
@@ -339,8 +339,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Mobile Sheet */}
       <Sheet open={isMobileOpen} onOpenChange={onMobileOpenChange}>
-        <SheetContent side="left" className="w-72 p-0">
-          <SheetHeader className="h-16 flex-row items-center border-b border-border px-4 space-y-0">
+        <SheetContent side="left" className="flex w-72 flex-col p-0">
+          <SheetHeader className="h-16 shrink-0 flex-row items-center border-b border-border px-4 space-y-0">
             <SheetTitle asChild>
               <div className={cn('flex min-w-0 items-center gap-3 group', isProduct && 'mx-auto')}>
                 {isProduct ? (
@@ -367,7 +367,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         />
                       }
                     />
-                    <span className="truncate text-xl font-bold text-foreground">
+                    <span className="truncate text-xl font-bold text-foreground" title={brand.name}>
                       {brand.name}
                     </span>
                   </>
@@ -377,11 +377,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             <SheetDescription className="sr-only">{t('sidebar.mainNavigation')}</SheetDescription>
           </SheetHeader>
           {headerSlot && (
-            <div className="border-b border-border px-4 py-3">
+            <div className="shrink-0 border-b border-border px-4 py-3">
               {headerSlot}
             </div>
           )}
-          <nav className="py-2 px-2">
+          <nav className="flex-1 overflow-y-auto overscroll-contain px-2 py-2">
             {navGroups.map((g, gi) => (
               <div key={g.labelKey ?? `__top_${gi}`} className={gi > 0 ? 'mt-4' : ''}>
                 {g.labelKey && (
@@ -415,7 +415,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                           <Icon className={cn('h-4 w-4 shrink-0 transition-transform duration-200', !active && 'group-hover:scale-110')} />
                           <span>{t(row.labelKey)}</span>
                           {count > 0 && (
-                            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px]" aria-label={String(count)}>
+                            <Badge variant="default" className="ml-auto h-5 shrink-0 px-1.5 text-[10px] font-semibold tabular-nums" aria-label={String(count)}>
                               {count > 99 ? '99+' : count}
                             </Badge>
                           )}

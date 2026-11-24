@@ -309,7 +309,7 @@ export function BuSwitcher({
             aria-controls={listId}
             aria-activedescendant={flat[active] ? optId(active) : undefined}
             aria-label={t('common.state.searchBusinessUnitsAria')}
-            className="placeholder:text-muted-foreground flex-1 bg-transparent text-[15px] outline-hidden"
+            className="placeholder:text-muted-foreground flex-1 bg-transparent text-base outline-hidden"
             placeholder={t('switcher.searchBuPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -346,7 +346,7 @@ export function BuSwitcher({
             <div key={section.key}>
               {section.label !== null && (
                 <div className="text-muted-foreground flex items-center gap-1.5 px-2.5 pb-1 pt-2.5 text-[11px] font-bold uppercase tracking-wider">
-                  {section.recent && <Star className="size-3 fill-[hsl(var(--warning))] text-[hsl(var(--warning))]" />}
+                  {section.recent && <Star className="size-3 fill-current" aria-hidden="true" />}
                   {section.label}
                 </div>
               )}
@@ -387,23 +387,23 @@ export function BuSwitcher({
                       </span>
                     )}
                     <span
-                      className="grid size-6 shrink-0 place-items-center rounded-md text-[9px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]"
+                      className="grid size-6 shrink-0 place-items-center rounded-md text-[10px] font-bold text-white ring-1 ring-inset ring-white/20"
                       style={{ background: buHueColor(bu.code) }}
                       aria-hidden="true"
                     >
                       {buInitials(bu.code)}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-semibold">{bu.name}</span>
+                      <span className="block truncate text-sm font-semibold">{bu.name}</span>
                       <span className="text-muted-foreground block truncate font-mono text-xs">{bu.code}</span>
                     </span>
                     {bu.cluster_name && (
-                      <span className="text-muted-foreground hidden shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] sm:inline">
+                      <span className="text-muted-foreground hidden shrink-0 max-w-40 truncate rounded border px-1.5 py-0.5 text-xs sm:inline">
                         {bu.cluster_name}
                       </span>
                     )}
                     {isCurrent && (
-                      <Badge variant="success" className="shrink-0 px-1.5 py-0.5 text-[10px] font-mono">
+                      <Badge variant="success" className="shrink-0 px-1.5 py-0.5">
                         {t('switcher.connected')}
                       </Badge>
                     )}
