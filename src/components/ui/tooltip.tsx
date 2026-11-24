@@ -13,23 +13,39 @@ export interface TooltipProps {
   delayDuration?: number;
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ children, content, side = 'top', delayDuration = 200 }) => (
-  <TooltipPrimitive.Provider delayDuration={delayDuration}>
-    <TooltipPrimitive.Root>
+// One shared Provider lets Radix skip the open delay when the pointer moves from one
+// tooltip to the next (the collapsed sidebar's icon rail). A tooltip rendered outside
+// <TooltipProvider> (tests, isolated trees) still wraps itself so it never throws.
+const SharedProvider = React.createContext(false);
+
+const TooltipProvider: React.FC<{ children: React.ReactNode; delayDuration?: number }> = ({
+  children,
+  delayDuration = 200,
+}) => (
+  <TooltipPrimitive.Provider delayDuration={delayDuration} skipDelayDuration={300}>
+    <SharedProvider.Provider value={true}>{children}</SharedProvider.Provider>
+  </TooltipPrimitive.Provider>
+);
+
+const Tooltip: React.FC<TooltipProps> = ({ children, content, side = 'top', delayDuration = 200 }) => {
+  const shared = React.useContext(SharedProvider);
+  const root = (
+    <TooltipPrimitive.Root delayDuration={delayDuration}>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
           side={side}
           sideOffset={4}
           className={cn(
-            'z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2'
+            'z-50 origin-(--radix-tooltip-content-transform-origin) overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95 duration-150 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-100 data-[state=instant-open]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2'
           )}
         >
           {content}
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>
-  </TooltipPrimitive.Provider>
-);
+  );
+  return shared ? root : <TooltipPrimitive.Provider delayDuration={delayDuration}>{root}</TooltipPrimitive.Provider>;
+};
 
-export { Tooltip };
+export { Tooltip, TooltipProvider };
