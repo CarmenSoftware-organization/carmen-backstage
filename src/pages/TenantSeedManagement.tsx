@@ -370,6 +370,9 @@ const TenantSeedManagement: React.FC = () => {
       header: t('common.field.name'),
       // ค้นหาด้วยรหัสได้เหมือนเดิม: รหัสอยู่ในเซลล์นี้ และ global filter อ่านจาก accessorFn
       accessorFn: (row) => `${row.name} ${row.code}`,
+      // คอลัมน์ข้อมูลกว้างเท่าเนื้อหา (w-px) — เดิม Name ไม่มีความกว้างจึงกินที่ว่างทั้งหมด จน Status
+      // ไปอยู่ห่างจากชื่อ BU ~700px; ที่เหลือให้ Missing sets (คอลัมน์ข้อมูลสุดท้าย) รับ
+      meta: { headerClassName: 'w-px pr-10', cellClassName: 'w-px pr-10' },
       cell: ({ row }) => (
         <div className="min-w-0">
           <Link to={`/business-units/${row.original.id}/edit`} className="block whitespace-nowrap text-primary hover:underline">
@@ -385,7 +388,8 @@ const TenantSeedManagement: React.FC = () => {
       // accessorFn only enables sorting — keep ranks out of the global search.
       accessorFn: (row) => SEED_STATUS_RANK[seedRowStatusOf(row, rowState[row.id])],
       enableGlobalFilter: false,
-      meta: { headerClassName: 'w-36', cellClassName: 'w-36' },
+      // w-px + min-w: ข้อความ error/progress เป็น break-all — w-px เปล่า ๆ จะบีบคอลัมน์เหลือแค่ความกว้างป้าย
+      meta: { headerClassName: 'w-px pr-10', cellClassName: 'w-px min-w-44 pr-10' },
       cell: ({ row }) => {
         const bu = row.original;
         const rs = rowState[bu.id];
@@ -409,6 +413,18 @@ const TenantSeedManagement: React.FC = () => {
         );
       },
     },
+    // Last Checked มาก่อน Missing sets: คอลัมน์ที่รับที่ว่างต้องเป็นคอลัมน์ข้อมูลสุดท้าย ไม่งั้นช่องว่าง
+    // แค่ย้ายไปอยู่หน้า Last Checked (บทเรียนเดียวกับ /tenant-migrations)
+    {
+      id: 'last_checked',
+      header: t('pages.tenantSeed.columnLastChecked'),
+      accessorFn: (row) => rowState[row.id]?.lastChecked ?? '',
+      enableGlobalFilter: false,
+      meta: { headerClassName: 'w-px whitespace-nowrap pr-10', cellClassName: 'w-px pr-10' },
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-xs text-muted-foreground">{rowState[row.original.id]?.lastChecked ?? '-'}</span>
+      ),
+    },
     {
       id: 'sets',
       header: t('pages.tenantSeed.columnSets'),
@@ -428,16 +444,6 @@ const TenantSeedManagement: React.FC = () => {
           </div>
         );
       },
-    },
-    {
-      id: 'last_checked',
-      header: t('pages.tenantSeed.columnLastChecked'),
-      accessorFn: (row) => rowState[row.id]?.lastChecked ?? '',
-      enableGlobalFilter: false,
-      meta: { headerClassName: 'w-28', cellClassName: 'w-28' },
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap text-xs text-muted-foreground">{rowState[row.original.id]?.lastChecked ?? '-'}</span>
-      ),
     },
     {
       id: 'actions',
