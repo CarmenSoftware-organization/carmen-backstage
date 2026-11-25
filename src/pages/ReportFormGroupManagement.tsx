@@ -188,6 +188,8 @@ const ReportFormGroupManagement: React.FC = () => {
     try {
       await reportTemplateService.update(tpl.id, {
         is_active: !tpl.is_active,
+        // เปิด/ปิดฟอร์มไม่เปลี่ยนหน้าตาใบพิมพ์ — คงเลข revision ไว้
+        revision_bump: 'none',
         ...(version != null ? { doc_version: version } : {}),
       });
       toast.success(
